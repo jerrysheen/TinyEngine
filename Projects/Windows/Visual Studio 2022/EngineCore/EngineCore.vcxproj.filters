@@ -4,12 +4,18 @@
     <Filter Include="Core">
       <UniqueIdentifier>{2EB4837C-1AEB-840D-C3D7-6A10AFED000F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Managers">
+      <UniqueIdentifier>{B34CFEBD-9F19-59C9-C832-4771B45E8E57}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\Runtime\Core\Game.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Entry.cpp" />
+    <ClCompile Include="..\..\..\..\Runtime\Managers\SceneManager.cpp">
+      <Filter>Managers</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\PreCompiledHeader.cpp" />
   </ItemGroup>
 </Project>

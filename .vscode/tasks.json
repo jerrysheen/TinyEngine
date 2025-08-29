@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "MakeFile", // 第一个任务：运行脚本A
+      "type": "shell",
+      "command": "./Win-GenProjects.bat",
+      //"args": ["A.py"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Build And Run", // 第二个任务：运行脚本B
+      "type": "shell",
+      "command": "./WinBuildAndRun.bat",
+      //"args": ["B.py"],
+      "problemMatcher": [],
+      "dependsOn": ["Run Script A"] // 指定此任务依赖于"Run Script A"，确保A先于B执行
+    },
+    {
+      "label": "Run A then B", // 组合任务，方便一键触发
+      "type": "shell",
+      "command": "echo 'Running A and then B'",
+      "problemMatcher": [],
+      "dependsOn": ["MakeFile", "Build And Run"], // 依赖前两个任务
+      "group": {
+        "kind": "build",
+        "isDefault": true // 可设置为默认生成任务，这样就能用快捷键Ctrl+Shift+B触发
+      }
+    }
+  ]
+}
