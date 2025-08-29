@@ -7,6 +7,12 @@
     <Filter Include="Managers">
       <UniqueIdentifier>{B34CFEBD-9F19-59C9-C832-4771B45E8E57}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Platforms">
+      <UniqueIdentifier>{DDACA145-4917-56BC-9255-0762FEFE3311}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platforms\Windows">
+      <UniqueIdentifier>{17E40808-83FA-069E-CC71-92BF38C7D725}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\Runtime\Core\Game.cpp">
@@ -15,6 +21,12 @@
     <ClCompile Include="..\..\..\..\Runtime\Entry.cpp" />
     <ClCompile Include="..\..\..\..\Runtime\Managers\SceneManager.cpp">
       <Filter>Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Managers\WindowManager.cpp">
+      <Filter>Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Platforms\Windows\WindowManagerWindows.cpp">
+      <Filter>Platforms\Windows</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\PreCompiledHeader.cpp" />
   </ItemGroup>

@@ -22,7 +22,7 @@ namespace EngineCore
     {
         std::cout << "Update Game" << std::endl;
         SceneManager::GetInstance().Update();
-
+        WindowManager::GetInstance().Update();
     }
 
     void Game::Render()
