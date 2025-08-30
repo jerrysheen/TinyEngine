@@ -9,19 +9,16 @@ namespace EngineCore
     {
     public:
         static std::unique_ptr<T> s_Instance;
+        // 一定被提前创建，Create在Get之前。
         static T& GetInstance()
         {
-            if(!s_Instance)
-            {
-                s_Instance = std::make_unique<T>();
-            }
             return *s_Instance;
         }
 
         // 为什么析构函数需要是虚的，需要每个子类去实现自己的析构，防止内存泄漏
         virtual ~Manager() = default;
-        virtual void Update() = 0;
-        virtual void Create() = 0;
+        static void Update();
+        static void Create();
     protected:
         Manager() = default;
         Manager(const Manager&) = delete;

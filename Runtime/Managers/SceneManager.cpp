@@ -17,8 +17,8 @@ namespace EngineCore
         std::cout << "SceManager Update" << std:: endl;
     }
 
-    void SceneManager::Create()
+    void SceneManager:: Create()
     {
-
+        SceneManager::s_Instance = std::make_unique<SceneManager>();
     }
 }

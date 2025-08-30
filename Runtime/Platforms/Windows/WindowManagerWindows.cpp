@@ -9,9 +9,46 @@ namespace EngineCore
 		return static_cast<WindowManagerWindows*>(&WindowManager::GetInstance())->WindowProcedure(hWnd, msg, wParam, lParam);
 	}
 
-    void WindowManagerWindows::Create()
+    WindowManagerWindows::WindowManagerWindows()
     {
-        InitializeWindowsWindow();
+        SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
+		WNDCLASSEXW wndClass = {};
+		wndClass.cbSize = sizeof(wndClass);
+		wndClass.style = CS_HREDRAW | CS_VREDRAW;
+		wndClass.lpfnWndProc = WndProc;
+		wndClass.cbClsExtra = 0;
+		wndClass.cbWndExtra = 0;
+		wndClass.hInstance = GetModuleHandle(NULL);
+		wndClass.hIcon = LoadIcon(0, IDI_APPLICATION);
+		wndClass.hCursor = LoadCursor(0, IDC_ARROW);
+		wndClass.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
+		wndClass.lpszMenuName = 0;
+		wndClass.lpszClassName = L"MainWnd";
+		wndClass.hIconSm = LoadIcon(0, IDI_APPLICATION);
+
+		RegisterClassExW(&wndClass);
+
+		// mWindowWidth = ProjectSetting::srcWidth;
+		// mWindowHeight = ProjectSetting::srcHeight;
+        mWindowWidth = 1920;
+        mWindowHeight = 1080;
+
+		// CreateWindowW传入的窗口大小会包括标题栏和边框，需要根据客户区大小来计算实际窗口大小
+		RECT rc = { 0, 0, static_cast<LONG>(mWindowWidth), static_cast<LONG>(mWindowHeight) };
+		AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
+		int width = static_cast<int>(rc.right - rc.left);
+		int height = static_cast<int>(rc.bottom - rc.top);
+
+		mWindow = CreateWindowW(wndClass.lpszClassName, L"ZXEngine <Direct3D 12>", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+			width, height, NULL, NULL, wndClass.hInstance, NULL);
+
+    }
+
+    void WindowManagerWindows::Show()
+    {
+        ShowWindow(mWindow, SW_SHOW);
+		UpdateWindow(mWindow);
     }
 
     void WindowManagerWindows::Update()
@@ -47,45 +84,6 @@ namespace EngineCore
 		return false;
     }
 
-
-    void WindowManagerWindows::InitializeWindowsWindow()
-    {
-
-        SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-
-		WNDCLASSEXW wndClass = {};
-		wndClass.cbSize = sizeof(wndClass);
-		wndClass.style = CS_HREDRAW | CS_VREDRAW;
-		wndClass.lpfnWndProc = WndProc;
-		wndClass.cbClsExtra = 0;
-		wndClass.cbWndExtra = 0;
-		wndClass.hInstance = GetModuleHandle(NULL);
-		wndClass.hIcon = LoadIcon(0, IDI_APPLICATION);
-		wndClass.hCursor = LoadCursor(0, IDC_ARROW);
-		wndClass.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
-		wndClass.lpszMenuName = 0;
-		wndClass.lpszClassName = L"MainWnd";
-		wndClass.hIconSm = LoadIcon(0, IDI_APPLICATION);
-
-		RegisterClassExW(&wndClass);
-
-		// mWindowWidth = ProjectSetting::srcWidth;
-		// mWindowHeight = ProjectSetting::srcHeight;
-        mWindowWidth = 1920;
-        mWindowHeight = 1080;
-
-		// CreateWindowW传入的窗口大小会包括标题栏和边框，需要根据客户区大小来计算实际窗口大小
-		RECT rc = { 0, 0, static_cast<LONG>(mWindowWidth), static_cast<LONG>(mWindowHeight) };
-		AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
-		int width = static_cast<int>(rc.right - rc.left);
-		int height = static_cast<int>(rc.bottom - rc.top);
-
-		mWindow = CreateWindowW(wndClass.lpszClassName, L"ZXEngine <Direct3D 12>", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
-			width, height, NULL, NULL, wndClass.hInstance, NULL);
-
-        ShowWindow(mWindow, SW_SHOW);
-		UpdateWindow(mWindow);
-    }
 
     LRESULT  WindowManagerWindows::WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {

@@ -11,8 +11,8 @@ namespace EngineCore
     public:
         void LoadScene();
         void UnloadScene();
-        virtual void Update() override;
-        virtual void Create() override;
+        static void Update();
+        static void Create();
     public:
         SceneManager();
         ~SceneManager();

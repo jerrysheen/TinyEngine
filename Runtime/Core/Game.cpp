@@ -7,8 +7,8 @@ namespace EngineCore
     void Game::Launch()
     {
         // InitManagers Here.
-        SceneManager::GetInstance();
-        WindowManager::GetInstance();
+        SceneManager::Create();
+        WindowManager::Create();
         std::cout << "Launch Game" << std::endl;
         // init Manager...
         while(!WindowManager::GetInstance().WindowShouldClose())
