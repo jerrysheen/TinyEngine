@@ -174,7 +174,7 @@ namespace EngineCore
 
     void WindowManagerWindows::OnResize()
     {
-        std::cout << "WindowManagerWindows::OnResize" << std::endl;
+        //std::cout << "WindowManagerWindows::OnResize" << std::endl;
 		mResized = false;
     }
 

@@ -8,9 +8,8 @@ namespace EngineCore
     {
         // InitManagers Here.
         SceneManager::Create();
-        WindowManager::Create();
         RenderEngine::Create();
-        std::cout << "Launch Game" << std::endl;
+        //std::cout << "Launch Game" << std::endl;
         // init Manager...
         while(!WindowManager::GetInstance().WindowShouldClose())
         {
@@ -22,14 +21,14 @@ namespace EngineCore
 
     void Game::Update()
     {
-        std::cout << "Update Game" << std::endl;
+        //std::cout << "Update Game" << std::endl;
         SceneManager::GetInstance().Update();
-        WindowManager::GetInstance().Update();
+        RenderEngine::GetInstance().Update();
     }
 
     void Game::Render()
     {
-        std::cout << "Render Scene" << std::endl;
+        //std::cout << "Render Scene" << std::endl;
         RenderEngine::GetInstance().BeginRender();
         RenderEngine::GetInstance().Render();
         RenderEngine::GetInstance().EndRender();

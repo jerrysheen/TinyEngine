@@ -10,6 +10,7 @@ namespace EngineCore
         static void Create();
         virtual bool WindowShouldClose() = 0;
         virtual void OnResize() = 0;
+        virtual void* GetWindow() = 0;
         ~WindowManager() override {};
         WindowManager(){};
     protected:

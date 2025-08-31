@@ -1,6 +1,7 @@
 #include "PreCompiledHeader.h"
 #include "RenderEngine.h"
 #include "RenderAPI.h"
+#include "Managers/WindowManager.h"
 
 namespace EngineCore
 {
@@ -9,12 +10,12 @@ namespace EngineCore
     void RenderEngine::Create()
     {
         s_Instance = std::make_unique<RenderEngine>();
+        WindowManager::Create();
         RenderAPI::Create();
     }
 
     void RenderEngine::Update()
     {
-
     }    
     
     void RenderEngine::BeginRender()
@@ -24,11 +25,11 @@ namespace EngineCore
     
     void RenderEngine::EndRender()
     {
-
+        RenderAPI::GetInstance().EndFrame();
     }    
     
     void RenderEngine::Render()
     {
-
+        RenderAPI::GetInstance().Render();
     }
 }

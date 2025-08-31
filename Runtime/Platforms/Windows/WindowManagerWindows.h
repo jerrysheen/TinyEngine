@@ -17,7 +17,7 @@ namespace EngineCore
         virtual bool WindowShouldClose() override;
         virtual void OnResize() override;
         WindowManagerWindows();
-        
+        virtual void* GetWindow() override {return mWindow;}
         LRESULT WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
         void Show();
     private:

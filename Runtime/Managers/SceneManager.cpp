@@ -7,14 +7,14 @@ namespace EngineCore
 
     SceneManager::SceneManager()
     {
-        std::cout << "Init Scene Manager!!" << std::endl;
+        //std::cout << "Init Scene Manager!!" << std::endl;
     }
 
     SceneManager::~SceneManager(){};
 
     void SceneManager::Update()
     {
-        std::cout << "SceManager Update" << std:: endl;
+        //std::cout << "SceManager Update" << std:: endl;
     }
 
     void SceneManager:: Create()
