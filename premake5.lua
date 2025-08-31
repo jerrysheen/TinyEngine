@@ -80,10 +80,15 @@ project "EngineCore"
 		-- "ThirdParty/Runtime/Core/glm/glm/**.inl",
 	}
 
+    filter "files:Runtime/External/**"
+        flags { "NoPCH" }
+    filter {}  -- 重置filter
+	
 	includedirs
 	{
 		"%{prj.name}/src",
 		"Runtime/",
+		"Runtime/External/Imgui",
 		-- "ThirdParty/Runtime/Core/spdlog/include",
 		-- "%{IncludeDir.GLFW}",
 		-- "%{IncludeDir.Glad}",
