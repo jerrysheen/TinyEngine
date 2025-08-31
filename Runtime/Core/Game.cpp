@@ -9,6 +9,7 @@ namespace EngineCore
         // InitManagers Here.
         SceneManager::Create();
         WindowManager::Create();
+        RenderEngine::Create();
         std::cout << "Launch Game" << std::endl;
         // init Manager...
         while(!WindowManager::GetInstance().WindowShouldClose())
@@ -29,6 +30,10 @@ namespace EngineCore
     void Game::Render()
     {
         std::cout << "Render Scene" << std::endl;
+        RenderEngine::GetInstance().BeginRender();
+        RenderEngine::GetInstance().Render();
+        RenderEngine::GetInstance().EndRender();
+
     }
 
 }
