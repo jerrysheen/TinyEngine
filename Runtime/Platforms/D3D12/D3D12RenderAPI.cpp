@@ -61,7 +61,7 @@ namespace EngineCore
     void D3D12RenderAPI::InitRenderTarget()
     {
         // Flush before changing any resources.
-	    FlushCommandQueue();
+	    WaitForRenderFinish();
         ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
 
         // Release the previous resources we will be recreating.
@@ -137,7 +137,7 @@ namespace EngineCore
         mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
 
         // Wait until resize is complete.
-        FlushCommandQueue();
+        WaitForRenderFinish();
 
         // Update the viewport transform to cover the client area.
         mScreenViewport.TopLeftX = 0;
@@ -236,7 +236,7 @@ namespace EngineCore
 
     void D3D12RenderAPI::Render()
     {
-        FlushCommandQueue();
+        WaitForRenderFinish();
         // Reuse the memory associated with command recording.
         // We can only reset when the associated command lists have finished execution on the GPU.
         ThrowIfFailed(mDirectCmdListAlloc->Reset());
@@ -285,33 +285,39 @@ namespace EngineCore
         //std::cout << "EndFrame" << std::endl;
         ThrowIfFailed(mSwapChain->Present(0, 0));
         mCurrBackBuffer = (mCurrBackBuffer + 1) % SwapChainBufferCount;
-        FlushCommandQueue();
+        WaitForRenderFinish();
 
     }
 
+    void D3D12RenderAPI::WaitForRenderFinish()
+	{
+		SignalFence();
+		WaitForFence();
+	}
 
-    void D3D12RenderAPI::FlushCommandQueue()
-    {
-        // Advance the fence value to mark commands up to this fence point.
-        mCurrentFence++;
+    void D3D12RenderAPI::SignalFence()
+	{
+		mCurrentFence++;
+		ThrowIfFailed(mCommandQueue->Signal(mFence.Get(), mCurrentFence));
+	}
 
-        // Add an instruction to the command queue to set a new fence point.  Because we 
-        // are on the GPU timeline, the new fence point won't be set until the GPU finishes
-        // processing all the commands prior to this Signal().
-        ThrowIfFailed(mCommandQueue->Signal(mFence.Get(), mCurrentFence));
-
-        // Wait until the GPU has completed commands up to this fence point.
-        if(mFence->GetCompletedValue() < mCurrentFence)
-        {
-            HANDLE eventHandle = CreateEventEx(nullptr, false, false, EVENT_ALL_ACCESS);
-
-            // Fire event when GPU hits current fence.  
-            ThrowIfFailed(mFence->SetEventOnCompletion(mCurrentFence, eventHandle));
-
-            // Wait until the GPU hits current fence event is fired.
-            WaitForSingleObject(eventHandle, INFINITE);
-            CloseHandle(eventHandle);
-        }
-    }
+	void D3D12RenderAPI::WaitForFence()
+	{
+		if (mCurrentFence > 0 && mFence->GetCompletedValue() < mCurrentFence)
+		{
+			auto event = CreateEventEx(nullptr, NULL, NULL, EVENT_ALL_ACCESS);
+			if (event)
+			{
+				ThrowIfFailed(mFence->SetEventOnCompletion(mCurrentFence, event));
+				// �ȴ��¼�
+				WaitForSingleObject(event, INFINITE);
+				CloseHandle(event);
+			}
+			else
+			{
+				std::cout << "Create event failed !" << std::endl;
+			}
+		}
+	}
 
 } // namespace EngineCore

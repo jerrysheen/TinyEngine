@@ -24,16 +24,21 @@ namespace EngineCore
        
         D3D12RenderAPI();
         ~D3D12RenderAPI(){};
-    private:
-        bool InitDirect3D();
-        void InitFence();
-        void InitDescritorHeap();
-        void InitCommandObject();
-        void InitSwapChain();
-        void FlushCommandQueue();
-        void InitRenderTarget();
 
-        
+        Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;
+        UINT mRtvDescriptorSize = 0;
+        UINT mDsvDescriptorSize = 0;
+        UINT mCbvSrvUavDescriptorSize = 0;
+        const int MAX_FRAME_INFLIAGHT = 3;
+        DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+        UINT mCurrBackBuffer = 0;
+        static const int SwapChainBufferCount = 3;
+        Microsoft::WRL::ComPtr<ID3D12Resource> mSwapChainBuffer[SwapChainBufferCount];
+        Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
+
+        UINT64 mCurrentFence = 0;
+        Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
+
         D3D12_CPU_DESCRIPTOR_HANDLE D3D12RenderAPI::CurrentBackBufferView()const
         {
             return CD3DX12_CPU_DESCRIPTOR_HANDLE(
@@ -52,23 +57,31 @@ namespace EngineCore
             return mSwapChainBuffer[mCurrBackBuffer].Get();
         }
 
+        void SignalFence();
+        void WaitForFence();
+        void WaitForRenderFinish();
+    private:
+        bool InitDirect3D();
+        void InitFence();
+        void InitDescritorHeap();
+        void InitCommandObject();
+        void InitSwapChain();
+        void InitRenderTarget();
+
+
 
 
         Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
         Microsoft::WRL::ComPtr<IDXGIFactory4> mdxgiFactory;
-        Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;
         
-        Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
+
 
 
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDsvHeap;
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
 
-        UINT64 mCurrentFence = 0;
 
-        UINT mRtvDescriptorSize = 0;
-        UINT mDsvDescriptorSize = 0;
-        UINT mCbvSrvUavDescriptorSize = 0;
+
 
         // 屏幕后台缓冲区图像格式
 		DXGI_FORMAT mPresentBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -78,21 +91,16 @@ namespace EngineCore
 		UINT m4xMSAAQuality = 0;
 		UINT msaaSamplesCount = 4;
 
-        const int MAX_FRAME_INFLIAGHT = 3;
 
-        Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mDirectCmdListAlloc;
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
         
-        DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
         DXGI_FORMAT mDepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
         bool      m4xMsaaState = false;    // 4X MSAA enabled
         UINT      m4xMsaaQuality = 0;      // quality level of 4X MSAA
-        static const int SwapChainBufferCount = 3;
-        Microsoft::WRL::ComPtr<ID3D12Resource> mSwapChainBuffer[SwapChainBufferCount];
+        
         Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencilBuffer;
-        UINT mCurrBackBuffer = 0;
 
         D3D12_VIEWPORT mScreenViewport; 
         D3D12_RECT mScissorRect;
