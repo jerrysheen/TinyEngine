@@ -1,6 +1,9 @@
 #include "PreCompiledHeader.h"
 #include "WindowManagerWindows.h"
 #include <WindowsX.h>
+#include "imgui_impl_win32.h"
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace EngineCore
 {
@@ -87,9 +90,9 @@ namespace EngineCore
 
     LRESULT  WindowManagerWindows::WindowProcedure(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     {
-		// // 给ImGui传递Win32窗口消息
-		// if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
-		// 	return true;
+		 // 给ImGui传递Win32窗口消息
+		if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam))
+		 	return true;
 
 		switch (msg)
 		{

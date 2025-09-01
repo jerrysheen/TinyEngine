@@ -1,7 +1,6 @@
 #pragma once
 
 
-#define WINDOWS_EDITOR
 namespace EngineCore
 {
     class Game

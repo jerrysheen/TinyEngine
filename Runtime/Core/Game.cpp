@@ -2,6 +2,10 @@
 #include "Game.h"
 #include "EngineCore.h"
 
+#ifdef EDITOR
+#include "Windows/EditorGUIManager.h"
+#endif
+
 namespace EngineCore
 {
     void Game::Launch()
@@ -11,6 +15,9 @@ namespace EngineCore
         RenderEngine::Create();
         //std::cout << "Launch Game" << std::endl;
         // init Manager...
+        #ifdef EDITOR
+        EngineEditor::EditorGUIManager::Create();
+        #endif
         while(!WindowManager::GetInstance().WindowShouldClose())
         {
             Update();
@@ -24,13 +31,23 @@ namespace EngineCore
         //std::cout << "Update Game" << std::endl;
         SceneManager::GetInstance().Update();
         RenderEngine::GetInstance().Update();
+        #ifdef EDITOR
+        EngineEditor::EditorGUIManager::GetInstance().Update();
+        #endif
     }
 
     void Game::Render()
     {
         //std::cout << "Render Scene" << std::endl;
         RenderEngine::GetInstance().BeginRender();
+        #ifdef EDITOR
+        EngineEditor::EditorGUIManager::GetInstance().BeginFrame();
+        #endif
         RenderEngine::GetInstance().Render();
+        #ifdef EDITOR
+        EngineEditor::EditorGUIManager::GetInstance().Render();
+        EngineEditor::EditorGUIManager::GetInstance().EndFrame();
+        #endif
         RenderEngine::GetInstance().EndRender();
 
     }
