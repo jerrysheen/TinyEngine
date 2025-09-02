@@ -61,7 +61,7 @@ namespace EngineCore
     void D3D12RenderAPI::InitRenderTarget()
     {
         // Flush before changing any resources.
-	    WaitForRenderFinish();
+	    WaitForFence();
         ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
 
         // Release the previous resources we will be recreating.
@@ -273,7 +273,7 @@ namespace EngineCore
         mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
         
         // swap the back and front buffers
-
+        SignalFence();
 
         // Wait until frame commands are complete.  This waiting is inefficient and is
         // done for simplicity.  Later we will show how to organize our rendering code
@@ -283,9 +283,10 @@ namespace EngineCore
     void D3D12RenderAPI::EndFrame()
     {
         //std::cout << "EndFrame" << std::endl;
+        WaitForFence();
         ThrowIfFailed(mSwapChain->Present(0, 0));
         mCurrBackBuffer = (mCurrBackBuffer + 1) % SwapChainBufferCount;
-        WaitForRenderFinish();
+        //WaitForRenderFinish();
 
     }
 

@@ -104,8 +104,8 @@ namespace EngineCore
 
         D3D12_VIEWPORT mScreenViewport; 
         D3D12_RECT mScissorRect;
-        int mClientWidth = 800;
-        int mClientHeight = 600;
+        int mClientWidth = 1280;
+        int mClientHeight = 720;
     };
 
 }

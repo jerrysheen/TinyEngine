@@ -14,8 +14,8 @@ namespace EngineCore
 
     WindowManagerWindows::WindowManagerWindows()
     {
-        SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-
+        //SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+		
 		WNDCLASSEXW wndClass = {};
 		wndClass.cbSize = sizeof(wndClass);
 		wndClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -34,8 +34,8 @@ namespace EngineCore
 
 		// mWindowWidth = ProjectSetting::srcWidth;
 		// mWindowHeight = ProjectSetting::srcHeight;
-        mWindowWidth = 1920;
-        mWindowHeight = 1080;
+        mWindowWidth = 1280;
+        mWindowHeight = 760;
 
 		// CreateWindowW传入的窗口大小会包括标题栏和边框，需要根据客户区大小来计算实际窗口大小
 		RECT rc = { 0, 0, static_cast<LONG>(mWindowWidth), static_cast<LONG>(mWindowHeight) };
@@ -147,7 +147,13 @@ namespace EngineCore
 				}
 			}
 			return 0;
-
+		case WM_LBUTTONDOWN:
+		{
+			int x = GET_X_LPARAM(lParam);
+			int y = GET_Y_LPARAM(lParam);
+			std::cout << "Mouse click at: " << x << ", " << y << std::endl;
+			break;
+		}
 		// 用户在拖窗口边框
 		case WM_ENTERSIZEMOVE:
 			mAppPaused = true;

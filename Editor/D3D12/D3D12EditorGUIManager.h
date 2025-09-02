@@ -13,7 +13,22 @@ namespace EngineEditor
         virtual void EndFrame() override;
         virtual void Update() override;
         virtual void Render() override;
+        static void ApplyDpiScale(float scale)
+        {
+            // 1) 缩放 ImGui Style
+            ImGuiStyle& style = ImGui::GetStyle();
+            style.ScaleAllSizes(scale);
 
+            // 2) 重新构建字体（把像素大小乘上 scale）
+            ImGuiIO& io = ImGui::GetIO();
+            io.Fonts->Clear();
+            // 举例：原 16px 字体，按比例放大
+            io.Fonts->AddFontFromFileTTF("c:/Windows/Fonts/segoeui.ttf", 16.0f * scale);
+            io.Fonts->Build();
+
+            // 3) 如果你不想重建字体，也可以简单用全局缩放(体验略差)
+            // io.FontGlobalScale = scale; // 简易方案（字体不会变清晰度）
+        }
         D3D12EditorGUIManager();
         ~D3D12EditorGUIManager();
 	private:
@@ -28,5 +43,6 @@ namespace EngineEditor
 
 		void InitForDirectX12();
 		UINT GetNextAvailablePos();
+
     };
 }

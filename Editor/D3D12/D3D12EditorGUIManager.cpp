@@ -18,8 +18,14 @@ namespace EngineEditor
         std::cout << "Create Editor GUI" << std::endl;
         IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		ImGui::StyleColorsLight();
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+		// Setup Dear ImGui style
+		ImGui::StyleColorsDark();
         InitForDirectX12();
+
     }
     
     D3D12EditorGUIManager::~D3D12EditorGUIManager()
@@ -89,8 +95,13 @@ namespace EngineEditor
             ImGui::Text("Hello from another window!");
             if (ImGui::Button("Close Me"))
                 alwaystrue = false;
-            ImGui::End();
-        ImGui::Render();        
+        ImGui::End();
+		
+		ImGuiIO& io = ImGui::GetIO();
+		io.DisplaySize = ImVec2(1920, 1080);
+		// Rendering
+		
+		ImGui::Render();
     }
     
     

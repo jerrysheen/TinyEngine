@@ -1,33 +1,105 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Core">
-      <UniqueIdentifier>{2EB4837C-1AEB-840D-C3D7-6A10AFED000F}</UniqueIdentifier>
+    <Filter Include="Editor">
+      <UniqueIdentifier>{8C1A20B0-78BC-4A86-6177-5EDA4DB8D1D6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Managers">
-      <UniqueIdentifier>{B34CFEBD-9F19-59C9-C832-4771B45E8E57}</UniqueIdentifier>
+    <Filter Include="Editor\D3D12">
+      <UniqueIdentifier>{79EAB23D-654D-42E2-0ED3-7A98FA140E65}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Platforms">
-      <UniqueIdentifier>{DDACA145-4917-56BC-9255-0762FEFE3311}</UniqueIdentifier>
+    <Filter Include="Editor\Windows">
+      <UniqueIdentifier>{C690B5AD-B25E-A9B3-9BF2-19DA875F8518}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Platforms\Windows">
-      <UniqueIdentifier>{17E40808-83FA-069E-CC71-92BF38C7D725}</UniqueIdentifier>
+    <Filter Include="Runtime">
+      <UniqueIdentifier>{4995DAC4-B574-5960-BE8C-E4362AEBBFC1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\Core">
+      <UniqueIdentifier>{416F811B-2DD2-10C0-D657-4976C299DC42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\External">
+      <UniqueIdentifier>{9BA97363-87A2-92B5-B0D4-773A9C2C72C1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\External\Imgui">
+      <UniqueIdentifier>{252F5A2E-1129-8380-FA95-1991E62EE9EC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\Managers">
+      <UniqueIdentifier>{4659B9CC-3252-D81E-5B84-BDA347DCB72A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\Platforms">
+      <UniqueIdentifier>{D04BBE2B-3C62-BCC1-85D9-47E3F12E8D49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\Platforms\D3D12">
+      <UniqueIdentifier>{BDFEE9CF-2936-3267-3240-968A9EF65860}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\Platforms\Windows">
+      <UniqueIdentifier>{0AC602AA-7688-3634-BF38-C5C02B3A0F12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\Renderer">
+      <UniqueIdentifier>{0FDB209E-FBD3-3FF0-2406-2575105E1FFC}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\Runtime\Core\Game.cpp">
-      <Filter>Core</Filter>
+    <ClInclude Include="..\..\..\..\Editor\D3D12\D3D12EditorGUIManager.h">
+      <Filter>Editor\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Editor\Windows\EditorGUIManager.h">
+      <Filter>Editor\Windows</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\Editor\D3D12\D3D12EditorGUIManager.cpp">
+      <Filter>Editor\D3D12</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Entry.cpp" />
+    <ClCompile Include="..\..\..\..\Editor\Windows\EditorGUIManager.cpp">
+      <Filter>Editor\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Core\Game.cpp">
+      <Filter>Runtime\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Entry.cpp">
+      <Filter>Runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\External\Imgui\imgui.cpp">
+      <Filter>Runtime\External\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\External\Imgui\imgui_draw.cpp">
+      <Filter>Runtime\External\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\External\Imgui\imgui_impl_dx12.cpp">
+      <Filter>Runtime\External\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\External\Imgui\imgui_impl_win32.cpp">
+      <Filter>Runtime\External\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\External\Imgui\imgui_tables.cpp">
+      <Filter>Runtime\External\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\External\Imgui\imgui_widgets.cpp">
+      <Filter>Runtime\External\Imgui</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Managers\SceneManager.cpp">
-      <Filter>Managers</Filter>
+      <Filter>Runtime\Managers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Managers\WindowManager.cpp">
-      <Filter>Managers</Filter>
+      <Filter>Runtime\Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12RenderAPI.cpp">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\d3dUtil.cpp">
+      <Filter>Runtime\Platforms\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Platforms\Windows\WindowManagerWindows.cpp">
-      <Filter>Platforms\Windows</Filter>
+      <Filter>Runtime\Platforms\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\PreCompiledHeader.cpp" />
+    <ClCompile Include="..\..\..\..\Runtime\PreCompiledHeader.cpp">
+      <Filter>Runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderAPI.cpp">
+      <Filter>Runtime\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderEngine.cpp">
+      <Filter>Runtime\Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
