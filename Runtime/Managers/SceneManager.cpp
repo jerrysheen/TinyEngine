@@ -22,7 +22,6 @@ namespace EngineCore
     void SceneManager::Update()
     {
         auto meshFilterComponent = mTestGameObject->GetComponent<MeshFilterComponent>();
-        std::cout << static_cast<int>(meshFilterComponent->GetType()) << std::endl;
     }
 
     void SceneManager:: Create()

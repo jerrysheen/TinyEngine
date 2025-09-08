@@ -11,11 +11,15 @@ namespace EngineCore
         virtual bool WindowShouldClose() = 0;
         virtual void OnResize() = 0;
         virtual void* GetWindow() = 0;
+        std::pair<int, int> GetWindowSize()
+        {
+            return {mWindowWidth, mWindowHeight};
+        }
         ~WindowManager() override {};
         WindowManager(){};
     protected:
-        float mWindowWidth;
-        float mWindowHeight;
+        int mWindowWidth;
+        int mWindowHeight;
         bool mMinimized = false;
         bool mResizing = false;
         bool mResized = false;

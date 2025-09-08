@@ -12,11 +12,11 @@ namespace EngineCore
     {
     public:
         static RenderEngine& GetInstance(){return *s_Instance;};
-
+        static bool IsInitialized(){return s_Instance != nullptr;};
         static void Update();
         static void Create();
         
-        
+        static void OnResize(int width, int height);
         static void BeginRender();
         static void Render();
         static void EndRender();

@@ -2,6 +2,9 @@
 #include "WindowManagerWindows.h"
 #include <WindowsX.h>
 #include "imgui_impl_win32.h"
+#include "Renderer/RenderEngine.h"
+#include "Renderer/RenderAPI.h"
+#include "Core/ProjectSettings.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -29,13 +32,12 @@ namespace EngineCore
 		wndClass.lpszMenuName = 0;
 		wndClass.lpszClassName = L"MainWnd";
 		wndClass.hIconSm = LoadIcon(0, IDI_APPLICATION);
-
+		
+		
 		RegisterClassExW(&wndClass);
-
-		// mWindowWidth = ProjectSetting::srcWidth;
-		// mWindowHeight = ProjectSetting::srcHeight;
-        mWindowWidth = 1280;
-        mWindowHeight = 760;
+		
+		mWindowWidth = ProjectSettings::mWindowWidth;
+        mWindowHeight = ProjectSettings::mWindowHeight;
 
 		// CreateWindowW传入的窗口大小会包括标题栏和边框，需要根据客户区大小来计算实际窗口大小
 		RECT rc = { 0, 0, static_cast<LONG>(mWindowWidth), static_cast<LONG>(mWindowHeight) };
@@ -185,6 +187,9 @@ namespace EngineCore
     {
         //std::cout << "WindowManagerWindows::OnResize" << std::endl;
 		mResized = false;
+		if(RenderAPI::IsInitialized())RenderEngine::GetInstance().OnResize(mWindowWidth, mWindowHeight);
+		std::cout << mWindowHeight << std::endl;
+		std::cout << mWindowWidth << std:: endl;
     }
 
 }

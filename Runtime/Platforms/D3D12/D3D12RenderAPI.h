@@ -21,7 +21,7 @@ namespace EngineCore
         virtual void BeginFrame() override;
         virtual void Render() override;
         virtual void EndFrame() override;
-       
+        virtual void OnResize(int width, int height) override;
         D3D12RenderAPI();
         ~D3D12RenderAPI(){};
 

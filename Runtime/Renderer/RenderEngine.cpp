@@ -23,6 +23,11 @@ namespace EngineCore
         RenderAPI::GetInstance().BeginFrame();
     }    
     
+    void RenderEngine::OnResize(int width, int height)
+    {
+        RenderAPI::GetInstance().OnResize(width, height);
+    }
+
     void RenderEngine::EndRender()
     {
         RenderAPI::GetInstance().EndFrame();

@@ -65,6 +65,9 @@
     <ClCompile Include="..\..\..\..\Runtime\Core\MeshFilterComponent.cpp">
       <Filter>Runtime\Core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Core\ProjectSettings.cpp">
+      <Filter>Runtime\Core</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Entry.cpp">
       <Filter>Runtime</Filter>
     </ClCompile>
