@@ -4,17 +4,25 @@
 namespace EngineCore
 {
     std::unique_ptr<SceneManager> SceneManager::s_Instance = nullptr;
-
+    GameObject* SceneManager::mTestGameObject = nullptr;
+    
     SceneManager::SceneManager()
     {
         //std::cout << "Init Scene Manager!!" << std::endl;
+        mTestGameObject = new GameObject();
+        mTestGameObject->AddComponent<MeshFilterComponent>();
     }
 
-    SceneManager::~SceneManager(){};
+    SceneManager::~SceneManager()
+    {
+        delete mTestGameObject;
+        mTestGameObject = nullptr;
+    };
 
     void SceneManager::Update()
     {
-        //std::cout << "SceManager Update" << std:: endl;
+        auto meshFilterComponent = mTestGameObject->GetComponent<MeshFilterComponent>();
+        std::cout << static_cast<int>(meshFilterComponent->GetType()) << std::endl;
     }
 
     void SceneManager:: Create()

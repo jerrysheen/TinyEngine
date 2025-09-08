@@ -53,7 +53,16 @@
     <ClCompile Include="..\..\..\..\Editor\Windows\EditorGUIManager.cpp">
       <Filter>Editor\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Core\Component.cpp">
+      <Filter>Runtime\Core</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Core\Game.cpp">
+      <Filter>Runtime\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Core\GameObject.cpp">
+      <Filter>Runtime\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Core\MeshFilterComponent.cpp">
       <Filter>Runtime\Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Entry.cpp">

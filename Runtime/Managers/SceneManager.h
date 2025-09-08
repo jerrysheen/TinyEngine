@@ -1,6 +1,8 @@
 #pragma once
 #include "PreCompiledHeader.h"
 #include "Manager.h"
+#include "Core/GameObject.h"
+
 
 namespace EngineCore
 {
@@ -16,6 +18,8 @@ namespace EngineCore
     public:
         SceneManager();
         ~SceneManager();
+
+        static GameObject* mTestGameObject;
     };
 
 }
