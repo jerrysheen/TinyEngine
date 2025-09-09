@@ -40,6 +40,12 @@
     <Filter Include="contrib">
       <UniqueIdentifier>{16D079D3-82AF-F86E-8BC7-8345F7255FD0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="contrib\pugixml">
+      <UniqueIdentifier>{0B3EFB80-77C9-6845-80DA-EB39ECE4C445}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="contrib\pugixml\src">
+      <UniqueIdentifier>{A2094DE9-0E6B-2AF7-97D8-70A9033961B6}</UniqueIdentifier>
+    </Filter>
     <Filter Include="contrib\unzip">
       <UniqueIdentifier>{BB173D2F-27D8-B865-F012-02E35C92FD41}</UniqueIdentifier>
     </Filter>
@@ -299,6 +305,12 @@
     </ClInclude>
     <ClInclude Include="assimp\code\PostProcessing\ValidateDataStructure.h">
       <Filter>code\PostProcessing</Filter>
+    </ClInclude>
+    <ClInclude Include="assimp\contrib\pugixml\src\pugiconfig.hpp">
+      <Filter>contrib\pugixml\src</Filter>
+    </ClInclude>
+    <ClInclude Include="assimp\contrib\pugixml\src\pugixml.hpp">
+      <Filter>contrib\pugixml\src</Filter>
     </ClInclude>
     <ClInclude Include="assimp\contrib\unzip\crypt.h">
       <Filter>contrib\unzip</Filter>
@@ -631,6 +643,9 @@
     </ClCompile>
     <ClCompile Include="assimp\code\PostProcessing\ValidateDataStructure.cpp">
       <Filter>code\PostProcessing</Filter>
+    </ClCompile>
+    <ClCompile Include="assimp\contrib\pugixml\src\pugixml.cpp">
+      <Filter>contrib\pugixml\src</Filter>
     </ClCompile>
     <ClCompile Include="assimp\contrib\unzip\ioapi.c">
       <Filter>contrib\unzip</Filter>

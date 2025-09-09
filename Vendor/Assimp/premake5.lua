@@ -39,6 +39,10 @@ project 'assimp'
 	cppdialect "C++17"
 	warnings 'Off'
 	optimize 'Speed'
+	staticruntime "on"
+	
+	targetdir "../libs"
+	objdir "obj/%{cfg.buildcfg}/%{cfg.architecture}"
 
 	includedirs {
 		'_config_headers/',
@@ -59,6 +63,7 @@ project 'assimp'
 		'assimp/contrib/unzip/**',
 		'assimp/contrib/irrXML/**',
 		'assimp/contrib/zlib/*',
+		'assimp/contrib/pugixml/src/**',
 		-- Common
 		'assimp/code/Common/**',
 		'assimp/code/PostProcessing/**',
@@ -125,6 +130,7 @@ project 'assimp'
 		'ASSIMP_BUILD_NO_STEP_IMPORTER',
 		'ASSIMP_BUILD_NO_STL_IMPORTER',
 		'ASSIMP_BUILD_NO_TERRAGEN_IMPORTER',
+		'ASSIMP_BUILD_NO_USD_IMPORTER',
 		'ASSIMP_BUILD_NO_X_IMPORTER',
 		'ASSIMP_BUILD_NO_X3D_IMPORTER',
 		'ASSIMP_BUILD_NO_XGL_IMPORTER'
@@ -151,8 +157,14 @@ project 'assimp'
 	-- Configuration specific settings
 	filter "configurations:Debug"
 		defines { "DEBUG" }
+		runtime "Debug"
+		staticruntime "on"
 		symbols "On"
+		targetname "assimpd"
 
 	filter "configurations:Release"
 		defines { "NDEBUG" }
+		runtime "Release"
+		staticruntime "on"
 		optimize "On"
+		targetname "assimp"

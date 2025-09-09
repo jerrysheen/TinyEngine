@@ -92,6 +92,8 @@ project "EngineCore"
 		"Runtime/",
 		"Runtime/External/Imgui",
 		"Editor/",
+		"Vendor/libs",
+		"Vendor/Assimp/assimp/include"
 		-- "ThirdParty/Runtime/Core/spdlog/include",
 		-- "%{IncludeDir.GLFW}",
 		-- "%{IncludeDir.Glad}",
@@ -109,7 +111,6 @@ project "EngineCore"
 		-- "Glad",
 		-- "ImGui",
 		-- "opengl32.lib",
-		-- "assimp",
 	}
 
   	filter "system:windows"
@@ -130,13 +131,16 @@ project "EngineCore"
 		runtime "Debug"
 		staticruntime "on"
 		symbols "on"
+		links { "Vendor/libs/assimpd" }
 
 	filter "configurations:Release"
 		defines "RELEASE_MODE"
 		runtime "Release"
 		optimize "on"
+		links { "Vendor/libs/assimp" }
 
 	filter "configurations:Dist"
 		defines "DIST_MODE"
 		runtime "Release"
 		optimize "on"
+		links { "Vendor/libs/assimp" }

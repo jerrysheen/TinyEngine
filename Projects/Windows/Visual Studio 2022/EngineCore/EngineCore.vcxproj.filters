@@ -22,6 +22,9 @@
     <Filter Include="Runtime\External\Imgui">
       <UniqueIdentifier>{252F5A2E-1129-8380-FA95-1991E62EE9EC}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Runtime\Graphics">
+      <UniqueIdentifier>{A95F8942-9558-A894-BE8A-8D19AAE287A0}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Runtime\Managers">
       <UniqueIdentifier>{4659B9CC-3252-D81E-5B84-BDA347DCB72A}</UniqueIdentifier>
     </Filter>
@@ -88,6 +91,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\External\Imgui\imgui_widgets.cpp">
       <Filter>Runtime\External\Imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\ModelData.cpp">
+      <Filter>Runtime\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\ModelUtils.cpp">
+      <Filter>Runtime\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Managers\SceneManager.cpp">
       <Filter>Runtime\Managers</Filter>
