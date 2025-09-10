@@ -1,9 +1,5 @@
 #include "PreCompiledHeader.h"
 #include "ModelUtils.h"
-#include <assimp/Importer.hpp>      // C++ importer interface
-#include <assimp/scene.h>           // Output data structure
-#include <assimp/postprocess.h>     // Post processing flags
-
 
 namespace EngineCore
 {
@@ -17,7 +13,84 @@ namespace EngineCore
 			std::cout << "Wrong Import!!!" << std::endl;
 			return false;
 		}
-        return nullptr;
+
+		ModelData* meshData = new ModelData();
+		
+		ProcessNode(scene->mRootNode, scene, meshData);
+        return meshData;
     }
+
+	void ModelUtils::ProcessNode(aiNode* node, const aiScene* scene, ModelData* mesh)
+	{
+		for (unsigned int i = 0; i < node->mNumMeshes; i++)
+		{
+			aiMesh* aimesh = scene->mMeshes[node->mMeshes[i]];
+			ProcessMesh(aimesh, scene, mesh);
+		}
+		
+		for (unsigned int i = 0; i < node->mNumChildren; i++)
+		{
+			ProcessNode(node->mChildren[i], scene, mesh);
+		}
+	}
+	
+	void ModelUtils::ProcessMesh(aiMesh* aiMesh, const aiScene* scene, ModelData* mesh)
+	{
+		std::vector<Vertex> vertexArray;
+		std::vector<int> indexArray;
+		Vertex currVertex;
+		for (unsigned int i = 0; i < aiMesh->mNumVertices; i++)
+		{
+			if (aiMesh->mVertices)
+			{
+				currVertex.position.x = (aiMesh->mVertices[i].x);
+				currVertex.position.y = (aiMesh->mVertices[i].y);
+				currVertex.position.z = (aiMesh->mVertices[i].z);
+			}
+			else
+			{
+				currVertex.position.x = 0;
+				currVertex.position.y = 0;
+				currVertex.position.z = 0;
+			}
+
+			if (aiMesh->mNormals) 
+			{
+				currVertex.normal.x = (aiMesh->mNormals[i].x);
+				currVertex.normal.y = (aiMesh->mNormals[i].y);
+				currVertex.normal.z = (aiMesh->mNormals[i].z);
+			}
+			else
+			{
+				currVertex.normal.x = 0;
+				currVertex.normal.y = 0;
+				currVertex.normal.z = 0;
+			}
+
+			if (aiMesh->mTextureCoords[0]) // ?????????????????
+			{
+				currVertex.uv.x = (aiMesh->mTextureCoords[0][i].x);
+				currVertex.uv.y = (aiMesh->mTextureCoords[0][i].y);
+			}
+			else
+			{
+				currVertex.uv.x = 0;
+				currVertex.uv.y = 0;
+			}
+			vertexArray.push_back(currVertex);
+		}
+
+		mesh->vertex = std::move(vertexArray);
+		//int step = indexBuffer.size()
+		for (unsigned int i = 0; i < aiMesh->mNumFaces; i++)
+		{
+			aiFace face = aiMesh->mFaces[i];
+			for (unsigned int j = 0; j < face.mNumIndices; j++)
+			{
+				indexArray.push_back(face.mIndices[j]);
+			}
+		}
+		mesh->index = std::move(indexArray);
+	}
 
 }

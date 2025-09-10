@@ -28,6 +28,9 @@
     <Filter Include="Runtime\Managers">
       <UniqueIdentifier>{4659B9CC-3252-D81E-5B84-BDA347DCB72A}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Runtime\Math">
+      <UniqueIdentifier>{C2AF861B-AE12-16C0-5798-4E7643DAE142}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Runtime\Platforms">
       <UniqueIdentifier>{D04BBE2B-3C62-BCC1-85D9-47E3F12E8D49}</UniqueIdentifier>
     </Filter>
@@ -103,6 +106,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Managers\WindowManager.cpp">
       <Filter>Runtime\Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Math\Vector2.cpp">
+      <Filter>Runtime\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Math\Vector3.cpp">
+      <Filter>Runtime\Math</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12RenderAPI.cpp">
       <Filter>Runtime\Platforms\D3D12</Filter>
