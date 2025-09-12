@@ -95,10 +95,19 @@
     <ClCompile Include="..\..\..\..\Runtime\External\Imgui\imgui_widgets.cpp">
       <Filter>Runtime\External\Imgui</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\Material.cpp">
+      <Filter>Runtime\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\MaterialData.cpp">
+      <Filter>Runtime\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\ModelData.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\ModelUtils.cpp">
+      <Filter>Runtime\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\ResourceStruct.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Managers\SceneManager.cpp">

@@ -1,6 +1,6 @@
 #include "PreCompiledHeader.h"
 #include "SceneManager.h"
-#include "Graphics/ModelUtils.h"
+
 
 namespace EngineCore
 {
@@ -12,7 +12,10 @@ namespace EngineCore
         //std::cout << "Init Scene Manager!!" << std::endl;
         mTestGameObject = new GameObject();
         mTestGameObject->AddComponent<MeshFilterComponent>();
-        ModelData* testMesh = ModelUtils::LoadMesh("D:/GitHubST/TinyEngine/Assets/Model/cube.obj");
+        testMesh = ModelUtils::LoadMesh("D:/GitHubST/TinyEngine/Assets/Model/cube.obj");
+        testMatStruct = Resources::LoadMaterial("D:/GitHubST/TinyEngine/Assets/Model/cube.obj");
+        testMat = new Material(testMatStruct);
+
     }
 
     SceneManager::~SceneManager()

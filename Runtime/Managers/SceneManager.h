@@ -2,7 +2,9 @@
 #include "PreCompiledHeader.h"
 #include "Manager.h"
 #include "Core/GameObject.h"
-
+#include "Graphics/ModelUtils.h"
+#include "Graphics/Material.h"
+#include "Graphics/ResourceStruct.h"
 
 namespace EngineCore
 {
@@ -20,6 +22,10 @@ namespace EngineCore
         ~SceneManager();
 
         static GameObject* mTestGameObject;
+
+        ModelData* testMesh;
+        MaterialStruct* testMatStruct;
+        Material* testMat;
     };
 
 }

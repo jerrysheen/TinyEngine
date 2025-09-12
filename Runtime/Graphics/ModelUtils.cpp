@@ -3,6 +3,7 @@
 
 namespace EngineCore
 {
+	//todo: 目前只支持单模型导入，不支持submesh。
     ModelData* ModelUtils::LoadMesh(const std::string& path)
     {
         Assimp::Importer import;
@@ -38,7 +39,10 @@ namespace EngineCore
 	{
 		std::vector<Vertex> vertexArray;
 		std::vector<int> indexArray;
+		std::vector<InputLayout> inputLayoutArray;
 		Vertex currVertex;
+		int offset = 0;
+		int stride = 0;
 		for (unsigned int i = 0; i < aiMesh->mNumVertices; i++)
 		{
 			if (aiMesh->mVertices)
@@ -67,7 +71,7 @@ namespace EngineCore
 				currVertex.normal.z = 0;
 			}
 
-			if (aiMesh->mTextureCoords[0]) // ?????????????????
+			if (aiMesh->mTextureCoords[0])
 			{
 				currVertex.uv.x = (aiMesh->mTextureCoords[0][i].x);
 				currVertex.uv.y = (aiMesh->mTextureCoords[0][i].y);
@@ -79,8 +83,12 @@ namespace EngineCore
 			}
 			vertexArray.push_back(currVertex);
 		}
-
 		mesh->vertex = std::move(vertexArray);
+
+		inputLayoutArray.push_back(InputLayout(VertexAttribute::POSITION, 3 * sizeof(float), 3, 8 * sizeof(float), 0));
+		inputLayoutArray.push_back(InputLayout(VertexAttribute::NORMAL, 3 * sizeof(float), 3, 8 * sizeof(float), 3 * sizeof(float)));
+		inputLayoutArray.push_back(InputLayout(VertexAttribute::UV0, 2 * sizeof(float), 2, 8 * sizeof(float), 6 * sizeof(float)));
+		mesh->layout = std::move(inputLayoutArray);
 		//int step = indexBuffer.size()
 		for (unsigned int i = 0; i < aiMesh->mNumFaces; i++)
 		{

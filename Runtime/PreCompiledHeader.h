@@ -7,3 +7,8 @@
 #include <unordered_map>
 #include <map>
 #include <utility>
+
+using std::unordered_map;
+using std::string;
+using std::vector;
+using std::pair;
