@@ -1,5 +1,6 @@
 #pragma once
 #include "PreCompiledHeader.h"
+#include "Graphics/Shader.h"
 
 namespace  EngineCore
 {
@@ -13,6 +14,7 @@ namespace  EngineCore
         virtual void EndFrame() = 0;
         virtual void OnResize(int width, int height) = 0;
         static void Create();
+        virtual Shader* CompileShader(const string& path) = 0;
     public:
         static std::unique_ptr<RenderAPI> s_Instance;
     };

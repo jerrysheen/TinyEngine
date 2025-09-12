@@ -5,6 +5,7 @@
 #include "Graphics/ModelUtils.h"
 #include "Graphics/Material.h"
 #include "Graphics/ResourceStruct.h"
+#include "Graphics/Shader.h"
 
 namespace EngineCore
 {
@@ -26,6 +27,7 @@ namespace EngineCore
         ModelData* testMesh;
         MaterialStruct* testMatStruct;
         Material* testMat;
+        Shader* testShader;
     };
 
 }

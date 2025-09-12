@@ -10,7 +10,7 @@
 #pragma comment(lib, "dxgi.lib")
 #include "Renderer/RenderAPI.h"
 #include "d3dUtil.h"
-
+#include "Graphics/Shader.h"
 
 
 namespace EngineCore
@@ -25,6 +25,8 @@ namespace EngineCore
         D3D12RenderAPI();
         ~D3D12RenderAPI(){};
 
+        virtual Shader* CompileShader(const string& path) override;
+        bool CompileShaderStage(const string& path, string entrypoint, string target, Shader* shader, ShaderStageType type);
         Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;
         UINT mRtvDescriptorSize = 0;
         UINT mDsvDescriptorSize = 0;
@@ -61,6 +63,7 @@ namespace EngineCore
         void WaitForFence();
         void WaitForRenderFinish();
     private:
+
         bool InitDirect3D();
         void InitFence();
         void InitDescritorHeap();
@@ -69,14 +72,9 @@ namespace EngineCore
         void InitRenderTarget();
 
 
-
-
         Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
         Microsoft::WRL::ComPtr<IDXGIFactory4> mdxgiFactory;
         
-
-
-
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDsvHeap;
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
 

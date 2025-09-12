@@ -1,7 +1,7 @@
 #include "PreCompiledHeader.h"
 #include "D3D12RenderAPI.h"
 #include "Managers/WindowManager.h"
-
+#include "Graphics/ResourceStruct.h"
 
 namespace EngineCore
 {
@@ -418,4 +418,144 @@ namespace EngineCore
 		}
 	}
 
+    Shader* D3D12RenderAPI::CompileShader(const string& path)
+    {
+
+        Shader* shader = new Shader();
+        if (!CompileShaderStage(path, "VSMain", "vs_5_1", shader, ShaderStageType::VERTEX_STAGE)) 
+        {
+            cout << "Shader Stage Vertex Compile fail" << endl;
+        }
+
+        if (!CompileShaderStage(path, "PSMain", "ps_5_1", shader, ShaderStageType::FRAGMENT_STAGE))
+        {
+            cout << "Shader Stage Pixel Shader Compile fail" << endl;
+        }
+        return shader;
+    }
+
+
+    bool D3D12RenderAPI::CompileShaderStage(const string& path, string entryPoint, string target, Shader* shader, ShaderStageType type)
+    {
+        ComPtr<ID3DBlob> errorBlob;
+        UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+        std::wstring filename(path.begin(), path.end());
+        ComPtr<ID3DBlob> m_shaderBlob;
+
+        HRESULT hr = D3DCompileFromFile(
+            filename.c_str(),
+            nullptr,
+            D3D_COMPILE_STANDARD_FILE_INCLUDE,
+            entryPoint.c_str(),
+            target.c_str(),
+            compileFlags,
+            0,
+            &m_shaderBlob,
+            &errorBlob
+        );
+
+        if (FAILED(hr)) {
+            if (errorBlob)
+            {
+                std::cout << "Compilation Error:\n" << (char*)errorBlob->GetBufferPointer() << std::endl;
+            }
+            return false;
+        }
+        ComPtr<ID3D12ShaderReflection>  m_reflection;
+        D3DReflect(m_shaderBlob->GetBufferPointer(), m_shaderBlob->GetBufferSize(), IID_PPV_ARGS(&m_reflection));
+
+        if (!m_reflection) return false;
+
+        
+        ShaderStageInfo* shaderStageInfo = new ShaderStageInfo();
+
+        D3D12_SHADER_DESC desc;
+        m_reflection->GetDesc(&desc);
+
+
+        std::unordered_map<string, ShaderVariableInfo>  shaderVariableInfoMap;
+        ShaderVariableInfo tempVariable;
+        std::cout << "\n=== Constant Buffers ===\n";
+        for (UINT i = 0; i < desc.ConstantBuffers; ++i) {
+            auto cbReflection = m_reflection->GetConstantBufferByIndex(i);
+
+            D3D12_SHADER_BUFFER_DESC bufferDesc;
+            cbReflection->GetDesc(&bufferDesc);
+
+            for (UINT j = 0; j < bufferDesc.Variables; ++j) {
+                auto varReflection = cbReflection->GetVariableByIndex(j);
+
+                D3D12_SHADER_VARIABLE_DESC varDesc;
+                varReflection->GetDesc(&varDesc);
+
+                tempVariable.variableName = varDesc.Name;
+                tempVariable.bufferIndex = i;
+                tempVariable.offset = varDesc.StartOffset;
+                tempVariable.size = varDesc.Size;
+                tempVariable.type = Resources::GetShaderVaribleType((uint32_t)varDesc.Size);
+                shaderVariableInfoMap.try_emplace(varDesc.Name, tempVariable);
+            }
+        }
+        shader->mShaderVariableInfoMap = shaderVariableInfoMap;
+
+        std::cout << "获得shader stage info" << std::endl;
+        for (UINT i = 0; i < desc.BoundResources; ++i) {
+            D3D12_SHADER_INPUT_BIND_DESC bindDesc;
+            m_reflection->GetResourceBindingDesc(i, &bindDesc);
+            int bufferSize = 0;
+            ID3D12ShaderReflectionConstantBuffer* cbReflection;
+            switch (bindDesc.Type) {
+            case D3D_SIT_CBUFFER:
+                cbReflection = m_reflection->GetConstantBufferByName(bindDesc.Name);
+                if (cbReflection) {
+                    D3D12_SHADER_BUFFER_DESC bufferDesc;
+                    HRESULT hr = cbReflection->GetDesc(&bufferDesc);
+                    if (SUCCEEDED(hr)) {
+                        bufferSize = bufferDesc.Size;
+                    }
+                }
+                shaderStageInfo->mBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, bufferSize);
+                break;
+            case D3D_SIT_TEXTURE:
+                shaderStageInfo->mTextureInfo.emplace_back(bindDesc.Name, ShaderResourceType::TEXTURE, bindDesc.BindPoint, 0);
+                break;
+            case D3D_SIT_SAMPLER:
+                shaderStageInfo->mSamplerInfo.emplace_back(bindDesc.Name, ShaderResourceType::SAMPLER, bindDesc.BindPoint, 0);
+                break;
+            default:
+                shaderStageInfo->mBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, 0);
+                std::cout << " Not find any exites shader resource type " << std::endl;
+                break;
+            }
+        }
+        
+        if (type == ShaderStageType::VERTEX_STAGE) 
+        {
+            std::cout << "\n=== Input Layout ===\n";
+            for (UINT i = 0; i < desc.InputParameters; ++i) {
+                D3D12_SIGNATURE_PARAMETER_DESC paramDesc;
+                m_reflection->GetInputParameterDesc(i, &paramDesc);
+                if (strcmp(paramDesc.SemanticName, "POSITION") == 0) 
+                {
+                    shader->mShaderInputLayout.emplace_back(VertexAttribute::POSITION);
+                }
+                else if (strcmp(paramDesc.SemanticName, "NORMAL") == 0) 
+                {
+                    shader->mShaderInputLayout.emplace_back(VertexAttribute::NORMAL);
+                }
+                else if (strcmp(paramDesc.SemanticName, "TEXCOORD") == 0) 
+                {
+                    // 目前先比较 TexCoord一个， 没有涉及index
+                    shader->mShaderInputLayout.emplace_back(VertexAttribute::UV0);
+                }
+            }
+
+            shader->vsInfo = shaderStageInfo;
+        }
+        else if(type == ShaderStageType::FRAGMENT_STAGE) 
+        {
+            shader->psInfo = shaderStageInfo;
+        }
+        return true;
+    }
 } // namespace EngineCore

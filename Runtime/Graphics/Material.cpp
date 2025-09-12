@@ -11,7 +11,7 @@ namespace EngineCore
     
     void Material::InitMaterialData(const MaterialStruct* matStruct)
     {
-        data = matStruct;
+        *data = *matStruct;
     }
 
 

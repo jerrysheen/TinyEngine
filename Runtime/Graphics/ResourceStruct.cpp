@@ -16,4 +16,34 @@ namespace EngineCore
         return matStruct;
     }
     
+    ShaderVariableType Resources::GetShaderVaribleType(uint32_t size)
+    {
+        // 以byte为准 比如float为4byte
+        switch (size)
+        {
+        case 4:
+            return ShaderVariableType::FLOAT; 
+            break;
+        case 8:
+            return ShaderVariableType::VECTOR2;
+            break;
+        case 12:
+            return ShaderVariableType::VECTOR2;
+            break;
+        case 16:
+            return ShaderVariableType::VECTOR2;
+            break;
+        case 64:
+            return ShaderVariableType::VECTOR2;
+            break;
+        case 48:
+            return ShaderVariableType::VECTOR2;
+            break;
+        case 36:
+            return ShaderVariableType::VECTOR2;
+            break;
+        default:
+            break;
+        }
+    }
 }

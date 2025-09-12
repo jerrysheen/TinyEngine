@@ -86,5 +86,7 @@
 
     "files.exclude": {
         "Vendor/**": true,
+        "Projects/**": true,
+        "Tools/**": true,
     }
 }
