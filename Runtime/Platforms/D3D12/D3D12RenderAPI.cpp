@@ -13,6 +13,7 @@ namespace EngineCore
         InitCommandObject();
         InitSwapChain();
         InitRenderTarget();
+        m_DataMap = unordered_map<int, TD3D12MaterialData>();
     }
 
     bool D3D12RenderAPI::InitDirect3D()
@@ -54,8 +55,16 @@ namespace EngineCore
 
     void D3D12RenderAPI::InitFence()
     {
+        mFrameFence = new TD3D12Fence();
+        mImediatelyFence = new TD3D12Fence();
         ThrowIfFailed(md3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE,
-		IID_PPV_ARGS(&mFence)));
+		IID_PPV_ARGS(&mFrameFence->mFence)));
+        mFrameFence->mCurrentFence = 0;
+
+        ThrowIfFailed(md3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE,
+		IID_PPV_ARGS(&mImediatelyFence->mFence)));
+        mFrameFence->mCurrentFence = 0;
+
     }
     
     void D3D12RenderAPI::InitRenderTarget()
@@ -64,7 +73,7 @@ namespace EngineCore
         mClientWidth = width;
         mClientHeight = height;
         // Flush before changing any resources.
-	    WaitForFence();
+	    WaitForFence(mFrameFence);
         ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
 
         // Release the previous resources we will be recreating.
@@ -140,7 +149,7 @@ namespace EngineCore
         mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
 
         // Wait until resize is complete.
-        WaitForRenderFinish();
+        WaitForRenderFinish(mFrameFence);
 
         // Update the viewport transform to cover the client area.
         mScreenViewport.TopLeftX = 0;
@@ -239,7 +248,7 @@ namespace EngineCore
 
     void D3D12RenderAPI::Render()
     {
-        WaitForRenderFinish();
+        WaitForRenderFinish(mFrameFence);
         // Reuse the memory associated with command recording.
         // We can only reset when the associated command lists have finished execution on the GPU.
         ThrowIfFailed(mDirectCmdListAlloc->Reset());
@@ -276,7 +285,7 @@ namespace EngineCore
         mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
         
         // swap the back and front buffers
-        SignalFence();
+        SignalFence(mFrameFence);
 
         // Wait until frame commands are complete.  This waiting is inefficient and is
         // done for simplicity.  Later we will show how to organize our rendering code
@@ -286,7 +295,7 @@ namespace EngineCore
     void D3D12RenderAPI::EndFrame()
     {
         //std::cout << "EndFrame" << std::endl;
-        WaitForFence();
+        WaitForFence(mFrameFence);
         ThrowIfFailed(mSwapChain->Present(0, 0));
         mCurrBackBuffer = (mCurrBackBuffer + 1) % SwapChainBufferCount;
         //WaitForRenderFinish();
@@ -298,7 +307,7 @@ namespace EngineCore
         mClientWidth = width;
         mClientHeight = height;
               // Flush before changing any resources.
-        WaitForRenderFinish();
+        WaitForRenderFinish(mFrameFence);
         ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
 
         // Release the previous resources we will be recreating.
@@ -374,7 +383,7 @@ namespace EngineCore
         mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
 
         // Wait until resize is complete.
-        WaitForRenderFinish();
+        WaitForRenderFinish(mFrameFence);
 
         // Update the viewport transform to cover the client area.
         mScreenViewport.TopLeftX = 0;
@@ -387,26 +396,26 @@ namespace EngineCore
         mScissorRect = { 0, 0, mClientWidth, mClientHeight };
     }
 
-    void D3D12RenderAPI::WaitForRenderFinish()
+    void D3D12RenderAPI::WaitForRenderFinish(TD3D12Fence* mFence)
 	{
-		SignalFence();
-		WaitForFence();
+		SignalFence(mFence);
+		WaitForFence(mFence);
 	}
 
-    void D3D12RenderAPI::SignalFence()
+    void D3D12RenderAPI::SignalFence(TD3D12Fence* mFence)
 	{
-		mCurrentFence++;
-		ThrowIfFailed(mCommandQueue->Signal(mFence.Get(), mCurrentFence));
+		mFence->mCurrentFence++;
+		ThrowIfFailed(mCommandQueue->Signal(mFence->mFence.Get(), mFence->mCurrentFence));
 	}
 
-	void D3D12RenderAPI::WaitForFence()
+	void D3D12RenderAPI::WaitForFence(TD3D12Fence* mFence)
 	{
-		if (mCurrentFence > 0 && mFence->GetCompletedValue() < mCurrentFence)
+		if (mFence->mCurrentFence > 0 && mFence->mFence->GetCompletedValue() < mFence->mCurrentFence)
 		{
 			auto event = CreateEventEx(nullptr, NULL, NULL, EVENT_ALL_ACCESS);
 			if (event)
 			{
-				ThrowIfFailed(mFence->SetEventOnCompletion(mCurrentFence, event));
+				ThrowIfFailed(mFence->mFence->SetEventOnCompletion(mFence->mCurrentFence, event));
 				// �ȴ��¼�
 				WaitForSingleObject(event, INFINITE);
 				CloseHandle(event);
@@ -496,7 +505,8 @@ namespace EngineCore
                 shaderVariableInfoMap.try_emplace(varDesc.Name, tempVariable);
             }
         }
-        shader->mShaderVariableInfoMap = shaderVariableInfoMap;
+        shaderStageInfo->mShaderStageVariableInfoMap = shaderVariableInfoMap;
+
 
         std::cout << "获得shader stage info" << std::endl;
         for (UINT i = 0; i < desc.BoundResources; ++i) {
@@ -558,4 +568,37 @@ namespace EngineCore
         }
         return true;
     }
+
+    void D3D12RenderAPI::CreateBuffersResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos)
+    {
+        int matID = mat->GetID();
+        if(m_DataMap.count(matID) <= 0) m_DataMap.try_emplace(matID, TD3D12MaterialData());
+        auto iter = m_DataMap.find(matID);
+        TD3D12MaterialData data = iter->second;
+        for each(auto bufferInfo in resourceInfos)
+        {   
+            int size = bufferInfo.size;
+        }
+    }
+
+    void D3D12RenderAPI::CreateSamplerResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos)
+    {
+    }
+
+    void D3D12RenderAPI::CreateTextureResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos)
+    {
+    }
+
+    void D3D12RenderAPI::CreateUAVResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos)
+    {
+
+    }
+
+    void D3D12RenderAPI::ImmediatelyExecute(std::function<void(ComPtr<ID3D12GraphicsCommandList>)>& function)
+    {
+
+    }
+
+
+
 } // namespace EngineCore

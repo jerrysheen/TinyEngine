@@ -11,6 +11,8 @@
 #include "Renderer/RenderAPI.h"
 #include "d3dUtil.h"
 #include "Graphics/Shader.h"
+#include "PreCompiledHeader.h"
+#include "D3D12Struct.h"
 
 
 namespace EngineCore
@@ -27,6 +29,14 @@ namespace EngineCore
 
         virtual Shader* CompileShader(const string& path) override;
         bool CompileShaderStage(const string& path, string entrypoint, string target, Shader* shader, ShaderStageType type);
+
+        virtual void CreateBuffersResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) override;
+        virtual void CreateSamplerResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) override;
+        virtual void CreateTextureResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) override;
+        virtual void CreateUAVResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) override;
+
+        inline TD3D12Fence* GetFrameFence() { return mFrameFence; };
+
         Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;
         UINT mRtvDescriptorSize = 0;
         UINT mDsvDescriptorSize = 0;
@@ -38,8 +48,10 @@ namespace EngineCore
         Microsoft::WRL::ComPtr<ID3D12Resource> mSwapChainBuffer[SwapChainBufferCount];
         Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
 
-        UINT64 mCurrentFence = 0;
-        Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
+        //UINT64 mCurrentFence = 0;
+        //Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
+        TD3D12Fence* mFrameFence;
+        TD3D12Fence* mImediatelyFence;
 
         D3D12_CPU_DESCRIPTOR_HANDLE D3D12RenderAPI::CurrentBackBufferView()const
         {
@@ -59,9 +71,9 @@ namespace EngineCore
             return mSwapChainBuffer[mCurrBackBuffer].Get();
         }
 
-        void SignalFence();
-        void WaitForFence();
-        void WaitForRenderFinish();
+        void SignalFence(TD3D12Fence* mFence);
+        void WaitForFence(TD3D12Fence* mFence);
+        void WaitForRenderFinish(TD3D12Fence* mFence);
     private:
 
         bool InitDirect3D();
@@ -71,7 +83,7 @@ namespace EngineCore
         void InitSwapChain();
         void InitRenderTarget();
 
-
+        void ImmediatelyExecute(std::function<void(ComPtr<ID3D12GraphicsCommandList>)>& function);
         Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
         Microsoft::WRL::ComPtr<IDXGIFactory4> mdxgiFactory;
         
@@ -104,6 +116,8 @@ namespace EngineCore
         D3D12_RECT mScissorRect;
         int mClientWidth = 1280;
         int mClientHeight = 720;
+
+        unordered_map<int, TD3D12MaterialData> m_DataMap; 
     };
 
 }

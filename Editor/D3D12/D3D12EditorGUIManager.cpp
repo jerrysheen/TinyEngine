@@ -80,7 +80,7 @@ namespace EngineEditor
 		ID3D12CommandList* cmdsLists[] = { commandList.Get() };
 		renderAPI->mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
 
-		renderAPI->SignalFence();
+		renderAPI->SignalFence(renderAPI->GetFrameFence());
     }
     
     void D3D12EditorGUIManager::Update()
