@@ -8,4 +8,10 @@ namespace EngineCore
     {
         return RenderAPI::s_Instance->CompileShader(path);
     }
+
+    Shader::~Shader()
+    {
+        delete vsInfo;
+        delete psInfo;
+    }
 }

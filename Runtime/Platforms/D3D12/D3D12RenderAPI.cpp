@@ -2,6 +2,7 @@
 #include "D3D12RenderAPI.h"
 #include "Managers/WindowManager.h"
 #include "Graphics/ResourceStruct.h"
+#include "D3D12DescManager.h"
 
 namespace EngineCore
 {
@@ -14,6 +15,8 @@ namespace EngineCore
         InitSwapChain();
         InitRenderTarget();
         m_DataMap = unordered_map<int, TD3D12MaterialData>();
+
+        D3D12DescManager::Create(md3dDevice);
     }
 
     bool D3D12RenderAPI::InitDirect3D()
@@ -210,6 +213,22 @@ namespace EngineCore
         // to the command list we will Reset it, and it needs to be closed before
         // calling Reset.
         mCommandList->Close();
+
+        ThrowIfFailed(md3dDevice->CreateCommandAllocator(
+            D3D12_COMMAND_LIST_TYPE_DIRECT,
+            IID_PPV_ARGS(mImediatelyCmdListAlloc.GetAddressOf())));
+
+        ThrowIfFailed(md3dDevice->CreateCommandList(
+            0,
+            D3D12_COMMAND_LIST_TYPE_DIRECT,
+            mImediatelyCmdListAlloc.Get(), // Associated command allocator
+            nullptr,                   // Initial PipelineStateObject
+            IID_PPV_ARGS(mImediatelyCommandList.GetAddressOf())));
+
+        // Start off in a closed state.  This is because the first time we refer 
+        // to the command list we will Reset it, and it needs to be closed before
+        // calling Reset.
+        mImediatelyCommandList->Close();
     }
     
     void D3D12RenderAPI::InitSwapChain()
@@ -485,6 +504,11 @@ namespace EngineCore
         std::unordered_map<string, ShaderVariableInfo>  shaderVariableInfoMap;
         ShaderVariableInfo tempVariable;
         std::cout << "\n=== Constant Buffers ===\n";
+        int baseOffset = 0;
+        if (type == ShaderStageType::FRAGMENT_STAGE) 
+        {
+            baseOffset = shader->vsInfo->mBufferInfo.size();
+        }
         for (UINT i = 0; i < desc.ConstantBuffers; ++i) {
             auto cbReflection = m_reflection->GetConstantBufferByIndex(i);
 
@@ -498,7 +522,7 @@ namespace EngineCore
                 varReflection->GetDesc(&varDesc);
 
                 tempVariable.variableName = varDesc.Name;
-                tempVariable.bufferIndex = i;
+                tempVariable.bufferIndex = i + baseOffset;
                 tempVariable.offset = varDesc.StartOffset;
                 tempVariable.size = varDesc.Size;
                 tempVariable.type = Resources::GetShaderVaribleType((uint32_t)varDesc.Size);
@@ -578,7 +602,37 @@ namespace EngineCore
         for each(auto bufferInfo in resourceInfos)
         {   
             int size = bufferInfo.size;
+            int alignedSize = (size + 255) & ~255;
+            //  创建buffer resource + handle
+            TD3D12ConstantBuffer constantBuffer;
+            constantBuffer.mSize = alignedSize;
+            ImmediatelyExecute([&](ComPtr<ID3D12GraphicsCommandList> cmdList)
+            {
+
+
+                 // 1. 创建constant buffer resource
+                ThrowIfFailed(md3dDevice->CreateCommittedResource(
+                    &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),  // 使用UPLOAD heap以便CPU写入
+                    D3D12_HEAP_FLAG_NONE,
+                    &CD3DX12_RESOURCE_DESC::Buffer(alignedSize),
+                    D3D12_RESOURCE_STATE_GENERIC_READ,  // Upload heap的默认状态
+                    nullptr,
+                    IID_PPV_ARGS(constantBuffer.mBufferResource.GetAddressOf())));
+                
+                constantBuffer.mGPUAddress = constantBuffer.mBufferResource->GetGPUVirtualAddress();
+
+                // 2. 映射内存以便CPU写入
+                ThrowIfFailed(constantBuffer.mBufferResource->Map(0, nullptr, &constantBuffer.mCpuAddress));
+
+                D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc;
+                cbvDesc.BufferLocation = constantBuffer.mBufferResource->GetGPUVirtualAddress();
+                cbvDesc.SizeInBytes = alignedSize;
+
+                constantBuffer.handleCBV = D3D12DescManager::GetInstance().CreateDescriptor(cbvDesc);
+            });
+            data.mConstantBufferArray.push_back(constantBuffer);
         }
+        m_DataMap[matID] = data;
     }
 
     void D3D12RenderAPI::CreateSamplerResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos)
@@ -594,11 +648,46 @@ namespace EngineCore
 
     }
 
-    void D3D12RenderAPI::ImmediatelyExecute(std::function<void(ComPtr<ID3D12GraphicsCommandList>)>& function)
-    {
 
+    void D3D12RenderAPI::ImmediatelyExecute(std::function<void(ComPtr<ID3D12GraphicsCommandList> cmdList)>&& function)
+    {
+        WaitForRenderFinish(mImediatelyFence);
+        // Reuse the memory associated with command recording.
+        // We can only reset when the associated command lists have finished execution on the GPU.
+        ThrowIfFailed(mImediatelyCmdListAlloc->Reset());
+
+        // A command list can be reset after it has been added to the command queue via ExecuteCommandList.
+        // Reusing the command list reuses memory.
+        ThrowIfFailed(mImediatelyCommandList->Reset(mImediatelyCmdListAlloc.Get(), nullptr));
+
+        function(mImediatelyCommandList);
+
+        // Done recording commands.
+        ThrowIfFailed(mImediatelyCommandList->Close());
+    
+        // Add the command list to the queue for execution.
+        ID3D12CommandList* cmdsLists[] = { mImediatelyCommandList.Get() };
+        mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
+        
+        // swap the back and front buffers
+        SignalFence(mImediatelyFence);
     }
 
+    void D3D12RenderAPI::SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector3& value)
+    {
+        int matID = mat->GetID();
+        if(m_DataMap.count(matID) <= 0)
+        {
+            cout << "SetShaderVector: matID not found" << endl;
+            return;
+        }
+        auto iter = m_DataMap.find(matID);
+        TD3D12MaterialData data = iter->second;
+        void* baseAddress = data.mConstantBufferArray[variableInfo.bufferIndex].mCpuAddress;
+        void* targetAddress = reinterpret_cast<char*>(baseAddress) + variableInfo.offset;
+        memcpy(targetAddress, &value, sizeof(Vector3));
+        
+    }
 
 
 } // namespace EngineCore

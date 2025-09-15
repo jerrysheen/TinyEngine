@@ -16,7 +16,8 @@ namespace EngineCore
         testMatStruct = Resources::LoadMaterial("D:/GitHubST/TinyEngine/Assets/Model/cube.obj");
         testMat = new Material(testMatStruct);
         testShader = Shader::Compile("D:/GitHubST/TinyEngine/Assets/Shader/SimpleTestShader.hlsl");
-
+        testMat->shader = testShader;
+        testMat->SetUpGPUResources();
     }
 
     SceneManager::~SceneManager()
@@ -30,7 +31,7 @@ namespace EngineCore
         auto meshFilterComponent = mTestGameObject->GetComponent<MeshFilterComponent>();
     }
 
-    void SceneManager:: Create()
+    void SceneManager::Create()
     {
         SceneManager::s_Instance = std::make_unique<SceneManager>();
     }

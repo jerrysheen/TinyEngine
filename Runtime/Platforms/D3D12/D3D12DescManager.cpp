@@ -1,0 +1,45 @@
+#include "PreCompiledHeader.h"
+#include "D3D12DescManager.h"
+#include "D3D12RenderAPI.h"
+#include "Renderer/RenderAPI.h"
+
+namespace EngineCore
+{
+    D3D12DescManager* D3D12DescManager::mInstance = nullptr;
+    Microsoft::WRL::ComPtr<ID3D12Device>  D3D12DescManager::mD3DDevice = nullptr;
+    D3D12DescManager::D3D12DescManager()
+    {
+        for(int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
+        {
+            mDescAllocators.emplace_back(D3D12_DESCRIPTOR_HEAP_TYPE(i));
+        }
+
+    }
+
+    D3D12DescManager::~D3D12DescManager(){};
+
+    void D3D12DescManager::Create(Microsoft::WRL::ComPtr<ID3D12Device> device)
+    {
+        mD3DDevice = device;
+        if(mInstance == nullptr)
+        {
+            mInstance = new D3D12DescManager();
+        }
+        else
+        {
+            std::cout << "D3D12DescManager already created" << std::endl;
+            return;
+        }
+    }
+
+    TD3D12DescriptorHandle D3D12DescManager::CreateDescriptor(const D3D12_CONSTANT_BUFFER_VIEW_DESC& desc)
+    {
+        return mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].CreateDescriptor(desc);
+    }
+
+
+    // heap 堆
+    // heap offset
+
+
+}

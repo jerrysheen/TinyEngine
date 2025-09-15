@@ -9,10 +9,10 @@ namespace EngineCore
     public:
         static Shader* Compile(const string& path);
         
-        
-        std::unordered_map<string, ShaderVariableInfo>  mShaderVariableInfoMap;
         ShaderStageInfo* vsInfo = nullptr;
         ShaderStageInfo* psInfo = nullptr;
         vector<InputLayout> mShaderInputLayout;
+
+        ~Shader();
     };
 }

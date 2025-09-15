@@ -11,6 +11,7 @@ namespace EngineCore
 		string path;
 		string shaderPath;       
 		string shaderCode;
+        unordered_map<string, float> floatData;
         unordered_map<string, Vector2> vec2Data;
         unordered_map<string, Vector3> vec3Data;
 
@@ -90,6 +91,9 @@ namespace EngineCore
         vector<ShaderResourceInfo> mUavInfo;
 
         ShaderStageInfo(){};
+
+        unordered_map<string, ShaderVariableInfo> mShaderStageVariableInfoMap;
+
     };
 
 

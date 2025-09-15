@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <map>
 #include <utility>
+#include <functional>
 
 using std::unordered_map;
 using std::string;
@@ -14,3 +15,4 @@ using std::vector;
 using std::pair;
 using std::cout;
 using std::endl;
+using std::function;

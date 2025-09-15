@@ -1,6 +1,8 @@
 #pragma once
 #include "PreCompiledHeader.h"
 #include "Graphics/Shader.h"
+#include "Graphics/ResourceStruct.h"
+#include "Graphics/Material.h"
 
 namespace  EngineCore
 {
@@ -15,6 +17,14 @@ namespace  EngineCore
         virtual void OnResize(int width, int height) = 0;
         static void Create();
         virtual Shader* CompileShader(const string& path) = 0;
+
+        virtual void CreateBuffersResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) = 0;
+        virtual void CreateSamplerResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) = 0;
+        virtual void CreateTextureResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) = 0;
+        virtual void CreateUAVResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) = 0;
+
+        virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector3& value) = 0;
+        virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector2& value) = 0;
     public:
         static std::unique_ptr<RenderAPI> s_Instance;
     };

@@ -36,7 +36,10 @@ namespace EngineCore
         virtual void CreateUAVResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) override;
 
         inline TD3D12Fence* GetFrameFence() { return mFrameFence; };
+        virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector3& value) override;
+        virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector2& value) override {};
 
+        
         Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;
         UINT mRtvDescriptorSize = 0;
         UINT mDsvDescriptorSize = 0;
@@ -83,7 +86,7 @@ namespace EngineCore
         void InitSwapChain();
         void InitRenderTarget();
 
-        void ImmediatelyExecute(std::function<void(ComPtr<ID3D12GraphicsCommandList>)>& function);
+        void ImmediatelyExecute(std::function<void(ComPtr<ID3D12GraphicsCommandList> cmdList)>&& function);
         Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
         Microsoft::WRL::ComPtr<IDXGIFactory4> mdxgiFactory;
         
@@ -104,6 +107,9 @@ namespace EngineCore
 
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mDirectCmdListAlloc;
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
+
+        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mImediatelyCmdListAlloc;
+        Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mImediatelyCommandList;
         
         DXGI_FORMAT mDepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
