@@ -762,6 +762,22 @@ namespace EngineCore
         memcpy(targetAddress, &value, sizeof(Vector3));
         
     }
+    
+    void D3D12RenderAPI::SetShaderMatrix4x4(const Material* mat, const ShaderVariableInfo& variableInfo, const Matrix4x4& value)
+    {
+        int matID = mat->GetID();
+        if(m_DataMap.count(matID) <= 0)
+        {
+            cout << "SetShaderVector: matID not found" << endl;
+            return;
+        }
+        auto iter = m_DataMap.find(matID);
+        TD3D12MaterialData data = iter->second;
+        void* baseAddress = data.mConstantBufferArray[variableInfo.bufferIndex].mCpuAddress;
+        void* targetAddress = reinterpret_cast<char*>(baseAddress) + variableInfo.offset;
+        memcpy(targetAddress, &value, sizeof(Matrix4x4));
+        
+    }
 
     void D3D12RenderAPI::SetUpMesh(ModelData* data, bool isStatic)
     {

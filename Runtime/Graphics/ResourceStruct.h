@@ -19,6 +19,7 @@ namespace EngineCore
         unordered_map<string, float> floatData;
         unordered_map<string, Vector2> vec2Data;
         unordered_map<string, Vector3> vec3Data;
+        unordered_map<string, Matrix4x4> matrix4x4Data;
 
     };
 

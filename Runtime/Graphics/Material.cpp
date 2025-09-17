@@ -47,7 +47,7 @@ namespace EngineCore
         // 设置数据部分，
         // 目前先设置ps好了， 理论上来说ps vs的数据应该是如果有一样的就设置一次就好了
         // 方法1: 使用 C++11 range-based for loop (推荐)
-        for (const auto& pair : data->vec3Data)
+        for(const auto& pair : data->vec3Data)
         {
             const string& key = pair.first;     
             const Vector3& value = pair.second;
@@ -58,8 +58,21 @@ namespace EngineCore
                 auto& variableInfo = map[key];
                 RenderAPI::GetInstance().SetShaderVector(this, variableInfo, value);
             }
+        }
+        
+        for(const auto& pair : data->matrix4x4Data)
+        {
+            const string& key = pair.first;
+            const Matrix4x4& value = pair.second;
+            auto& map = shader->mShaderBindingInfo->mShaderStageVariableInfoMap;
+            if(map.count(key) > 0)
+            {
+                auto& variableInfo = map[key];
+                RenderAPI::GetInstance().SetShaderMatrix4x4(this, variableInfo, value);
+            }
 
         }
+
 
     }
 

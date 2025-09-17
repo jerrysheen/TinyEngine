@@ -41,6 +41,7 @@ namespace EngineCore
         inline TD3D12Fence* GetFrameFence() { return mFrameFence; };
         virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector3& value) override;
         virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector2& value) override {};
+        virtual void SetShaderMatrix4x4(const Material* mat, const ShaderVariableInfo& variableInfo, const Matrix4x4& value) override;
         virtual void SetUpMesh(ModelData* data, bool isStatic = true) override;
         
         Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;

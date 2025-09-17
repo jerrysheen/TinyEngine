@@ -14,7 +14,12 @@ namespace EngineCore
         matStruct->vec3Data.emplace("LightDirection", Vector3(0.3,0.4,0.5));
         matStruct->vec3Data.emplace("LightColor", Vector3(0.3,0.4,0.5));
         matStruct->vec3Data.emplace("CameraPosition", Vector3(0.3,0.4,0.5));
-
+        matStruct->matrix4x4Data.emplace("WorldMatrix", Matrix4x4());
+        matStruct->matrix4x4Data.emplace("VPMatrix", Matrix4x4( 0.52,0,-0.37,0, 
+                                                                0.4,1.58,0.57,-0.0,
+                                                                0,0,-0.003,0.29,
+                                                                0.53,-0.40,0.74,4.5));
+        //matStruct->matrix4x4Data.emplace("ProjectionMatrix", Matrix4x4());
         return matStruct;
     }
     

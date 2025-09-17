@@ -119,6 +119,9 @@
     <ClCompile Include="..\..\..\..\Runtime\Managers\WindowManager.cpp">
       <Filter>Runtime\Managers</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Math\Matrix4x4.cpp">
+      <Filter>Runtime\Math</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Math\Vector2.cpp">
       <Filter>Runtime\Math</Filter>
     </ClCompile>

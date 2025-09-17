@@ -4,8 +4,9 @@
 cbuffer TransformBuffer : register(b0)
 {
     float4x4 WorldMatrix;
-    float4x4 ViewMatrix; 
-    float4x4 ProjectionMatrix;
+    //float4x4 ViewMatrix; 
+    //float4x4 ProjectionMatrix;
+    float4x4 VPMatrix;
     float3 CameraPosition;
     float Time;
 };
@@ -70,8 +71,9 @@ VertexOutput VSMain(VertexInput input)
     output.WorldPos = worldPos.xyz;
     
     // 变换到投影空间
-    float4 viewPos = mul(worldPos, ViewMatrix);
-    output.Position = mul(viewPos, ProjectionMatrix);
+    //float4 viewPos = mul(worldPos, ViewMatrix);
+    output.Position = mul(worldPos, VPMatrix);
+    //output.Position = mul(viewPos, ProjectionMatrix);
     
     // 变换法向量
     output.Normal = normalize(mul(input.Normal, (float3x3)WorldMatrix));
@@ -85,7 +87,7 @@ VertexOutput VSMain(VertexInput input)
 // 像素着色器
 float4 PSMain(VertexOutput input) : SV_Target
 {
-    return half4(1.0, 1.0, 1.0, 1.0);
+    return half4(1.0, 0.0, 0.0, 1.0);
     // // 采样纹理
     // float4 diffuseColor = DiffuseTexture.Sample(LinearSampler, input.TexCoord);
     // float3 normalMap = NormalTexture.Sample(AnisotropicSampler, input.TexCoord).xyz;
