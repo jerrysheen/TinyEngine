@@ -27,15 +27,11 @@ namespace EngineCore
     // 后续资源应该用inFo.name 进行寻找
     void Material::SetUpGPUResources()
     {  
-        RenderAPI::GetInstance().CreateBuffersResource(this, shader->vsInfo->mBufferInfo);
-        RenderAPI::GetInstance().CreateSamplerResource(this, shader->vsInfo->mSamplerInfo);
-        RenderAPI::GetInstance().CreateTextureResource(this, shader->vsInfo->mTextureInfo);
-        RenderAPI::GetInstance().CreateUAVResource(this, shader->vsInfo->mUavInfo);
+        RenderAPI::GetInstance().CreateBuffersResource(this, shader->mShaderBindingInfo->mBufferInfo);
+        RenderAPI::GetInstance().CreateSamplerResource(this, shader->mShaderBindingInfo->mSamplerInfo);
+        RenderAPI::GetInstance().CreateTextureResource(this, shader->mShaderBindingInfo->mTextureInfo);
+        RenderAPI::GetInstance().CreateUAVResource(this, shader->mShaderBindingInfo->mUavInfo);
 
-        RenderAPI::GetInstance().CreateBuffersResource(this, shader->psInfo->mBufferInfo);
-        RenderAPI::GetInstance().CreateSamplerResource(this, shader->psInfo->mSamplerInfo);
-        RenderAPI::GetInstance().CreateTextureResource(this, shader->psInfo->mTextureInfo);
-        RenderAPI::GetInstance().CreateUAVResource(this, shader->psInfo->mUavInfo);  
 
         UploadDataToGpu();
     }
@@ -56,7 +52,7 @@ namespace EngineCore
             const string& key = pair.first;     
             const Vector3& value = pair.second;
             
-            auto& map = shader->psInfo->mShaderStageVariableInfoMap;
+            auto& map = shader->mShaderBindingInfo->mShaderStageVariableInfoMap;
             if(map.count(key) > 0)
             {
                 auto& variableInfo = map[key];

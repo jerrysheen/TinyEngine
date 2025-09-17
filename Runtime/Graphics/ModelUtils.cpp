@@ -1,5 +1,6 @@
 #include "PreCompiledHeader.h"
 #include "ModelUtils.h"
+#include "Renderer/RenderAPI.h"
 
 namespace EngineCore
 {
@@ -18,6 +19,8 @@ namespace EngineCore
 		ModelData* meshData = new ModelData();
 		
 		ProcessNode(scene->mRootNode, scene, meshData);
+
+		RenderAPI::GetInstance().SetUpMesh(meshData, false);
         return meshData;
     }
 

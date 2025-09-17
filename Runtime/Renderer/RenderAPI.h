@@ -3,6 +3,7 @@
 #include "Graphics/Shader.h"
 #include "Graphics/ResourceStruct.h"
 #include "Graphics/Material.h"
+#include "Graphics/ModelData.h"
 
 namespace  EngineCore
 {
@@ -25,6 +26,7 @@ namespace  EngineCore
 
         virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector3& value) = 0;
         virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector2& value) = 0;
+        virtual void SetUpMesh(ModelData* data, bool isStatic = true) = 0;
     public:
         static std::unique_ptr<RenderAPI> s_Instance;
     };

@@ -13,6 +13,8 @@ namespace EngineCore
         mTestGameObject = new GameObject();
         mTestGameObject->AddComponent<MeshFilterComponent>();
         testMesh = ModelUtils::LoadMesh("D:/GitHubST/TinyEngine/Assets/Model/cube.obj");
+        
+        
         testMatStruct = Resources::LoadMaterial("D:/GitHubST/TinyEngine/Assets/Model/cube.obj");
         testMat = new Material(testMatStruct);
         testShader = Shader::Compile("D:/GitHubST/TinyEngine/Assets/Shader/SimpleTestShader.hlsl");

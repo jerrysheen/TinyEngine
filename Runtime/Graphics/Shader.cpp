@@ -4,6 +4,7 @@
 
 namespace EngineCore
 {
+    int Shader::ID = 0;
     Shader* Shader::Compile(const string& path)
     {
         return RenderAPI::s_Instance->CompileShader(path);
@@ -11,7 +12,6 @@ namespace EngineCore
 
     Shader::~Shader()
     {
-        delete vsInfo;
-        delete psInfo;
+        delete mShaderBindingInfo;
     }
 }

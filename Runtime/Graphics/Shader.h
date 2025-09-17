@@ -8,11 +8,12 @@ namespace EngineCore
     {
     public:
         static Shader* Compile(const string& path);
-        
-        ShaderStageInfo* vsInfo = nullptr;
-        ShaderStageInfo* psInfo = nullptr;
+        static int ID;
+        ShaderStageInfo* mShaderBindingInfo = nullptr;
         vector<InputLayout> mShaderInputLayout;
 
+        Shader(){ mShaderID = Shader::ID; Shader::ID++;};
         ~Shader();
+        int mShaderID;
     };
 }

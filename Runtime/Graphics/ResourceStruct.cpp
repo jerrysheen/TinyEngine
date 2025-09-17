@@ -13,6 +13,7 @@ namespace EngineCore
         matStruct->shaderCode = "...";
         matStruct->vec3Data.emplace("LightDirection", Vector3(0.3,0.4,0.5));
         matStruct->vec3Data.emplace("LightColor", Vector3(0.3,0.4,0.5));
+        matStruct->vec3Data.emplace("CameraPosition", Vector3(0.3,0.4,0.5));
 
         return matStruct;
     }

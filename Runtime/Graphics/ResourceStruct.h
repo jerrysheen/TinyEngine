@@ -2,6 +2,11 @@
 #include "PreCompiledHeader.h"
 #include "Math/Math.h"
 
+// 添加D3D12相关头文件
+#include <d3d12.h>
+#include <d3dcompiler.h>
+#include <wrl.h>
+
 namespace EngineCore
 {
 
@@ -89,6 +94,8 @@ namespace EngineCore
         vector<ShaderResourceInfo> mSamplerInfo;
         vector<ShaderResourceInfo> mBufferInfo;
         vector<ShaderResourceInfo> mUavInfo;
+
+
 
         ShaderStageInfo(){};
 

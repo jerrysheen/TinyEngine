@@ -125,6 +125,12 @@
     <ClCompile Include="..\..\..\..\Runtime\Math\Vector3.cpp">
       <Filter>Runtime\Math</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12DescAllocator.cpp">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12DescManager.cpp">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12RenderAPI.cpp">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClCompile>
@@ -136,6 +142,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\PreCompiledHeader.cpp">
       <Filter>Runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\Camera.cpp">
+      <Filter>Runtime\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderAPI.cpp">
       <Filter>Runtime\Renderer</Filter>

@@ -20,6 +20,9 @@ namespace EngineCore
     class D3D12RenderAPI : public RenderAPI
     {
     public:
+        // just for fast test:
+        void TestRenderObj(const TD3D12DrawRecord& record);
+
         virtual void BeginFrame() override;
         virtual void Render() override;
         virtual void EndFrame() override;
@@ -28,7 +31,7 @@ namespace EngineCore
         ~D3D12RenderAPI(){};
 
         virtual Shader* CompileShader(const string& path) override;
-        bool CompileShaderStage(const string& path, string entrypoint, string target, Shader* shader, ShaderStageType type);
+        bool CompileShaderStage(const string& path, string entrypoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob);
 
         virtual void CreateBuffersResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) override;
         virtual void CreateSamplerResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) override;
@@ -38,7 +41,7 @@ namespace EngineCore
         inline TD3D12Fence* GetFrameFence() { return mFrameFence; };
         virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector3& value) override;
         virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector2& value) override {};
-
+        virtual void SetUpMesh(ModelData* data, bool isStatic = true) override;
         
         Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;
         UINT mRtvDescriptorSize = 0;
@@ -77,6 +80,9 @@ namespace EngineCore
         void SignalFence(TD3D12Fence* mFence);
         void WaitForFence(TD3D12Fence* mFence);
         void WaitForRenderFinish(TD3D12Fence* mFence);
+
+        ComPtr<ID3D12PipelineState> psoObj;
+        ComPtr<ID3D12RootSignature> rootSignature;
     private:
 
         bool InitDirect3D();
@@ -85,8 +91,12 @@ namespace EngineCore
         void InitCommandObject();
         void InitSwapChain();
         void InitRenderTarget();
+        void CreatePSOByShaderReflection(Shader* shader, Microsoft::WRL::ComPtr<ID3DBlob> vsBlob, Microsoft::WRL::ComPtr<ID3DBlob> psBlob);
 
         void ImmediatelyExecute(std::function<void(ComPtr<ID3D12GraphicsCommandList> cmdList)>&& function);
+        int GetNextVAOIndex();
+        TD3D12VAO& GetAvaliableModelDesc();
+        
         Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
         Microsoft::WRL::ComPtr<IDXGIFactory4> mdxgiFactory;
         
@@ -124,6 +134,8 @@ namespace EngineCore
         int mClientHeight = 720;
 
         unordered_map<int, TD3D12MaterialData> m_DataMap; 
+        vector<TD3D12VAO> mVAOList;
+        vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
     };
 
 }

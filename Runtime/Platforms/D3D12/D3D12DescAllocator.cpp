@@ -21,15 +21,16 @@ namespace EngineCore
         mDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(mHeapType);
     }
 
+    // 需要取到GPU地址的，要保持着色器可见。
     D3D12_DESCRIPTOR_HEAP_FLAGS D3D12DescAllocator::GetHeapVisible(D3D12_DESCRIPTOR_HEAP_TYPE heapType)
     {
         switch (heapType)
         {
         case D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV:
-            return D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        case D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER:
+            return D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
             break;
         case D3D12_DESCRIPTOR_HEAP_TYPE_RTV:
-        case D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER:
         case D3D12_DESCRIPTOR_HEAP_TYPE_DSV:
             return D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
         default:
@@ -71,6 +72,11 @@ namespace EngineCore
 		CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
 		descriptorHandle.Offset(handle.descriptorIdx, mDescriptorSize);
 		mD3D12Device->CreateConstantBufferView(&desc, descriptorHandle);
+
+        // update 时候绑定，用GPU Handle
+        CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(mHeap->GetGPUDescriptorHandleForHeapStart());
+        gpuHandle.Offset(handle.descriptorIdx, mDescriptorSize);
+        handle.gpuHandle = gpuHandle;
         return handle;
     }
 

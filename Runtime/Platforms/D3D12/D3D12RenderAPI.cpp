@@ -3,6 +3,7 @@
 #include "Managers/WindowManager.h"
 #include "Graphics/ResourceStruct.h"
 #include "D3D12DescManager.h"
+#include "d3dx12.h"  // 确保包含D3D12辅助类
 
 namespace EngineCore
 {
@@ -450,25 +451,90 @@ namespace EngineCore
     {
 
         Shader* shader = new Shader();
-        if (!CompileShaderStage(path, "VSMain", "vs_5_1", shader, ShaderStageType::VERTEX_STAGE)) 
+        Microsoft::WRL::ComPtr<ID3DBlob> vsBlob;
+        if (!CompileShaderStage(path, "VSMain", "vs_5_1", shader, ShaderStageType::VERTEX_STAGE, vsBlob))
         {
             cout << "Shader Stage Vertex Compile fail" << endl;
         }
-
-        if (!CompileShaderStage(path, "PSMain", "ps_5_1", shader, ShaderStageType::FRAGMENT_STAGE))
+        Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
+        if (!CompileShaderStage(path, "PSMain", "ps_5_1", shader, ShaderStageType::FRAGMENT_STAGE, psBlob))
         {
             cout << "Shader Stage Pixel Shader Compile fail" << endl;
         }
+
+        // 创建PSO
+        CreatePSOByShaderReflection(shader, vsBlob, psBlob);
         return shader;
     }
 
+    void D3D12RenderAPI::CreatePSOByShaderReflection(Shader* shader, Microsoft::WRL::ComPtr<ID3DBlob> vsBlob, Microsoft::WRL::ComPtr<ID3DBlob> psBlob)
+    {
+        
 
-    bool D3D12RenderAPI::CompileShaderStage(const string& path, string entryPoint, string target, Shader* shader, ShaderStageType type)
+        int totalCount = shader->mShaderBindingInfo->mBufferInfo.size();
+        std::vector<CD3DX12_ROOT_PARAMETER> slotRootParameter(totalCount);
+        // 先尝试绑定constantbuffer
+        int count = 0;
+        for (int i = 0; i < shader->mShaderBindingInfo->mBufferInfo.size(); i++)
+        {
+            slotRootParameter[count++].InitAsConstantBufferView(i);
+        }
+
+        CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(
+            static_cast<UINT>(slotRootParameter.size()), slotRootParameter.data(),
+            0, nullptr,
+            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+        ComPtr<ID3DBlob> serializedRootSig = nullptr;
+        ComPtr<ID3DBlob> errorBlob = nullptr;
+
+        ThrowIfFailed(D3D12SerializeRootSignature(
+            &rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1,
+            &serializedRootSig, &errorBlob));
+
+        ThrowIfFailed(md3dDevice->CreateRootSignature(
+            0,
+            serializedRootSig->GetBufferPointer(),
+            serializedRootSig->GetBufferSize(),
+            IID_PPV_ARGS(&rootSignature)));
+
+        // todo: InputLayout完善：
+        std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
+        mInputLayout =
+        {
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        };
+        // pipeline state object:
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC pso{};
+        pso.pRootSignature = rootSignature.Get();
+        pso.VS = {reinterpret_cast<BYTE*>(vsBlob->GetBufferPointer()), vsBlob->GetBufferSize()};
+        pso.PS = {reinterpret_cast<BYTE*>(psBlob->GetBufferPointer()), psBlob->GetBufferSize()};
+        pso.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
+
+        pso.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+        pso.BlendState      = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        pso.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+
+        pso.SampleMask     = UINT_MAX;
+        pso.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+        pso.NumRenderTargets = 1;
+        pso.RTVFormats[0]    = DXGI_FORMAT_R8G8B8A8_UNORM;
+        pso.DSVFormat        = DXGI_FORMAT_D24_UNORM_S8_UINT;
+        pso.SampleDesc.Count = 1;
+
+        
+        if (FAILED(md3dDevice->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&psoObj))))
+            throw std::runtime_error("CreateGraphicsPipelineState failed");
+    }
+
+    bool D3D12RenderAPI::CompileShaderStage(const string& path, string entryPoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob)
     {
         ComPtr<ID3DBlob> errorBlob;
         UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
         std::wstring filename(path.begin(), path.end());
-        ComPtr<ID3DBlob> m_shaderBlob;
 
         HRESULT hr = D3DCompileFromFile(
             filename.c_str(),
@@ -478,7 +544,7 @@ namespace EngineCore
             target.c_str(),
             compileFlags,
             0,
-            &m_shaderBlob,
+            &blob,
             &errorBlob
         );
 
@@ -489,26 +555,28 @@ namespace EngineCore
             }
             return false;
         }
+
+
         ComPtr<ID3D12ShaderReflection>  m_reflection;
-        D3DReflect(m_shaderBlob->GetBufferPointer(), m_shaderBlob->GetBufferSize(), IID_PPV_ARGS(&m_reflection));
+        D3DReflect(blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&m_reflection));
 
         if (!m_reflection) return false;
 
         
-        ShaderStageInfo* shaderStageInfo = new ShaderStageInfo();
+        if (shader->mShaderBindingInfo == nullptr) 
+        {
+            shader->mShaderBindingInfo = new ShaderStageInfo();
+        }
+        ShaderStageInfo* shaderStageInfo = shader->mShaderBindingInfo;
 
         D3D12_SHADER_DESC desc;
         m_reflection->GetDesc(&desc);
 
 
-        std::unordered_map<string, ShaderVariableInfo>  shaderVariableInfoMap;
+        auto& shaderVariableInfoMap = shader->mShaderBindingInfo->mShaderStageVariableInfoMap;
         ShaderVariableInfo tempVariable;
         std::cout << "\n=== Constant Buffers ===\n";
-        int baseOffset = 0;
-        if (type == ShaderStageType::FRAGMENT_STAGE) 
-        {
-            baseOffset = shader->vsInfo->mBufferInfo.size();
-        }
+
         for (UINT i = 0; i < desc.ConstantBuffers; ++i) {
             auto cbReflection = m_reflection->GetConstantBufferByIndex(i);
 
@@ -522,14 +590,13 @@ namespace EngineCore
                 varReflection->GetDesc(&varDesc);
 
                 tempVariable.variableName = varDesc.Name;
-                tempVariable.bufferIndex = i + baseOffset;
+                tempVariable.bufferIndex = i;
                 tempVariable.offset = varDesc.StartOffset;
                 tempVariable.size = varDesc.Size;
                 tempVariable.type = Resources::GetShaderVaribleType((uint32_t)varDesc.Size);
                 shaderVariableInfoMap.try_emplace(varDesc.Name, tempVariable);
             }
         }
-        shaderStageInfo->mShaderStageVariableInfoMap = shaderVariableInfoMap;
 
 
         std::cout << "获得shader stage info" << std::endl;
@@ -537,27 +604,39 @@ namespace EngineCore
             D3D12_SHADER_INPUT_BIND_DESC bindDesc;
             m_reflection->GetResourceBindingDesc(i, &bindDesc);
             int bufferSize = 0;
+            HRESULT hr;
             ID3D12ShaderReflectionConstantBuffer* cbReflection;
             switch (bindDesc.Type) {
             case D3D_SIT_CBUFFER:
                 cbReflection = m_reflection->GetConstantBufferByName(bindDesc.Name);
-                if (cbReflection) {
-                    D3D12_SHADER_BUFFER_DESC bufferDesc;
-                    HRESULT hr = cbReflection->GetDesc(&bufferDesc);
-                    if (SUCCEEDED(hr)) {
-                        bufferSize = bufferDesc.Size;
-                    }
+                for (auto& x : shaderStageInfo->mBufferInfo) 
+                {
+                    if (x.resourceName == bindDesc.Name) break;
+                }
+                
+                D3D12_SHADER_BUFFER_DESC bufferDesc;
+                hr = cbReflection->GetDesc(&bufferDesc);
+                if (SUCCEEDED(hr)) {
+                    bufferSize = bufferDesc.Size;
                 }
                 shaderStageInfo->mBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, bufferSize);
                 break;
+
             case D3D_SIT_TEXTURE:
+                for (auto& x : shaderStageInfo->mTextureInfo)
+                {
+                    if (x.resourceName == bindDesc.Name) break;
+                }
                 shaderStageInfo->mTextureInfo.emplace_back(bindDesc.Name, ShaderResourceType::TEXTURE, bindDesc.BindPoint, 0);
                 break;
             case D3D_SIT_SAMPLER:
+                for (auto& x : shaderStageInfo->mSamplerInfo)
+                {
+                    if (x.resourceName == bindDesc.Name) break;
+                }
                 shaderStageInfo->mSamplerInfo.emplace_back(bindDesc.Name, ShaderResourceType::SAMPLER, bindDesc.BindPoint, 0);
                 break;
             default:
-                shaderStageInfo->mBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, 0);
                 std::cout << " Not find any exites shader resource type " << std::endl;
                 break;
             }
@@ -583,12 +662,6 @@ namespace EngineCore
                     shader->mShaderInputLayout.emplace_back(VertexAttribute::UV0);
                 }
             }
-
-            shader->vsInfo = shaderStageInfo;
-        }
-        else if(type == ShaderStageType::FRAGMENT_STAGE) 
-        {
-            shader->psInfo = shaderStageInfo;
         }
         return true;
     }
@@ -606,6 +679,7 @@ namespace EngineCore
             //  创建buffer resource + handle
             TD3D12ConstantBuffer constantBuffer;
             constantBuffer.mSize = alignedSize;
+            constantBuffer.registerSlot = bufferInfo.registerSlot;
             ImmediatelyExecute([&](ComPtr<ID3D12GraphicsCommandList> cmdList)
             {
 
@@ -689,5 +763,106 @@ namespace EngineCore
         
     }
 
+    void D3D12RenderAPI::SetUpMesh(ModelData* data, bool isStatic)
+    {
+        TD3D12VAO& vao = GetAvaliableModelDesc();
+        data->VAO = mVAOList.size() - 1;
+        Microsoft::WRL::ComPtr<ID3D12Resource> uploadBufferVertex;
+        Microsoft::WRL::ComPtr<ID3D12Resource> uploadBufferIndex;
+        ImmediatelyExecute([&](ComPtr<ID3D12GraphicsCommandList> cmdList) 
+        {        
+            vao.VertexBuffer = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(), cmdList.Get(), data->vertex.data(), data->vertex.size() * sizeof(float) * 8, uploadBufferVertex);
+            vao.IndexBuffer = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(), cmdList.Get(), data->index.data(), data->index.size() * sizeof(int), uploadBufferIndex);
+        });
 
+        WaitForRenderFinish(mImediatelyFence);
+        D3D12_VERTEX_BUFFER_VIEW vbv;
+		vbv.BufferLocation = vao.VertexBuffer->GetGPUVirtualAddress();
+		vbv.StrideInBytes = sizeof(Vertex);
+		vbv.SizeInBytes = data->vertex.size() * sizeof(float)* 8;
+
+        D3D12_INDEX_BUFFER_VIEW ibv;
+		ibv.BufferLocation = vao.IndexBuffer->GetGPUVirtualAddress();
+		ibv.Format = DXGI_FORMAT_R32_UINT;
+		ibv.SizeInBytes = data->index.size() * sizeof(int);
+
+        vao.vertexBufferView = vbv;
+        vao.indexBufferView = ibv;
+    }
+
+    int D3D12RenderAPI::GetNextVAOIndex()
+    {
+        return 0;
+    }
+    
+    TD3D12VAO& D3D12RenderAPI::GetAvaliableModelDesc()
+    {
+        mVAOList.emplace_back();
+        return mVAOList[mVAOList.size() - 1];
+    }
+
+    void D3D12RenderAPI::TestRenderObj(const TD3D12DrawRecord& drawrecord)
+    {
+        WaitForRenderFinish(mFrameFence);
+        // Reuse the memory associated with command recording.
+        // We can only reset when the associated command lists have finished execution on the GPU.
+        ThrowIfFailed(mDirectCmdListAlloc->Reset());
+
+        // A command list can be reset after it has been added to the command queue via ExecuteCommandList.
+        // Reusing the command list reuses memory.
+        ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), psoObj.Get()));
+
+        // Indicate a state transition on the resource usage.
+        mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
+            D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+
+        // Set the viewport and scissor rect.  This needs to be reset whenever the command list is reset.
+        mCommandList->RSSetViewports(1, &mScreenViewport);
+        mCommandList->RSSetScissorRects(1, &mScissorRect);
+
+        float color[4] = { 0.434153706f, 0.552011609f, 0.730461001f, 1.f };
+        // Clear the back buffer and depth buffer.
+        mCommandList->ClearRenderTargetView(CurrentBackBufferView(), color, 0, nullptr);
+        mCommandList->ClearDepthStencilView(DepthStencilView(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+
+        // Specify the buffers we are going to render to.
+        mCommandList->OMSetRenderTargets(1, &CurrentBackBufferView(), true, &DepthStencilView());
+        mCommandList->SetGraphicsRootSignature(rootSignature.Get());
+        auto& vao = mVAOList[drawrecord.model->VAO];
+        mCommandList->IASetVertexBuffers(0, 1, &vao.vertexBufferView);
+        mCommandList->IASetIndexBuffer(&vao.indexBufferView);
+        mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+        //auto cbvHeap = D3D12DescManager::GetInstance().mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].mHeap;
+        //ID3D12DescriptorHeap* heaps[] = { cbvHeap.Get() };
+        //mCommandList->SetDescriptorHeaps(1, heaps);
+        TD3D12MaterialData& data = m_DataMap[drawrecord.mat->GetID()];
+        for (auto& x : data.mConstantBufferArray) 
+        {
+            //mCommandList->SetGraphicsRootDescriptorTable(x.registerSlot, x.handleCBV.gpuHandle);
+            D3D12_GPU_VIRTUAL_ADDRESS cbvAddress = x.mBufferResource->GetGPUVirtualAddress();
+            mCommandList->SetGraphicsRootConstantBufferView(x.registerSlot, cbvAddress);
+        }
+        //mCommandList->SetGraphicsRootConstantBufferView(data.)
+        mCommandList->DrawIndexedInstanced(
+            vao.indexBufferView.SizeInBytes / sizeof(int),
+            1, 0, 0, 0);
+        // Indicate a state transition on the resource usage.
+        mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
+            D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+
+        // Done recording commands.
+        ThrowIfFailed(mCommandList->Close());
+
+        // Add the command list to the queue for execution.
+        ID3D12CommandList* cmdsLists[] = { mCommandList.Get() };
+        mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
+
+        // swap the back and front buffers
+        SignalFence(mFrameFence);
+
+        // Wait until frame commands are complete.  This waiting is inefficient and is
+        // done for simplicity.  Later we will show how to organize our rendering code
+        // so we do not have to wait per frame.
+    }
 } // namespace EngineCore
