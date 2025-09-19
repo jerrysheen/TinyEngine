@@ -1,7 +1,8 @@
 #pragma once
 #include "PreCompiledHeader.h"
 #include "Graphics/Shader.h"
-#include "Graphics/ResourceStruct.h"
+#include "Core/Resources.h"
+#include "Core/PublicStruct.h"
 #include "Graphics/Material.h"
 #include "Graphics/ModelData.h"
 

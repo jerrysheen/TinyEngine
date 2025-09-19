@@ -1,0 +1,33 @@
+#pragma once
+
+namespace EngineCore
+{
+    enum class ShaderVariableType
+    {
+        FLOAT, VECTOR2, VECTOR3, VECTOR4, MATRIX4X4, MATRIX3X4, MATRIX3X3, UNKNOWN
+    };
+
+    enum class ShaderStageType
+    {
+        VERTEX_STAGE, FRAGMENT_STAGE
+    };
+
+    enum class ShaderResourceType
+    {
+        CONSTANT_BUFFER,
+        TEXTURE,
+        SAMPLER,
+        UAV
+    };
+
+    
+    enum class VertexAttribute
+    {
+        POSITION,
+        NORMAL,
+        TANGENT,
+        UV0
+    };
+
+
+}

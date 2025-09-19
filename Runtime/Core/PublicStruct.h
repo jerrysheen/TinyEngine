@@ -1,36 +1,9 @@
 #pragma once
-#include "PreCompiledHeader.h"
+#include "PublicEnum.h"
 #include "Math/Math.h"
-
-// 添加D3D12相关头文件
-#include <d3d12.h>
-#include <d3dcompiler.h>
-#include <wrl.h>
 
 namespace EngineCore
 {
-
-    struct MaterialStruct
-    {
-        string name;
-		string path;
-		string shaderPath;       
-		string shaderCode;
-        unordered_map<string, float> floatData;
-        unordered_map<string, Vector2> vec2Data;
-        unordered_map<string, Vector3> vec3Data;
-        unordered_map<string, Matrix4x4> matrix4x4Data;
-
-    };
-
-    enum class VertexAttribute
-    {
-        POSITION,
-        NORMAL,
-        TANGENT,
-        UV0
-    };
-
 
     // 用来描述model Input 或者 shader reflection input
     // todos: shader inputlayout 部分的控制， 目前只是简单把值塞过来
@@ -49,24 +22,14 @@ namespace EngineCore
         InputLayout(VertexAttribute type) : type(type) {};
     };
 
-    enum class ShaderVariableType
+    struct Vertex
     {
-        FLOAT, VECTOR2, VECTOR3, VECTOR4, MATRIX4X4, MATRIX3X4, MATRIX3X3, UNKNOWN
+        Vector3 position;
+        Vector3 normal;
+        Vector2 uv;
     };
 
-    enum class ShaderStageType
-    {
-        VERTEX_STAGE, FRAGMENT_STAGE
-    };
-
-    enum class ShaderResourceType
-    {
-        CONSTANT_BUFFER,
-        TEXTURE,
-        SAMPLER,
-        UAV
-    };
-
+    // constantbuffer中的变量记录
     struct ShaderVariableInfo
     {
         string variableName;
@@ -76,7 +39,7 @@ namespace EngineCore
         int offset;
     };
 
-    // 统一的 UAV、 buffer、 textureinfo、sampler
+    // shader中通过反射得到的资源名称、类型
     struct ShaderResourceInfo
     {
         string resourceName;
@@ -88,7 +51,7 @@ namespace EngineCore
         {};
     };
 
-    struct ShaderStageInfo
+    struct ShaderReflectionInfo
     {
         ShaderStageType type;
         vector<ShaderResourceInfo> mTextureInfo;
@@ -96,20 +59,9 @@ namespace EngineCore
         vector<ShaderResourceInfo> mBufferInfo;
         vector<ShaderResourceInfo> mUavInfo;
 
-
-
-        ShaderStageInfo(){};
+        ShaderReflectionInfo(){};
 
         unordered_map<string, ShaderVariableInfo> mShaderStageVariableInfoMap;
 
     };
-
-
-    class Resources
-    {
-    public:
-        static MaterialStruct* LoadMaterial(const std::string& path);
-        static ShaderVariableType GetShaderVaribleType(uint32_t size);
-    };
-
 }

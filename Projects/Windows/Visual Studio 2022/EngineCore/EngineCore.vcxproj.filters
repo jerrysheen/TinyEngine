@@ -74,6 +74,15 @@
     <ClCompile Include="..\..\..\..\Runtime\Core\ProjectSettings.cpp">
       <Filter>Runtime\Core</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Core\PublicEnum.cpp">
+      <Filter>Runtime\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Core\PublicStruct.cpp">
+      <Filter>Runtime\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Core\Resources.cpp">
+      <Filter>Runtime\Core</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Entry.cpp">
       <Filter>Runtime</Filter>
     </ClCompile>
@@ -105,9 +114,6 @@
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\ModelUtils.cpp">
-      <Filter>Runtime\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Graphics\ResourceStruct.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\Shader.cpp">
@@ -147,6 +153,12 @@
       <Filter>Runtime</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\Camera.cpp">
+      <Filter>Runtime\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\FrameBufferManager.cpp">
+      <Filter>Runtime\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\FrameBufferObject.cpp">
       <Filter>Runtime\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderAPI.cpp">

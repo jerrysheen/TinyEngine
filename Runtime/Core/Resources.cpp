@@ -1,5 +1,5 @@
 #include "PreCompiledHeader.h"
-#include "ResourceStruct.h"
+#include "Core/Resources.h"
 
 namespace EngineCore
 {

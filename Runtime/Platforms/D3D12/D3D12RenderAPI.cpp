@@ -1,7 +1,8 @@
 #include "PreCompiledHeader.h"
 #include "D3D12RenderAPI.h"
 #include "Managers/WindowManager.h"
-#include "Graphics/ResourceStruct.h"
+#include "Core/Resources.h"
+#include "Core/PublicStruct.h"
 #include "D3D12DescManager.h"
 #include "d3dx12.h"  // 确保包含D3D12辅助类
 
@@ -565,9 +566,9 @@ namespace EngineCore
         
         if (shader->mShaderBindingInfo == nullptr) 
         {
-            shader->mShaderBindingInfo = new ShaderStageInfo();
+            shader->mShaderBindingInfo = new ShaderReflectionInfo();
         }
-        ShaderStageInfo* shaderStageInfo = shader->mShaderBindingInfo;
+        ShaderReflectionInfo* ShaderReflectionInfo = shader->mShaderBindingInfo;
 
         D3D12_SHADER_DESC desc;
         m_reflection->GetDesc(&desc);
@@ -609,7 +610,7 @@ namespace EngineCore
             switch (bindDesc.Type) {
             case D3D_SIT_CBUFFER:
                 cbReflection = m_reflection->GetConstantBufferByName(bindDesc.Name);
-                for (auto& x : shaderStageInfo->mBufferInfo) 
+                for (auto& x : ShaderReflectionInfo->mBufferInfo) 
                 {
                     if (x.resourceName == bindDesc.Name) break;
                 }
@@ -619,22 +620,22 @@ namespace EngineCore
                 if (SUCCEEDED(hr)) {
                     bufferSize = bufferDesc.Size;
                 }
-                shaderStageInfo->mBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, bufferSize);
+                ShaderReflectionInfo->mBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, bufferSize);
                 break;
 
             case D3D_SIT_TEXTURE:
-                for (auto& x : shaderStageInfo->mTextureInfo)
+                for (auto& x : ShaderReflectionInfo->mTextureInfo)
                 {
                     if (x.resourceName == bindDesc.Name) break;
                 }
-                shaderStageInfo->mTextureInfo.emplace_back(bindDesc.Name, ShaderResourceType::TEXTURE, bindDesc.BindPoint, 0);
+                ShaderReflectionInfo->mTextureInfo.emplace_back(bindDesc.Name, ShaderResourceType::TEXTURE, bindDesc.BindPoint, 0);
                 break;
             case D3D_SIT_SAMPLER:
-                for (auto& x : shaderStageInfo->mSamplerInfo)
+                for (auto& x : ShaderReflectionInfo->mSamplerInfo)
                 {
                     if (x.resourceName == bindDesc.Name) break;
                 }
-                shaderStageInfo->mSamplerInfo.emplace_back(bindDesc.Name, ShaderResourceType::SAMPLER, bindDesc.BindPoint, 0);
+                ShaderReflectionInfo->mSamplerInfo.emplace_back(bindDesc.Name, ShaderResourceType::SAMPLER, bindDesc.BindPoint, 0);
                 break;
             default:
                 std::cout << " Not find any exites shader resource type " << std::endl;

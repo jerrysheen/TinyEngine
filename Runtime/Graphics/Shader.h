@@ -1,6 +1,7 @@
 #pragma once
-#include "Graphics/ResourceStruct.h"
 #include "PreCompiledHeader.h"
+#include "Core/Resources.h"
+#include "Core/PublicStruct.h"
 
 namespace EngineCore
 {
@@ -9,7 +10,7 @@ namespace EngineCore
     public:
         static Shader* Compile(const string& path);
         static int ID;
-        ShaderStageInfo* mShaderBindingInfo = nullptr;
+        ShaderReflectionInfo* mShaderBindingInfo = nullptr;
         vector<InputLayout> mShaderInputLayout;
 
         Shader(){ mShaderID = Shader::ID; Shader::ID++;};

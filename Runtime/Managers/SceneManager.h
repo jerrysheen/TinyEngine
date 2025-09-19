@@ -4,7 +4,7 @@
 #include "Core/GameObject.h"
 #include "Graphics/ModelUtils.h"
 #include "Graphics/Material.h"
-#include "Graphics/ResourceStruct.h"
+#include "Core/Resources.h"
 #include "Graphics/Shader.h"
 
 namespace EngineCore

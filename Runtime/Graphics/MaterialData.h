@@ -1,7 +1,7 @@
 #pragma once
 #include "PreCompiledHeader.h"
 #include "Math/Math.h"
-#include "Graphics/ResourceStruct.h"
+#include "Core/Resources.h"
 
 namespace EngineCore
 {

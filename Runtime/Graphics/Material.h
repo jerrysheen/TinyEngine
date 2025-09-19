@@ -1,7 +1,7 @@
 #pragma once
 #include "Math.h"
 #include "MaterialData.h"
-#include "Graphics/ResourceStruct.h"
+#include "Core/Resources.h"
 #include "Shader.h"
 
 namespace EngineCore
