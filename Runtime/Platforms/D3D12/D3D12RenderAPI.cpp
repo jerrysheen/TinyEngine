@@ -710,6 +710,60 @@ namespace EngineCore
         m_DataMap[matID] = data;
     }
 
+    FrameBufferObject* D3D12RenderAPI::CreateFBO(const string& name, const FrameBufferObject& fbodesc)
+    {
+        if(m_FrameBufferMap.count(name) > 0)
+        {
+            ASSERT_MSG(false, "Already Create FBO Here");
+        }
+
+        // 1. 设置资源描述符
+        D3D12_RESOURCE_DESC resourceDesc;
+        resourceDesc.Dimension = d3dUtil::GetFBOD3D12Dimesnsion(fbodesc.dimension);
+        resourceDesc.Alignment = 0;
+        resourceDesc.Width = fbodesc.width;
+        resourceDesc.Height = fbodesc.heigfht;
+        resourceDesc.DepthOrArraySize = 1;
+        resourceDesc.MipLevels = 1;
+        resourceDesc.Format = d3dUtil::GetFBOD3D12Format(fbodesc.format);
+        // todo: 加上mipmap 和 msaa
+        resourceDesc.SampleDesc.Count = 1;
+        resourceDesc.SampleDesc.Quality = 0;
+        resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+
+        D3D12_CLEAR_VALUE clearValue;
+
+        TD3D12FrameBuffer d3DFrameBufferObject;
+        // 3. 创建资源 - 完全相同
+        ThrowIfFailed(md3dDevice->CreateCommittedResource(
+            &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+            D3D12_HEAP_FLAG_NONE,
+            &resourceDesc,
+            D3D12_RESOURCE_STATE_RENDER_TARGET,  // 可能不同
+            &clearValue,
+            IID_PPV_ARGS(&d3DFrameBufferObject.resource)));
+        
+        // Create Descriptor:...
+        if(fbodesc.format == TextureFormat::R8G8B8A8)
+        {
+            TD3D12DescriptorHandle descHandle = D3D12DescManager::GetInstance().CreateDescriptor(d3DFrameBufferObject.resource, D3D12_RENDER_TARGET_VIEW_DESC{});
+            d3DFrameBufferObject.rtvHandle = descHandle.cpuHandle;
+        }
+        else if (fbodesc.format == TextureFormat::D24S8) 
+        {
+            TD3D12DescriptorHandle descHandle = D3D12DescManager::GetInstance().CreateDescriptor(d3DFrameBufferObject.resource, D3D12_DEPTH_STENCIL_VIEW_DESC{});
+            d3DFrameBufferObject.dsvHandle = descHandle.cpuHandle;
+        }
+
+
+        m_FrameBufferMap.insert({name, d3DFrameBufferObject});
+
+        // 组装FrameBufferObject：
+        FrameBufferObject* frameBufferObject = new FrameBufferObject();
+        frameBufferObject->name = name;
+        return frameBufferObject;
+    }
+
     void D3D12RenderAPI::CreateSamplerResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos)
     {
     }

@@ -166,6 +166,20 @@ ComPtr<ID3DBlob> d3dUtil::CompileShader(
 	return byteCode;
 }
 
+DXGI_FORMAT d3dUtil::GetFBOD3D12Format(const EngineCore::TextureFormat& format)
+{
+    switch (format)
+    {
+    case EngineCore::TextureFormat::R8G8B8A8:
+        return DXGI_FORMAT_R8G8B8A8_UNORM;
+    case EngineCore::TextureFormat::D24S8:
+        return DXGI_FORMAT_D24_UNORM_S8_UINT;
+    default:
+        break;
+    }
+    return DXGI_FORMAT();
+}
+
 std::wstring DxException::ToString()const
 {
     // Get the string description of the error code.
@@ -173,6 +187,19 @@ std::wstring DxException::ToString()const
     std::wstring msg = err.ErrorMessage();
 
     return FunctionName + L" failed in " + Filename + L"; line " + std::to_wstring(LineNumber) + L"; error: " + msg;
+}
+
+D3D12_RESOURCE_DIMENSION d3dUtil::GetFBOD3D12Dimesnsion(const EngineCore::TextureDimension& dimension)
+{
+    switch (dimension)
+    {
+    case EngineCore::TextureDimension::TEXTURE2D :
+        /* code */
+        return D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+    
+    default:
+        break;
+    }
 }
 
 

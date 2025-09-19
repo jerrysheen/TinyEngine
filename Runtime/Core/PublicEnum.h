@@ -20,7 +20,6 @@ namespace EngineCore
         UAV
     };
 
-    
     enum class VertexAttribute
     {
         POSITION,
@@ -29,5 +28,17 @@ namespace EngineCore
         UV0
     };
 
+    enum class TextureDimension
+    {
+        TEXTURE2D,
+        TEXTURE3D,
+        TEXTURECUBE,
+        TEXTURE2DARRAY
+    };
 
+    enum class TextureFormat
+    {
+        R8G8B8A8,
+        D24S8,
+    };
 }

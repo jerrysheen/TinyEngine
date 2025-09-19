@@ -60,8 +60,18 @@ namespace EngineCore
         vector<ShaderResourceInfo> mUavInfo;
 
         ShaderReflectionInfo(){};
-
         unordered_map<string, ShaderVariableInfo> mShaderStageVariableInfoMap;
 
     };
+
+    struct FrameBufferObject
+    {
+        string name;
+        TextureDimension dimension;
+        TextureFormat format;
+        float width;
+        float heigfht;
+    };
+
+
 }

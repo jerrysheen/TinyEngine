@@ -28,6 +28,7 @@
 #include "d3dx12.h"
 #include <WindowsX.h>
 
+#include "Core/PublicStruct.h"
 using Microsoft::WRL::ComPtr;
 
 extern const int gNumFrameResources;
@@ -133,6 +134,9 @@ public:
 		const D3D_SHADER_MACRO* defines,
 		const std::string& entrypoint,
 		const std::string& target);
+
+    static D3D12_RESOURCE_DIMENSION GetFBOD3D12Dimesnsion(const EngineCore::TextureDimension& dimension);
+    static DXGI_FORMAT GetFBOD3D12Format(const EngineCore::TextureFormat& format);
 };
 
 class DxException

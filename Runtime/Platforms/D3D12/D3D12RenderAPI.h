@@ -14,7 +14,6 @@
 #include "PreCompiledHeader.h"
 #include "D3D12Struct.h"
 
-
 namespace EngineCore
 {
     class D3D12RenderAPI : public RenderAPI
@@ -43,7 +42,8 @@ namespace EngineCore
         virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector2& value) override {};
         virtual void SetShaderMatrix4x4(const Material* mat, const ShaderVariableInfo& variableInfo, const Matrix4x4& value) override;
         virtual void SetUpMesh(ModelData* data, bool isStatic = true) override;
-        
+        virtual FrameBufferObject* CreateFBO(const string& name, const FrameBufferObject& fboDesc) override;
+
         Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;
         UINT mRtvDescriptorSize = 0;
         UINT mDsvDescriptorSize = 0;
@@ -137,6 +137,7 @@ namespace EngineCore
         unordered_map<int, TD3D12MaterialData> m_DataMap; 
         vector<TD3D12VAO> mVAOList;
         vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
+        unordered_map<string, TD3D12FrameBuffer> m_FrameBufferMap;
     };
 
 }

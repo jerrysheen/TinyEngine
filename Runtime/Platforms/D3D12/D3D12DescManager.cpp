@@ -37,6 +37,16 @@ namespace EngineCore
         return mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].CreateDescriptor(desc);
     }
 
+    TD3D12DescriptorHandle D3D12DescManager::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc)
+    {
+        return mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV].CreateDescriptor(resource, desc);
+    }
+
+    TD3D12DescriptorHandle D3D12DescManager::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc)
+    {
+        return mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_DSV].CreateDescriptor(resource, desc);
+    }
+
 
     // heap 堆
     // heap offset

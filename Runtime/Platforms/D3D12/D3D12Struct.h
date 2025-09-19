@@ -23,6 +23,7 @@ namespace EngineCore
         // 在描述符堆数组里的索引
         uint32_t descriptorHeapIdx = UINT32_MAX;
         D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
+        D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
         D3D12_DESCRIPTOR_HEAP_TYPE heapType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     };
 
@@ -73,5 +74,13 @@ namespace EngineCore
     public:
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocators;
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> commandLists;
+    };
+
+    struct TD3D12FrameBuffer
+    {
+        Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+        D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle;
+        D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+        D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;  
     };
 } // namespace EngineCore

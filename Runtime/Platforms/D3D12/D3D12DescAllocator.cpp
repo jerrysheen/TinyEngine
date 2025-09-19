@@ -79,6 +79,37 @@ namespace EngineCore
         handle.gpuHandle = gpuHandle;
         return handle;
     }
+   
+    TD3D12DescriptorHandle D3D12DescAllocator::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc)
+    {
+        auto handle = GetNextAvaliableDesc();
+        handle.heapType = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+        auto mD3D12Device = static_cast<D3D12RenderAPI*>(&RenderAPI::GetInstance())->md3dDevice;
+
+        // 创建RTV
+		CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
+		descriptorHandle.Offset(handle.descriptorIdx, mDescriptorSize);
+		mD3D12Device->CreateRenderTargetView(resource.Get(), nullptr, descriptorHandle);
+        handle.cpuHandle = descriptorHandle;
+
+        return handle;
+    }
+
+
+    TD3D12DescriptorHandle D3D12DescAllocator::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc)
+    {
+        auto handle = GetNextAvaliableDesc();
+        handle.heapType = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+        auto mD3D12Device = static_cast<D3D12RenderAPI*>(&RenderAPI::GetInstance())->md3dDevice;
+
+		// 创建DSV
+		CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
+		descriptorHandle.Offset(handle.descriptorIdx, mDescriptorSize);
+		mD3D12Device->CreateRenderTargetView(resource.Get(), nullptr, descriptorHandle);
+        handle.cpuHandle = descriptorHandle;
+
+        return handle;
+    }
 
     TD3D12DescriptorHandle D3D12DescAllocator::GetNextAvaliableDesc()
     {
