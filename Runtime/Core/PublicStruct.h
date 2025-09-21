@@ -1,6 +1,7 @@
 #pragma once
 #include "PublicEnum.h"
 #include "Math/Math.h"
+#include "Graphics/Camera.h"
 
 namespace EngineCore
 {
@@ -70,7 +71,57 @@ namespace EngineCore
         TextureDimension dimension;
         TextureFormat format;
         float width;
-        float heigfht;
+        float height;
+    };
+
+
+    struct LightData
+    {
+
+    };
+
+
+    // 前向声明，防止循环引用。
+    class Material;
+    class ModelData;
+
+    struct VisibleItem
+    {
+        // 为了测试，先用直接塞数据的方式。
+        Material* mat;
+        ModelData* model;
+    };
+
+
+    struct DrawRecord
+    {
+        // temp 方案：
+        // 为了测试，先用直接塞数据的方式。
+        Material* mat;
+        ModelData* model;
+        DrawRecord(Material* mat, ModelData* data):mat(mat),model(data){};
+    };
+    
+    struct PerDrawData
+    {
+        Matrix4x4 objectToWorldMatrix;
+        Matrix4x4 worldToViewMatrix;
+        Matrix4x4 viewToProjectionMatrix;
+    };
+
+    struct RenderPassInfo
+    {
+        FrameBufferObject* colorAttachment;
+        FrameBufferObject* depthAttachment;
+        ClearFlag clearFlag;
+        Vector3 clearColorValue;
+        float clearDepthValue;
+
+        PerDrawData perdrawData;
+        Vector2 viewportStartPos;
+        Vector2 viewportEndPos;
+        
+        vector<DrawRecord> drawRecordList;
     };
 
 

@@ -1,0 +1,18 @@
+#include "PreCompiledHeader.h"
+#include "Culling.h"
+#include "Managers/SceneManager.h"
+
+namespace EngineCore
+{
+    void Culling::Run(Camera *cam, RenderContext &context)
+    {
+        // 从场景得到visibalItem， 然后组装
+        // get some fake data....
+        context.camera = cam;
+        auto visibleItem = context.GetAvalileVisibleItem();
+        visibleItem->mat = SceneManager::GetInstance().testMat;
+        visibleItem->model = SceneManager::GetInstance().testMesh;
+        context.cameraVisibleItems.push_back(std::move(visibleItem));
+    }
+
+} // namespace EngineCore

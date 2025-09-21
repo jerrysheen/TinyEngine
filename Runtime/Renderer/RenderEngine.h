@@ -1,5 +1,6 @@
 #pragma once
 #include "Managers/Manager.h"
+#include "RenderContext.h"
 
 namespace EngineCore
 {
@@ -25,6 +26,7 @@ namespace EngineCore
         ~RenderEngine(){};
     private:
         static std::unique_ptr<RenderEngine> s_Instance;
+        static RenderContext renderContext;
     };
     
 }

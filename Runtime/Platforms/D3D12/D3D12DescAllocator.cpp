@@ -105,7 +105,7 @@ namespace EngineCore
 		// 创建DSV
 		CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
 		descriptorHandle.Offset(handle.descriptorIdx, mDescriptorSize);
-		mD3D12Device->CreateRenderTargetView(resource.Get(), nullptr, descriptorHandle);
+		mD3D12Device->CreateDepthStencilView(resource.Get(), nullptr, descriptorHandle);
         handle.cpuHandle = descriptorHandle;
 
         return handle;

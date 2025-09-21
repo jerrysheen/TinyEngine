@@ -30,10 +30,16 @@ namespace  EngineCore
         virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector2& value) = 0;
         virtual void SetShaderMatrix4x4(const Material* mat, const ShaderVariableInfo& variableInfo, const Matrix4x4& value) = 0;
         virtual void SetUpMesh(ModelData* data, bool isStatic = true) = 0;
-        virtual FrameBufferObject* CreateFBO(const string& name, const FrameBufferObject& fbodesc) = 0;
+        virtual void CreateFBO(const string& name, FrameBufferObject* fbodesc) = 0;
+        virtual void Submit(const vector<RenderPassInfo*>& renderPassInfos) = 0;
 
+        inline void AddRenderPassInfo(const RenderPassInfo& renderPassInfo){ mRenderPassInfoList.push_back(renderPassInfo); };
+        inline void ClearRenderPassInfo(){ mRenderPassInfoList.clear(); };
+        
     public:
         static std::unique_ptr<RenderAPI> s_Instance;
+    protected:
+        vector<RenderPassInfo> mRenderPassInfoList;
     };
     
 } // namespace  EngineCore

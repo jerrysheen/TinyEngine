@@ -11,9 +11,9 @@ namespace EngineCore
     public:
         FrameBufferManager();
         ~FrameBufferManager(){};
-        FrameBufferObject* CreateFBO(const string& name, const FrameBufferObject& fboDesc );
+        void CreateFBO(const string& name, FrameBufferObject* fboDesc);
         FrameBufferObject* GetFBO(const string& name);
-
+        static void Create();
     private:
         unordered_map<string, FrameBufferObject*> mFBOMap;
     };

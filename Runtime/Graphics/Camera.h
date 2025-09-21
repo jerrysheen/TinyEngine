@@ -6,7 +6,7 @@ namespace EngineCore
     {
     public:
         static Camera* GetMainCamera(){ return nullptr;};
-
+        
     };
 
 }

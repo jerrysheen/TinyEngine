@@ -13,6 +13,8 @@
 #include "Graphics/Shader.h"
 #include "PreCompiledHeader.h"
 #include "D3D12Struct.h"
+#include "Core/PublicStruct.h"
+
 
 namespace EngineCore
 {
@@ -20,7 +22,7 @@ namespace EngineCore
     {
     public:
         // just for fast test:
-        void TestRenderObj(const TD3D12DrawRecord& record);
+        void TestRenderObj(const DrawRecord& record);
 
         virtual void BeginFrame() override;
         virtual void Render() override;
@@ -42,8 +44,9 @@ namespace EngineCore
         virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector2& value) override {};
         virtual void SetShaderMatrix4x4(const Material* mat, const ShaderVariableInfo& variableInfo, const Matrix4x4& value) override;
         virtual void SetUpMesh(ModelData* data, bool isStatic = true) override;
-        virtual FrameBufferObject* CreateFBO(const string& name, const FrameBufferObject& fboDesc) override;
-
+        virtual void CreateFBO(const string& name, FrameBufferObject* fbodesc) override;
+        virtual void Submit(const vector<RenderPassInfo*>& renderPassInfos) override;
+        
         Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;
         UINT mRtvDescriptorSize = 0;
         UINT mDsvDescriptorSize = 0;

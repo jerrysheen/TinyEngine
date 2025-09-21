@@ -22,6 +22,4 @@ namespace EngineCore
         int matID;
         void InitMaterialData(const MaterialStruct* matStruct);
     };
-
-
 }

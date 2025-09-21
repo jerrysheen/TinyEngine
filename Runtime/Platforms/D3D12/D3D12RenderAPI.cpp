@@ -5,6 +5,7 @@
 #include "Core/PublicStruct.h"
 #include "D3D12DescManager.h"
 #include "d3dx12.h"  // 确保包含D3D12辅助类
+#include "Renderer/FrameBufferManager.h"
 
 namespace EngineCore
 {
@@ -710,7 +711,7 @@ namespace EngineCore
         m_DataMap[matID] = data;
     }
 
-    FrameBufferObject* D3D12RenderAPI::CreateFBO(const string& name, const FrameBufferObject& fbodesc)
+    void D3D12RenderAPI::CreateFBO(const string& name, FrameBufferObject* fbodesc)
     {
         if(m_FrameBufferMap.count(name) > 0)
         {
@@ -719,50 +720,82 @@ namespace EngineCore
 
         // 1. 设置资源描述符
         D3D12_RESOURCE_DESC resourceDesc;
-        resourceDesc.Dimension = d3dUtil::GetFBOD3D12Dimesnsion(fbodesc.dimension);
+        resourceDesc.Dimension = d3dUtil::GetFBOD3D12Dimesnsion(fbodesc->dimension);
         resourceDesc.Alignment = 0;
-        resourceDesc.Width = fbodesc.width;
-        resourceDesc.Height = fbodesc.heigfht;
+        resourceDesc.Width = fbodesc->width;
+        resourceDesc.Height = fbodesc->height;
         resourceDesc.DepthOrArraySize = 1;
         resourceDesc.MipLevels = 1;
-        resourceDesc.Format = d3dUtil::GetFBOD3D12Format(fbodesc.format);
+        resourceDesc.Format = d3dUtil::GetFBOD3D12Format(fbodesc->format);
         // todo: 加上mipmap 和 msaa
         resourceDesc.SampleDesc.Count = 1;
         resourceDesc.SampleDesc.Quality = 0;
         resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
-        D3D12_CLEAR_VALUE clearValue;
+         // 设置资源标志
+         if (fbodesc->format == TextureFormat::D24S8)
+         {
+             resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+         }
+         else
+         {
+             resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+         }
+
+        // 在第734行，正确初始化clearValue：
+        D3D12_CLEAR_VALUE clearValue = {};
+        clearValue.Format = resourceDesc.Format;
+        if (fbodesc->format == TextureFormat::D24S8)
+        {
+            clearValue.DepthStencil.Depth = 1.0f;
+            clearValue.DepthStencil.Stencil = 0;
+        }
+        else
+        {
+            clearValue.Color[0] = 0.0f;
+            clearValue.Color[1] = 0.0f;
+            clearValue.Color[2] = 0.0f;
+            clearValue.Color[3] = 1.0f;
+        }
 
         TD3D12FrameBuffer d3DFrameBufferObject;
-        // 3. 创建资源 - 完全相同
+        
+        // 根据格式选择正确的初始资源状态
+        D3D12_RESOURCE_STATES initialState;
+        if (fbodesc->format == TextureFormat::D24S8)
+        {
+            initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+        }
+        else
+        {
+            initialState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        }
+        
+        // 3. 创建资源
         ThrowIfFailed(md3dDevice->CreateCommittedResource(
             &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
             D3D12_HEAP_FLAG_NONE,
             &resourceDesc,
-            D3D12_RESOURCE_STATE_RENDER_TARGET,  // 可能不同
+            initialState,
             &clearValue,
             IID_PPV_ARGS(&d3DFrameBufferObject.resource)));
         
         // Create Descriptor:...
-        if(fbodesc.format == TextureFormat::R8G8B8A8)
+        if(fbodesc->format == TextureFormat::R8G8B8A8)
         {
             TD3D12DescriptorHandle descHandle = D3D12DescManager::GetInstance().CreateDescriptor(d3DFrameBufferObject.resource, D3D12_RENDER_TARGET_VIEW_DESC{});
             d3DFrameBufferObject.rtvHandle = descHandle.cpuHandle;
         }
-        else if (fbodesc.format == TextureFormat::D24S8) 
+        else if (fbodesc->format == TextureFormat::D24S8) 
         {
             TD3D12DescriptorHandle descHandle = D3D12DescManager::GetInstance().CreateDescriptor(d3DFrameBufferObject.resource, D3D12_DEPTH_STENCIL_VIEW_DESC{});
             d3DFrameBufferObject.dsvHandle = descHandle.cpuHandle;
         }
 
-
         m_FrameBufferMap.insert({name, d3DFrameBufferObject});
-
-        // 组装FrameBufferObject：
-        FrameBufferObject* frameBufferObject = new FrameBufferObject();
-        frameBufferObject->name = name;
-        return frameBufferObject;
     }
+
+
 
     void D3D12RenderAPI::CreateSamplerResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos)
     {
@@ -872,7 +905,8 @@ namespace EngineCore
         return mVAOList[mVAOList.size() - 1];
     }
 
-    void D3D12RenderAPI::TestRenderObj(const TD3D12DrawRecord& drawrecord)
+    // submit the drawCommand to render thread..
+    void D3D12RenderAPI::Submit(const vector<RenderPassInfo*>& renderPassInfos)
     {
         WaitForRenderFinish(mFrameFence);
         // Reuse the memory associated with command recording.
@@ -883,44 +917,77 @@ namespace EngineCore
         // Reusing the command list reuses memory.
         ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), psoObj.Get()));
 
-        // Indicate a state transition on the resource usage.
-        mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
-            D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
+        //// Indicate a state transition on the resource usage.
+        //mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
+        //    D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
 
-        // Set the viewport and scissor rect.  This needs to be reset whenever the command list is reset.
-        mCommandList->RSSetViewports(1, &mScreenViewport);
-        mCommandList->RSSetScissorRects(1, &mScissorRect);
 
-        float color[4] = { 0.434153706f, 0.552011609f, 0.730461001f, 1.f };
-        // Clear the back buffer and depth buffer.
-        mCommandList->ClearRenderTargetView(CurrentBackBufferView(), color, 0, nullptr);
-        mCommandList->ClearDepthStencilView(DepthStencilView(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+
 
         // Specify the buffers we are going to render to.
-        mCommandList->OMSetRenderTargets(1, &CurrentBackBufferView(), true, &DepthStencilView());
-        mCommandList->SetGraphicsRootSignature(rootSignature.Get());
-        auto& vao = mVAOList[drawrecord.model->VAO];
-        mCommandList->IASetVertexBuffers(0, 1, &vao.vertexBufferView);
-        mCommandList->IASetIndexBuffer(&vao.indexBufferView);
-        mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        //auto cbvHeap = D3D12DescManager::GetInstance().mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].mHeap;
-        //ID3D12DescriptorHeap* heaps[] = { cbvHeap.Get() };
-        //mCommandList->SetDescriptorHeaps(1, heaps);
-        TD3D12MaterialData& data = m_DataMap[drawrecord.mat->GetID()];
-        for (auto& x : data.mConstantBufferArray) 
+
+        for (auto& renderpassInfo : renderPassInfos) 
         {
-            //mCommandList->SetGraphicsRootDescriptorTable(x.registerSlot, x.handleCBV.gpuHandle);
-            D3D12_GPU_VIRTUAL_ADDRESS cbvAddress = x.mBufferResource->GetGPUVirtualAddress();
-            mCommandList->SetGraphicsRootConstantBufferView(x.registerSlot, cbvAddress);
+            // Set the viewport and scissor rect.  This needs to be reset whenever the command list is reset.
+            mScreenViewport.TopLeftX = renderpassInfo->viewportStartPos.x;
+            mScreenViewport.TopLeftY = renderpassInfo->viewportStartPos.y;
+            mScreenViewport.Width = renderpassInfo->viewportEndPos.x;
+            mScreenViewport.Height = renderpassInfo->viewportEndPos.y;
+            mScreenViewport.MinDepth = 0.0f;
+            mScreenViewport.MaxDepth = 1.0f;
+            mCommandList->RSSetViewports(1, &mScreenViewport);
+            mCommandList->RSSetScissorRects(1, &mScissorRect);
+
+            // 根据状态判断当前RT是否需要切换渲染状态， 一般不用的，可能需要从资源切换到RenderTarget
+            
+            // Set ClearFlag.
+            // Set Rendertarget.
+            float color[4] = { renderpassInfo->clearColorValue.x, renderpassInfo->clearColorValue.y, renderpassInfo->clearColorValue.z, 1.f };
+            // Clear the back buffer and depth buffer.
+            TD3D12FrameBuffer* colorBuffer = nullptr;
+            if (renderpassInfo->colorAttachment != nullptr) 
+            {
+                ASSERT_MSG(m_FrameBufferMap.count(renderpassInfo->colorAttachment->name) > 0, "This FBO doesnt exits!!!");
+                colorBuffer = &m_FrameBufferMap[renderpassInfo->colorAttachment->name];
+                mCommandList->ClearRenderTargetView(colorBuffer->rtvHandle, color, 0, nullptr);
+            }
+            
+            TD3D12FrameBuffer* depthBuffer = nullptr;
+            if (renderpassInfo->depthAttachment != nullptr) 
+            {
+                ASSERT_MSG(m_FrameBufferMap.count(renderpassInfo->depthAttachment->name) > 0, "This FBO doesnt exits!!!");
+                depthBuffer = &m_FrameBufferMap[renderpassInfo->depthAttachment->name];
+                mCommandList->ClearDepthStencilView(depthBuffer->dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+            }
+
+
+            mCommandList->OMSetRenderTargets(1, 
+                colorBuffer ? &colorBuffer->rtvHandle : nullptr, 
+                true, 
+                depthBuffer ? &depthBuffer->dsvHandle : nullptr);
+            mCommandList->SetGraphicsRootSignature(rootSignature.Get());
+
+            for (auto& drawRecord : renderpassInfo->drawRecordList) 
+            {
+                auto& vao = mVAOList[drawRecord.model->VAO];
+                mCommandList->IASetVertexBuffers(0, 1, &vao.vertexBufferView);
+                mCommandList->IASetIndexBuffer(&vao.indexBufferView);
+                mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+                TD3D12MaterialData& data = m_DataMap[drawRecord.mat->GetID()];
+                for (auto& x : data.mConstantBufferArray)
+                {
+                    //mCommandList->SetGraphicsRootDescriptorTable(x.registerSlot, x.handleCBV.gpuHandle);
+                    D3D12_GPU_VIRTUAL_ADDRESS cbvAddress = x.mBufferResource->GetGPUVirtualAddress();
+                    mCommandList->SetGraphicsRootConstantBufferView(x.registerSlot, cbvAddress);
+                }
+                //mCommandList->SetGraphicsRootConstantBufferView(data.)
+                mCommandList->DrawIndexedInstanced(
+                    vao.indexBufferView.SizeInBytes / sizeof(int),
+                    1, 0, 0, 0);
+            }
         }
-        //mCommandList->SetGraphicsRootConstantBufferView(data.)
-        mCommandList->DrawIndexedInstanced(
-            vao.indexBufferView.SizeInBytes / sizeof(int),
-            1, 0, 0, 0);
-        // Indicate a state transition on the resource usage.
-        mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
-            D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 
         // Done recording commands.
         ThrowIfFailed(mCommandList->Close());
@@ -931,6 +998,11 @@ namespace EngineCore
 
         // swap the back and front buffers
         SignalFence(mFrameFence);
+    }
+
+    void D3D12RenderAPI::TestRenderObj(const DrawRecord& drawrecord)
+    {
+
 
         // Wait until frame commands are complete.  This waiting is inefficient and is
         // done for simplicity.  Later we will show how to organize our rendering code

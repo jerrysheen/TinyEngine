@@ -7,14 +7,6 @@
 namespace EngineCore
 {
 
-    struct TD3D12DrawRecord
-    {
-        // temp 方案：
-        // 为了测试，先用直接塞数据的方式。
-        Material* mat;
-        ModelData* model;
-        TD3D12DrawRecord(Material* mat, ModelData* data):mat(mat),model(data){};
-    };
 
     struct TD3D12DescriptorHandle
     {

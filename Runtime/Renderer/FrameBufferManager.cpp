@@ -8,14 +8,12 @@ namespace EngineCore
     
     FrameBufferManager::FrameBufferManager()
     {
-        FrameBufferManager::s_Instance = std::make_unique<FrameBufferManager>();
     }
 
-    FrameBufferObject* FrameBufferManager::CreateFBO(const string& name, const FrameBufferObject& fboDesc)
+    void FrameBufferManager::CreateFBO(const string& name, FrameBufferObject* fboDesc)
     {
-        auto fbo = RenderAPI::s_Instance->CreateFBO(name, fboDesc);
-        mFBOMap.try_emplace(name, fbo);
-        return fbo;
+        RenderAPI::s_Instance->CreateFBO(name, fboDesc);
+        mFBOMap.try_emplace(name, fboDesc);
     }
 
     FrameBufferObject* FrameBufferManager::GetFBO(const string& name)
@@ -26,6 +24,11 @@ namespace EngineCore
             return nullptr;
         }
         return mFBOMap[name];
+    }
+
+    void FrameBufferManager::Create()
+    {
+        FrameBufferManager::s_Instance = std::make_unique<FrameBufferManager>();
     }
 
 } // namespace EngineCore
