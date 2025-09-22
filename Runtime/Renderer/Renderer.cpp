@@ -16,11 +16,6 @@ namespace EngineCore
         s_Instance = std::make_unique<Renderer>();
     }
 
-    void Renderer::AddRenderPass(RenderPass* renderPass)
-    {
-        mRenderPasses.push_back(renderPass);
-        renderPass->Create();
-    }
 
     void Renderer::BeginFrame()
     {
@@ -30,7 +25,7 @@ namespace EngineCore
 
     void Renderer::Render(const RenderContext& context)
     {
-        for(auto& pass : mRenderPasses)
+        for(auto& pass : context.camera->mRenderPassAsset.renderPasses)
         {
             pass->Configure(context);
             pass->Filter(context);

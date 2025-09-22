@@ -11,6 +11,10 @@
 
 namespace EngineCore
 {
+    ForwardRenderPass::ForwardRenderPass()
+    {
+        Create();
+    }
 
     void EngineCore::ForwardRenderPass::Create()
     {

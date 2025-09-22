@@ -23,7 +23,6 @@ namespace EngineCore
         RenderAPI::Create();
         Renderer::Create();
         FrameBufferManager::Create();
-        Renderer::GetInstance().AddRenderPass(new ForwardRenderPass());
     }
 
     void RenderEngine::Update()
@@ -52,7 +51,7 @@ namespace EngineCore
 
 
         //RenderAPI::GetInstance().Render();
-        Camera* cam = Camera::GetMainCamera();
+        Camera* cam = SceneManager::GetInstance().mCamera;
         auto mesh = SceneManager::GetInstance().testMesh;
         auto mat = SceneManager::GetInstance().testMat;
         

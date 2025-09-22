@@ -6,6 +6,7 @@
 #include "Graphics/Material.h"
 #include "Core/Resources.h"
 #include "Graphics/Shader.h"
+#include "Graphics/Camera.h"
 
 namespace EngineCore
 {
@@ -28,6 +29,7 @@ namespace EngineCore
         MaterialStruct* testMatStruct;
         Material* testMat;
         Shader* testShader;
+        Camera* mCamera;
     };
 
 }

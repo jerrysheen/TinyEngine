@@ -20,6 +20,8 @@ namespace EngineCore
         testShader = Shader::Compile("D:/GitHubST/TinyEngine/Assets/Shader/SimpleTestShader.hlsl");
         testMat->shader = testShader;
         testMat->SetUpGPUResources();
+
+        mCamera = new Camera();
     }
 
     SceneManager::~SceneManager()

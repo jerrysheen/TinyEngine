@@ -8,6 +8,7 @@ namespace EngineCore
     {
         // 从场景得到visibalItem， 然后组装
         // get some fake data....
+        context.Reset();
         context.camera = cam;
         auto visibleItem = context.GetAvalileVisibleItem();
         visibleItem->mat = SceneManager::GetInstance().testMat;

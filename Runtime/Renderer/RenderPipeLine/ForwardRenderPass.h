@@ -8,6 +8,8 @@ namespace EngineCore
     class ForwardRenderPass : public RenderPass
     {
     public:
+
+        ForwardRenderPass();
         // renderpass 初始化
         //virtual void Create(const RenderContext& context) override;
         // todo Create 也需要参数

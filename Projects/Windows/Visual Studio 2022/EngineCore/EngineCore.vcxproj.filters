@@ -173,6 +173,9 @@
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderEngine.cpp">
       <Filter>Runtime\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\FinalBlitPass.cpp">
+      <Filter>Runtime\Renderer\RenderPipeLine</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\ForwardRenderPass.cpp">
       <Filter>Runtime\Renderer\RenderPipeLine</Filter>
     </ClCompile>

@@ -1,7 +1,6 @@
 #pragma once
 #include "PublicEnum.h"
 #include "Math/Math.h"
-#include "Graphics/Camera.h"
 
 namespace EngineCore
 {
@@ -122,6 +121,17 @@ namespace EngineCore
         Vector2 viewportEndPos;
         
         vector<DrawRecord> drawRecordList;
+    };
+
+    class RenderPass;
+    struct RenderPassAsset
+    {
+        vector<RenderPass*> renderPasses;
+        inline void Clear()
+        {
+             for (RenderPass* pass : renderPasses) 
+                delete pass;
+        };
     };
 
 
