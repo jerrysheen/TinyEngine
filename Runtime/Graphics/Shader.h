@@ -16,5 +16,6 @@ namespace EngineCore
         Shader(){ mShaderID = Shader::ID; Shader::ID++;};
         ~Shader();
         int mShaderID;
+        string name;
     };
 }

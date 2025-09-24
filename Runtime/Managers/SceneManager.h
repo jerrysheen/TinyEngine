@@ -30,6 +30,10 @@ namespace EngineCore
         Material* testMat;
         Shader* testShader;
         Camera* mCamera;
+
+        Material* blitMatrial;
+        ModelData* quadMesh;
+        Shader* blitShader;
     };
 
 }

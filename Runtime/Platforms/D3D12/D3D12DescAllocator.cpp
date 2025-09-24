@@ -6,7 +6,7 @@
 
 namespace EngineCore
 {
-    D3D12DescAllocator::D3D12DescAllocator(D3D12_DESCRIPTOR_HEAP_TYPE heapType)
+    D3D12DescAllocator::D3D12DescAllocator(D3D12_DESCRIPTOR_HEAP_TYPE heapType, bool isFrameHeap)
     {
         // 能cast的是指针， 所以对象要转成指针。
         auto md3dDevice = D3D12DescManager::mD3DDevice;
@@ -14,7 +14,7 @@ namespace EngineCore
         D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
 		heapDesc.NumDescriptors = ConfigAllocatorDescSize(heapType);
 		heapDesc.Type = heapType;
-		heapDesc.Flags = GetHeapVisible(heapType);
+		heapDesc.Flags = GetHeapVisible(heapType, isFrameHeap);
 		heapDesc.NodeMask = 0;
 		ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mHeap.GetAddressOf())));
         isInUse.resize(maxCount, false);
@@ -22,11 +22,12 @@ namespace EngineCore
     }
 
     // 需要取到GPU地址的，要保持着色器可见。
-    D3D12_DESCRIPTOR_HEAP_FLAGS D3D12DescAllocator::GetHeapVisible(D3D12_DESCRIPTOR_HEAP_TYPE heapType)
+    D3D12_DESCRIPTOR_HEAP_FLAGS D3D12DescAllocator::GetHeapVisible(D3D12_DESCRIPTOR_HEAP_TYPE heapType, bool isFrameHeap)
     {
         switch (heapType)
         {
         case D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV:
+            return isFrameHeap ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
         case D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER:
             return D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
             break;
@@ -72,7 +73,7 @@ namespace EngineCore
 		CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
 		descriptorHandle.Offset(handle.descriptorIdx, mDescriptorSize);
 		mD3D12Device->CreateConstantBufferView(&desc, descriptorHandle);
-
+        handle.cpuHandle = descriptorHandle;
         // update 时候绑定，用GPU Handle
         CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(mHeap->GetGPUDescriptorHandleForHeapStart());
         gpuHandle.Offset(handle.descriptorIdx, mDescriptorSize);
@@ -126,4 +127,29 @@ namespace EngineCore
         return handle;
     }
 
+    void D3D12DescAllocator::Reset()
+    {
+        for(int i = 0; i < isInUse.size(); i++)
+        {
+            isInUse[i] = 0;
+        }
+        currentOffset = 0;
+    }
+
+    // FrameAllocator 每帧重置，所以直接按照顺序取就ok。
+    TD3D12DescriptorHandle D3D12DescAllocator::GetFrameAllocator(int count)
+    {
+        ASSERT_MSG(currentOffset + count < maxCount, "false");
+        //直接给handle，然后更新offSet;
+        TD3D12DescriptorHandle handle;
+        handle.descriptorIdx = currentOffset;
+        D3D12_CPU_DESCRIPTOR_HANDLE cpuStart = mHeap->GetCPUDescriptorHandleForHeapStart();
+        D3D12_GPU_DESCRIPTOR_HANDLE gpuStart = mHeap->GetGPUDescriptorHandleForHeapStart();
+        
+        handle.cpuHandle.ptr = cpuStart.ptr + currentOffset * mDescriptorSize;
+        handle.gpuHandle.ptr = gpuStart.ptr + currentOffset * mDescriptorSize;
+        currentOffset += count;
+
+        return handle;
+    }
 }

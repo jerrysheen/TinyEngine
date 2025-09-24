@@ -33,6 +33,12 @@ namespace EngineCore
             pass->Submit();
         }
         RenderAPI::GetInstance().Submit(mRenderPassInfo);
+
+        // 重置每个pass产生的渲染信息
+        for (auto& pass : context.camera->mRenderPassAsset.renderPasses)
+        {
+            pass->Clear();
+        }
     }
 
     void Renderer::EndFrame()

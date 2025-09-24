@@ -22,6 +22,12 @@ namespace EngineCore
         testMat->SetUpGPUResources();
 
         mCamera = new Camera();
+
+        quadMesh = ModelUtils::GetFullScreenQuad();
+        blitShader = Shader::Compile("D:/GitHubST/TinyEngine/Assets/Shader/BlitShader.hlsl");
+        blitMatrial = new Material();
+        blitMatrial->shader = blitShader;
+        blitMatrial->SetUpGPUResources();
     }
 
     SceneManager::~SceneManager()

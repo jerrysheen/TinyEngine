@@ -8,6 +8,13 @@ namespace EngineCore
     
     FrameBufferManager::FrameBufferManager()
     {
+        mBackBuffer = new FrameBufferObject();
+        mBackBuffer->name = "BackBuffer";
+    }
+
+    FrameBufferManager::~FrameBufferManager()
+    {
+        delete mBackBuffer;
     }
 
     void FrameBufferManager::CreateFBO(const string& name, FrameBufferObject* fboDesc)

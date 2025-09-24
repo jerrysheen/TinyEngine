@@ -26,6 +26,9 @@ namespace EngineCore
         // sent current Data to Renderer-> RenderPassInfo
         virtual void Submit() = 0;
 
+        virtual void Clear() = 0;
+
+
         // ignore null ptr since RenderAPI level will handle this problem
         inline void SetRenderTarget(FrameBufferObject* colorAttachment, FrameBufferObject* depthAttachment)
         {

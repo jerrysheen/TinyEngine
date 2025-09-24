@@ -10,12 +10,15 @@ namespace EngineCore
     {
     public:
         FrameBufferManager();
-        ~FrameBufferManager(){};
+        ~FrameBufferManager();
         void CreateFBO(const string& name, FrameBufferObject* fboDesc);
         FrameBufferObject* GetFBO(const string& name);
         static void Create();
+
+        inline FrameBufferObject* GetScreenBuffer(){return mBackBuffer;};
     private:
         unordered_map<string, FrameBufferObject*> mFBOMap;
+        FrameBufferObject* mBackBuffer;
     };
 
 }

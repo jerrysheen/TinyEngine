@@ -11,7 +11,12 @@ namespace EngineCore
     {
         for(int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
         {
-            mDescAllocators.emplace_back(D3D12_DESCRIPTOR_HEAP_TYPE(i));
+            mDescAllocators.emplace_back(D3D12_DESCRIPTOR_HEAP_TYPE(i), false);
+        }
+
+        for(int i = 0; i < 2; i++)
+        {
+            mFrameAllocators.emplace_back(D3D12_DESCRIPTOR_HEAP_TYPE(i), true);
         }
 
     }
@@ -47,6 +52,23 @@ namespace EngineCore
         return mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_DSV].CreateDescriptor(resource, desc);
     }
 
+    void D3D12DescManager::ResetFrameAllocator()
+    {
+        for(auto& alloctor : mFrameAllocators)
+        {
+            alloctor.Reset();
+        }        
+    }
+
+    TD3D12DescriptorHandle D3D12DescManager::GetFrameCbvSrvUavAllocator(int count)
+    {
+        return mFrameAllocators[0].GetFrameAllocator(count);
+    }
+
+    TD3D12DescriptorHandle D3D12DescManager::GetFrameSamplerAllocator(int count)
+    {
+        return mFrameAllocators[1].GetFrameAllocator(count);
+    }
 
     // heap 堆
     // heap offset

@@ -15,6 +15,17 @@ namespace EngineCore
         InitMaterialData(matStruct);
     }
 
+    Material::Material() 
+    {
+        matID = ID;
+        ID++;
+        data = new MaterialData();
+        shader = nullptr;
+        // 空初始化表示不需要
+        // 
+        // InitMaterialData(matStruct);
+    }
+
     Material::~Material()
     {
         if (data) delete data;

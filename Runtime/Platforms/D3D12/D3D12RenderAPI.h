@@ -47,6 +47,7 @@ namespace EngineCore
         virtual void CreateFBO(const string& name, FrameBufferObject* fbodesc) override;
         virtual void Submit(const vector<RenderPassInfo*>& renderPassInfos) override;
         
+        TD3D12FrameBuffer* GetFrameBuffer(const string& name);
         Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;
         UINT mRtvDescriptorSize = 0;
         UINT mDsvDescriptorSize = 0;
@@ -55,9 +56,9 @@ namespace EngineCore
         DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
         UINT mCurrBackBuffer = 0;
         static const int SwapChainBufferCount = 3;
-        Microsoft::WRL::ComPtr<ID3D12Resource> mSwapChainBuffer[SwapChainBufferCount];
+        //Microsoft::WRL::ComPtr<ID3D12Resource> mSwapChainBuffer[SwapChainBufferCount];
         Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
-
+        TD3D12FrameBuffer mBackBuffer[SwapChainBufferCount];
         //UINT64 mCurrentFence = 0;
         //Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
         TD3D12Fence* mFrameFence;
@@ -78,7 +79,7 @@ namespace EngineCore
 
         ID3D12Resource* D3D12RenderAPI::CurrentBackBuffer()const
         {
-            return mSwapChainBuffer[mCurrBackBuffer].Get();
+            return mBackBuffer[mCurrBackBuffer].resource.Get();
         }
 
         void SignalFence(TD3D12Fence* mFence);
@@ -141,6 +142,7 @@ namespace EngineCore
         vector<TD3D12VAO> mVAOList;
         vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
         unordered_map<string, TD3D12FrameBuffer> m_FrameBufferMap;
+        unordered_map<string, TD3D12ShaderPSO> m_ShaderPSOMap;
     };
 
 }

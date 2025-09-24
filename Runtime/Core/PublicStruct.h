@@ -106,6 +106,13 @@ namespace EngineCore
         Matrix4x4 objectToWorldMatrix;
         Matrix4x4 worldToViewMatrix;
         Matrix4x4 viewToProjectionMatrix;
+
+        inline void Reset()
+        {
+            objectToWorldMatrix = Matrix4x4::Identity;
+            worldToViewMatrix = Matrix4x4::Identity;
+            viewToProjectionMatrix = Matrix4x4::Identity;
+        };
     };
 
     struct RenderPassInfo
@@ -121,6 +128,19 @@ namespace EngineCore
         Vector2 viewportEndPos;
         
         vector<DrawRecord> drawRecordList;
+
+        inline void Reset()
+        {
+            colorAttachment = nullptr;
+            depthAttachment = nullptr;
+            clearFlag = ClearFlag::NONE;
+            clearColorValue = Vector3::Zero;
+            clearDepthValue = 1.0;
+            perdrawData.Reset();
+            viewportStartPos = Vector2::Zero;
+            viewportStartPos = Vector2::Zero;
+            drawRecordList.clear();
+        };
     };
 
     class RenderPass;

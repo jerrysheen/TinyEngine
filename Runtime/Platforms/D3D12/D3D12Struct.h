@@ -68,11 +68,31 @@ namespace EngineCore
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> commandLists;
     };
 
+    struct TD3D12ShaderPSO
+    {
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> pso;
+        Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
+        std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout;
+        
+        // 添加默认构造函数
+        TD3D12ShaderPSO() = default;
+
+        TD3D12ShaderPSO(Microsoft::WRL::ComPtr<ID3D12PipelineState> pso,
+            Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature,
+            std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout)
+            : pso(pso), rootSignature(rootSignature), inputLayout(inputLayout)
+        {
+
+        };
+    };
+        
+
     struct TD3D12FrameBuffer
     {
         Microsoft::WRL::ComPtr<ID3D12Resource> resource;
         D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle;
         D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
         D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;  
+        D3D12_RESOURCE_STATES state;
     };
 } // namespace EngineCore

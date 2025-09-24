@@ -19,7 +19,17 @@ namespace EngineCore
 		TD3D12DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc);
 		TD3D12DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc);
 		TD3D12DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc){};
+        
+        void ResetFrameAllocator();
+        TD3D12DescriptorHandle GetFrameCbvSrvUavAllocator(int count);
+        TD3D12DescriptorHandle GetFrameSamplerAllocator(int count);
         vector<D3D12DescAllocator> mDescAllocators;
+        vector<D3D12DescAllocator> mFrameAllocators;
+
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> GetFrameCbvSrvUavHeap()
+        {
+            return mFrameAllocators[0].mHeap;
+        };
     private:
         static D3D12DescManager* mInstance;
 

@@ -12,6 +12,7 @@ namespace EngineCore
         MaterialData* data;
         Shader* shader;
         Material(const MaterialStruct* matStruct);
+        Material();
         void SetUpGPUResources();
         void UploadDataToGpu();
         inline int GetID() const {return matID;};

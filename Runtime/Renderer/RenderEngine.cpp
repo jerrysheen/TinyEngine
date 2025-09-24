@@ -69,6 +69,5 @@ namespace EngineCore
         renderContext.Reset();
         Renderer::GetInstance().EndFrame();
         RenderAPI::GetInstance().EndFrame();
-
     }
 }

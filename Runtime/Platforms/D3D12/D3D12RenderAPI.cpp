@@ -84,7 +84,7 @@ namespace EngineCore
 
         // Release the previous resources we will be recreating.
         for (int i = 0; i < SwapChainBufferCount; ++i)
-            mSwapChainBuffer[i].Reset();
+            mBackBuffer[i].resource.Reset();
         mDepthStencilBuffer.Reset();
         
         // Resize the swap chain.
@@ -99,8 +99,10 @@ namespace EngineCore
         CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(mRtvHeap->GetCPUDescriptorHandleForHeapStart());
         for (UINT i = 0; i < SwapChainBufferCount; i++)
         {
-            ThrowIfFailed(mSwapChain->GetBuffer(i, IID_PPV_ARGS(&mSwapChainBuffer[i])));
-            md3dDevice->CreateRenderTargetView(mSwapChainBuffer[i].Get(), nullptr, rtvHeapHandle);
+            ThrowIfFailed(mSwapChain->GetBuffer(i, IID_PPV_ARGS(&mBackBuffer[i].resource)));
+            md3dDevice->CreateRenderTargetView(mBackBuffer[i].resource.Get(), nullptr, rtvHeapHandle);
+            mBackBuffer[i].rtvHandle = rtvHeapHandle;
+            mBackBuffer[i].state = D3D12_RESOURCE_STATE_PRESENT;
             rtvHeapHandle.Offset(1, mRtvDescriptorSize);
         }
 
@@ -321,6 +323,7 @@ namespace EngineCore
         ThrowIfFailed(mSwapChain->Present(0, 0));
         mCurrBackBuffer = (mCurrBackBuffer + 1) % SwapChainBufferCount;
         //WaitForRenderFinish();
+        D3D12DescManager::GetInstance().ResetFrameAllocator();
 
     }
 
@@ -334,7 +337,7 @@ namespace EngineCore
 
         // Release the previous resources we will be recreating.
         for (int i = 0; i < SwapChainBufferCount; ++i)
-            mSwapChainBuffer[i].Reset();
+            mBackBuffer[i].resource.Reset();
         mDepthStencilBuffer.Reset();
         
         // Resize the swap chain.
@@ -349,8 +352,9 @@ namespace EngineCore
         CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHeapHandle(mRtvHeap->GetCPUDescriptorHandleForHeapStart());
         for (UINT i = 0; i < SwapChainBufferCount; i++)
         {
-            ThrowIfFailed(mSwapChain->GetBuffer(i, IID_PPV_ARGS(&mSwapChainBuffer[i])));
-            md3dDevice->CreateRenderTargetView(mSwapChainBuffer[i].Get(), nullptr, rtvHeapHandle);
+            ThrowIfFailed(mSwapChain->GetBuffer(i, IID_PPV_ARGS(&mBackBuffer[i].resource)));
+            md3dDevice->CreateRenderTargetView(mBackBuffer[i].resource.Get(), nullptr, rtvHeapHandle);
+            mBackBuffer[i].state = D3D12_RESOURCE_STATE_PRESENT;
             rtvHeapHandle.Offset(1, mRtvDescriptorSize);
         }
 
@@ -453,6 +457,7 @@ namespace EngineCore
     {
 
         Shader* shader = new Shader();
+        shader->name = path;
         Microsoft::WRL::ComPtr<ID3DBlob> vsBlob;
         if (!CompileShaderStage(path, "VSMain", "vs_5_1", shader, ShaderStageType::VERTEX_STAGE, vsBlob))
         {
@@ -472,16 +477,49 @@ namespace EngineCore
     void D3D12RenderAPI::CreatePSOByShaderReflection(Shader* shader, Microsoft::WRL::ComPtr<ID3DBlob> vsBlob, Microsoft::WRL::ComPtr<ID3DBlob> psBlob)
     {
         
+        int cbCount = shader->mShaderBindingInfo->mBufferInfo.size();
+        int texCount = shader->mShaderBindingInfo->mTextureInfo.size();
+        int samplerCount = shader->mShaderBindingInfo->mSamplerInfo.size();
 
-        int totalCount = shader->mShaderBindingInfo->mBufferInfo.size();
-        std::vector<CD3DX12_ROOT_PARAMETER> slotRootParameter(totalCount);
+        int tableCount = 0;
+        if(cbCount > 0) tableCount++;
+        if(texCount > 0) tableCount++;
+        if(samplerCount > 0) tableCount++;
+
+
+        vector<CD3DX12_ROOT_PARAMETER> slotRootParameter(tableCount);
+        vector<CD3DX12_DESCRIPTOR_RANGE> descriptorRanges;
+
+        // 防止扩容导致的内存地址失效！！！！
+        descriptorRanges.reserve(tableCount);
         // 先尝试绑定constantbuffer
-        int count = 0;
-        for (int i = 0; i < shader->mShaderBindingInfo->mBufferInfo.size(); i++)
+        int paramIndex = 0;
+        if(cbCount > 0)
         {
-            slotRootParameter[count++].InitAsConstantBufferView(i);
+            CD3DX12_DESCRIPTOR_RANGE cbvRange;
+            cbvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, cbCount, 0);
+            descriptorRanges.push_back(cbvRange);
+            slotRootParameter[paramIndex++].InitAsDescriptorTable(1, &descriptorRanges.back());
+        }
+        
+        if(texCount > 0)
+        {
+            CD3DX12_DESCRIPTOR_RANGE srvRange;
+            srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, texCount, 0);
+            descriptorRanges.push_back(srvRange);
+            slotRootParameter[paramIndex++].InitAsDescriptorTable(1,&descriptorRanges.back());
         }
 
+        if(samplerCount > 0)
+        {
+            CD3DX12_DESCRIPTOR_RANGE samplerRange;
+            samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, samplerCount, 0);
+            descriptorRanges.push_back(samplerRange);
+            slotRootParameter[paramIndex++].InitAsDescriptorTable(1,&descriptorRanges.back());
+        }
+
+        ComPtr<ID3D12RootSignature> tempRootSignature;
+        ComPtr<ID3D12PipelineState> tempPsoObj;
         CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(
             static_cast<UINT>(slotRootParameter.size()), slotRootParameter.data(),
             0, nullptr,
@@ -498,7 +536,7 @@ namespace EngineCore
             0,
             serializedRootSig->GetBufferPointer(),
             serializedRootSig->GetBufferSize(),
-            IID_PPV_ARGS(&rootSignature)));
+            IID_PPV_ARGS(&tempRootSignature)));
 
         // todo: InputLayout完善：
         std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
@@ -510,7 +548,7 @@ namespace EngineCore
         };
         // pipeline state object:
         D3D12_GRAPHICS_PIPELINE_STATE_DESC pso{};
-        pso.pRootSignature = rootSignature.Get();
+        pso.pRootSignature = tempRootSignature.Get();
         pso.VS = {reinterpret_cast<BYTE*>(vsBlob->GetBufferPointer()), vsBlob->GetBufferSize()};
         pso.PS = {reinterpret_cast<BYTE*>(psBlob->GetBufferPointer()), psBlob->GetBufferSize()};
         pso.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
@@ -528,8 +566,11 @@ namespace EngineCore
         pso.SampleDesc.Count = 1;
 
         
-        if (FAILED(md3dDevice->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&psoObj))))
+        if (FAILED(md3dDevice->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&tempPsoObj))))
             throw std::runtime_error("CreateGraphicsPipelineState failed");
+
+        TD3D12ShaderPSO psoData(std::move(tempPsoObj), std::move(tempRootSignature), std::move(mInputLayout));
+        m_ShaderPSOMap.try_emplace(shader->name, std::move(psoData));        
     }
 
     bool D3D12RenderAPI::CompileShaderStage(const string& path, string entryPoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob)
@@ -684,8 +725,6 @@ namespace EngineCore
             constantBuffer.registerSlot = bufferInfo.registerSlot;
             ImmediatelyExecute([&](ComPtr<ID3D12GraphicsCommandList> cmdList)
             {
-
-
                  // 1. 创建constant buffer resource
                 ThrowIfFailed(md3dDevice->CreateCommittedResource(
                     &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),  // 使用UPLOAD heap以便CPU写入
@@ -770,7 +809,8 @@ namespace EngineCore
         {
             initialState = D3D12_RESOURCE_STATE_RENDER_TARGET;
         }
-        
+        d3DFrameBufferObject.state = initialState; 
+
         // 3. 创建资源
         ThrowIfFailed(md3dDevice->CreateCommittedResource(
             &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
@@ -779,7 +819,8 @@ namespace EngineCore
             initialState,
             &clearValue,
             IID_PPV_ARGS(&d3DFrameBufferObject.resource)));
-        
+        std::wstring debugName = std::wstring(name.begin(), name.end());
+        d3DFrameBufferObject.resource->SetName(debugName.c_str());
         // Create Descriptor:...
         if(fbodesc->format == TextureFormat::R8G8B8A8)
         {
@@ -917,12 +958,6 @@ namespace EngineCore
         // Reusing the command list reuses memory.
         ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), psoObj.Get()));
 
-        //// Indicate a state transition on the resource usage.
-        //mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
-        //    D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET));
-
-
-
 
         // Specify the buffers we are going to render to.
 
@@ -939,25 +974,40 @@ namespace EngineCore
             mCommandList->RSSetViewports(1, &mScreenViewport);
             mCommandList->RSSetScissorRects(1, &mScissorRect);
 
+
+            // Clear the back buffer and depth buffer.
+            TD3D12FrameBuffer* colorBuffer = nullptr;
+            colorBuffer = GetFrameBuffer(renderpassInfo->colorAttachment->name);
+            TD3D12FrameBuffer* depthBuffer = nullptr;
+            depthBuffer = GetFrameBuffer(renderpassInfo->depthAttachment->name);
+
             // 根据状态判断当前RT是否需要切换渲染状态， 一般不用的，可能需要从资源切换到RenderTarget
-            
+            if (colorBuffer && colorBuffer->state != D3D12_RESOURCE_STATE_RENDER_TARGET)
+            {
+                mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(
+                    colorBuffer->resource.Get(),
+                    colorBuffer->state, D3D12_RESOURCE_STATE_RENDER_TARGET));
+                colorBuffer->state = D3D12_RESOURCE_STATE_RENDER_TARGET;
+            }
+
+            if (depthBuffer && depthBuffer->state != D3D12_RESOURCE_STATE_DEPTH_WRITE)
+            {
+                mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(
+                    depthBuffer->resource.Get(),
+                    depthBuffer->state, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+                depthBuffer->state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+            }
+
             // Set ClearFlag.
             // Set Rendertarget.
             float color[4] = { renderpassInfo->clearColorValue.x, renderpassInfo->clearColorValue.y, renderpassInfo->clearColorValue.z, 1.f };
-            // Clear the back buffer and depth buffer.
-            TD3D12FrameBuffer* colorBuffer = nullptr;
-            if (renderpassInfo->colorAttachment != nullptr) 
+            if (colorBuffer)
             {
-                ASSERT_MSG(m_FrameBufferMap.count(renderpassInfo->colorAttachment->name) > 0, "This FBO doesnt exits!!!");
-                colorBuffer = &m_FrameBufferMap[renderpassInfo->colorAttachment->name];
                 mCommandList->ClearRenderTargetView(colorBuffer->rtvHandle, color, 0, nullptr);
             }
             
-            TD3D12FrameBuffer* depthBuffer = nullptr;
-            if (renderpassInfo->depthAttachment != nullptr) 
+            if (depthBuffer)
             {
-                ASSERT_MSG(m_FrameBufferMap.count(renderpassInfo->depthAttachment->name) > 0, "This FBO doesnt exits!!!");
-                depthBuffer = &m_FrameBufferMap[renderpassInfo->depthAttachment->name];
                 mCommandList->ClearDepthStencilView(depthBuffer->dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
             }
 
@@ -966,7 +1016,6 @@ namespace EngineCore
                 colorBuffer ? &colorBuffer->rtvHandle : nullptr, 
                 true, 
                 depthBuffer ? &depthBuffer->dsvHandle : nullptr);
-            mCommandList->SetGraphicsRootSignature(rootSignature.Get());
 
             for (auto& drawRecord : renderpassInfo->drawRecordList) 
             {
@@ -975,18 +1024,130 @@ namespace EngineCore
                 mCommandList->IASetIndexBuffer(&vao.indexBufferView);
                 mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-                TD3D12MaterialData& data = m_DataMap[drawRecord.mat->GetID()];
-                for (auto& x : data.mConstantBufferArray)
+                Shader* shader = drawRecord.mat->shader;
+                // 3. 设置root signature
+                ComPtr<ID3D12RootSignature> rootSig = m_ShaderPSOMap[shader->name].rootSignature;
+
+
+                ID3D12DescriptorHeap* heaps[] = {
+                    D3D12DescManager::GetInstance().GetFrameCbvSrvUavHeap().Get(),
+                    // 如果用了采样器表，这里再加上 sampler heap
+                };
+                mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
+                mCommandList->SetGraphicsRootSignature(rootSig.Get());
+                
+                int rootParamIndex = 0;
+                int cbvCount = shader->mShaderBindingInfo->mBufferInfo.size();
+
+                TD3D12MaterialData& matData = m_DataMap[drawRecord.mat->GetID()];
+                // 4. 处理CBV描述符表
+                if (cbvCount > 0 && matData.mConstantBufferArray.size() > 0)
                 {
-                    //mCommandList->SetGraphicsRootDescriptorTable(x.registerSlot, x.handleCBV.gpuHandle);
-                    D3D12_GPU_VIRTUAL_ADDRESS cbvAddress = x.mBufferResource->GetGPUVirtualAddress();
-                    mCommandList->SetGraphicsRootConstantBufferView(x.registerSlot, cbvAddress);
+                    // 分配CBV表空间
+                    TD3D12DescriptorHandle handle = D3D12DescManager::GetInstance().GetFrameCbvSrvUavAllocator(cbvCount);
+                    D3D12_CPU_DESCRIPTOR_HANDLE cbvTableStart = handle.cpuHandle;
+                    
+                    // 拷贝CBV描述符
+                    for (int i = 0; i < matData.mConstantBufferArray.size(); i++)
+                    {
+                        // 计算目标位置
+                        D3D12_CPU_DESCRIPTOR_HANDLE destHandle = {
+                            cbvTableStart.ptr + i * mCbvSrvUavDescriptorSize
+                        };
+                        md3dDevice->CopyDescriptorsSimple(1, destHandle, matData.mConstantBufferArray[i].handleCBV.cpuHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+                    }
+                    
+                    // 绑定CBV描述符表
+                    D3D12_GPU_DESCRIPTOR_HANDLE cbvTableGPU = handle.gpuHandle;
+                    mCommandList->SetGraphicsRootDescriptorTable(rootParamIndex++, cbvTableGPU);
                 }
-                //mCommandList->SetGraphicsRootConstantBufferView(data.)
+                
+                // // 5. 处理SRV(Texture)描述符表
+                // if (srvCount > 0 && matData.mTextureBufferArray.size() > 0)
+                // {
+                //     // 分配SRV表空间
+                //     D3D12_CPU_DESCRIPTOR_HANDLE srvTableStart = frameHeap.AllocateSRVTable(srvCount);
+                    
+                //     // 拷贝SRV描述符
+                //     for (int i = 0; i < matData.mTextureBufferArray.size(); i++)
+                //     {
+                //         // 计算目标位置
+                //         D3D12_CPU_DESCRIPTOR_HANDLE destHandle = {
+                //             srvTableStart.ptr + i * mCbvSrvUavDescriptorSize
+                //         };
+                        
+                //         // 拷贝现有的SRV描述符
+                //         D3D12_CPU_DESCRIPTOR_HANDLE srcHandle = matData.mTextureBufferArray[i].handleSRV.cpuHandle;
+                        
+                //         md3dDevice->CopyDescriptorsSimple(
+                //             1,                                      // 描述符数量
+                //             destHandle,                             // 目标
+                //             srcHandle,                              // 源
+                //             D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV  // 堆类型
+                //         );
+                //     }
+                    
+                //     // 绑定SRV描述符表
+                //     D3D12_GPU_DESCRIPTOR_HANDLE srvTableGPU = frameHeap.GetCbvSrvUavGPUHandle(srvTableStart);
+                //     mCommandList->SetGraphicsRootDescriptorTable(rootParamIndex++, srvTableGPU);
+                    
+                //     std::cout << "绑定SRV表，参数索引: " << rootParamIndex-1 << ", 描述符数量: " << srvCount << std::endl;
+                // }
+                
+                // // 6. 处理Sampler描述符表
+                // if (samplerCount > 0 && matData.mSamplerArray.size() > 0)  // 需要添加mSamplerArray到TD3D12MaterialData
+                // {
+                //     // 分配Sampler表空间
+                //     D3D12_CPU_DESCRIPTOR_HANDLE samplerTableStart = frameHeap.AllocateSamplerTable(samplerCount);
+                    
+                //     // 拷贝Sampler描述符
+                //     for (int i = 0; i < matData.mSamplerArray.size(); i++)
+                //     {
+                //         // 计算目标位置
+                //         D3D12_CPU_DESCRIPTOR_HANDLE destHandle = {
+                //             samplerTableStart.ptr + i * mSamplerDescriptorSize
+                //         };
+                        
+                //         // 拷贝现有的Sampler描述符
+                //         D3D12_CPU_DESCRIPTOR_HANDLE srcHandle = matData.mSamplerArray[i].samplerHandle;
+                        
+                //         md3dDevice->CopyDescriptorsSimple(
+                //             1,                                   // 描述符数量
+                //             destHandle,                          // 目标
+                //             srcHandle,                           // 源
+                //             D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER   // Sampler堆类型
+                //         );
+                //     }
+                    
+                //     // 绑定Sampler描述符表
+                //     D3D12_GPU_DESCRIPTOR_HANDLE samplerTableGPU = frameHeap.GetSamplerGPUHandle(samplerTableStart);
+                //     mCommandList->SetGraphicsRootDescriptorTable(rootParamIndex++, samplerTableGPU);
+                    
+                //     std::cout << "绑定Sampler表，参数索引: " << rootParamIndex-1 << ", 描述符数量: " << samplerCount << std::endl;
+                // }
+                ComPtr<ID3D12PipelineState> pso = m_ShaderPSOMap[shader->name].pso;  // 添加这行
+                mCommandList->SetPipelineState(pso.Get()); 
                 mCommandList->DrawIndexedInstanced(
                     vao.indexBufferView.SizeInBytes / sizeof(int),
                     1, 0, 0, 0);
             }
+
+            if (colorBuffer)
+            {
+                mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(
+                    colorBuffer->resource.Get(),
+                    D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+                colorBuffer->state = D3D12_RESOURCE_STATE_PRESENT;
+            }
+
+            //if (depthBuffer)
+            //{
+            //    mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(
+            //        depthBuffer->resource.Get(),
+            //        D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
+            //    depthBuffer->state = D3D12_RESOURCE_STATE_PRESENT;
+
+            //}
         }
 
         // Done recording commands.
@@ -998,6 +1159,22 @@ namespace EngineCore
 
         // swap the back and front buffers
         SignalFence(mFrameFence);
+    }
+
+    TD3D12FrameBuffer* D3D12RenderAPI::GetFrameBuffer(const string& name)
+    {
+        if (&name == nullptr || name == "") return nullptr;
+        if (name == "BackBuffer") 
+        {
+            return &mBackBuffer[mCurrBackBuffer];
+        }
+        else 
+        {
+            ASSERT_MSG(m_FrameBufferMap.count(name) > 0, "This FBO doesnt exits!!!");
+            return &m_FrameBufferMap[name];
+        }
+
+        return nullptr;
     }
 
     void D3D12RenderAPI::TestRenderObj(const DrawRecord& drawrecord)

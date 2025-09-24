@@ -63,4 +63,9 @@ namespace EngineCore
     {
         Renderer::GetInstance().AddRenderPassInfo(&mRenderPassInfo);
     }
+
+    void ForwardRenderPass::Clear()
+    {
+        mRenderPassInfo.Reset();
+    }
 }

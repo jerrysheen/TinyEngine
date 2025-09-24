@@ -5,11 +5,9 @@
 
 namespace EngineCore
 {
-    class ForwardRenderPass : public RenderPass
+    class FinalBlitPass : public RenderPass
     {
-    public:
-
-        ForwardRenderPass();
+        public:
         // renderpass 初始化
         //virtual void Create(const RenderContext& context) override;
         // todo Create 也需要参数
@@ -22,7 +20,7 @@ namespace EngineCore
         virtual void Filter(const RenderContext& context) override;
 
         virtual void Submit() override;
+
         virtual void Clear() override;
     };
-
-}
+} // namespace EngineCore
