@@ -1,22 +1,19 @@
 {
 	"nodes":[
-		{"id":"5260c4e66551e553","type":"text","text":"具体的类","x":-545,"y":-200,"width":250,"height":60},
-		{"id":"7f1f78406bee4ed8","type":"text","text":"函数调用","x":-545,"y":-120,"width":250,"height":60,"color":"6"},
-		{"id":"6a442f0bcd114a48","type":"text","text":"资源、数据","x":-545,"y":-280,"width":250,"height":60,"color":"5"},
-		{"id":"fe6bb62fe77c764b","type":"text","text":"Resrouce\nMetadata、fbx、png硬盘资源","x":-545,"y":200,"width":250,"height":120},
+		{"id":"f94f2ef733aac50e","type":"file","file":"RenderAPI.h.md","x":2260,"y":-200,"width":250,"height":60},
 		{"id":"dcee79c6fc1890b6","type":"text","text":"ModelUtils","x":-240,"y":60,"width":250,"height":60},
 		{"id":"b1f1defc7f848c03","type":"text","text":"MaterialStruct","x":-240,"y":170,"width":250,"height":60,"color":"5"},
 		{"id":"3d904671b7c12c95","type":"text","text":"PrefabStruct","x":-240,"y":290,"width":250,"height":60,"color":"5"},
 		{"id":"8b7e90c6f98096f1","type":"text","text":"Image","x":-240,"y":400,"width":250,"height":60,"color":"5"},
 		{"id":"3c3047577ab30dcb","type":"text","text":"D3D12RenderAPI","x":1750,"y":-90,"width":250,"height":60},
-		{"id":"8c203f350a62cd2d","type":"text","text":"ShaderReflectionInfo","x":1350,"y":-140,"width":250,"height":60,"color":"5"},
-		{"id":"c1abe1e6a0a6f1bc","type":"text","text":"ShaderInputLayout","x":1350,"y":-30,"width":250,"height":60,"color":"5"},
+		{"id":"8c203f350a62cd2d","type":"text","text":"ShaderReflectionInfo 抽象","x":1350,"y":-140,"width":250,"height":60,"color":"5"},
+		{"id":"c1abe1e6a0a6f1bc","type":"text","text":"ShaderInputLayout 抽象","x":1350,"y":-30,"width":250,"height":60,"color":"5"},
 		{"id":"88c50ce6ba8507b4","type":"text","text":"D3D12RenderAPI","x":1750,"y":170,"width":250,"height":60},
-		{"id":"c47678f3a8758eb2","x":1350,"y":149,"width":341,"height":103,"color":"5","type":"text","text":"TD3D12MaterialData\nvectorTD3D12ConstantBuffer\nvectorTextureHandleData"},
+		{"id":"c47678f3a8758eb2","type":"text","text":"TD3D12MaterialData\nvectorTD3D12ConstantBuffer\nvectorTextureHandle","x":1350,"y":149,"width":341,"height":103,"color":"5"},
 		{"id":"b7d0c57334687a5e","type":"text","text":"MaterialData (CPU 数据)","x":1600,"y":340,"width":250,"height":60},
 		{"id":"a81411c73a073c04","type":"text","text":"MaterialData (CPU 数据)","x":1600,"y":510,"width":250,"height":60},
 		{"id":"80c8a2b5d92401be","type":"text","text":"D3D12RenderAPI","x":1750,"y":-380,"width":250,"height":60},
-		{"id":"0c8bdf73a3b4f177","type":"text","text":"TD3D12VAO","x":1270,"y":-380,"width":250,"height":60,"color":"5"},
+		{"id":"0c8bdf73a3b4f177","type":"text","text":"TD3D12VAO\n- IndexBuffer\n- VertexBuffer","x":1270,"y":-380,"width":250,"height":60,"color":"5"},
 		{"id":"712264be6ffaa19e","type":"text","text":"SetUpMaterial","x":590,"y":170,"width":250,"height":60,"color":"6"},
 		{"id":"078f78ff51ad70c2","type":"text","text":"SetShaderTexture","x":590,"y":340,"width":250,"height":60,"color":"6"},
 		{"id":"b75d3f2893f21dc0","type":"text","text":"SetShaderVector","x":590,"y":510,"width":250,"height":60,"color":"6"},
@@ -26,14 +23,19 @@
 		{"id":"3efaf192183832dc","type":"text","text":"Shader.h","x":590,"y":-100,"width":250,"height":60},
 		{"id":"ea499f3935949a14","type":"text","text":"CompileShader","x":950,"y":-100,"width":250,"height":60,"color":"6"},
 		{"id":"7f5ddf87d9c02c90","type":"text","text":"MaterialData (CPU 数据)","x":590,"y":30,"width":250,"height":60},
-		{"id":"a4f356d2eba43465","type":"text","text":"Material","x":160,"y":170,"width":250,"height":60}
+		{"id":"a4f356d2eba43465","type":"text","text":"Material","x":160,"y":170,"width":250,"height":60},
+		{"id":"fe6bb62fe77c764b","type":"text","text":"Resrouce\nMetadata、fbx、png硬盘资源","x":-720,"y":170,"width":250,"height":120},
+		{"id":"c4869aaf37d91522","type":"text","text":"资源、数据","x":-400,"y":-363,"width":250,"height":60,"color":"5"},
+		{"id":"ab9bec032b72c1eb","type":"text","text":"空","x":-400,"y":-80,"width":50,"height":60},
+		{"id":"3e6aec5cdcf054b6","type":"text","text":"函数调用","x":-400,"y":-180,"width":250,"height":60,"color":"6"},
+		{"id":"7bdb503c397c3898","type":"text","text":"具体的类","x":-400,"y":-273,"width":250,"height":60},
+		{"id":"26f72508f3963214","type":"text","text":"Todo","x":-400,"y":-463,"width":250,"height":60,"color":"1"}
 	],
 	"edges":[
 		{"id":"76f7fdc82d36231e","fromNode":"dcee79c6fc1890b6","fromSide":"right","toNode":"d64a1b4930c76988","toSide":"left","label":"Assimp"},
 		{"id":"e83b23da3daba1b1","fromNode":"0c8bdf73a3b4f177","fromSide":"left","toNode":"d64a1b4930c76988","toSide":"right","label":"通过ID索引"},
-		{"id":"ff8e6e29f5edaa14","fromNode":"80c8a2b5d92401be","fromSide":"left","toNode":"0c8bdf73a3b4f177","toSide":"right","label":"创建"},
+		{"id":"ff8e6e29f5edaa14","fromNode":"80c8a2b5d92401be","fromSide":"left","toNode":"0c8bdf73a3b4f177","toSide":"right","label":"创建、管理"},
 		{"id":"16928cccf9809dcf","fromNode":"b1f1defc7f848c03","fromSide":"right","toNode":"a4f356d2eba43465","toSide":"left"},
-		{"id":"daa236308c7d4419","fromNode":"a4f356d2eba43465","fromSide":"right","toNode":"3efaf192183832dc","toSide":"left"},
 		{"id":"328ee00effe88e0f","fromNode":"a4f356d2eba43465","fromSide":"right","toNode":"7f5ddf87d9c02c90","toSide":"left"},
 		{"id":"469f58d89bd8ec02","fromNode":"3efaf192183832dc","fromSide":"right","toNode":"ea499f3935949a14","toSide":"left"},
 		{"id":"0ddd302905467410","fromNode":"ea499f3935949a14","fromSide":"right","toNode":"8c203f350a62cd2d","toSide":"left","label":"产生"},
@@ -50,6 +52,7 @@
 		{"id":"64b7c4b84ddeb074","fromNode":"b75d3f2893f21dc0","fromSide":"right","toNode":"8c828b2e4e8d3692","toSide":"left","label":"依赖"},
 		{"id":"49874096a53bbdca","fromNode":"8c828b2e4e8d3692","fromSide":"right","toNode":"a81411c73a073c04","toSide":"left"},
 		{"id":"a4f9bb7a959a8f74","fromNode":"a4f356d2eba43465","fromSide":"right","toNode":"b75d3f2893f21dc0","toSide":"left"},
-		{"id":"2251c5b740b7394e","fromNode":"8c828b2e4e8d3692","fromSide":"right","toNode":"c47678f3a8758eb2","toSide":"bottom","label":"memcpy更新数据"}
+		{"id":"2251c5b740b7394e","fromNode":"8c828b2e4e8d3692","fromSide":"right","toNode":"c47678f3a8758eb2","toSide":"bottom","label":"memcpy更新数据"},
+		{"id":"daa236308c7d4419","fromNode":"a4f356d2eba43465","fromSide":"right","toNode":"3efaf192183832dc","toSide":"left"}
 	]
 }
