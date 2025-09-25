@@ -75,9 +75,10 @@ namespace EngineCore
 		mD3D12Device->CreateConstantBufferView(&desc, descriptorHandle);
         handle.cpuHandle = descriptorHandle;
         // update 时候绑定，用GPU Handle
-        CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(mHeap->GetGPUDescriptorHandleForHeapStart());
-        gpuHandle.Offset(handle.descriptorIdx, mDescriptorSize);
-        handle.gpuHandle = gpuHandle;
+        // 不用有GPU地址， 因为这个堆运行时会拷贝到另外一个堆，这个堆只能CPU可见。
+        //CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(mHeap->GetGPUDescriptorHandleForHeapStart());
+        //gpuHandle.Offset(handle.descriptorIdx, mDescriptorSize);
+        //handle.gpuHandle = gpuHandle;
         return handle;
     }
    
@@ -109,6 +110,25 @@ namespace EngineCore
 		mD3D12Device->CreateDepthStencilView(resource.Get(), nullptr, descriptorHandle);
         handle.cpuHandle = descriptorHandle;
 
+        return handle;
+    }
+
+    TD3D12DescriptorHandle D3D12DescAllocator::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc)
+    {
+        auto handle = GetNextAvaliableDesc();
+        handle.heapType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        auto mD3D12Device = static_cast<D3D12RenderAPI*>(&RenderAPI::GetInstance())->md3dDevice;
+
+        // 创建CBV
+        CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
+        descriptorHandle.Offset(handle.descriptorIdx, mDescriptorSize);
+        mD3D12Device->CreateShaderResourceView(resource.Get(), &desc, descriptorHandle);
+        handle.cpuHandle = descriptorHandle;
+        // update 时候绑定，用GPU Handle
+        // 不用有GPU地址， 因为这个堆运行时会拷贝到另外一个堆，这个堆只能CPU可见。
+        //CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(mHeap->GetGPUDescriptorHandleForHeapStart());
+        //gpuHandle.Offset(handle.descriptorIdx, mDescriptorSize);
+        //handle.gpuHandle = gpuHandle;
         return handle;
     }
 

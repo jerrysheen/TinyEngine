@@ -9,7 +9,7 @@ namespace EngineCore
     {
         // fake one.
         mRenderPassAsset.renderPasses.push_back(new ForwardRenderPass());
-       // mRenderPassAsset.renderPasses.push_back(new FinalBlitPass());
+        mRenderPassAsset.renderPasses.push_back(new FinalBlitPass());
 
     }
 }

@@ -30,19 +30,34 @@ namespace EngineCore
         TD3D12ConstantBuffer(){};
     };
 
+    // struct TD3D12TextureBuffer
+    // {
+    //     ComPtr<ID3D12Resource> texture = nullptr;
+    //     TD3D12DescriptorHandle handleSRV = {};
+    //     TD3D12DescriptorHandle handleRTV = {};
+    //     TD3D12DescriptorHandle handleDSV = {};
+    // };
+    struct TD3D12TextureHander 
+    {
+        string textureID;
+    };
+
     struct TD3D12TextureBuffer
     {
-        ComPtr<ID3D12Resource> texture = nullptr;
-        TD3D12DescriptorHandle handleSRV = {};
-        TD3D12DescriptorHandle handleRTV = {};
-        TD3D12DescriptorHandle handleDSV = {};
+        Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+        D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle;
+        D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
+        D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;  
+        D3D12_RESOURCE_STATES state;
     };
+
+    using TD3D12FrameBuffer = TD3D12TextureBuffer;
 
     struct TD3D12MaterialData
     {
         /* data */
         vector<TD3D12ConstantBuffer> mConstantBufferArray;
-        vector<TD3D12TextureBuffer> mTextureBufferArray;
+        vector<TD3D12TextureHander> mTextureBufferArray;
         struct TD3D12MaterialData(){};
     };
 
@@ -87,12 +102,5 @@ namespace EngineCore
     };
         
 
-    struct TD3D12FrameBuffer
-    {
-        Microsoft::WRL::ComPtr<ID3D12Resource> resource;
-        D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle;
-        D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
-        D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;  
-        D3D12_RESOURCE_STATES state;
-    };
+
 } // namespace EngineCore

@@ -31,7 +31,7 @@ namespace EngineCore
         Shader* testShader;
         Camera* mCamera;
 
-        Material* blitMatrial;
+        Material* blitMaterial;
         ModelData* quadMesh;
         Shader* blitShader;
     };

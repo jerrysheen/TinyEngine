@@ -1,3 +1,8 @@
+cbuffer PerDrawData : register(b0)
+{
+    float _FlipY;
+};
+
 // BlitShader.hlsl
 Texture2D SrcTexture : register(t0);
 SamplerState LinearSampler : register(s0);
@@ -30,5 +35,7 @@ VertexOutput VSMain(VertexInput input)
 
 float4 PSMain(VertexOutput input) : SV_Target
 {
-    return SrcTexture.Sample(LinearSampler, input.TexCoord);
+    float2 uv = input.TexCoord;
+    if(_FlipY > 0.1) uv.y = 1.0 - uv.y; 
+    return SrcTexture.Sample(LinearSampler, uv);
 }

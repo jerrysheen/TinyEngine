@@ -42,6 +42,7 @@ namespace EngineCore
         FrameBufferObject* depthAttachment = FrameBufferManager::GetInstance().GetFBO("CameraDepthAttachment");
         SetRenderTarget(colorAttachment, depthAttachment);
         SetViewPort(Vector2(0,0), Vector2(128, 128));
+        SetClearFlag(ClearFlag::ALL, Vector3(0.3, 0.4, 0.5), 1.0f);
     }
     
     // maybe send a context here?
@@ -64,8 +65,5 @@ namespace EngineCore
         Renderer::GetInstance().AddRenderPassInfo(&mRenderPassInfo);
     }
 
-    void ForwardRenderPass::Clear()
-    {
-        mRenderPassInfo.Reset();
-    }
+
 }

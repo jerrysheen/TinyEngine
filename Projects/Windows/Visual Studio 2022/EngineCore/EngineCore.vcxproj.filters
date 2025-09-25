@@ -125,6 +125,9 @@
     <ClCompile Include="..\..\..\..\Runtime\Graphics\Shader.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\Texture.cpp">
+      <Filter>Runtime\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Managers\SceneManager.cpp">
       <Filter>Runtime\Managers</Filter>
     </ClCompile>

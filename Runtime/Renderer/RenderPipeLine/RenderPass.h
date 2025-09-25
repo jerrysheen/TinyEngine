@@ -26,7 +26,7 @@ namespace EngineCore
         // sent current Data to Renderer-> RenderPassInfo
         virtual void Submit() = 0;
 
-        virtual void Clear() = 0;
+        inline void Clear() { mRenderPassInfo.Reset(); };
 
 
         // ignore null ptr since RenderAPI level will handle this problem
@@ -34,6 +34,13 @@ namespace EngineCore
         {
             mRenderPassInfo.colorAttachment = colorAttachment;
             mRenderPassInfo.depthAttachment = depthAttachment;
+        };
+
+        inline void SetClearFlag(ClearFlag flag, const Vector3& colorValue = Vector3::Zero, float depthValue = 0)
+        {
+            mRenderPassInfo.clearFlag = flag;
+            mRenderPassInfo.clearColorValue = colorValue;
+            mRenderPassInfo.clearDepthValue = depthValue;
         };
 
         inline void SetViewPort(const Vector2& startPos, const Vector2& endPos)

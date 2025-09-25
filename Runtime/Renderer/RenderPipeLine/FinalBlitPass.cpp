@@ -2,6 +2,7 @@
 #include "FinalBlitPass.h"
 #include "Renderer/FrameBufferManager.h"
 #include "Renderer/Renderer.h"
+#include "Managers/SceneManager.h"
 
 namespace EngineCore
 {
@@ -12,9 +13,14 @@ namespace EngineCore
     void FinalBlitPass::Configure(const RenderContext& context)
     {
         SetRenderTarget(FrameBufferManager::GetInstance().GetScreenBuffer(), nullptr);
+        SetClearFlag(ClearFlag::ALL);
+        SetViewPort(Vector2(0, 0), Vector2(1280, 720));
     }
     void FinalBlitPass::Execute(const RenderContext& context)
     {
+        Material* mat = SceneManager::GetInstance().blitMaterial;
+        ModelData* model = SceneManager::GetInstance().quadMesh;
+        mRenderPassInfo.drawRecordList.emplace_back(mat, model);
     }
     void FinalBlitPass::Filter(const RenderContext& context)
     {
@@ -24,8 +30,5 @@ namespace EngineCore
         Renderer::GetInstance().AddRenderPassInfo(&mRenderPassInfo);
     }
 
-    void FinalBlitPass::Clear()
-    {
-    }
 
 } // namespace EngineCore

@@ -14,7 +14,7 @@
 #include "PreCompiledHeader.h"
 #include "D3D12Struct.h"
 #include "Core/PublicStruct.h"
-
+#include "Graphics/Texture.h"
 
 namespace EngineCore
 {
@@ -40,13 +40,16 @@ namespace EngineCore
         virtual void CreateUAVResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) override;
 
         inline TD3D12Fence* GetFrameFence() { return mFrameFence; };
+        virtual void SetShaderFloat(const Material* mat, const ShaderVariableInfo& variableInfo, float value) override;
         virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector3& value) override;
         virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector2& value) override {};
         virtual void SetShaderMatrix4x4(const Material* mat, const ShaderVariableInfo& variableInfo, const Matrix4x4& value) override;
+        virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, const Texture& value) override;
         virtual void SetUpMesh(ModelData* data, bool isStatic = true) override;
         virtual void CreateFBO(const string& name, FrameBufferObject* fbodesc) override;
         virtual void Submit(const vector<RenderPassInfo*>& renderPassInfos) override;
         
+        TD3D12DescriptorHandle GetTextureSrvHanle(const string& textureID);
         TD3D12FrameBuffer* GetFrameBuffer(const string& name);
         Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;
         UINT mRtvDescriptorSize = 0;
@@ -141,7 +144,7 @@ namespace EngineCore
         unordered_map<int, TD3D12MaterialData> m_DataMap; 
         vector<TD3D12VAO> mVAOList;
         vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
-        unordered_map<string, TD3D12FrameBuffer> m_FrameBufferMap;
+        unordered_map<string, TD3D12TextureBuffer> m_TextureBufferMap;
         unordered_map<string, TD3D12ShaderPSO> m_ShaderPSOMap;
     };
 

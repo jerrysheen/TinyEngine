@@ -1,6 +1,6 @@
 #include "PreCompiledHeader.h"
 #include "SceneManager.h"
-
+#include "Graphics/Texture.h"
 
 namespace EngineCore
 {
@@ -25,9 +25,11 @@ namespace EngineCore
 
         quadMesh = ModelUtils::GetFullScreenQuad();
         blitShader = Shader::Compile("D:/GitHubST/TinyEngine/Assets/Shader/BlitShader.hlsl");
-        blitMatrial = new Material();
-        blitMatrial->shader = blitShader;
-        blitMatrial->SetUpGPUResources();
+        blitMaterial = new Material();
+        blitMaterial->shader = blitShader;
+        blitMaterial->SetUpGPUResources();
+        blitMaterial->SetFloat("_FlipY", 1.0f);
+        blitMaterial->SetTexture("SrcTexture", Texture("CameraColorAttachment"));
     }
 
     SceneManager::~SceneManager()

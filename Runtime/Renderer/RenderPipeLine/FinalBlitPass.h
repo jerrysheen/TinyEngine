@@ -21,6 +21,5 @@ namespace EngineCore
 
         virtual void Submit() override;
 
-        virtual void Clear() override;
     };
 } // namespace EngineCore

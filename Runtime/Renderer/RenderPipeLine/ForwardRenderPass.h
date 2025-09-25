@@ -22,7 +22,6 @@ namespace EngineCore
         virtual void Filter(const RenderContext& context) override;
 
         virtual void Submit() override;
-        virtual void Clear() override;
     };
 
 }

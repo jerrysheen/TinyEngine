@@ -562,7 +562,16 @@ namespace EngineCore
 
         pso.NumRenderTargets = 1;
         pso.RTVFormats[0]    = DXGI_FORMAT_R8G8B8A8_UNORM;
-        pso.DSVFormat        = DXGI_FORMAT_D24_UNORM_S8_UINT;
+        if (shader->name == "D:/GitHubST/TinyEngine/Assets/Shader/BlitShader.hlsl") 
+        {
+            pso.DSVFormat = DXGI_FORMAT_UNKNOWN;
+            pso.DepthStencilState.DepthEnable = FALSE;
+            pso.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+        }
+        else 
+        {
+            pso.DSVFormat        = DXGI_FORMAT_D24_UNORM_S8_UINT;
+        }
         pso.SampleDesc.Count = 1;
 
         
@@ -752,7 +761,7 @@ namespace EngineCore
 
     void D3D12RenderAPI::CreateFBO(const string& name, FrameBufferObject* fbodesc)
     {
-        if(m_FrameBufferMap.count(name) > 0)
+        if(m_TextureBufferMap.count(name) > 0)
         {
             ASSERT_MSG(false, "Already Create FBO Here");
         }
@@ -781,7 +790,6 @@ namespace EngineCore
              resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
          }
 
-        // 在第734行，正确初始化clearValue：
         D3D12_CLEAR_VALUE clearValue = {};
         clearValue.Format = resourceDesc.Format;
         if (fbodesc->format == TextureFormat::D24S8)
@@ -826,14 +834,32 @@ namespace EngineCore
         {
             TD3D12DescriptorHandle descHandle = D3D12DescManager::GetInstance().CreateDescriptor(d3DFrameBufferObject.resource, D3D12_RENDER_TARGET_VIEW_DESC{});
             d3DFrameBufferObject.rtvHandle = descHandle.cpuHandle;
+
+            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // SRV格式
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Texture2D.MipLevels = 1;
+            
+            descHandle = D3D12DescManager::GetInstance().CreateDescriptor(d3DFrameBufferObject.resource, srvDesc);
+            d3DFrameBufferObject.srvHandle = descHandle.cpuHandle;
         }
         else if (fbodesc->format == TextureFormat::D24S8) 
         {
             TD3D12DescriptorHandle descHandle = D3D12DescManager::GetInstance().CreateDescriptor(d3DFrameBufferObject.resource, D3D12_DEPTH_STENCIL_VIEW_DESC{});
             d3DFrameBufferObject.dsvHandle = descHandle.cpuHandle;
+
+            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; // SRV格式
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Texture2D.MipLevels = 1;
+            
+            descHandle = D3D12DescManager::GetInstance().CreateDescriptor(d3DFrameBufferObject.resource, srvDesc);
+            d3DFrameBufferObject.srvHandle = descHandle.cpuHandle;
         }
 
-        m_FrameBufferMap.insert({name, d3DFrameBufferObject});
+        m_TextureBufferMap.insert({name, d3DFrameBufferObject});
     }
 
 
@@ -844,6 +870,18 @@ namespace EngineCore
 
     void D3D12RenderAPI::CreateTextureResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos)
     {
+        int matID = mat->GetID();
+        if (m_DataMap.count(matID) <= 0) m_DataMap.try_emplace(matID, TD3D12MaterialData());
+        auto iter = m_DataMap.find(matID);
+        TD3D12MaterialData data = iter->second;
+        for each(auto bufferInfo in resourceInfos)
+        {
+            //  创建buffer resource + handle
+            TD3D12TextureHander textureHandler;
+            textureHandler.textureID = bufferInfo.resourceName;
+            data.mTextureBufferArray.push_back(textureHandler);
+        }
+        m_DataMap[matID] = data;
     }
 
     void D3D12RenderAPI::CreateUAVResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos)
@@ -876,7 +914,23 @@ namespace EngineCore
         SignalFence(mImediatelyFence);
     }
 
-    void D3D12RenderAPI::SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector3& value)
+    void D3D12RenderAPI::SetShaderFloat(const Material *mat, const ShaderVariableInfo &variableInfo, float value)
+    {
+        int matID = mat->GetID();
+        if(m_DataMap.count(matID) <= 0)
+        {
+            cout << "SetShaderVector: matID not found" << endl;
+            return;
+        }
+        auto iter = m_DataMap.find(matID);
+        TD3D12MaterialData data = iter->second;
+        void* baseAddress = data.mConstantBufferArray[variableInfo.bufferIndex].mCpuAddress;
+        void* targetAddress = reinterpret_cast<char*>(baseAddress) + variableInfo.offset;
+        memcpy(targetAddress, &value, sizeof(float));
+
+    }
+
+    void D3D12RenderAPI::SetShaderVector(const Material *mat, const ShaderVariableInfo &variableInfo, const Vector3 &value)
     {
         int matID = mat->GetID();
         if(m_DataMap.count(matID) <= 0)
@@ -906,6 +960,20 @@ namespace EngineCore
         void* targetAddress = reinterpret_cast<char*>(baseAddress) + variableInfo.offset;
         memcpy(targetAddress, &value, sizeof(Matrix4x4));
         
+    }
+
+    void D3D12RenderAPI::SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, const Texture& value)
+    {
+        int matID = mat->GetID();
+        if(m_DataMap.count(matID) <= 0)
+        {
+            cout << "SetShaderVector: matID not found" << endl;
+            return;
+        }
+        auto iter = m_DataMap.find(matID);
+        TD3D12MaterialData& data = iter->second;
+        // 找到对应的插槽然后替换
+        data.mTextureBufferArray[slotIndex].textureID = value.GetName();
     }
 
     void D3D12RenderAPI::SetUpMesh(ModelData* data, bool isStatic)
@@ -1001,14 +1069,15 @@ namespace EngineCore
             // Set ClearFlag.
             // Set Rendertarget.
             float color[4] = { renderpassInfo->clearColorValue.x, renderpassInfo->clearColorValue.y, renderpassInfo->clearColorValue.z, 1.f };
-            if (colorBuffer)
+            if (colorBuffer && (renderpassInfo->clearFlag == ClearFlag::ALL || renderpassInfo->clearFlag == ClearFlag::COLOR))
             {
                 mCommandList->ClearRenderTargetView(colorBuffer->rtvHandle, color, 0, nullptr);
             }
             
-            if (depthBuffer)
+            // todo: Reverse Z?
+            if (depthBuffer && (renderpassInfo->clearFlag == ClearFlag::ALL || renderpassInfo->clearFlag == ClearFlag::DEPTH))
             {
-                mCommandList->ClearDepthStencilView(depthBuffer->dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+                mCommandList->ClearDepthStencilView(depthBuffer->dsvHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, renderpassInfo->clearDepthValue, 0, 0, nullptr);
             }
 
 
@@ -1062,31 +1131,31 @@ namespace EngineCore
                     mCommandList->SetGraphicsRootDescriptorTable(rootParamIndex++, cbvTableGPU);
                 }
                 
-                // // 5. 处理SRV(Texture)描述符表
-                // if (srvCount > 0 && matData.mTextureBufferArray.size() > 0)
-                // {
-                //     // 分配SRV表空间
-                //     D3D12_CPU_DESCRIPTOR_HANDLE srvTableStart = frameHeap.AllocateSRVTable(srvCount);
-                    
-                //     // 拷贝SRV描述符
-                //     for (int i = 0; i < matData.mTextureBufferArray.size(); i++)
-                //     {
-                //         // 计算目标位置
-                //         D3D12_CPU_DESCRIPTOR_HANDLE destHandle = {
-                //             srvTableStart.ptr + i * mCbvSrvUavDescriptorSize
-                //         };
-                        
-                //         // 拷贝现有的SRV描述符
-                //         D3D12_CPU_DESCRIPTOR_HANDLE srcHandle = matData.mTextureBufferArray[i].handleSRV.cpuHandle;
-                        
-                //         md3dDevice->CopyDescriptorsSimple(
-                //             1,                                      // 描述符数量
-                //             destHandle,                             // 目标
-                //             srcHandle,                              // 源
-                //             D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV  // 堆类型
-                //         );
-                //     }
-                    
+                 // 5. 处理SRV(Texture)描述符表
+                int srvCount = shader->mShaderBindingInfo->mTextureInfo.size();
+                if (srvCount > 0 && matData.mTextureBufferArray.size() > 0)
+                {
+                    // 分配CBV表空间
+                    TD3D12DescriptorHandle handle = D3D12DescManager::GetInstance().GetFrameCbvSrvUavAllocator(srvCount);
+                    D3D12_CPU_DESCRIPTOR_HANDLE srvTableStart = handle.cpuHandle;
+
+                    for (int i = 0; i < matData.mTextureBufferArray.size(); i++)
+                    {
+                        // 计算目标位置
+                        D3D12_CPU_DESCRIPTOR_HANDLE destHandle = {
+                            srvTableStart.ptr + i * mCbvSrvUavDescriptorSize
+                        };
+
+                        // 找到资源对应的SRV，然后copy
+                        TD3D12DescriptorHandle texSRVHandle = GetTextureSrvHanle(matData.mTextureBufferArray[i].textureID);
+                        md3dDevice->CopyDescriptorsSimple(1, destHandle, texSRVHandle.cpuHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+                    }
+
+                    // 绑定CBV描述符表
+                    D3D12_GPU_DESCRIPTOR_HANDLE srvTableGPU = handle.gpuHandle;
+                    mCommandList->SetGraphicsRootDescriptorTable(rootParamIndex++, srvTableGPU);
+                   
+                }
                 //     // 绑定SRV描述符表
                 //     D3D12_GPU_DESCRIPTOR_HANDLE srvTableGPU = frameHeap.GetCbvSrvUavGPUHandle(srvTableStart);
                 //     mCommandList->SetGraphicsRootDescriptorTable(rootParamIndex++, srvTableGPU);
@@ -1161,6 +1230,14 @@ namespace EngineCore
         SignalFence(mFrameFence);
     }
 
+    TD3D12DescriptorHandle EngineCore::D3D12RenderAPI::GetTextureSrvHanle(const string& textureID)
+    {
+        ASSERT_MSG(m_TextureBufferMap.count(textureID) > 0, "Texture not find in m_TextureBuffer!!");
+        TD3D12DescriptorHandle handle;
+        handle.cpuHandle = m_TextureBufferMap[textureID].srvHandle;
+        return handle;
+    }
+
     TD3D12FrameBuffer* D3D12RenderAPI::GetFrameBuffer(const string& name)
     {
         if (&name == nullptr || name == "") return nullptr;
@@ -1170,8 +1247,8 @@ namespace EngineCore
         }
         else 
         {
-            ASSERT_MSG(m_FrameBufferMap.count(name) > 0, "This FBO doesnt exits!!!");
-            return &m_FrameBufferMap[name];
+            ASSERT_MSG(m_TextureBufferMap.count(name) > 0, "This FBO doesnt exits!!!");
+            return &m_TextureBufferMap[name];
         }
 
         return nullptr;

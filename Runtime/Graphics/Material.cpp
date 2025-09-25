@@ -31,7 +31,33 @@ namespace EngineCore
         if (data) delete data;
         if (shader) delete shader;
     }
-    
+
+    // 同步这个数据到CPU和GPU
+    void Material::SetTexture(const string &slotName, const Texture &texture)
+    {
+        //cpu, 更新data数据，
+        data->textureData[slotName] = texture;
+        int slotIndex = -1;
+        for (auto& textureInfo : shader->mShaderBindingInfo->mTextureInfo) 
+        {
+            if (textureInfo.resourceName == slotName) 
+            {
+                slotIndex = textureInfo.registerSlot;
+            }
+        }
+        ASSERT_MSG(slotIndex != -1, "Can't find this Texture");
+        //gpu
+        RenderAPI::GetInstance().SetShaderTexture(this, slotName ,slotIndex,texture);
+    }
+
+    void Material::SetFloat(const string &name, float value)
+    {
+        data->floatData[name] = value;
+        auto& map = shader->mShaderBindingInfo->mShaderStageVariableInfoMap;
+        auto& variableInfo = map[name];
+        RenderAPI::GetInstance().SetShaderFloat(this, variableInfo, value);
+    }
+
     // 根据Shader信息，创建GPU buffer，进行数据映射。
     // todo： 数据优化，第一版设计，会在VS PS上传重复数据。
     // CPU handle在哪里持有？
