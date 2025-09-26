@@ -3,6 +3,7 @@
 #include "Renderer/FrameBufferManager.h"
 #include "Renderer/Renderer.h"
 #include "Managers/SceneManager.h"
+#include "Managers/WindowManager.h"
 
 namespace EngineCore
 {
@@ -14,7 +15,7 @@ namespace EngineCore
     {
         SetRenderTarget(FrameBufferManager::GetInstance().GetScreenBuffer(), nullptr);
         SetClearFlag(ClearFlag::ALL);
-        SetViewPort(Vector2(0, 0), Vector2(1280, 720));
+        SetViewPort(Vector2(0, 0), Vector2(WindowManager::GetInstance().GetWidth(), WindowManager::GetInstance().GetHeight()));
     }
     void FinalBlitPass::Execute(const RenderContext& context)
     {

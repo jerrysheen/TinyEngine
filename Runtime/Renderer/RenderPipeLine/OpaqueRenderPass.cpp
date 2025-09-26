@@ -41,7 +41,7 @@ namespace EngineCore
         FrameBufferObject* colorAttachment = FrameBufferManager::GetInstance().GetFBO("CameraColorAttachment");
         FrameBufferObject* depthAttachment = FrameBufferManager::GetInstance().GetFBO("CameraDepthAttachment");
         SetRenderTarget(colorAttachment, depthAttachment);
-        SetViewPort(Vector2(0,0), Vector2(720, 480));
+        SetViewPort(Vector2(0,0), Vector2(colorAttachment->width, colorAttachment->height));
         SetClearFlag(ClearFlag::ALL, Vector3(0.3, 0.4, 0.5), 1.0f);
     }
     

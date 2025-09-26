@@ -4,7 +4,6 @@
 		{"id":"dcee79c6fc1890b6","type":"text","text":"ModelUtils","x":-240,"y":60,"width":250,"height":60},
 		{"id":"b1f1defc7f848c03","type":"text","text":"MaterialStruct","x":-240,"y":170,"width":250,"height":60,"color":"5"},
 		{"id":"3d904671b7c12c95","type":"text","text":"PrefabStruct","x":-240,"y":290,"width":250,"height":60,"color":"5"},
-		{"id":"8b7e90c6f98096f1","type":"text","text":"Image","x":-240,"y":400,"width":250,"height":60,"color":"5"},
 		{"id":"3c3047577ab30dcb","type":"text","text":"D3D12RenderAPI","x":1750,"y":-90,"width":250,"height":60},
 		{"id":"8c203f350a62cd2d","type":"text","text":"ShaderReflectionInfo 抽象","x":1350,"y":-140,"width":250,"height":60,"color":"5"},
 		{"id":"c1abe1e6a0a6f1bc","type":"text","text":"ShaderInputLayout 抽象","x":1350,"y":-30,"width":250,"height":60,"color":"5"},
@@ -29,7 +28,17 @@
 		{"id":"7bdb503c397c3898","type":"text","text":"具体的类","x":-400,"y":-273,"width":250,"height":60},
 		{"id":"26f72508f3963214","type":"text","text":"Todo","x":-400,"y":-463,"width":250,"height":60,"color":"1"},
 		{"id":"0c8bdf73a3b4f177","type":"text","text":"TD3D12VAO\n- IndexBuffer\n- VertexBuffer","x":1271,"y":-420,"width":250,"height":140,"color":"5"},
-		{"id":"d64a1b4930c76988","type":"text","text":"StaticMesh\n立即创建到GPU","x":160,"y":-380,"width":250,"height":60}
+		{"id":"d64a1b4930c76988","type":"text","text":"StaticMesh\n立即创建到GPU","x":160,"y":-380,"width":250,"height":60},
+		{"id":"8b7e90c6f98096f1","type":"text","text":"TextureStruct","x":-240,"y":740,"width":250,"height":60,"color":"5"},
+		{"id":"79caea23899d819e","type":"text","text":"Texture","x":160,"y":740,"width":250,"height":60},
+		{"id":"ea11f0d66a28ec63","type":"text","text":"Texture::Load","x":590,"y":740,"width":250,"height":60,"color":"6"},
+		{"id":"80d84d43c5d1be9b","type":"text","text":"unsigned char* pixel","x":640,"y":940,"width":250,"height":60,"color":"5"},
+		{"id":"b486ec23ba49f20b","type":"text","text":"UploadHeap","x":1200,"y":940,"width":250,"height":60,"color":"5"},
+		{"id":"7675161d0d148efa","type":"text","text":"D3D12CreateTextureBuffer","x":1200,"y":740,"width":250,"height":60,"color":"6"},
+		{"id":"fd8302e5c95ce3d8","type":"text","text":"defaultHeapResource","x":1725,"y":940,"width":250,"height":60,"color":"5"},
+		{"id":"6582bfd4013ea75d","x":1200,"y":1120,"width":250,"height":60,"type":"text","text":"DescManager"},
+		{"id":"83d1426d5a85c267","type":"text","text":"CPU_DESC_Handler","x":1725,"y":1120,"width":250,"height":60,"color":"5"},
+		{"id":"1fea4a3c7c08376a","type":"text","text":"TD3D12TextureBuffer\nResource\nRTV\nDSV\nSRV\n","x":2140,"y":860,"width":250,"height":160,"color":"5"}
 	],
 	"edges":[
 		{"id":"76f7fdc82d36231e","fromNode":"dcee79c6fc1890b6","fromSide":"right","toNode":"d64a1b4930c76988","toSide":"left","label":"Assimp"},
@@ -53,6 +62,17 @@
 		{"id":"49874096a53bbdca","fromNode":"8c828b2e4e8d3692","fromSide":"right","toNode":"a81411c73a073c04","toSide":"left"},
 		{"id":"a4f9bb7a959a8f74","fromNode":"a4f356d2eba43465","fromSide":"right","toNode":"b75d3f2893f21dc0","toSide":"left"},
 		{"id":"2251c5b740b7394e","fromNode":"8c828b2e4e8d3692","fromSide":"right","toNode":"c47678f3a8758eb2","toSide":"bottom","label":"memcpy更新数据"},
-		{"id":"daa236308c7d4419","fromNode":"a4f356d2eba43465","fromSide":"right","toNode":"3efaf192183832dc","toSide":"left"}
+		{"id":"daa236308c7d4419","fromNode":"a4f356d2eba43465","fromSide":"right","toNode":"3efaf192183832dc","toSide":"left"},
+		{"id":"47d5fe28fe9b02c2","fromNode":"8b7e90c6f98096f1","fromSide":"right","toNode":"79caea23899d819e","toSide":"left"},
+		{"id":"0cb359b65c803b77","fromNode":"79caea23899d819e","fromSide":"right","toNode":"ea11f0d66a28ec63","toSide":"left"},
+		{"id":"316c6700424c0a4a","fromNode":"ea11f0d66a28ec63","fromSide":"right","toNode":"7675161d0d148efa","toSide":"left"},
+		{"id":"2eb3f6da51c4b2a6","fromNode":"ea11f0d66a28ec63","fromSide":"bottom","toNode":"80d84d43c5d1be9b","toSide":"top","label":"stb_Image"},
+		{"id":"7ce3e7d22d3ce5bb","fromNode":"80d84d43c5d1be9b","fromSide":"right","toNode":"b486ec23ba49f20b","toSide":"left","label":"memcpy"},
+		{"id":"7727420aed236a6f","fromNode":"b486ec23ba49f20b","fromSide":"right","toNode":"fd8302e5c95ce3d8","toSide":"left","label":"update\nsubresource"},
+		{"id":"d86d94389ef0f71a","fromNode":"6582bfd4013ea75d","fromSide":"right","toNode":"83d1426d5a85c267","toSide":"left"},
+		{"id":"5b3423d92b29b462","fromNode":"fd8302e5c95ce3d8","fromSide":"bottom","toNode":"6582bfd4013ea75d","toSide":"top"},
+		{"id":"3148af83302a3f61","fromNode":"83d1426d5a85c267","fromSide":"right","toNode":"1fea4a3c7c08376a","toSide":"left"},
+		{"id":"03fd59ebf779e1b5","fromNode":"fd8302e5c95ce3d8","fromSide":"right","toNode":"1fea4a3c7c08376a","toSide":"left"},
+		{"id":"e2a16f354b7ab708","fromNode":"1fea4a3c7c08376a","fromSide":"top","toNode":"79caea23899d819e","toSide":"top","label":"返回TextureID，作为索引"}
 	]
 }

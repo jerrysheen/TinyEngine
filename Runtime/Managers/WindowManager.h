@@ -11,6 +11,8 @@ namespace EngineCore
         virtual bool WindowShouldClose() = 0;
         virtual void OnResize() = 0;
         virtual void* GetWindow() = 0;
+        inline int GetWidth() { return mWindowWidth; };
+        inline int GetHeight() { return mWindowHeight; };
         std::pair<int, int> GetWindowSize()
         {
             return {mWindowWidth, mWindowHeight};
