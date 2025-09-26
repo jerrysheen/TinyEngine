@@ -47,6 +47,8 @@ namespace EngineCore
         virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, const Texture& value) override;
         virtual void SetUpMesh(ModelData* data, bool isStatic = true) override;
         virtual void CreateFBO(const string& name, FrameBufferObject* fbodesc) override;
+        virtual void CreateTextureBuffer(unsigned char* data, Texture* tbdesc) override;
+
         virtual void Submit(const vector<RenderPassInfo*>& renderPassInfos) override;
         
         TD3D12DescriptorHandle GetTextureSrvHanle(const string& textureID);

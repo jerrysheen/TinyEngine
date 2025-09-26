@@ -1,10 +1,11 @@
 #include "PreCompiledHeader.h"
 #include "Core/Resources.h"
+#include "Resources.h"
 
 namespace EngineCore
 {
 
-    MaterialStruct* Resources::LoadMaterial(const string& path)
+    MaterialStruct* Resources::LoadMaterialMeta(const string& path)
     {
         // todo: 解析Matea数据；
         MaterialStruct* matStruct = new MaterialStruct();
@@ -22,6 +23,20 @@ namespace EngineCore
         //matStruct->matrix4x4Data.emplace("ProjectionMatrix", Matrix4x4());
         return matStruct;
     }
+
+    TextureStruct* Resources::LoadTextureMeta(const std::string &path)
+    {
+        TextureStruct* texMetaData = new TextureStruct();
+        texMetaData->name = "Material";
+        texMetaData->path = "D:/GitHubST/TinyEngine/Assets/Textures/material.png";
+        texMetaData->dimension = TextureDimension::TEXTURE2D;
+        texMetaData->format = TextureFormat::R8G8B8A8;
+        texMetaData->width = 64;
+        texMetaData->height = 64;
+        return texMetaData;
+    }
+
+
     
     ShaderVariableType Resources::GetShaderVaribleType(uint32_t size)
     {
@@ -53,4 +68,8 @@ namespace EngineCore
             break;
         }
     }
+
+
 }
+
+

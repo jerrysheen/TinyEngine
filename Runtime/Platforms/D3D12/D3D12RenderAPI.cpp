@@ -862,6 +862,79 @@ namespace EngineCore
         m_TextureBufferMap.insert({name, d3DFrameBufferObject});
     }
 
+    void D3D12RenderAPI::CreateTextureBuffer(unsigned char* data, Texture* tbdesc)
+    {
+        TD3D12TextureBuffer buffer;
+
+
+        // 创建默认堆 贴图资源， CPU不可见
+        CD3DX12_HEAP_PROPERTIES textureProps(D3D12_HEAP_TYPE_DEFAULT);
+        CD3DX12_RESOURCE_DESC textureDesc(CD3DX12_RESOURCE_DESC::Tex2D(mDefaultImageFormat, 
+            tbdesc->GetWidth(), tbdesc->GetHeight(), 1, 1));
+        ThrowIfFailed(md3dDevice->CreateCommittedResource(
+            &textureProps,
+            D3D12_HEAP_FLAG_NONE,
+            &textureDesc,
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            nullptr,
+            IID_PPV_ARGS(&buffer.resource)
+        ));
+
+        // 创建上传堆，从CPU拷贝资源， COPY到GPU
+        UINT64 uploadHeapSize;
+        md3dDevice->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &uploadHeapSize);
+        CD3DX12_HEAP_PROPERTIES uploadHeapProps(D3D12_HEAP_TYPE_UPLOAD);
+        CD3DX12_RESOURCE_DESC uploadHeapDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadHeapSize);
+        ComPtr<ID3D12Resource> uploadHeap;
+        ThrowIfFailed(md3dDevice->CreateCommittedResource(
+            &uploadHeapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &uploadHeapDesc,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&uploadHeap)
+        ));
+
+        // �ϴ���������
+        ImmediatelyExecute([&](ComPtr<ID3D12GraphicsCommandList> cmdList)
+            {
+                D3D12_SUBRESOURCE_DATA subresourceData = {};
+                subresourceData.pData = data;
+                subresourceData.RowPitch = static_cast<LONG_PTR>(tbdesc->GetWidth() * 4);
+                subresourceData.SlicePitch = subresourceData.RowPitch * tbdesc->GetHeight();
+
+                UpdateSubresources(cmdList.Get(),
+                    buffer.resource.Get(),
+                    uploadHeap.Get(),
+                    0, 0, 1, &subresourceData);
+
+                // ת������״̬
+                CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+                    buffer.resource.Get(),
+                    D3D12_RESOURCE_STATE_COPY_DEST,
+                    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+                );
+
+                cmdList->ResourceBarrier(1, &barrier);
+            });
+        // 在函数结束前等待GPU完成
+        WaitForRenderFinish(mImediatelyFence);
+
+        D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+        srvDesc.Format = mDefaultImageFormat;
+        srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        srvDesc.Texture2D.MipLevels = 1;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+        srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+        TD3D12DescriptorHandle handle = D3D12DescManager::GetInstance().CreateDescriptor(buffer.resource.Get(), srvDesc);
+
+        buffer.srvHandle = handle.cpuHandle;
+
+        m_TextureBufferMap.insert({tbdesc->GetName(), buffer});
+        return;
+    }
+
 
 
     void D3D12RenderAPI::CreateSamplerResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos)

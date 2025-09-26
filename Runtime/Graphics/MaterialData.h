@@ -20,7 +20,9 @@ namespace EngineCore
             vec2Data = other.vec2Data;
             vec3Data = other.vec3Data;
             matrix4x4Data = other.matrix4x4Data;
-            textureData = other.textureData;
+
+            // todo: texture 结构填入
+            // textureData =;
             return *this;
         } 
     };

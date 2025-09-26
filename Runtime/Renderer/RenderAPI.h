@@ -5,6 +5,7 @@
 #include "Core/PublicStruct.h"
 #include "Graphics/Material.h"
 #include "Graphics/ModelData.h"
+#include "Graphics/Texture.h"
 
 
 namespace  EngineCore
@@ -33,6 +34,7 @@ namespace  EngineCore
         virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, const Texture& value) = 0;
         virtual void SetUpMesh(ModelData* data, bool isStatic = true) = 0;
         virtual void CreateFBO(const string& name, FrameBufferObject* fbodesc) = 0;
+        virtual void CreateTextureBuffer(unsigned char* data, Texture* tbdesc) = 0;
         virtual void Submit(const vector<RenderPassInfo*>& renderPassInfos) = 0;
 
         inline void AddRenderPassInfo(const RenderPassInfo& renderPassInfo){ mRenderPassInfoList.push_back(renderPassInfo); };

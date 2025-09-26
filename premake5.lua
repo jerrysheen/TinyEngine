@@ -91,6 +91,7 @@ project "EngineCore"
 		"%{prj.name}/src",
 		"Runtime/",
 		"Runtime/External/Imgui",
+		"Runtime/External/stb_image",
 		"Editor/",
 		"Vendor/libs",
 		"Vendor/Assimp/assimp/include"

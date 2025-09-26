@@ -4,7 +4,7 @@
 #include "Managers/WindowManager.h"
 #include "Graphics/Camera.h"
 #include "Renderer.h"
-#include "RenderPipeLine/ForwardRenderPass.h"
+#include "RenderPipeLine/OpaqueRenderPass.h"
 #include "Platforms/D3D12/D3D12RenderAPI.h"
 #include "Managers/SceneManager.h"
 #include "Culling.h"

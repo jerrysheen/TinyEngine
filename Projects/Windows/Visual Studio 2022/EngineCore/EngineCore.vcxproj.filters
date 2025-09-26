@@ -179,7 +179,7 @@
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\FinalBlitPass.cpp">
       <Filter>Runtime\Renderer\RenderPipeLine</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\ForwardRenderPass.cpp">
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\OpaqueRenderPass.cpp">
       <Filter>Runtime\Renderer\RenderPipeLine</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\RenderPass.cpp">

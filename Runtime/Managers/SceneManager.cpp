@@ -9,17 +9,22 @@ namespace EngineCore
     
     SceneManager::SceneManager()
     {
+        // loadtest Texture
+        testTextureMeta = Resources::LoadTextureMeta("");
+        testTexture = Texture::LoadTexture(testTextureMeta);
+
         //std::cout << "Init Scene Manager!!" << std::endl;
         mTestGameObject = new GameObject();
         mTestGameObject->AddComponent<MeshFilterComponent>();
         testMesh = ModelUtils::LoadMesh("D:/GitHubST/TinyEngine/Assets/Model/cube.obj");
         
         
-        testMatStruct = Resources::LoadMaterial("D:/GitHubST/TinyEngine/Assets/Model/cube.obj");
+        testMatStruct = Resources::LoadMaterialMeta("D:/GitHubST/TinyEngine/Assets/Model/cube.obj");
         testMat = new Material(testMatStruct);
         testShader = Shader::Compile("D:/GitHubST/TinyEngine/Assets/Shader/SimpleTestShader.hlsl");
         testMat->shader = testShader;
         testMat->SetUpGPUResources();
+        testMat->SetTexture("DiffuseTexture", Texture("Material"));
 
         mCamera = new Camera();
 
@@ -30,6 +35,8 @@ namespace EngineCore
         blitMaterial->SetUpGPUResources();
         blitMaterial->SetFloat("_FlipY", 1.0f);
         blitMaterial->SetTexture("SrcTexture", Texture("CameraColorAttachment"));
+
+
     }
 
     SceneManager::~SceneManager()

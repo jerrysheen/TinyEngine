@@ -79,7 +79,8 @@ VertexOutput VSMain(VertexInput input)
     output.Normal = normalize(mul(input.Normal, (float3x3)WorldMatrix));
     
     // 传递纹理坐标和颜色
-    output.TexCoord = input.TexCoord * TilingFactor;
+    //output.TexCoord = input.TexCoord * TilingFactor;
+    output.TexCoord = input.TexCoord;
     
     return output;
 }
@@ -87,7 +88,9 @@ VertexOutput VSMain(VertexInput input)
 // 像素着色器
 float4 PSMain(VertexOutput input) : SV_Target
 {
-    return half4(1.0, 0.0, 0.0, 1.0);
+    float4 diffuseColor = DiffuseTexture.Sample(LinearSampler, input.TexCoord);
+    return diffuseColor;
+
     // // 采样纹理
     // float4 diffuseColor = DiffuseTexture.Sample(LinearSampler, input.TexCoord);
     // float3 normalMap = NormalTexture.Sample(AnisotropicSampler, input.TexCoord).xyz;

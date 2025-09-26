@@ -7,6 +7,7 @@
 #include "Core/Resources.h"
 #include "Graphics/Shader.h"
 #include "Graphics/Camera.h"
+#include "Graphics/Texture.h"
 
 namespace EngineCore
 {
@@ -34,6 +35,9 @@ namespace EngineCore
         Material* blitMaterial;
         ModelData* quadMesh;
         Shader* blitShader;
+
+        TextureStruct* testTextureMeta;
+        Texture* testTexture;
     };
 
 }
