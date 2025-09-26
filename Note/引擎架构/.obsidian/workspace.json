@@ -13,15 +13,15 @@
             "state": {
               "type": "canvas",
               "state": {
-                "file": "资源初始化.canvas",
+                "file": "渲染API调度.canvas",
                 "viewState": {
-                  "x": 1131.8088659601735,
-                  "y": -99.57653234761455,
-                  "zoom": -1.908986786202394
+                  "x": 449.779967747952,
+                  "y": 1885.2032120251379,
+                  "zoom": -2.174652380484911
                 }
               },
               "icon": "lucide-layout-dashboard",
-              "title": "资源初始化"
+              "title": "渲染API调度"
             }
           }
         ]
@@ -175,8 +175,8 @@
   "active": "a3018b6ec87eed1a",
   "lastOpenFiles": [
     "渲染流程.canvas",
-    "渲染API调度.canvas",
     "资源初始化.canvas",
+    "渲染API调度.canvas",
     "Material.h.md",
     "未命名.md",
     "RenderAPI.h.md"

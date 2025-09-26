@@ -66,7 +66,17 @@
 		{"id":"f52d686e761fbcd9","type":"text","text":"RenderPassInfo2","x":-795,"y":1650,"width":250,"height":60,"color":"5"},
 		{"id":"d40bf4dd0ab394a6","type":"text","text":"RenderPassInfo1\n- ColorAttachment，depth\n- Clear Info\n- ViewportInfo\n- PerFrameData\n- vector DrawRecord","x":-795,"y":1390,"width":360,"height":220,"color":"5"},
 		{"id":"78a2522011176930","type":"text","text":"Signal Fence","x":-795,"y":1827,"width":250,"height":60,"color":"6"},
-		{"id":"1f1dfe9f0c3a5be2","x":964,"y":1316,"width":250,"height":60,"type":"text","text":""}
+		{"id":"1f1dfe9f0c3a5be2","type":"text","text":"","x":964,"y":1316,"width":250,"height":60},
+		{"id":"56303ca7180df7de","type":"text","text":"TextureStruct","x":-1200,"y":2560,"width":250,"height":60,"color":"5"},
+		{"id":"c85d2781e908726a","type":"text","text":"unsigned char* pixel","x":250,"y":2560,"width":250,"height":60,"color":"5"},
+		{"id":"8760b2202136c963","type":"text","text":"D3D12CreateTextureBuffer","x":640,"y":2560,"width":250,"height":60,"color":"6"},
+		{"id":"a088d0c91bac3488","type":"text","text":"UploadHeap","x":640,"y":2760,"width":250,"height":60,"color":"5"},
+		{"id":"24afbca06a74bed7","type":"text","text":"defaultHeapResource","x":1165,"y":2760,"width":250,"height":60,"color":"5"},
+		{"id":"ef3765508718a0f9","type":"text","text":"DescManager","x":640,"y":2940,"width":250,"height":60},
+		{"id":"fa67a0901a10770a","type":"text","text":"CPU_DESC_Handler","x":1165,"y":2940,"width":250,"height":60,"color":"5"},
+		{"id":"ae85db1b62971fb9","type":"text","text":"TD3D12TextureBuffer\nResource\nRTV\nDSV\nSRV\n","x":1580,"y":2680,"width":250,"height":160,"color":"5"},
+		{"id":"5875340450c5515a","type":"text","text":"Texture::Load","x":-305,"y":2560,"width":250,"height":60,"color":"6"},
+		{"id":"93c815e753d6be40","type":"text","text":"Texture","x":-760,"y":2560,"width":250,"height":60}
 	],
 	"edges":[
 		{"id":"dc2c028e1593eaf2","fromNode":"c7ea951a8b31b2a3","fromSide":"right","toNode":"7ff0dd6b7e465abc","toSide":"left"},
@@ -131,6 +141,18 @@
 		{"id":"12bdeecf9b5fa836","fromNode":"6cea32f4b3dee32b","fromSide":"right","toNode":"a933a53608e7e43f","toSide":"left","label":"texID寻址"},
 		{"id":"40452ca1b88375da","fromNode":"a933a53608e7e43f","fromSide":"right","toNode":"091ff3f665085754","toSide":"top","label":"复制Desc"},
 		{"id":"af1da629fdaa8ab4","fromNode":"85f6b9688101bc03","fromSide":"right","toNode":"091ff3f665085754","toSide":"top"},
-		{"id":"d1d7c8c3a44e049a","fromNode":"e38e9a4b70e30112","fromSide":"right","toNode":"ad6949b41e375594","toSide":"left"}
+		{"id":"d1d7c8c3a44e049a","fromNode":"e38e9a4b70e30112","fromSide":"right","toNode":"ad6949b41e375594","toSide":"left"},
+		{"id":"68bec602a9a2c1c5","fromNode":"56303ca7180df7de","fromSide":"right","toNode":"93c815e753d6be40","toSide":"left"},
+		{"id":"bef0fd303d1555d5","fromNode":"93c815e753d6be40","fromSide":"right","toNode":"5875340450c5515a","toSide":"left"},
+		{"id":"cde13cd2b616dc13","fromNode":"ae85db1b62971fb9","fromSide":"top","toNode":"93c815e753d6be40","toSide":"top","label":"返回TextureID，作为索引"},
+		{"id":"84161fd68c71875c","fromNode":"c85d2781e908726a","fromSide":"right","toNode":"a088d0c91bac3488","toSide":"left","label":"memcpy"},
+		{"id":"45e01c4a4c0abee7","fromNode":"a088d0c91bac3488","fromSide":"right","toNode":"24afbca06a74bed7","toSide":"left","label":"update\nsubresource"},
+		{"id":"27d1a4e49146a506","fromNode":"24afbca06a74bed7","fromSide":"bottom","toNode":"ef3765508718a0f9","toSide":"top"},
+		{"id":"686bdcdab05d0401","fromNode":"24afbca06a74bed7","fromSide":"right","toNode":"ae85db1b62971fb9","toSide":"left"},
+		{"id":"8e6eb1a789fcb77b","fromNode":"ef3765508718a0f9","fromSide":"right","toNode":"fa67a0901a10770a","toSide":"left"},
+		{"id":"1f36ff6f899cc9e2","fromNode":"fa67a0901a10770a","fromSide":"right","toNode":"ae85db1b62971fb9","toSide":"left"},
+		{"id":"f6747237c7902f90","fromNode":"8760b2202136c963","fromSide":"bottom","toNode":"a088d0c91bac3488","toSide":"top"},
+		{"id":"615e2a14f4e9604c","fromNode":"5875340450c5515a","fromSide":"right","toNode":"c85d2781e908726a","toSide":"left","label":"stb_Image"},
+		{"id":"b6240272b0be5c67","fromNode":"c85d2781e908726a","fromSide":"right","toNode":"8760b2202136c963","toSide":"left"}
 	]
 }
