@@ -49,7 +49,7 @@ namespace EngineCore
             mRenderPassInfo.viewportEndPos = endPos;
         }
 
-
+        inline const RenderPassInfo& GetRenderPassInfo(){return mRenderPassInfo;};
     protected:
         string name;
         RenderPassInfo mRenderPassInfo;

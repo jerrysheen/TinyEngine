@@ -1,11 +1,12 @@
 #pragma once
 #include "Core/PublicEnum.h"
 #include "Core/Resources.h"
+#include "Core/Object.h"
 
 namespace EngineCore
 {
     struct TextureStruct;
-    class Texture
+    class Texture : public Object
     {
     public:
         static Texture* LoadTexture(const TextureStruct* texStruct);
@@ -30,9 +31,9 @@ namespace EngineCore
     private:
         string mTextureName;
         string path;
-        TextureDimension dimension;
-        TextureFormat format;
-        int width, height;
+        TextureDimension dimension = TextureDimension::TEXTURE2D;
+        TextureFormat format = TextureFormat::R8G8B8A8;
+        int width = 0, height = 0;
     };
 
 }

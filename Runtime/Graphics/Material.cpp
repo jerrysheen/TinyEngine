@@ -4,12 +4,8 @@
 
 namespace EngineCore
 {
-    int Material::ID = 0;
-
     Material::Material(const MaterialStruct* matStruct)
     {
-        matID = ID;
-        ID++;
         data = new MaterialData();  // 分配内存
         shader = nullptr;           // 初始化为nullptr
         InitMaterialData(matStruct);
@@ -17,8 +13,6 @@ namespace EngineCore
 
     Material::Material() 
     {
-        matID = ID;
-        ID++;
         data = new MaterialData();
         shader = nullptr;
         // 空初始化表示不需要
@@ -33,7 +27,7 @@ namespace EngineCore
     }
 
     // 同步这个数据到CPU和GPU
-    void Material::SetTexture(const string &slotName, const Texture &texture)
+    void Material::SetTexture(const string &slotName, const Texture* texture)
     {
         //cpu, 更新data数据，
         data->textureData[slotName] = texture;
@@ -47,8 +41,26 @@ namespace EngineCore
         }
         ASSERT_MSG(slotIndex != -1, "Can't find this Texture");
         //gpu
-        RenderAPI::GetInstance().SetShaderTexture(this, slotName ,slotIndex,texture);
+        RenderAPI::GetInstance().SetShaderTexture(this, slotName ,slotIndex, texture->GetInstanceID());
     }
+
+    // todo：资源的统一管理， Material只会持有一个textureID，后续的信息都去ResouceManager的Texture中去找。
+    void Material::SetTexture(const string& slotName, uint64_t texInstanceID)
+    {
+        //cpu, 更新data数据，
+        int slotIndex = -1;
+        for (auto& textureInfo : shader->mShaderBindingInfo->mTextureInfo)
+        {
+            if (textureInfo.resourceName == slotName)
+            {
+                slotIndex = textureInfo.registerSlot;
+            }
+        }
+        ASSERT_MSG(slotIndex != -1, "Can't find this Texture");
+        //gpu
+        RenderAPI::GetInstance().SetShaderTexture(this, slotName, slotIndex, texInstanceID);
+    }
+
 
     void Material::SetFloat(const string &name, float value)
     {

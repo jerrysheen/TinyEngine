@@ -41,12 +41,4 @@ namespace EngineCore
         R8G8B8A8,
         D24S8,
     };
-
-    enum class ClearFlag
-    {
-        NONE,
-        ALL,
-        DEPTH,
-        COLOR,
-    };
 }

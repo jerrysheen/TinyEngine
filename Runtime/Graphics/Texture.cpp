@@ -4,6 +4,7 @@
 #include "Core/Resources.h"
 #include "Renderer/RenderAPI.h"
 
+
 namespace EngineCore
 {
     Texture* Texture::LoadTexture(const TextureStruct* texStruct)
@@ -19,7 +20,7 @@ namespace EngineCore
         RenderAPI::GetInstance().CreateTextureBuffer(pixels, texture);
 
         stbi_image_free(pixels);
-        return nullptr;
+        return texture;
     }
 
 }

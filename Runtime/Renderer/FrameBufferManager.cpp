@@ -1,6 +1,7 @@
 #include "PreCompiledHeader.h"
 #include "FrameBufferManager.h"
 #include "RenderAPI.h"
+#include "Core/Component.h"
 
 namespace EngineCore
 {
@@ -17,10 +18,10 @@ namespace EngineCore
         delete mBackBuffer;
     }
 
-    void FrameBufferManager::CreateFBO(const string& name, FrameBufferObject* fboDesc)
+    void FrameBufferManager::CreateFBO(FrameBufferObject* fboDesc)
     {
-        RenderAPI::s_Instance->CreateFBO(name, fboDesc);
-        mFBOMap.try_emplace(name, fboDesc);
+        RenderAPI::s_Instance->CreateFBO(fboDesc);
+        mFBOMap.try_emplace(fboDesc->name, fboDesc);
     }
 
     FrameBufferObject* FrameBufferManager::GetFBO(const string& name)

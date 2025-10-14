@@ -32,7 +32,7 @@ namespace EngineCore
     void RenderEngine::BeginRender()
     {
         RenderAPI::GetInstance().BeginFrame();
-        Renderer::GetInstance().BeginFrame();
+        //Renderer::GetInstance().BeginFrame();
         renderContext.Reset();
     }    
     
@@ -67,7 +67,7 @@ namespace EngineCore
     void RenderEngine::EndRender()
     {
         renderContext.Reset();
-        Renderer::GetInstance().EndFrame();
+        //Renderer::GetInstance().EndFrame();
         RenderAPI::GetInstance().EndFrame();
     }
 }

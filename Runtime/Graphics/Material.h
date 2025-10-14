@@ -4,10 +4,12 @@
 #include "Core/Resources.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "Core/Object.h"
+#include "Core/PublicStruct.h"
 
 namespace EngineCore
 {
-    class Material
+    class Material : public Object
     {
     public:
         MaterialData* data;
@@ -16,15 +18,12 @@ namespace EngineCore
         Material();
         void SetUpGPUResources();
         void UploadDataToGpu();
-        inline int GetID() const {return matID;};
         ~Material();
 
-        void SetTexture(const string& name, const Texture& texture);
+        void SetTexture(const string& name, const Texture* texture);
+        void SetTexture(const string& name, uint64_t texInstanceID);
         void SetFloat(const string& name, float value);
-    public:
-        static int ID;
     private:
-        int matID;
         void InitMaterialData(const MaterialStruct* matStruct);
     };
 }

@@ -2,20 +2,20 @@
 #include "PreCompiledHeader.h"
 #include "Core/Resources.h"
 #include "Core/PublicStruct.h"
+#include "Core/Object.h"
+
 
 namespace EngineCore
 {
-    class Shader
+    class Shader : public Object
     {
     public:
         static Shader* Compile(const string& path);
-        static int ID;
         ShaderReflectionInfo* mShaderBindingInfo = nullptr;
         vector<InputLayout> mShaderInputLayout;
 
-        Shader(){ mShaderID = Shader::ID; Shader::ID++;};
+        Shader(){};
         ~Shader();
-        int mShaderID;
         string name;
     };
 }

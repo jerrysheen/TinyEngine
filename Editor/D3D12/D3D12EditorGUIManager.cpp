@@ -130,6 +130,7 @@ namespace EngineEditor
 		{
 			if (renderAPI->md3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocators[i])) != S_OK)
 				assert(false);
+			commandAllocators[i]->SetName(L"EditorCommandAllocator");
 		}
 		renderAPI->md3dDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocators[0].Get(), nullptr, IID_PPV_ARGS(&commandList));
 		commandList->Close();

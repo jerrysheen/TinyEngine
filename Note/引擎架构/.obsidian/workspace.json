@@ -15,9 +15,9 @@
               "state": {
                 "file": "渲染API调度.canvas",
                 "viewState": {
-                  "x": 449.779967747952,
-                  "y": 1885.2032120251379,
-                  "zoom": -2.174652380484911
+                  "x": -521.417889703197,
+                  "y": 1770.9276707837903,
+                  "zoom": -1.4496240007107133
                 }
               },
               "icon": "lucide-layout-dashboard",
@@ -175,8 +175,8 @@
   "active": "a3018b6ec87eed1a",
   "lastOpenFiles": [
     "渲染流程.canvas",
-    "资源初始化.canvas",
     "渲染API调度.canvas",
+    "资源初始化.canvas",
     "Material.h.md",
     "未命名.md",
     "RenderAPI.h.md"

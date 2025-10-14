@@ -4,6 +4,8 @@
 
 #include "Graphics/ModelUtils.h"
 #include "Graphics/Material.h"
+#include "Core/InstanceID.h"
+
 namespace EngineCore
 {
 
@@ -22,11 +24,11 @@ namespace EngineCore
     struct TD3D12ConstantBuffer
     {
         ComPtr<ID3D12Resource> mBufferResource;
-        int mSize;
+        int mSize = 0;
         void* mCpuAddress = nullptr;
         D3D12_GPU_VIRTUAL_ADDRESS mGPUAddress = 0;
         TD3D12DescriptorHandle handleCBV = {};
-        int registerSlot;
+        int registerSlot = 0;
         TD3D12ConstantBuffer(){};
     };
 
@@ -39,7 +41,7 @@ namespace EngineCore
     // };
     struct TD3D12TextureHander 
     {
-        string textureID;
+        uint32_t textureID;
     };
 
     struct TD3D12TextureBuffer
@@ -49,6 +51,7 @@ namespace EngineCore
         D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle;
         D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;  
         D3D12_RESOURCE_STATES state;
+        TD3D12TextureBuffer() = default;
     };
 
     using TD3D12FrameBuffer = TD3D12TextureBuffer;
@@ -58,7 +61,7 @@ namespace EngineCore
         /* data */
         vector<TD3D12ConstantBuffer> mConstantBufferArray;
         vector<TD3D12TextureHander> mTextureBufferArray;
-        struct TD3D12MaterialData(){};
+        TD3D12MaterialData(){};
     };
 
     struct TD3D12VAO

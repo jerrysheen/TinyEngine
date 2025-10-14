@@ -16,7 +16,7 @@ namespace EngineCore
         //std::cout << "Launch Game" << std::endl;
         // init Manager...
         #ifdef EDITOR
-        EngineEditor::EditorGUIManager::Create();
+        //EngineEditor::EditorGUIManager::Create();
         #endif
         while(!WindowManager::GetInstance().WindowShouldClose())
         {
@@ -32,7 +32,7 @@ namespace EngineCore
         SceneManager::GetInstance().Update();
         RenderEngine::GetInstance().Update();
         #ifdef EDITOR
-        EngineEditor::EditorGUIManager::GetInstance().Update();
+        //EngineEditor::EditorGUIManager::GetInstance().Update();
         #endif
     }
 
@@ -41,12 +41,12 @@ namespace EngineCore
         //std::cout << "Render Scene" << std::endl;
         RenderEngine::GetInstance().BeginRender();
         #ifdef EDITOR
-        EngineEditor::EditorGUIManager::GetInstance().BeginFrame();
+        //EngineEditor::EditorGUIManager::GetInstance().BeginFrame();
         #endif
         RenderEngine::GetInstance().Render();
         #ifdef EDITOR
-        EngineEditor::EditorGUIManager::GetInstance().Render();
-        EngineEditor::EditorGUIManager::GetInstance().EndFrame();
+        //EngineEditor::EditorGUIManager::GetInstance().Render();
+        //EngineEditor::EditorGUIManager::GetInstance().EndFrame();
         #endif
         RenderEngine::GetInstance().EndRender();
 

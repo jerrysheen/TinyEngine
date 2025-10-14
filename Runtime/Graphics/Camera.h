@@ -1,5 +1,7 @@
 #pragma once
 #include "Core/PublicStruct.h"
+#include "Graphics/Texture.h"
+
 
 namespace EngineCore
 {
@@ -8,8 +10,12 @@ namespace EngineCore
     public:
         Camera();
         static Camera* GetMainCamera(){ return nullptr;};
+
     public:
-        RenderPassAsset mRenderPassAsset;        
+        RenderPassAsset mRenderPassAsset;
+        // 这两个只是描述符， 没必要用指针
+        FrameBufferObject depthAttachment;
+        FrameBufferObject colorAttachment;
     };
 
 }

@@ -24,7 +24,7 @@ namespace EngineCore
         testShader = Shader::Compile("D:/GitHubST/TinyEngine/Assets/Shader/SimpleTestShader.hlsl");
         testMat->shader = testShader;
         testMat->SetUpGPUResources();
-        testMat->SetTexture("DiffuseTexture", Texture("Material"));
+        testMat->SetTexture("DiffuseTexture", testTexture);
 
         mCamera = new Camera();
 
@@ -34,7 +34,7 @@ namespace EngineCore
         blitMaterial->shader = blitShader;
         blitMaterial->SetUpGPUResources();
         blitMaterial->SetFloat("_FlipY", 1.0f);
-        blitMaterial->SetTexture("SrcTexture", Texture("CameraColorAttachment"));
+        //blitMaterial->SetTexture("SrcTexture", Texture("CameraColorAttachment"));
 
 
     }

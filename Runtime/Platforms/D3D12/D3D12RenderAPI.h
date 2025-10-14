@@ -15,14 +15,15 @@
 #include "D3D12Struct.h"
 #include "Core/PublicStruct.h"
 #include "Graphics/Texture.h"
+#include "Core/InstanceID.h"
+#include "Core/PublicEnum.h"
+
 
 namespace EngineCore
 {
     class D3D12RenderAPI : public RenderAPI
     {
     public:
-        // just for fast test:
-        void TestRenderObj(const DrawRecord& record);
 
         virtual void BeginFrame() override;
         virtual void Render() override;
@@ -44,15 +45,26 @@ namespace EngineCore
         virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector3& value) override;
         virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector2& value) override {};
         virtual void SetShaderMatrix4x4(const Material* mat, const ShaderVariableInfo& variableInfo, const Matrix4x4& value) override;
-        virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, const Texture& value) override;
+        virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, uint32_t texInstanceID) override;
         virtual void SetUpMesh(ModelData* data, bool isStatic = true) override;
-        virtual void CreateFBO(const string& name, FrameBufferObject* fbodesc) override;
+        virtual void CreateFBO(FrameBufferObject* fbodesc) override;
         virtual void CreateTextureBuffer(unsigned char* data, Texture* tbdesc) override;
-
+        virtual void GetOrCreatePSO(const Material& mat, const RenderPassInfo &passinfo) override;
         virtual void Submit(const vector<RenderPassInfo*>& renderPassInfos) override;
         
-        TD3D12DescriptorHandle GetTextureSrvHanle(const string& textureID);
-        TD3D12FrameBuffer* GetFrameBuffer(const string& name);
+        // 多线程代码：
+        virtual void RenderAPIBeginFrame() override;
+        virtual void RenderAPIConfigureRT(Payload_ConfigureRT payloadConfigureRT) override;
+        virtual void RenderAPIDrawIndexed(Payload_DrawCommand payloadDrawCommand) override;
+        virtual void RenderAPISetMaterial(Payload_SetMaterial payloadSetMaterial) override;
+        virtual void RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState) override;
+        virtual void RenderAPISetSissorRect(Payload_SetSissorRect payloadSetSissorrect) override;
+        virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) override;
+        virtual void RenderAPISetViewPort(Payload_SetViewPort payloadSetViewport) override;
+        virtual void RenderAPIEndFrame() override;
+
+        TD3D12DescriptorHandle GetTextureSrvHanle(uint32_t textureID);
+        TD3D12FrameBuffer* GetFrameBuffer(uint32_t bufferID, bool isBackBuffer = false);
         Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;
         UINT mRtvDescriptorSize = 0;
         UINT mDsvDescriptorSize = 0;
@@ -143,11 +155,11 @@ namespace EngineCore
         int mClientWidth = 1280;
         int mClientHeight = 720;
 
-        unordered_map<int, TD3D12MaterialData> m_DataMap; 
+        unordered_map<uint32_t, TD3D12MaterialData> m_DataMap;
         vector<TD3D12VAO> mVAOList;
         vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
-        unordered_map<string, TD3D12TextureBuffer> m_TextureBufferMap;
-        unordered_map<string, TD3D12ShaderPSO> m_ShaderPSOMap;
+        unordered_map<uint32_t, TD3D12TextureBuffer> m_TextureBufferMap;
+        unordered_map<uint32_t, TD3D12ShaderPSO> m_PipeLineStateObjectMap;
     };
 
 }

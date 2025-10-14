@@ -11,7 +11,7 @@ namespace EngineCore
     class ModelData
     {
     public:
-        int VAO;
+        uint32_t VAO;
         std::vector<Vertex> vertex;
         std::vector<int> index;
         std::vector<InputLayout> layout;

@@ -1,6 +1,8 @@
 #pragma once
 #include "PublicEnum.h"
 #include "Math/Math.h"
+#include "Core/Object.h"
+#include "Renderer/RenderCommand.h"
 
 namespace EngineCore
 {
@@ -64,7 +66,7 @@ namespace EngineCore
 
     };
 
-    struct FrameBufferObject
+    struct FrameBufferObject : public Object
     {
         string name;
         TextureDimension dimension;
@@ -133,7 +135,7 @@ namespace EngineCore
         {
             colorAttachment = nullptr;
             depthAttachment = nullptr;
-            clearFlag = ClearFlag::NONE;
+            clearFlag = ClearFlag::None;
             clearColorValue = Vector3::Zero;
             clearDepthValue = 1.0;
             perdrawData.Reset();
