@@ -149,6 +149,9 @@
     <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12DescManager.cpp">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PSOManager.cpp">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12RenderAPI.cpp">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClCompile>

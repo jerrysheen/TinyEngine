@@ -6,7 +6,7 @@
 #include "D3D12DescManager.h"
 #include "d3dx12.h"  // 确保包含D3D12辅助类
 #include "Renderer/FrameBufferManager.h"
-
+#include "D3D12PSOManager.h"
 
 namespace EngineCore
 {
@@ -21,6 +21,7 @@ namespace EngineCore
         m_DataMap = unordered_map<uint32_t, TD3D12MaterialData>();
 
         D3D12DescManager::Create(md3dDevice);
+        D3D12PSOManager::Create(md3dDevice);
     }
 
     bool D3D12RenderAPI::InitDirect3D()
@@ -465,18 +466,20 @@ namespace EngineCore
         {
             cout << "Shader Stage Vertex Compile fail" << endl;
         }
+        vsBlobMap.try_emplace(shader->GetInstanceID(), vsBlob);
         Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
         if (!CompileShaderStage(path, "PSMain", "ps_5_1", shader, ShaderStageType::FRAGMENT_STAGE, psBlob))
         {
             cout << "Shader Stage Pixel Shader Compile fail" << endl;
         }
+        psBlobMap.try_emplace(shader->GetInstanceID(), psBlob);
 
         // 创建PSO
-        CreatePSOByShaderReflection(shader, vsBlob, psBlob);
+        CreateRootSignatureByShaderReflection(shader);
         return shader;
     }
 
-    void D3D12RenderAPI::CreatePSOByShaderReflection(Shader* shader, Microsoft::WRL::ComPtr<ID3DBlob> vsBlob, Microsoft::WRL::ComPtr<ID3DBlob> psBlob)
+    void D3D12RenderAPI::CreateRootSignatureByShaderReflection(Shader* shader)
     {
         
         int cbCount = shader->mShaderBindingInfo->mBufferInfo.size();
@@ -521,7 +524,6 @@ namespace EngineCore
         }
 
         ComPtr<ID3D12RootSignature> tempRootSignature;
-        ComPtr<ID3D12PipelineState> tempPsoObj;
         CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(
             static_cast<UINT>(slotRootParameter.size()), slotRootParameter.data(),
             0, nullptr,
@@ -540,54 +542,59 @@ namespace EngineCore
             serializedRootSig->GetBufferSize(),
             IID_PPV_ARGS(&tempRootSignature)));
 
-        // todo: InputLayout完善：
-        std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
-        mInputLayout =
+        if(shaderRootSignatureMap.count(shader->GetInstanceID()) == 0)
         {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-            { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        };
-        // pipeline state object:
-        D3D12_GRAPHICS_PIPELINE_STATE_DESC pso{};
-        pso.pRootSignature = tempRootSignature.Get();
-        pso.VS = {reinterpret_cast<BYTE*>(vsBlob->GetBufferPointer()), vsBlob->GetBufferSize()};
-        pso.PS = {reinterpret_cast<BYTE*>(psBlob->GetBufferPointer()), psBlob->GetBufferSize()};
-        pso.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
-
-        pso.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-        pso.BlendState      = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-        D3D12_DEPTH_STENCIL_DESC depthStencilDesc = {};
-        depthStencilDesc.DepthEnable = TRUE;
-        depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-        depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;  // 这里设置比较函数
-        depthStencilDesc.StencilEnable = FALSE;
-        pso.DepthStencilState = depthStencilDesc;
-        //pso.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-
-        pso.SampleMask     = UINT_MAX;
-        pso.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-
-        pso.NumRenderTargets = 1;
-        pso.RTVFormats[0]    = DXGI_FORMAT_R8G8B8A8_UNORM;
-        if (shader->name == "D:/GitHubST/TinyEngine/Assets/Shader/BlitShader.hlsl") 
-        {
-            pso.DSVFormat = DXGI_FORMAT_UNKNOWN;
-            pso.DepthStencilState.DepthEnable = FALSE;
-            pso.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+            shaderRootSignatureMap.try_emplace(shader->GetInstanceID(), tempRootSignature);
         }
-        else 
-        {
-            pso.DSVFormat        = DXGI_FORMAT_D24_UNORM_S8_UINT;
-        }
-        pso.SampleDesc.Count = 1;
+
+        // // todo: InputLayout完善：
+        // std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
+        // mInputLayout =
+        // {
+        //     { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        //     { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        //     { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        // };
+        // // pipeline state object:
+        // D3D12_GRAPHICS_PIPELINE_STATE_DESC pso{};
+        // pso.pRootSignature = tempRootSignature.Get();
+        // pso.VS = {reinterpret_cast<BYTE*>(vsBlob->GetBufferPointer()), vsBlob->GetBufferSize()};
+        // pso.PS = {reinterpret_cast<BYTE*>(psBlob->GetBufferPointer()), psBlob->GetBufferSize()};
+        // pso.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
+        // // todo: 调整depth stencil逻辑
+        // pso.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+        // pso.BlendState      = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        // D3D12_DEPTH_STENCIL_DESC depthStencilDesc = {};
+        // depthStencilDesc.DepthEnable = TRUE;
+        // depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+        // depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;  // 这里设置比较函数
+        // depthStencilDesc.StencilEnable = FALSE;
+        // pso.DepthStencilState = depthStencilDesc;
+        // //pso.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+
+        // pso.SampleMask     = UINT_MAX;
+        // pso.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+        // pso.NumRenderTargets = 1;
+        // pso.RTVFormats[0]    = DXGI_FORMAT_R8G8B8A8_UNORM;
+        // if (shader->name == "D:/GitHubST/TinyEngine/Assets/Shader/BlitShader.hlsl") 
+        // {
+        //     pso.DSVFormat = DXGI_FORMAT_UNKNOWN;
+        //     pso.DepthStencilState.DepthEnable = FALSE;
+        //     pso.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+        // }
+        // else 
+        // {
+        //     pso.DSVFormat        = DXGI_FORMAT_D24_UNORM_S8_UINT;
+        // }
+        // pso.SampleDesc.Count = 1;
 
         
-        if (FAILED(md3dDevice->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&tempPsoObj))))
-            throw std::runtime_error("CreateGraphicsPipelineState failed");
+        // if (FAILED(md3dDevice->CreateGraphicsPipelineState(&pso, IID_PPV_ARGS(&tempPsoObj))))
+        //     throw std::runtime_error("CreateGraphicsPipelineState failed");
 
-        TD3D12ShaderPSO psoData(std::move(tempPsoObj), std::move(tempRootSignature), std::move(mInputLayout));
-        m_PipeLineStateObjectMap.try_emplace(shader->GetInstanceID(), std::move(psoData));
+        // TD3D12ShaderPSO psoData(std::move(tempPsoObj), std::move(tempRootSignature), std::move(mInputLayout));
+        // m_PipeLineStateObjectMap.try_emplace(shader->GetInstanceID(), std::move(psoData));
     }
 
     bool D3D12RenderAPI::CompileShaderStage(const string& path, string entryPoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob)
@@ -945,10 +952,10 @@ namespace EngineCore
         return;
     }
 
-    void D3D12RenderAPI::GetOrCreatePSO(const Material &mat, const RenderPassInfo &passinfo)
-    {
-        
-    }
+    //void D3D12RenderAPI::GetOrCreatePSO(const Material &mat, const RenderPassInfo &passinfo)
+    //{
+    //    
+    //}
 
     void D3D12RenderAPI::CreateSamplerResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos)
     {
@@ -976,6 +983,7 @@ namespace EngineCore
 
     }
 
+    
 
     void D3D12RenderAPI::ImmediatelyExecute(std::function<void(ComPtr<ID3D12GraphicsCommandList> cmdList)>&& function)
     {
@@ -1324,6 +1332,31 @@ namespace EngineCore
         return handle;
     }
 
+    ComPtr<ID3D12PipelineState> D3D12RenderAPI::GetOrCreatePSO(PSODesc& psodesc)
+    {
+        uint32_t psoHash = psodesc.GetHash();
+        if(shaderPSOMap.count(psoHash) > 0)
+        {
+            return shaderPSOMap[psoHash];
+        }
+        TD3D12PSO pso;
+        pso.desc = psodesc;
+        pso.inputLayout =         
+        {
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        };
+        ASSERT(psBlobMap.count(psodesc.matRenderState.shaderInstanceID) > 0);
+        ASSERT(vsBlobMap.count(psodesc.matRenderState.shaderInstanceID) > 0);
+        pso.psBlob = psBlobMap[psodesc.matRenderState.shaderInstanceID];
+        pso.vsBlob = vsBlobMap[psodesc.matRenderState.shaderInstanceID];
+        pso.rootSignature = shaderRootSignatureMap[psodesc.matRenderState.shaderInstanceID];
+        ComPtr<ID3D12PipelineState> temp = D3D12PSOManager::GetInstance()->CreatePSO(pso);
+        shaderPSOMap.try_emplace(psoHash, temp);
+        return temp;
+    }
+
     TD3D12FrameBuffer* D3D12RenderAPI::GetFrameBuffer(uint32_t bufferID, bool isBackBuffer)
     {
         if (bufferID == 0) return nullptr;
@@ -1469,11 +1502,20 @@ namespace EngineCore
 
     void D3D12RenderAPI::RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState)
     {
+        // 这个地方正确的操作应该是怎么样的？
+        // 这个地方其实就是传入一个ShaderID + passInfo，来得到一个渲染状态。
+        // 所以那么这个地方，需要的参数就是 渲染状态，这个状态有当前pass的，
+        // 有设置的， 比如blendmode这种， DepthCompare，
+        // 也有shader的，比如inputlayout，rootsignature，
+        // psoManager负责根据这个找到对应的， 如果没有就创建一个新的。
+        // 这个地方顺便想一下合理的快速找到对应的操作。
+        PSODesc& psoDesc = payloadSetRenderState.psoDesc;
+       
         // set pso and Root Signature:
         // 3. 设置root signature
-        ComPtr<ID3D12RootSignature> rootSig = m_PipeLineStateObjectMap[payloadSetRenderState.psoId].rootSignature;
+        ComPtr<ID3D12RootSignature> rootSig = shaderRootSignatureMap[psoDesc.matRenderState.shaderInstanceID];
         mCommandList->SetGraphicsRootSignature(rootSig.Get());
-        ComPtr<ID3D12PipelineState> pso = m_PipeLineStateObjectMap[payloadSetRenderState.psoId].pso;  // 添加这行
+        ComPtr<ID3D12PipelineState> pso = GetOrCreatePSO(psoDesc);  // 添加这行
         mCommandList->SetPipelineState(pso.Get()); 
         
     }

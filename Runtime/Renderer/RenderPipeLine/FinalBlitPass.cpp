@@ -16,7 +16,7 @@ namespace EngineCore
     void FinalBlitPass::Configure(const RenderContext& context)
     {
         SetRenderTarget(FrameBufferManager::GetInstance().GetScreenBuffer(), nullptr);
-        SetClearFlag(ClearFlag::All);
+        SetClearFlag(ClearFlag::All, Vector3(0.0, 0.0, 0.0), 1.0f);
         SetViewPort(Vector2(0, 0), Vector2(WindowManager::GetInstance().GetWidth(), WindowManager::GetInstance().GetHeight()));
     }
     void FinalBlitPass::Execute(const RenderContext& context)

@@ -28,7 +28,7 @@ using std::function;
             } \
         } while(0)
     
-    #define ASSERT(condition) ASSERT_MSG(condition, L"No message")
+    #define ASSERT(condition) ASSERT_MSG(condition, L"fatal error!")
 #else
     #define ASSERT_MSG(condition, message) ((void)0)
     #define ASSERT(condition) ((void)0)

@@ -25,7 +25,7 @@ namespace EngineCore
         TD3D12DescriptorHandle GetFrameSamplerAllocator(int count);
         vector<D3D12DescAllocator> mDescAllocators;
         vector<D3D12DescAllocator> mFrameAllocators;
-
+        
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> GetFrameCbvSrvUavHeap()
         {
             return mFrameAllocators[0].mHeap;

@@ -64,7 +64,13 @@ namespace EngineCore
         //RenderAPI::GetInstance().GetOrCreatePSO(mat, passinfo);
         DrawCommand temp;
         temp.op = RenderOp::kSetRenderState;
-        temp.data.setRenderState.psoId = mat->shader->GetInstanceID();
+        PSODesc pso;
+        
+        pso.colorAttachment = passinfo.colorAttachment == 0 ? TextureFormat::EMPTY : TextureFormat::R8G8B8A8;
+        pso.depthAttachment = passinfo.depthAttachment == 0 ? TextureFormat::EMPTY : TextureFormat::D24S8;
+        pso.matRenderState = mat->GetMaterialRenderState();
+        temp.data.setRenderState.psoDesc = pso;
+        
         mRenderBuffer.PushBlocking(temp);
     }
 
@@ -86,7 +92,8 @@ namespace EngineCore
         configureRT.depthAttachment = info.depthAttachment == nullptr ? 0 : info.depthAttachment->GetInstanceID();
         configureRT.isBackBuffer = info.colorAttachment && info.colorAttachment->name == "BackBuffer";
         // todo : 对齐两部分指令
-        ClearValue value = {Vector3(0,0,0), 0.0, ClearFlag::All};
+        ClearValue value = {Vector3(info.clearColorValue.x, info.clearColorValue.y, info.clearColorValue.z),
+            info.clearDepthValue, info.clearFlag};
         configureRT.clearValue = std::move(value);
         mRenderBuffer.PushBlocking(temp);
     }

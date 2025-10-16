@@ -1,5 +1,8 @@
 #pragma once
 #include <iostream>
+#include "Utils/HashCombine.h"
+#include "Core/PublicEnum.h"
+
 
 namespace EngineCore
 {
@@ -15,6 +18,71 @@ namespace EngineCore
         kDrawIndexed = 7,
         kSetMaterial = 8,
         kConfigureRT = 9,
+    };
+
+    enum class DepthComparisonFunc : uint8_t
+    {
+        LESS = 0,
+        LEQUAL = 1,
+        EQUAL = 2,
+        GREATEQUAL = 3,
+        GREAT = 4
+    };
+
+    enum class CullMode : uint8_t
+    {
+        CULLOFF = 0,
+        CULLBACK = 1,
+        CULLFRONT = 2,
+    };
+
+    enum class BlendState : uint8_t
+    {
+        SRCALHPHA = 0,
+        ONEMINUSSRCALPHA = 2,
+        ONE = 3,
+        ZERO = 4,
+    };
+
+    // 和材质相关，关联材质后可以做合批操作。
+    struct MaterailRenderState
+    {
+        uint32_t shaderInstanceID;
+
+        // depth stencil state:
+        bool enableDepthTest = true;
+        DepthComparisonFunc depthComparisonFunc = DepthComparisonFunc::LEQUAL;
+        bool enableDepthWrite = true;
+
+        // blend mode
+        bool enableBlend = false;
+        BlendState srcBlend;
+        BlendState destBlend;
+    };
+
+    struct PSODesc
+    {
+        MaterailRenderState matRenderState;
+
+        TextureFormat colorAttachment;
+        TextureFormat depthAttachment;
+        uint32_t GetHash()
+        {
+            if(hashID != 0) return hashID;
+            hashID = 0;
+            HashCombine(hashID, matRenderState.shaderInstanceID);
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.enableDepthTest));
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.depthComparisonFunc));
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.enableDepthWrite));
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.enableBlend));
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.srcBlend));
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.destBlend));
+            HashCombine(hashID, static_cast<uint32_t>(colorAttachment));
+            HashCombine(hashID, static_cast<uint32_t>(depthAttachment));
+            return hashID;
+        };
+    private:
+        uint32_t hashID = 0;
     };
 
     enum class ClearFlag : uint8_t
@@ -40,7 +108,7 @@ namespace EngineCore
     // todo : mrt渲染，
     struct Payload_SetRenderState 
     {
-        uint32_t psoId;
+        PSODesc psoDesc;
     };
 
     struct Payload_SetVBIB 

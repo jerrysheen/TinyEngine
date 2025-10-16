@@ -27,7 +27,7 @@ namespace EngineCore
         FrameBufferObject* depthAttachment = &context.camera->depthAttachment;
         SetRenderTarget(colorAttachment, depthAttachment);
         SetViewPort(Vector2(0,0), Vector2(colorAttachment->width, colorAttachment->height));
-        SetClearFlag(ClearFlag::All, Vector3(0.3, 0.4, 0.5), 0.0f);
+        SetClearFlag(ClearFlag::All, Vector3(0.0, 0.0, 0.0), 1.0f);
     }
     
     // maybe send a context here?

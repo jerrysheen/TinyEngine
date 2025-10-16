@@ -5,6 +5,7 @@
 #include "Graphics/ModelUtils.h"
 #include "Graphics/Material.h"
 #include "Core/InstanceID.h"
+#include "Renderer/RenderCommand.h"
 
 namespace EngineCore
 {
@@ -86,22 +87,34 @@ namespace EngineCore
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> commandLists;
     };
 
-    struct TD3D12ShaderPSO
+    // // 这个结构应该拆分，更多的应该是一个组合的形式，因为pso运行时创建
+    // // rootsignature初始化就创建了。
+    // struct TD3D12ShaderPSO
+    // {
+    //     Microsoft::WRL::ComPtr<ID3D12PipelineState> pso;
+    //     Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
+    //     std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout;
+        
+    //     // 添加默认构造函数
+    //     TD3D12ShaderPSO() = default;
+
+    //     TD3D12ShaderPSO(Microsoft::WRL::ComPtr<ID3D12PipelineState> pso,
+    //         Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature,
+    //         std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout)
+    //         : pso(pso), rootSignature(rootSignature), inputLayout(inputLayout)
+    //     {
+
+    //     };
+    // };
+
+    // 存储创建PSO需要的信息
+    struct TD3D12PSO
     {
-        Microsoft::WRL::ComPtr<ID3D12PipelineState> pso;
+        PSODesc desc;
         Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
         std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout;
-        
-        // 添加默认构造函数
-        TD3D12ShaderPSO() = default;
-
-        TD3D12ShaderPSO(Microsoft::WRL::ComPtr<ID3D12PipelineState> pso,
-            Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature,
-            std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout)
-            : pso(pso), rootSignature(rootSignature), inputLayout(inputLayout)
-        {
-
-        };
+        ComPtr<ID3DBlob> vsBlob;
+        ComPtr<ID3DBlob> psBlob;
     };
         
 

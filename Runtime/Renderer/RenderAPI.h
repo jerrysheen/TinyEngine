@@ -37,7 +37,7 @@ namespace  EngineCore
         virtual void CreateTextureBuffer(unsigned char* data, Texture* tbdesc) = 0;
         virtual void Submit(const vector<RenderPassInfo*>& renderPassInfos) = 0;
 
-        virtual void GetOrCreatePSO(const Material& mat, const RenderPassInfo &passinfo) = 0;
+        //virtual void GetOrCreatePSO(const Material& mat, const RenderPassInfo &passinfo) = 0;
         inline void AddRenderPassInfo(const RenderPassInfo& renderPassInfo){ mRenderPassInfoList.push_back(renderPassInfo); };
         inline void ClearRenderPassInfo(){ mRenderPassInfoList.clear(); };
         

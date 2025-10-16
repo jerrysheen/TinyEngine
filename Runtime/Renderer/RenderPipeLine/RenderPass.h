@@ -36,7 +36,7 @@ namespace EngineCore
             mRenderPassInfo.depthAttachment = depthAttachment;
         };
 
-        inline void SetClearFlag(ClearFlag flag, const Vector3& colorValue = Vector3::Zero, float depthValue = 0)
+        inline void SetClearFlag(ClearFlag flag, const Vector3& colorValue = Vector3::Zero, float depthValue = 1.0)
         {
             mRenderPassInfo.clearFlag = flag;
             mRenderPassInfo.clearColorValue = colorValue;

@@ -23,6 +23,7 @@ namespace EngineCore
         testMat = new Material(testMatStruct);
         testShader = Shader::Compile("D:/GitHubST/TinyEngine/Assets/Shader/SimpleTestShader.hlsl");
         testMat->shader = testShader;
+        testMat->renderState.shaderInstanceID = testShader->GetInstanceID();
         testMat->SetUpGPUResources();
         testMat->SetTexture("DiffuseTexture", testTexture);
 
@@ -32,6 +33,7 @@ namespace EngineCore
         blitShader = Shader::Compile("D:/GitHubST/TinyEngine/Assets/Shader/BlitShader.hlsl");
         blitMaterial = new Material();
         blitMaterial->shader = blitShader;
+        blitMaterial->renderState.shaderInstanceID = blitShader->GetInstanceID();
         blitMaterial->SetUpGPUResources();
         blitMaterial->SetFloat("_FlipY", 1.0f);
         //blitMaterial->SetTexture("SrcTexture", Texture("CameraColorAttachment"));

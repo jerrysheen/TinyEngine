@@ -6,6 +6,8 @@
 #include "Texture.h"
 #include "Core/Object.h"
 #include "Core/PublicStruct.h"
+#include "Renderer/RenderCommand.h"
+
 
 namespace EngineCore
 {
@@ -23,7 +25,12 @@ namespace EngineCore
         void SetTexture(const string& name, const Texture* texture);
         void SetTexture(const string& name, uint64_t texInstanceID);
         void SetFloat(const string& name, float value);
+
+        inline MaterailRenderState GetMaterialRenderState() const { return renderState;};
+        // todo  自己同步材质；
+        MaterailRenderState renderState;
     private:
         void InitMaterialData(const MaterialStruct* matStruct);
+        // depth stencil state:
     };
 }

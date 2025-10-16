@@ -49,7 +49,7 @@ namespace EngineCore
         virtual void SetUpMesh(ModelData* data, bool isStatic = true) override;
         virtual void CreateFBO(FrameBufferObject* fbodesc) override;
         virtual void CreateTextureBuffer(unsigned char* data, Texture* tbdesc) override;
-        virtual void GetOrCreatePSO(const Material& mat, const RenderPassInfo &passinfo) override;
+        //virtual void GetOrCreatePSO(const Material& mat, const RenderPassInfo &passinfo) override;
         virtual void Submit(const vector<RenderPassInfo*>& renderPassInfos) override;
         
         // 多线程代码：
@@ -105,6 +105,8 @@ namespace EngineCore
 
         ComPtr<ID3D12PipelineState> psoObj;
         ComPtr<ID3D12RootSignature> rootSignature;
+        
+        void ImmediatelyExecute(std::function<void(ComPtr<ID3D12GraphicsCommandList> cmdList)>&& function);
     private:
 
         bool InitDirect3D();
@@ -113,12 +115,13 @@ namespace EngineCore
         void InitCommandObject();
         void InitSwapChain();
         void InitRenderTarget();
-        void CreatePSOByShaderReflection(Shader* shader, Microsoft::WRL::ComPtr<ID3DBlob> vsBlob, Microsoft::WRL::ComPtr<ID3DBlob> psBlob);
+        void CreateRootSignatureByShaderReflection(Shader* shader);
 
-        void ImmediatelyExecute(std::function<void(ComPtr<ID3D12GraphicsCommandList> cmdList)>&& function);
         int GetNextVAOIndex();
         TD3D12VAO& GetAvaliableModelDesc();
-        
+
+        ComPtr<ID3D12PipelineState> GetOrCreatePSO(PSODesc& psodesc);
+
         Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
         Microsoft::WRL::ComPtr<IDXGIFactory4> mdxgiFactory;
         
@@ -159,7 +162,11 @@ namespace EngineCore
         vector<TD3D12VAO> mVAOList;
         vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
         unordered_map<uint32_t, TD3D12TextureBuffer> m_TextureBufferMap;
-        unordered_map<uint32_t, TD3D12ShaderPSO> m_PipeLineStateObjectMap;
+        //unordered_map<uint32_t, TD3D12ShaderPSO> m_PipeLineStateObjectMap;
+        unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> vsBlobMap;
+        unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> psBlobMap;
+        unordered_map<uint32_t, ComPtr<ID3D12RootSignature>> shaderRootSignatureMap;
+        unordered_map<uint32_t, ComPtr<ID3D12PipelineState>> shaderPSOMap;
     };
 
 }
