@@ -3,6 +3,7 @@
 #include "Renderer/RenderPipeLine/OpaqueRenderPass.h"
 #include "Renderer/RenderPipeLine/FinalBlitPass.h"
 #include "Renderer/FrameBufferManager.h"
+#include "Graphics/FrameBufferObject.h"
 
 namespace EngineCore
 {
@@ -12,20 +13,20 @@ namespace EngineCore
         mRenderPassAsset.renderPasses.push_back(new OpaqueRenderPass());
         mRenderPassAsset.renderPasses.push_back(new FinalBlitPass());
 
-        colorAttachment = FrameBufferObject();
-        colorAttachment.name = "CameraColorAttachment";
-        colorAttachment.dimension = TextureDimension::TEXTURE2D;
-        colorAttachment.width = 800;
-        colorAttachment.height = 600;
-        colorAttachment.format = TextureFormat::R8G8B8A8;
-        FrameBufferManager::GetInstance().CreateFBO(&colorAttachment);
+        FrameBufferDesc colorAttachmentDesc;
+        colorAttachmentDesc.name = "CameraColorAttachment";
+        colorAttachmentDesc.dimension = TextureDimension::TEXTURE2D;
+        colorAttachmentDesc.width = 800;
+        colorAttachmentDesc.height = 600;
+        colorAttachmentDesc.format = TextureFormat::R8G8B8A8;
+        colorAttachment = FrameBufferManager::GetInstance().CreateFBO(colorAttachmentDesc);
 
-        depthAttachment = FrameBufferObject();
-        depthAttachment.name = "CameraDepthAttachment";
-        depthAttachment.dimension = TextureDimension::TEXTURE2D;
-        depthAttachment.width = 800;
-        depthAttachment.height = 600;
-        depthAttachment.format = TextureFormat::D24S8;
-        FrameBufferManager::GetInstance().CreateFBO(&depthAttachment);
+        FrameBufferDesc depthAttachmentDesc;
+        depthAttachmentDesc.name = "CameraColorAttachment";
+        depthAttachmentDesc.dimension = TextureDimension::TEXTURE2D;
+        depthAttachmentDesc.width = 800;
+        depthAttachmentDesc.height = 600;
+        depthAttachmentDesc.format = TextureFormat::D24S8;
+        depthAttachment = FrameBufferManager::GetInstance().CreateFBO(depthAttachmentDesc);
     }
 }

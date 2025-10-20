@@ -4,9 +4,7 @@
 #include "ResourceHandle.h"
 #include "Asset.h"
 #include "MetaFile.h"
-#include "Graphics/Texture.h"
-#include "Graphics/ModelData.h"
-#include "Graphics/Shader.h"
+#include "Resources/Resource.h"
 
 namespace EngineCore
 {

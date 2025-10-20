@@ -3,6 +3,8 @@
 #include "Math/Math.h"
 #include "Core/Object.h"
 #include "Renderer/RenderCommand.h"
+//#include "Graphics/FrameBufferObject.h"
+#include "Resources/ResourceHandle.h"
 
 namespace EngineCore
 {
@@ -66,16 +68,6 @@ namespace EngineCore
 
     };
 
-    struct FrameBufferObject : public Object
-    {
-        string name;
-        TextureDimension dimension;
-        TextureFormat format;
-        float width;
-        float height;
-    };
-
-
     struct LightData
     {
 
@@ -117,10 +109,11 @@ namespace EngineCore
         };
     };
 
+    class FrameBufferObject;
     struct RenderPassInfo
     {
-        FrameBufferObject* colorAttachment;
-        FrameBufferObject* depthAttachment;
+        ResourceHandle<FrameBufferObject> colorAttachment;
+        ResourceHandle<FrameBufferObject> depthAttachment;
         ClearFlag clearFlag;
         Vector3 clearColorValue;
         float clearDepthValue;
@@ -133,8 +126,6 @@ namespace EngineCore
 
         inline void Reset()
         {
-            colorAttachment = nullptr;
-            depthAttachment = nullptr;
             clearFlag = ClearFlag::None;
             clearColorValue = Vector3::Zero;
             clearDepthValue = 1.0;

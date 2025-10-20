@@ -30,7 +30,7 @@ namespace EngineCore
 
 
         // ignore null ptr since RenderAPI level will handle this problem
-        inline void SetRenderTarget(FrameBufferObject* colorAttachment, FrameBufferObject* depthAttachment)
+        inline void SetRenderTarget(ResourceHandle<FrameBufferObject> colorAttachment, ResourceHandle<FrameBufferObject> depthAttachment)
         {
             mRenderPassInfo.colorAttachment = colorAttachment;
             mRenderPassInfo.depthAttachment = depthAttachment;

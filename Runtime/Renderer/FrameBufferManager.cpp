@@ -9,27 +9,28 @@ namespace EngineCore
     
     FrameBufferManager::FrameBufferManager()
     {
-        mBackBuffer = new FrameBufferObject();
-        mBackBuffer->name = "BackBuffer";
+        mBackBuffer = ResourceManager::GetInstance()->CreateResource<FrameBufferObject>("BackBuffer");
     }
 
     FrameBufferManager::~FrameBufferManager()
     {
-        delete mBackBuffer;
     }
 
-    void FrameBufferManager::CreateFBO(FrameBufferObject* fboDesc)
+    ResourceHandle<FrameBufferObject> FrameBufferManager::CreateFBO(const FrameBufferDesc& fboDesc)
     {
-        RenderAPI::s_Instance->CreateFBO(fboDesc);
-        mFBOMap.try_emplace(fboDesc->name, fboDesc);
+        ResourceHandle<FrameBufferObject> fbo = 
+            ResourceManager::GetInstance()->CreateResource<FrameBufferObject>(fboDesc);
+        RenderAPI::s_Instance->CreateFBO(fbo.Get());
+        mFBOMap.try_emplace(fboDesc.name, fbo);
+        return fbo;
     }
 
-    FrameBufferObject* FrameBufferManager::GetFBO(const string& name)
+    ResourceHandle<FrameBufferObject> FrameBufferManager::GetFBO(const string& name)
     {
         if (mFBOMap.count(name) <= 0) 
         {
             ASSERT_MSG(false, "This FrameBuffer Havent been Created");
-            return nullptr;
+            return ResourceHandle<FrameBufferObject>(0);
         }
         return mFBOMap[name];
     }

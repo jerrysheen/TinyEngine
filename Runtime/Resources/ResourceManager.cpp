@@ -1,5 +1,8 @@
 #include "PreCompiledHeader.h"
 #include "ResourceManager.h"
+#include "Graphics/Texture.h"
+#include "Graphics/ModelData.h"
+#include "Graphics/Shader.h"
 
 namespace EngineCore
 {

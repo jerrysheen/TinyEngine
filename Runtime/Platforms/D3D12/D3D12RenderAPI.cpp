@@ -7,6 +7,7 @@
 #include "d3dx12.h"  // 确保包含D3D12辅助类
 #include "Renderer/FrameBufferManager.h"
 #include "D3D12PSOManager.h"
+#include "Graphics/FrameBufferObject.h"
 
 namespace EngineCore
 {

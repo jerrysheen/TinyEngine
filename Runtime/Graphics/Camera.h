@@ -14,8 +14,8 @@ namespace EngineCore
     public:
         RenderPassAsset mRenderPassAsset;
         // 这两个只是描述符， 没必要用指针
-        FrameBufferObject depthAttachment;
-        FrameBufferObject colorAttachment;
+        ResourceHandle<FrameBufferObject> depthAttachment;
+        ResourceHandle<FrameBufferObject> colorAttachment;
     };
 
 }

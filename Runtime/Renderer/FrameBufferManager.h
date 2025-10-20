@@ -3,6 +3,8 @@
 #include "Managers/Manager.h"
 #include "Core/PublicEnum.h"
 #include "Core/PublicStruct.h"
+#include "Resources/ResourceHandle.h"
+#include "Graphics/FrameBufferObject.h"
 
 namespace EngineCore
 {
@@ -11,14 +13,14 @@ namespace EngineCore
     public:
         FrameBufferManager();
         ~FrameBufferManager();
-        void CreateFBO(FrameBufferObject* fboDesc);
-        FrameBufferObject* GetFBO(const string& name);
+        ResourceHandle<FrameBufferObject> CreateFBO(const FrameBufferDesc& fboDesc);
+        ResourceHandle<FrameBufferObject> GetFBO(const string& name);
         static void Create();
 
-        inline FrameBufferObject* GetScreenBuffer(){return mBackBuffer;};
+        inline ResourceHandle<FrameBufferObject> GetScreenBuffer(){return mBackBuffer;};
     private:
-        unordered_map<string, FrameBufferObject*> mFBOMap;
-        FrameBufferObject* mBackBuffer;
+        unordered_map<string, ResourceHandle<FrameBufferObject>> mFBOMap;
+        ResourceHandle<FrameBufferObject> mBackBuffer;
     };
 
 }

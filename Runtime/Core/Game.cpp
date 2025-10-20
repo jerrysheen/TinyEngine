@@ -11,8 +11,8 @@ namespace EngineCore
     void Game::Launch()
     {
         // InitManagers Here.
-        RenderEngine::Create();
         ResourceManager::Create();
+        RenderEngine::Create();
         SceneManager::Create();
 
         //std::cout << "Launch Game" << std::endl;

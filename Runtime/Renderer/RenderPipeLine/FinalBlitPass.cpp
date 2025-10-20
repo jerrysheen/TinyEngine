@@ -15,14 +15,14 @@ namespace EngineCore
     }
     void FinalBlitPass::Configure(const RenderContext& context)
     {
-        SetRenderTarget(FrameBufferManager::GetInstance().GetScreenBuffer(), nullptr);
+        SetRenderTarget(FrameBufferManager::GetInstance().GetScreenBuffer(), ResourceHandle<FrameBufferObject>(0));
         SetClearFlag(ClearFlag::All, Vector3(0.0, 0.0, 0.0), 1.0f);
         SetViewPort(Vector2(0, 0), Vector2(WindowManager::GetInstance().GetWidth(), WindowManager::GetInstance().GetHeight()));
     }
     void FinalBlitPass::Execute(const RenderContext& context)
     {
         Material* mat = SceneManager::GetInstance().blitMaterial.Get();
-        mat->SetTexture("SrcTexture", context.camera->colorAttachment.GetInstanceID());
+        mat->SetTexture("SrcTexture", context.camera->colorAttachment.Get()->GetInstanceID());
         ModelData* model = SceneManager::GetInstance().quadMesh.Get();
         mRenderPassInfo.drawRecordList.emplace_back(mat, model);
     }

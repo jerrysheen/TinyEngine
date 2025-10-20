@@ -23,8 +23,8 @@ namespace EngineCore
     
     void EngineCore::OpaqueRenderPass::Configure(const RenderContext& context)
     {
-        FrameBufferObject* colorAttachment = &context.camera->colorAttachment;
-        FrameBufferObject* depthAttachment = &context.camera->depthAttachment;
+        ResourceHandle<FrameBufferObject> colorAttachment = context.camera->colorAttachment;
+        ResourceHandle<FrameBufferObject> depthAttachment = context.camera->depthAttachment;
         SetRenderTarget(colorAttachment, depthAttachment);
         SetViewPort(Vector2(0,0), Vector2(colorAttachment->width, colorAttachment->height));
         SetClearFlag(ClearFlag::All, Vector3(0.0, 0.0, 0.0), 1.0f);
