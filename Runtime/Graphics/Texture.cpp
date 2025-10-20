@@ -1,26 +1,28 @@
 #include "PreCompiledHeader.h"
 #include "Texture.h"
 #include "stb_image.h"
-#include "Core/Resources.h"
+#include "Resources/MetaFile.h"
 #include "Renderer/RenderAPI.h"
 
 
 namespace EngineCore
 {
-    Texture* Texture::LoadTexture(const TextureStruct* texStruct)
+    Texture::Texture(MetaData* metaData) : Resource(metaData)
     {
-        // todo: 检测是否存在这张图
-        // 1. stbiLoad
-        int nrComponents;
-        Texture* texture = new Texture();
+        ASSERT(metaData->dependentMap.size() == 0);
 
-        stbi_uc* pixels = stbi_load(texStruct->path.c_str(), &texture->width, &texture->height, &nrComponents, STBI_rgb_alpha);
+        TextureMetaData* texMetaData = static_cast<TextureMetaData*>(metaData);
+        mDimension = texMetaData->dimension;
+        mFormat = texMetaData->format;
+        mWidth = texMetaData->width;
+        mHeight = texMetaData->height;
+        int nrComponents;
+        stbi_uc* pixels = stbi_load(mPath.c_str(), &mWidth, &mHeight, &nrComponents, STBI_rgb_alpha);
         // 2. CreateData
-        *texture = *texStruct;
-        RenderAPI::GetInstance().CreateTextureBuffer(pixels, texture);
+        ASSERT(pixels != nullptr);
+        RenderAPI::GetInstance().CreateTextureBuffer(pixels, this);
 
         stbi_image_free(pixels);
-        return texture;
     }
 
 }

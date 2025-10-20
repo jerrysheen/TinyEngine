@@ -46,6 +46,9 @@
     <Filter Include="Runtime\Renderer\RenderPipeLine">
       <UniqueIdentifier>{74EDF719-E0D0-065A-E9D3-34965536CDAA}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Runtime\Resources">
+      <UniqueIdentifier>{F3A9E9FD-5FC0-E793-A837-73B5148DB81B}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Editor\D3D12\D3D12EditorGUIManager.h">
@@ -81,9 +84,6 @@
       <Filter>Runtime\Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Core\PublicStruct.cpp">
-      <Filter>Runtime\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Core\Resources.cpp">
       <Filter>Runtime\Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Entry.cpp">
@@ -190,6 +190,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\Renderer.cpp">
       <Filter>Runtime\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Resources\MetaFile.cpp">
+      <Filter>Runtime\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Resources\ResourceManager.cpp">
+      <Filter>Runtime\Resources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

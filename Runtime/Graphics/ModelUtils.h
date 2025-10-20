@@ -10,11 +10,8 @@ namespace EngineCore
     class ModelUtils
     {
     public:
-        static ModelData* LoadMesh(const std::string& path);    
-        static ModelData* GetFullScreenQuad();
+        static void GetFullScreenQuad(ModelData* modelData);
     private:
-        static void ProcessNode(aiNode* node, const aiScene* scene, ModelData* mesh);
-        static void ProcessMesh(aiMesh* aiMesh, const aiScene* scene, ModelData* mesh);
 
     };
 }

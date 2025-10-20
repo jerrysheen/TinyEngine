@@ -1,39 +1,27 @@
 #pragma once
 #include "Core/PublicEnum.h"
-#include "Core/Resources.h"
-#include "Core/Object.h"
+#include "Resources/MetaFile.h"
+#include "Resources/Asset.h"
+#include "Resources/Resource.h"
 
 namespace EngineCore
 {
-    struct TextureStruct;
-    class Texture : public Object
+    class Texture : public Resource
     {
     public:
-        static Texture* LoadTexture(const TextureStruct* texStruct);
         Texture() = default;
         Texture(const string& textureID) :mTextureName(textureID) {};
+        Texture(MetaData* textureMetaData);
         inline const string GetName() const { return mTextureName; };
 
-        Texture& operator=(const TextureStruct& other) 
-        {
-            mTextureName = other.name;
-            path = other.path;
-            dimension = other.dimension;
-            format = other.format;
-            width = other.width;
-            height = other.height;
-            return *this;
-        }
-
-        inline int GetWidth() { return width; };
-        inline int GetHeight() { return height; };
+        inline int GetWidth() { return mWidth; };
+        inline int GetHeight() { return mHeight; };
 
     private:
         string mTextureName;
-        string path;
-        TextureDimension dimension = TextureDimension::TEXTURE2D;
-        TextureFormat format = TextureFormat::R8G8B8A8;
-        int width = 0, height = 0;
+        TextureDimension mDimension = TextureDimension::TEXTURE2D;
+        TextureFormat mFormat = TextureFormat::R8G8B8A8;
+        int mWidth = 0, mHeight = 0;
     };
 
 }

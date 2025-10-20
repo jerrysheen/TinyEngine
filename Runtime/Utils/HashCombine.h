@@ -15,4 +15,24 @@ namespace EngineCore
         HashCombine(seed, std::hash<T>{}(value));
     }
 
+    // 用于AssetID等需要持久化的ID
+    inline uint64_t GetStringHash(const string& path)
+    {
+        if (path.empty())
+            return 0;
+        
+        // FNV-1a 参数
+        constexpr uint64_t FNV_offset_basis = 14695981039346656037ULL;
+        constexpr uint64_t FNV_prime = 1099511628211ULL;
+        
+        uint64_t hash = FNV_offset_basis;
+        for (char c : path)
+        {
+            hash ^= static_cast<uint64_t>(c);
+            hash *= FNV_prime;
+        }
+        return hash;
+
+    }
+
 }

@@ -1,7 +1,7 @@
 #pragma once
 #include "PreCompiledHeader.h"
 #include "Graphics/Shader.h"
-#include "Core/Resources.h"
+#include "Resources/MetaFile.h"
 #include "Core/PublicStruct.h"
 #include "Graphics/Material.h"
 #include "Graphics/ModelData.h"
@@ -20,7 +20,7 @@ namespace  EngineCore
         virtual void EndFrame() = 0;
         virtual void OnResize(int width, int height) = 0;
         static void Create();
-        virtual Shader* CompileShader(const string& path) = 0;
+        virtual Shader* CompileShader(const string& path, Shader* shader) = 0;
 
         virtual void CreateBuffersResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) = 0;
         virtual void CreateSamplerResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) = 0;

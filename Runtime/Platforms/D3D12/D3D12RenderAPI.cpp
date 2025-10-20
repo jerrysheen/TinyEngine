@@ -1,7 +1,7 @@
 #include "PreCompiledHeader.h"
 #include "D3D12RenderAPI.h"
 #include "Managers/WindowManager.h"
-#include "Core/Resources.h"
+#include "Resources/MetaFile.h"
 #include "Core/PublicStruct.h"
 #include "D3D12DescManager.h"
 #include "d3dx12.h"  // 确保包含D3D12辅助类
@@ -456,10 +456,9 @@ namespace EngineCore
 		}
 	}
 
-    Shader* D3D12RenderAPI::CompileShader(const string& path)
+    Shader* D3D12RenderAPI::CompileShader(const string& path, Shader* shader)
     {
 
-        Shader* shader = new Shader();
         shader->name = path;
         Microsoft::WRL::ComPtr<ID3DBlob> vsBlob;
         if (!CompileShaderStage(path, "VSMain", "vs_5_1", shader, ShaderStageType::VERTEX_STAGE, vsBlob))
@@ -482,9 +481,9 @@ namespace EngineCore
     void D3D12RenderAPI::CreateRootSignatureByShaderReflection(Shader* shader)
     {
         
-        int cbCount = shader->mShaderBindingInfo->mBufferInfo.size();
-        int texCount = shader->mShaderBindingInfo->mTextureInfo.size();
-        int samplerCount = shader->mShaderBindingInfo->mSamplerInfo.size();
+        int cbCount = shader->mShaderBindingInfo.mBufferInfo.size();
+        int texCount = shader->mShaderBindingInfo.mTextureInfo.size();
+        int samplerCount = shader->mShaderBindingInfo.mSamplerInfo.size();
 
         int tableCount = 0;
         if(cbCount > 0) tableCount++;
@@ -630,17 +629,17 @@ namespace EngineCore
         if (!m_reflection) return false;
 
         
-        if (shader->mShaderBindingInfo == nullptr) 
-        {
-            shader->mShaderBindingInfo = new ShaderReflectionInfo();
-        }
-        ShaderReflectionInfo* ShaderReflectionInfo = shader->mShaderBindingInfo;
+        //if (shader->mShaderBindingInfo == nullptr) 
+        //{
+        //    shader->mShaderBindingInfo = new ShaderReflectionInfo();
+        //}
+        ShaderReflectionInfo* ShaderReflectionInfo = &shader->mShaderBindingInfo;
 
         D3D12_SHADER_DESC desc;
         m_reflection->GetDesc(&desc);
 
 
-        auto& shaderVariableInfoMap = shader->mShaderBindingInfo->mShaderStageVariableInfoMap;
+        auto& shaderVariableInfoMap = shader->mShaderBindingInfo.mShaderStageVariableInfoMap;
         ShaderVariableInfo tempVariable;
         std::cout << "\n=== Constant Buffers ===\n";
 
@@ -660,7 +659,7 @@ namespace EngineCore
                 tempVariable.bufferIndex = i;
                 tempVariable.offset = varDesc.StartOffset;
                 tempVariable.size = varDesc.Size;
-                tempVariable.type = Resources::GetShaderVaribleType((uint32_t)varDesc.Size);
+                tempVariable.type = MetaLoader::GetShaderVaribleType((uint32_t)varDesc.Size);
                 shaderVariableInfoMap.try_emplace(varDesc.Name, tempVariable);
             }
         }
@@ -739,6 +738,7 @@ namespace EngineCore
         if(m_DataMap.count(matID) <= 0) m_DataMap.try_emplace(matID, TD3D12MaterialData());
         auto iter = m_DataMap.find(matID);
         TD3D12MaterialData data = iter->second;
+        data.mConstantBufferArray.clear();
         for each(auto bufferInfo in resourceInfos)
         {   
             int size = bufferInfo.size;
@@ -961,12 +961,14 @@ namespace EngineCore
     {
     }
 
+    // 初始化一次， 同步信息
     void D3D12RenderAPI::CreateTextureResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos)
     {
         uint32_t matID = mat->GetInstanceID();
         if (m_DataMap.count(matID) <= 0) m_DataMap.try_emplace(matID, TD3D12MaterialData());
         auto iter = m_DataMap.find(matID);
         TD3D12MaterialData data = iter->second;
+        data.mTextureBufferArray.clear();
         for each(auto bufferInfo in resourceInfos)
         {
             // 创建buffer resource + handle
@@ -1072,8 +1074,7 @@ namespace EngineCore
 
     void D3D12RenderAPI::SetUpMesh(ModelData* data, bool isStatic)
     {
-        TD3D12VAO& vao = GetAvaliableModelDesc();
-        data->VAO = mVAOList.size() - 1;
+        TD3D12VAO vao;
         Microsoft::WRL::ComPtr<ID3D12Resource> uploadBufferVertex;
         Microsoft::WRL::ComPtr<ID3D12Resource> uploadBufferIndex;
         ImmediatelyExecute([&](ComPtr<ID3D12GraphicsCommandList> cmdList) 
@@ -1095,6 +1096,8 @@ namespace EngineCore
 
         vao.vertexBufferView = vbv;
         vao.indexBufferView = ibv;
+
+        VAOMap.try_emplace(data->GetInstanceID(), std::move(vao));
     }
 
     int D3D12RenderAPI::GetNextVAOIndex()
@@ -1102,11 +1105,6 @@ namespace EngineCore
         return 0;
     }
     
-    TD3D12VAO& D3D12RenderAPI::GetAvaliableModelDesc()
-    {
-        mVAOList.emplace_back();
-        return mVAOList[mVAOList.size() - 1];
-    }
 
     // submit the drawCommand to render thread..
     void D3D12RenderAPI::Submit(const vector<RenderPassInfo*>& renderPassInfos)
@@ -1438,7 +1436,7 @@ namespace EngineCore
 
     void D3D12RenderAPI::RenderAPIDrawIndexed(Payload_DrawCommand payloadDrawCommand)
     {
-        auto& vao = mVAOList[payloadDrawCommand.vaoID];
+        auto& vao = VAOMap[payloadDrawCommand.vaoID];
         mCommandList->DrawIndexedInstanced(
             vao.indexBufferView.SizeInBytes / sizeof(int),
             payloadDrawCommand.count, 0, 0, 0);
@@ -1528,7 +1526,7 @@ namespace EngineCore
 
     void D3D12RenderAPI::RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB)
     {
-        auto& vao = mVAOList[payloadSetVBIB.vaoId];
+        auto& vao = VAOMap[payloadSetVBIB.vaoId];
         mCommandList->IASetVertexBuffers(0, 1, &vao.vertexBufferView);
         mCommandList->IASetIndexBuffer(&vao.indexBufferView);
         mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -1550,7 +1548,7 @@ namespace EngineCore
     {
         // 需要切换RT -> present Frame.
         // todo 切换backbuffer
-        // 最后一定是backbuffer的格式切换。 中间过程中涉及到 RT-> ShaderResouce，就直接根据资源判断
+        // 最后一定是backbuffer的格式切换。 中间过程中涉及到 RT-> ShaderResource，就直接根据资源判断
         {
             mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(
                 mBackBuffer[mCurrBackBuffer].resource.Get(),

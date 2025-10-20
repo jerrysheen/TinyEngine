@@ -1,6 +1,7 @@
 #include "PreCompiledHeader.h"
 #include "SceneManager.h"
 #include "Graphics/Texture.h"
+#include "Resources/ResourceManager.h"
 
 namespace EngineCore
 {
@@ -9,30 +10,31 @@ namespace EngineCore
     
     SceneManager::SceneManager()
     {
-        // loadtest Texture
-        testTextureMeta = Resources::LoadTextureMeta("");
-        testTexture = Texture::LoadTexture(testTextureMeta);
-
         //std::cout << "Init Scene Manager!!" << std::endl;
         mTestGameObject = new GameObject();
         mTestGameObject->AddComponent<MeshFilterComponent>();
-        testMesh = ModelUtils::LoadMesh("D:/GitHubST/TinyEngine/Assets/Model/cube.obj");
         
         
-        testMatStruct = Resources::LoadMaterialMeta("D:/GitHubST/TinyEngine/Assets/Model/cube.obj");
-        testMat = new Material(testMatStruct);
-        testShader = Shader::Compile("D:/GitHubST/TinyEngine/Assets/Shader/SimpleTestShader.hlsl");
-        testMat->shader = testShader;
+        testMesh = ResourceManager::GetInstance()->LoadAsset<ModelData>("D:/GitHubST/TinyEngine/Assets/Model/cube.obj");
+        
+        testTexture = ResourceManager::GetInstance()->LoadAsset<Texture>("D:/GitHubST/TinyEngine/Assets/Textures/material.png");
+
+        testMat = ResourceManager::GetInstance()->LoadAsset<Material>("D:/GitHubST/TinyEngine/Assets/Material/testMat.mat");
+
+        testShader = ResourceManager::GetInstance()->LoadAsset<Shader>("D:/GitHubST/TinyEngine/Assets/Shader/SimpleTestShader.hlsl");
+        
+        testMat->mShader = testShader;
         testMat->renderState.shaderInstanceID = testShader->GetInstanceID();
-        testMat->SetUpGPUResources();
-        testMat->SetTexture("DiffuseTexture", testTexture);
+        testMat->SetTexture("DiffuseTexture", testTexture.Get());
 
         mCamera = new Camera();
 
-        quadMesh = ModelUtils::GetFullScreenQuad();
-        blitShader = Shader::Compile("D:/GitHubST/TinyEngine/Assets/Shader/BlitShader.hlsl");
-        blitMaterial = new Material();
-        blitMaterial->shader = blitShader;
+        // quad Mesh也应该通过它生成.
+        //ResourceManager::GetInstance()->CreateResource<ModelData>(Primitive::Quad);
+        quadMesh = ResourceManager::GetInstance()->CreateResource<ModelData>(Primitive::Quad);
+        blitShader = ResourceManager::GetInstance()->LoadAsset<Shader>("D:/GitHubST/TinyEngine/Assets/Shader/BlitShader.hlsl");
+        
+        blitMaterial = ResourceManager::GetInstance()->CreateResource<Material>(blitShader);
         blitMaterial->renderState.shaderInstanceID = blitShader->GetInstanceID();
         blitMaterial->SetUpGPUResources();
         blitMaterial->SetFloat("_FlipY", 1.0f);

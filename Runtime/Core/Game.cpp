@@ -1,7 +1,7 @@
 #include "PreCompiledHeader.h"
 #include "Game.h"
 #include "EngineCore.h"
-
+#include "Resources/ResourceManager.h"
 #ifdef EDITOR
 #include "Windows/EditorGUIManager.h"
 #endif
@@ -12,7 +12,9 @@ namespace EngineCore
     {
         // InitManagers Here.
         RenderEngine::Create();
+        ResourceManager::Create();
         SceneManager::Create();
+
         //std::cout << "Launch Game" << std::endl;
         // init Manager...
         #ifdef EDITOR

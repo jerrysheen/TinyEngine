@@ -102,7 +102,7 @@ namespace EngineCore
     {
         DrawCommand temp;
         temp.op = RenderOp::kSetVBIB;
-        temp.data.setVBIB.vaoId = modelData->VAO;
+        temp.data.setVBIB.vaoId = modelData->GetInstanceID();
         mRenderBuffer.PushBlocking(temp);
     }
 
@@ -160,7 +160,7 @@ namespace EngineCore
             // bind mesh vertexbuffer and indexbuffer.
             SetMeshData(record.model);
 
-            DrawIndexed(record.model->VAO, 1);
+            DrawIndexed(record.model->GetInstanceID(), 1);
             // todo :  提交的信号是什么
             // 应该像unity那样
         }

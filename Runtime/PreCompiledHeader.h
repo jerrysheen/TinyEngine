@@ -8,6 +8,7 @@
 #include <map>
 #include <utility>
 #include <functional>
+#include <string>
 
 using std::unordered_map;
 using std::string;

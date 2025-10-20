@@ -4,10 +4,11 @@
 #include "Core/GameObject.h"
 #include "Graphics/ModelUtils.h"
 #include "Graphics/Material.h"
-#include "Core/Resources.h"
+#include "Resources/MetaFile.h"
 #include "Graphics/Shader.h"
 #include "Graphics/Camera.h"
 #include "Graphics/Texture.h"
+#include "Resources/ResourceHandle.h"
 
 namespace EngineCore
 {
@@ -26,18 +27,17 @@ namespace EngineCore
 
         static GameObject* mTestGameObject;
 
-        ModelData* testMesh;
-        MaterialStruct* testMatStruct;
-        Material* testMat;
-        Shader* testShader;
+        ResourceHandle<ModelData> testMesh;
+        //MaterialMetaData* testMatMetaData;
+        ResourceHandle <Material> testMat;
+        ResourceHandle<Shader> testShader;
         Camera* mCamera;
 
-        Material* blitMaterial;
-        ModelData* quadMesh;
-        Shader* blitShader;
+        ResourceHandle<Material> blitMaterial;
+        ResourceHandle<ModelData> quadMesh;
+        ResourceHandle<Shader> blitShader;
 
-        TextureStruct* testTextureMeta;
-        Texture* testTexture;
+        ResourceHandle<Texture> testTexture;
     };
 
 }

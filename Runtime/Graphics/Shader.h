@@ -1,20 +1,21 @@
 #pragma once
 #include "PreCompiledHeader.h"
-#include "Core/Resources.h"
+#include "Resources/MetaFile.h"
+#include "Resources/Resource.h"
 #include "Core/PublicStruct.h"
 #include "Core/Object.h"
 
 
 namespace EngineCore
 {
-    class Shader : public Object
+    class Shader : public Resource
     {
     public:
-        static Shader* Compile(const string& path);
-        ShaderReflectionInfo* mShaderBindingInfo = nullptr;
+        Shader(MetaData* metaFile);
+        ShaderReflectionInfo mShaderBindingInfo;
         vector<InputLayout> mShaderInputLayout;
 
-        Shader(){};
+        Shader();
         ~Shader();
         string name;
     };

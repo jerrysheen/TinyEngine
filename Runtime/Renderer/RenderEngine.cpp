@@ -52,8 +52,6 @@ namespace EngineCore
 
         //RenderAPI::GetInstance().Render();
         Camera* cam = SceneManager::GetInstance().mCamera;
-        auto mesh = SceneManager::GetInstance().testMesh;
-        auto mat = SceneManager::GetInstance().testMat;
         
         Culling::Run(cam, renderContext);
         

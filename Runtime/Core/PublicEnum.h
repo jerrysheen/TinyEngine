@@ -42,4 +42,12 @@ namespace EngineCore
         D24S8,
         EMPTY,
     };
+
+    enum class Primitive
+    {
+        Quad,
+        Cube,
+        Sphere
+    };
+
 }

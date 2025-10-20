@@ -32,7 +32,7 @@ namespace EngineCore
         D3D12RenderAPI();
         ~D3D12RenderAPI(){};
 
-        virtual Shader* CompileShader(const string& path) override;
+        virtual Shader* CompileShader(const string& path, Shader* shader) override;
         bool CompileShaderStage(const string& path, string entrypoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob);
 
         virtual void CreateBuffersResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) override;
@@ -159,7 +159,7 @@ namespace EngineCore
         int mClientHeight = 720;
 
         unordered_map<uint32_t, TD3D12MaterialData> m_DataMap;
-        vector<TD3D12VAO> mVAOList;
+        //vector<TD3D12VAO> mVAOList;
         vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
         unordered_map<uint32_t, TD3D12TextureBuffer> m_TextureBufferMap;
         //unordered_map<uint32_t, TD3D12ShaderPSO> m_PipeLineStateObjectMap;
@@ -167,6 +167,7 @@ namespace EngineCore
         unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> psBlobMap;
         unordered_map<uint32_t, ComPtr<ID3D12RootSignature>> shaderRootSignatureMap;
         unordered_map<uint32_t, ComPtr<ID3D12PipelineState>> shaderPSOMap;
+        unordered_map<uint32_t, TD3D12VAO> VAOMap;
     };
 
 }

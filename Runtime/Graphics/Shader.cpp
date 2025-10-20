@@ -4,13 +4,13 @@
 
 namespace EngineCore
 {
-    Shader* Shader::Compile(const string& path)
+    Shader::Shader(MetaData* metaFile) : Resource(metaFile)
     {
-        return RenderAPI::s_Instance->CompileShader(path);
+        ASSERT(metaFile->dependentMap.size() == 0);
+        RenderAPI::s_Instance->CompileShader(mPath, this);
     }
 
     Shader::~Shader()
     {
-        delete mShaderBindingInfo;
     }
 }

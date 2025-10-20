@@ -11,8 +11,8 @@ namespace EngineCore
         context.Reset();
         context.camera = cam;
         auto visibleItem = context.GetAvalileVisibleItem();
-        visibleItem->mat = SceneManager::GetInstance().testMat;
-        visibleItem->model = SceneManager::GetInstance().testMesh;
+        visibleItem->mat = SceneManager::GetInstance().testMat.Get();
+        visibleItem->model = SceneManager::GetInstance().testMesh.Get();
         context.cameraVisibleItems.push_back(std::move(visibleItem));
     }
 
