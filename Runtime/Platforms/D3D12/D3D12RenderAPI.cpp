@@ -784,20 +784,20 @@ namespace EngineCore
 
         // 1. 设置资源描述符
         D3D12_RESOURCE_DESC resourceDesc;
-        resourceDesc.Dimension = d3dUtil::GetFBOD3D12Dimesnsion(fbodesc->dimension);
+        resourceDesc.Dimension = d3dUtil::GetFBOD3D12Dimesnsion(fbodesc->mDimension);
         resourceDesc.Alignment = 0;
-        resourceDesc.Width = fbodesc->width;
-        resourceDesc.Height = fbodesc->height;
+        resourceDesc.Width = fbodesc->mWidth;
+        resourceDesc.Height = fbodesc->mHeight;
         resourceDesc.DepthOrArraySize = 1;
         resourceDesc.MipLevels = 1;
-        resourceDesc.Format = d3dUtil::GetFBOD3D12Format(fbodesc->format);
+        resourceDesc.Format = d3dUtil::GetFBOD3D12Format(fbodesc->mFormat);
         // todo: 加上mipmap 和 msaa
         resourceDesc.SampleDesc.Count = 1;
         resourceDesc.SampleDesc.Quality = 0;
         resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
          // 设置资源标志
-         if (fbodesc->format == TextureFormat::D24S8)
+         if (fbodesc->mFormat == TextureFormat::D24S8)
          {
              resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
          }
@@ -808,7 +808,7 @@ namespace EngineCore
 
         D3D12_CLEAR_VALUE clearValue = {};
         clearValue.Format = resourceDesc.Format;
-        if (fbodesc->format == TextureFormat::D24S8)
+        if (fbodesc->mFormat == TextureFormat::D24S8)
         {
             clearValue.DepthStencil.Depth = 1.0f;
             clearValue.DepthStencil.Stencil = 0;
@@ -825,7 +825,7 @@ namespace EngineCore
         
         // 根据格式选择正确的初始资源状态
         D3D12_RESOURCE_STATES initialState;
-        if (fbodesc->format == TextureFormat::D24S8)
+        if (fbodesc->mFormat == TextureFormat::D24S8)
         {
             initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
         }
@@ -843,10 +843,10 @@ namespace EngineCore
             initialState,
             &clearValue,
             IID_PPV_ARGS(&d3DFrameBufferObject.resource)));
-        std::wstring debugName = std::wstring(fbodesc->name.begin(), fbodesc->name.end());
+        std::wstring debugName = std::wstring(fbodesc->mTextureName.begin(), fbodesc->mTextureName.end());
         d3DFrameBufferObject.resource->SetName(debugName.c_str());
         // Create Descriptor:...
-        if(fbodesc->format == TextureFormat::R8G8B8A8)
+        if(fbodesc->mFormat == TextureFormat::R8G8B8A8)
         {
             TD3D12DescriptorHandle descHandle = D3D12DescManager::GetInstance().CreateDescriptor(d3DFrameBufferObject.resource, D3D12_RENDER_TARGET_VIEW_DESC{});
             d3DFrameBufferObject.rtvHandle = descHandle.cpuHandle;
@@ -860,7 +860,7 @@ namespace EngineCore
             descHandle = D3D12DescManager::GetInstance().CreateDescriptor(d3DFrameBufferObject.resource, srvDesc);
             d3DFrameBufferObject.srvHandle = descHandle.cpuHandle;
         }
-        else if (fbodesc->format == TextureFormat::D24S8) 
+        else if (fbodesc->mFormat == TextureFormat::D24S8)
         {
             TD3D12DescriptorHandle descHandle = D3D12DescManager::GetInstance().CreateDescriptor(d3DFrameBufferObject.resource, D3D12_DEPTH_STENCIL_VIEW_DESC{});
             d3DFrameBufferObject.dsvHandle = descHandle.cpuHandle;

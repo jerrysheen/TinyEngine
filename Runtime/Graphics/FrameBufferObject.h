@@ -1,7 +1,5 @@
 #pragma once
-#include "PreCompiledHeader.h"
-#include "Resources/Resource.h"
-#include "Core/PublicEnum.h"
+#include "Buffer.h"
 
 namespace EngineCore
 {
@@ -11,27 +9,26 @@ namespace EngineCore
         string name;
         TextureDimension dimension;
         TextureFormat format;
-        float width;
+        int width;
         float height;
     };
 
-    class FrameBufferObject : public Resource
+    class FrameBufferObject : public Buffer2D
     {
     public:
-        string name;
-        TextureDimension dimension;
-        TextureFormat format;
-        float width;
-        float height;
+
         FrameBufferObject(const FrameBufferDesc& desc)
-            :name(desc.name), dimension(desc.dimension), format(desc.format)
-            , width(desc.width), height(desc.height)
         {
+            mTextureName = desc.name;
+            mDimension = desc.dimension;
+            mFormat = desc.format;
+            mWidth = desc.width;
+            mHeight = desc.height;
         };
         
         FrameBufferObject(const string& name)
-            :name(name) 
         {
+            mTextureName = name;
         };
     };
 

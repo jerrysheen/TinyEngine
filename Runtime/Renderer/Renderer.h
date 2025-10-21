@@ -107,7 +107,6 @@ namespace EngineCore
         std::thread mRenderThread;
         
         RenderOp currState = RenderOp::kInvalid;
-        RenderContext currContext;
         std::mutex mSleepRenderThreadMutex;
         std::condition_variable mSleepRenderThreadCV;
         std::atomic<bool> mRunning;

@@ -2,9 +2,11 @@
 #include "Core/Object.h"
 #include "Asset.h"
 #include "Utils/HashCombine.h"
+#include "Resources/MetaFile.h"
 
 namespace EngineCore
 {
+
     class Resource : public Object
     {
         // mRefCount 只能够被ResourceManager类或者Handler修改。

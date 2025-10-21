@@ -26,7 +26,7 @@ namespace EngineCore
         ResourceHandle<FrameBufferObject> colorAttachment = context.camera->colorAttachment;
         ResourceHandle<FrameBufferObject> depthAttachment = context.camera->depthAttachment;
         SetRenderTarget(colorAttachment, depthAttachment);
-        SetViewPort(Vector2(0,0), Vector2(colorAttachment->width, colorAttachment->height));
+        SetViewPort(Vector2(0,0), Vector2(colorAttachment->mWidth, colorAttachment->mHeight));
         SetClearFlag(ClearFlag::All, Vector3(0.0, 0.0, 0.0), 1.0f);
     }
     

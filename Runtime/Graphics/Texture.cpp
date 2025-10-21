@@ -7,7 +7,12 @@
 
 namespace EngineCore
 {
-    Texture::Texture(MetaData* metaData) : Resource(metaData)
+    Texture::Texture(const string& textureID)
+    {
+        mTextureName = textureID;
+    }
+
+    Texture::Texture(MetaData* metaData) : Buffer2D(metaData)
     {
         ASSERT(metaData->dependentMap.size() == 0);
 

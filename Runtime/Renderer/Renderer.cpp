@@ -90,7 +90,7 @@ namespace EngineCore
         // todo :  string name -> id name;
         configureRT.colorAttachment = info.colorAttachment.IsValid() ? info.colorAttachment.Get()->GetInstanceID() : 0;
         configureRT.depthAttachment = info.depthAttachment.IsValid() ? info.depthAttachment.Get()->GetInstanceID() : 0;
-        configureRT.isBackBuffer = info.colorAttachment.IsValid() && info.colorAttachment.Get()->name == "BackBuffer";
+        configureRT.isBackBuffer = info.colorAttachment.IsValid() && info.colorAttachment.Get()->mTextureName == "BackBuffer";
         // todo : 对齐两部分指令
         ClearValue value = {Vector3(info.clearColorValue.x, info.clearColorValue.y, info.clearColorValue.z),
             info.clearDepthValue, info.clearFlag};

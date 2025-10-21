@@ -3,11 +3,14 @@
 #include "MaterialData.h"
 #include "Resources/MetaFile.h"
 #include "Shader.h"
-#include "Texture.h"
+#include "Buffer.h"
 #include "Core/Object.h"
 #include "Core/PublicStruct.h"
 #include "Renderer/RenderCommand.h"
 #include "Resources/ResourceHandle.h"
+#include <variant>
+#include "Graphics/FrameBufferObject.h"
+#include "Graphics/Texture.h"
 
 namespace EngineCore
 {
@@ -16,9 +19,12 @@ namespace EngineCore
     public:
         MaterialData mMaterialdata;
 
-        // 真正持有的资源句柄， 别的都是资源的ID等，
+        // 真正持有的资源句柄
         ResourceHandle<Shader> mShader;
-        unordered_map<std::string, ResourceHandle<Texture>> mTexResourceMap;
+        // 这个地方应该限定只有 Texture 和 FrameBufferObject能过来
+        unordered_map<std::string, std::variant<ResourceHandle<Texture>, ResourceHandle<FrameBufferObject>>> mTexResourceMap;
+
+
         Material() = default;
         Material(MetaData* metaData);
         Material(ResourceHandle<Shader> shader);
@@ -26,16 +32,16 @@ namespace EngineCore
         void UploadDataToGpu();
         ~Material();
 
-        void SetTexture(const string& name, Texture* texture);
-        //void SetTexture(const string& name, const ResourceHandle<Texture> texHandle);
         void SetTexture(const string& name, uint64_t texInstanceID);
+        void SetTexture(const string& name, ResourceHandle<Texture> handle);
+        void SetTexture(const string& name, ResourceHandle<FrameBufferObject> handle);
         void SetFloat(const string& name, float value);
 
-        inline MaterailRenderState GetMaterialRenderState() const { return renderState;};
+        inline MaterailRenderState GetMaterialRenderState() const { return mRenderState;};
         // todo  自己同步材质；
-        MaterailRenderState renderState;
     private:
         void LoadDependency(const std::unordered_map<std::string, MetaData>& dependentMap);
-        
+        void SetUpRenderState();
+        MaterailRenderState mRenderState;
     };
 }

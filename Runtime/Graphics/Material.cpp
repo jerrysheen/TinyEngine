@@ -14,12 +14,17 @@ namespace EngineCore
         mMaterialdata.vec2Data = matMetaData->vec2Data;
         mMaterialdata.vec3Data = matMetaData->vec3Data;
         mMaterialdata.matrix4x4Data = matMetaData->matrix4x4Data;
-        mMaterialdata.textureData = matMetaData->textureData;
+        for (const auto& [key, value] : matMetaData->textureData) 
+        {
+            mMaterialdata.textureData[key] = value;
+        }
 
         auto& dependenciesMap = metaData->dependentMap;
         LoadDependency(dependenciesMap);
 
         ASSERT(mShader.IsValid());
+        SetUpRenderState();
+
         // 创建GPU资源,并且进行同步.
         SetUpGPUResources();
     }
@@ -27,6 +32,7 @@ namespace EngineCore
     Material::Material(ResourceHandle<Shader> shader)
         : mShader(shader)
     {
+        SetUpRenderState();
         SetUpGPUResources();
     }
 
@@ -35,14 +41,11 @@ namespace EngineCore
     {
     }
 
-    // 同步这个数据到CPU和GPU
-    // 注意!! 这个接口只给非ResouceHandle使用
-    // todo: 其实我应该统一两个接口的, 似乎是可以统一的..
-    void Material::SetTexture(const string &slotName, Texture* texture)
+    void Material::SetTexture(const string& slotName, ResourceHandle<Texture> handle)
     {
         //cpu, 更新data数据，
-        ASSERT(texture != nullptr);
-        mMaterialdata.textureData[slotName] = texture;
+        ASSERT(handle.IsValid());
+        mMaterialdata.textureData[slotName] = handle.Get();
         int slotIndex = -1;
         for (auto& textureInfo : mShader.Get()->mShaderBindingInfo.mTextureInfo)
         {
@@ -52,26 +55,51 @@ namespace EngineCore
             }
         }
         ASSERT_MSG(slotIndex != -1, "Can't find this Texture");
+        ASSERT(mTexResourceMap.count(slotName) > 0);
+        // 保存新的，释放原来的
+        mTexResourceMap[slotName] = handle;
         //gpu
-        RenderAPI::GetInstance().SetShaderTexture(this, slotName ,slotIndex, texture->GetInstanceID());
+        RenderAPI::GetInstance().SetShaderTexture(this, slotName ,slotIndex, handle.Get()->GetInstanceID());
     }
-
-    // todo：资源的统一管理， Material只会持有一个textureID，后续的信息都去ResouceManager的Texture中去找。
-    void Material::SetTexture(const string& slotName, uint64_t texInstanceID)
+    
+    void Material::SetTexture(const string& slotName, ResourceHandle<FrameBufferObject> handle)
     {
         //cpu, 更新data数据，
+        ASSERT(handle.IsValid());
+        
+        mMaterialdata.textureData[slotName] = handle.Get();
         int slotIndex = -1;
         for (auto& textureInfo : mShader.Get()->mShaderBindingInfo.mTextureInfo)
         {
-            if (textureInfo.resourceName == slotName)
+            if (textureInfo.resourceName == slotName) 
             {
                 slotIndex = textureInfo.registerSlot;
             }
         }
         ASSERT_MSG(slotIndex != -1, "Can't find this Texture");
+        ASSERT(mTexResourceMap.count(slotName) > 0);
+        // 保存新的，释放原来的
+        mTexResourceMap[slotName] = handle;
         //gpu
-        RenderAPI::GetInstance().SetShaderTexture(this, slotName, slotIndex, texInstanceID);
+        RenderAPI::GetInstance().SetShaderTexture(this, slotName ,slotIndex, handle.Get()->GetInstanceID());
     }
+
+     // todo：资源的统一管理， Material只会持有一个textureID，后续的信息都去ResouceManager的Texture中去找。
+     void Material::SetTexture(const string& slotName, uint64_t texInstanceID)
+     {
+         //cpu, 更新data数据，
+         int slotIndex = -1;
+         for (auto& textureInfo : mShader.Get()->mShaderBindingInfo.mTextureInfo)
+         {
+             if (textureInfo.resourceName == slotName)
+             {
+                 slotIndex = textureInfo.registerSlot;
+             }
+         }
+         ASSERT_MSG(slotIndex != -1, "Can't find this Texture");
+         //gpu
+         RenderAPI::GetInstance().SetShaderTexture(this, slotName, slotIndex, texInstanceID);
+     }
 
 
     void Material::SetFloat(const string &name, float value)
@@ -106,6 +134,11 @@ namespace EngineCore
                 break;
             }
         }
+    }
+
+    void Material::SetUpRenderState()
+    {
+        mRenderState.shaderInstanceID = mShader.Get()->GetInstanceID();
     }
 
     // 根据Shader信息，创建GPU buffer，进行数据映射。
@@ -155,13 +188,14 @@ namespace EngineCore
             }
         }
 
-        //for(const auto& [name, texptr] : mMaterialdata.textureData)
-        //{
-        //    if(texptr != nullptr)
-        //    {
-        //        SetTexture(name, texptr);
-        //    }
-        //}
+        // todo: 这个地方设计思路有点问题，但是先不管了
+        for(const auto& [name, texptr] : mMaterialdata.textureData)
+        {
+           if(texptr != nullptr)
+           {
+               SetTexture(name, texptr->GetInstanceID());
+           }
+        }
     }
 
 

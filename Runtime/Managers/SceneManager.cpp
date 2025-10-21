@@ -23,9 +23,9 @@ namespace EngineCore
 
         testShader = ResourceManager::GetInstance()->LoadAsset<Shader>("D:/GitHubST/TinyEngine/Assets/Shader/SimpleTestShader.hlsl");
         
-        testMat->mShader = testShader;
-        testMat->renderState.shaderInstanceID = testShader->GetInstanceID();
-        testMat->SetTexture("DiffuseTexture", testTexture.Get());
+        //testMat->mShader = testShader;
+        //testMat->renderState.shaderInstanceID = testShader->GetInstanceID();
+        //testMat->SetTexture("DiffuseTexture", testTexture.Get());
 
         mCamera = new Camera();
 
@@ -35,8 +35,8 @@ namespace EngineCore
         blitShader = ResourceManager::GetInstance()->LoadAsset<Shader>("D:/GitHubST/TinyEngine/Assets/Shader/BlitShader.hlsl");
         
         blitMaterial = ResourceManager::GetInstance()->CreateResource<Material>(blitShader);
-        blitMaterial->renderState.shaderInstanceID = blitShader->GetInstanceID();
-        blitMaterial->SetUpGPUResources();
+        //blitMaterial->renderState.shaderInstanceID = blitShader->GetInstanceID();
+        //blitMaterial->SetUpGPUResources();
         blitMaterial->SetFloat("_FlipY", 1.0f);
         //blitMaterial->SetTexture("SrcTexture", Texture("CameraColorAttachment"));
 
