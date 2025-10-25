@@ -4,9 +4,9 @@
 cbuffer TransformBuffer : register(b0)
 {
     float4x4 WorldMatrix;
-    //float4x4 ViewMatrix; 
-    //float4x4 ProjectionMatrix;
-    float4x4 VPMatrix;
+    float4x4 ViewMatrix; 
+    float4x4 ProjectionMatrix;
+    //float4x4 VPMatrix;
     float3 CameraPosition;
     float Time;
 };
@@ -71,9 +71,9 @@ VertexOutput VSMain(VertexInput input)
     output.WorldPos = worldPos.xyz;
     
     // 变换到投影空间
-    //float4 viewPos = mul(worldPos, ViewMatrix);
-    output.Position = mul(worldPos, VPMatrix);
-    //output.Position = mul(viewPos, ProjectionMatrix);
+    float4 viewPos = mul(worldPos, ViewMatrix);
+    //output.Position = mul(worldPos, VPMatrix);
+    output.Position = mul(viewPos, ProjectionMatrix);
     
     // 变换法向量
     output.Normal = normalize(mul(input.Normal, (float3x3)WorldMatrix));

@@ -36,6 +36,9 @@ namespace EngineCore
         // 往哪里添加这个执行结果？
         for(auto& items : context.cameraVisibleItems)
         {
+
+            items->mat->SetMatrix4x4("ProjectionMatrix", context.camera->mProjectionMatrix);
+            items->mat->SetMatrix4x4("ViewMatrix", context.camera->mViewMatrix);
             mRenderPassInfo.drawRecordList.emplace_back(items->mat, items->model);
         }
     }

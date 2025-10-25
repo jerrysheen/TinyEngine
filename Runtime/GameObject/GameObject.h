@@ -2,8 +2,9 @@
 #include "PreCompiledHeader.h"
 #include "ComponentType.h"
 #include "Component.h"
-#include "MeshFilterComponent.h"
-
+#include "MeshFilter.h"
+#include "Core/Object.h"
+#include "Transform.h"
 
 namespace EngineCore
 {
@@ -13,25 +14,28 @@ namespace EngineCore
     class GameObject
     {
     public:
-        GameObject(){};
+        GameObject()
+        {
+            this->AddComponent<Transform>();
+        };
         ~GameObject(){};
-        int m_Instance;
         template<typename T>
         inline T* GetComponent() const;
         template<typename T>
         inline bool AddComponent();
     private:
-        std::multimap<ComponentType, Component*> components;
+        std::unordered_map<ComponentType, Component*> components;
     };
 
     template<typename T>
     inline T* GameObject::GetComponent() const
     {
+        // const 后不能直接用 conponents[type]， 因为可能会产生修改。
         ComponentType type = T::GetType();
-        auto iter = components.find(type);
-        if(iter != components.end())
+        auto it = components.find(type);
+        if(it != components.end())
         {
-             return static_cast<T*>(iter->second);
+            return static_cast<T*>(it->second);            
         }
         return nullptr;
     }
@@ -39,9 +43,13 @@ namespace EngineCore
     template<typename T>
     inline bool GameObject::AddComponent()
     {
-        T* component = new T();
         ComponentType type = T::GetType();
-        components.insert(std::pair<ComponentType, Component*>(type, component));
+        if(components.count(type) > 0)
+        {
+            return false;
+        }
+        T* component = new T(this);
+        components.try_emplace(type, component);
         return true;
     }
 

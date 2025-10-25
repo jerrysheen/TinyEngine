@@ -1,6 +1,6 @@
 #pragma once
 #include "PreCompiledHeader.h"
-#include "Graphics/Camera.h"
+#include "GameObject/Camera.h"
 #include "RenderContext.h"
 namespace EngineCore
 {

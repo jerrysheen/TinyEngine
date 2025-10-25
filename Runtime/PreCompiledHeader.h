@@ -10,6 +10,7 @@
 #include <functional>
 #include <string>
 #include <variant>
+#include <cmath> 
 using std::unordered_map;
 using std::string;
 using std::vector;

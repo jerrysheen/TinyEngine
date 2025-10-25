@@ -22,6 +22,9 @@
     <Filter Include="Runtime\External\Imgui">
       <UniqueIdentifier>{252F5A2E-1129-8380-FA95-1991E62EE9EC}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Runtime\GameObject">
+      <UniqueIdentifier>{29D0A5D7-15B4-662D-7E14-61806A1751AF}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Runtime\Graphics">
       <UniqueIdentifier>{A95F8942-9558-A894-BE8A-8D19AAE287A0}</UniqueIdentifier>
     </Filter>
@@ -65,16 +68,7 @@
     <ClCompile Include="..\..\..\..\Editor\Windows\EditorGUIManager.cpp">
       <Filter>Editor\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Core\Component.cpp">
-      <Filter>Runtime\Core</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Core\Game.cpp">
-      <Filter>Runtime\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Core\GameObject.cpp">
-      <Filter>Runtime\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Core\MeshFilterComponent.cpp">
       <Filter>Runtime\Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Core\ProjectSettings.cpp">
@@ -107,8 +101,20 @@
     <ClCompile Include="..\..\..\..\Runtime\External\Imgui\imgui_widgets.cpp">
       <Filter>Runtime\External\Imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Graphics\Camera.cpp">
-      <Filter>Runtime\Graphics</Filter>
+    <ClCompile Include="..\..\..\..\Runtime\GameObject\Camera.cpp">
+      <Filter>Runtime\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\GameObject\Component.cpp">
+      <Filter>Runtime\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\GameObject\GameObject.cpp">
+      <Filter>Runtime\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\GameObject\MeshFilter.cpp">
+      <Filter>Runtime\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\GameObject\Transform.cpp">
+      <Filter>Runtime\GameObject</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\Material.cpp">
       <Filter>Runtime\Graphics</Filter>
@@ -135,6 +141,9 @@
       <Filter>Runtime\Managers</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Math\Matrix4x4.cpp">
+      <Filter>Runtime\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Math\Quaternion.cpp">
       <Filter>Runtime\Math</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Math\Vector2.cpp">

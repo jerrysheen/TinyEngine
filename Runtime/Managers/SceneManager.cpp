@@ -12,7 +12,7 @@ namespace EngineCore
     {
         //std::cout << "Init Scene Manager!!" << std::endl;
         mTestGameObject = new GameObject();
-        mTestGameObject->AddComponent<MeshFilterComponent>();
+        mTestGameObject->AddComponent<MeshFilter>();
         
         
         testMesh = ResourceManager::GetInstance()->LoadAsset<ModelData>("D:/GitHubST/TinyEngine/Assets/Model/cube.obj");
@@ -27,7 +27,7 @@ namespace EngineCore
         //testMat->renderState.shaderInstanceID = testShader->GetInstanceID();
         //testMat->SetTexture("DiffuseTexture", testTexture.Get());
 
-        mCamera = new Camera();
+        //mCamera = new Camera();
 
         // quad Mesh也应该通过它生成.
         //ResourceManager::GetInstance()->CreateResource<ModelData>(Primitive::Quad);
@@ -40,7 +40,12 @@ namespace EngineCore
         blitMaterial->SetFloat("_FlipY", 1.0f);
         //blitMaterial->SetTexture("SrcTexture", Texture("CameraColorAttachment"));
 
-
+        mainCameraGo = new GameObject();
+        //mainCameraGo->AddComponent<Transform>();
+        mainCameraGo->AddComponent<Camera>();
+        Transform* transform = mainCameraGo->GetComponent<Transform>();
+        transform->position = Vector3{0.0f, 3.0f, -10.0f};
+        mainCameraGo->GetComponent<Camera>()->UpdateCameraMatrix();
     }
 
     SceneManager::~SceneManager()
@@ -51,7 +56,7 @@ namespace EngineCore
 
     void SceneManager::Update()
     {
-        auto meshFilterComponent = mTestGameObject->GetComponent<MeshFilterComponent>();
+        auto meshFilterComponent = mTestGameObject->GetComponent<MeshFilter>();
     }
 
     void SceneManager::Create()

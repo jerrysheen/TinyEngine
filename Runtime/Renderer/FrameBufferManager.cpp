@@ -1,7 +1,7 @@
 #include "PreCompiledHeader.h"
 #include "FrameBufferManager.h"
 #include "RenderAPI.h"
-#include "Core/Component.h"
+#include "GameObject/Component.h"
 
 namespace EngineCore
 {

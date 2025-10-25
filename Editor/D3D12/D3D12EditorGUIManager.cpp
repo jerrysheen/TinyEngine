@@ -50,6 +50,10 @@ namespace EngineEditor
 		ImGui::NewFrame();
     }
 
+    void D3D12EditorGUIManager::Update()
+    {
+    }
+
     void D3D12EditorGUIManager::EndFrame()
     {
         auto renderAPI = static_cast<EngineCore::D3D12RenderAPI*>(&EngineCore::RenderAPI::GetInstance());
@@ -83,10 +87,6 @@ namespace EngineEditor
 		renderAPI->SignalFence(renderAPI->GetFrameFence());
     }
     
-    void D3D12EditorGUIManager::Update()
-    {
-
-    }
 
     void D3D12EditorGUIManager::Render()
     {

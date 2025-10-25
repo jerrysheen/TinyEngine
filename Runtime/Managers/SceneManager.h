@@ -1,12 +1,13 @@
 #pragma once
 #include "PreCompiledHeader.h"
 #include "Manager.h"
-#include "Core/GameObject.h"
+#include "GameObject/GameObject.h"
+#include "GameObject/Camera.h"
+#include "GameObject/Transform.h"
 #include "Graphics/ModelUtils.h"
 #include "Graphics/Material.h"
 #include "Resources/MetaFile.h"
 #include "Graphics/Shader.h"
-#include "Graphics/Camera.h"
 #include "Graphics/Texture.h"
 #include "Resources/ResourceHandle.h"
 
@@ -26,12 +27,12 @@ namespace EngineCore
         ~SceneManager();
 
         static GameObject* mTestGameObject;
-
+        
+        GameObject* mainCameraGo;
         ResourceHandle<ModelData> testMesh;
         //MaterialMetaData* testMatMetaData;
         ResourceHandle <Material> testMat;
         ResourceHandle<Shader> testShader;
-        Camera* mCamera;
 
         ResourceHandle<Material> blitMaterial;
         ResourceHandle<ModelData> quadMesh;

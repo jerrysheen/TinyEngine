@@ -35,6 +35,7 @@ namespace EngineCore
         void SetTexture(const string& name, uint64_t texInstanceID);
         void SetTexture(const string& name, ResourceHandle<Texture> handle);
         void SetTexture(const string& name, ResourceHandle<FrameBufferObject> handle);
+        void SetMatrix4x4(const string& name, const Matrix4x4& matrix4x4);
         void SetFloat(const string& name, float value);
 
         inline MaterailRenderState GetMaterialRenderState() const { return mRenderState;};

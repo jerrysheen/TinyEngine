@@ -32,10 +32,8 @@ namespace EngineCore
         matMetaData->vec3Data.emplace("LightColor", Vector3(0.3,0.4,0.5));
         matMetaData->vec3Data.emplace("CameraPosition", Vector3(0.3,0.4,0.5));
         matMetaData->matrix4x4Data.emplace("WorldMatrix", Matrix4x4());
-        matMetaData->matrix4x4Data.emplace("VPMatrix", Matrix4x4( 0.52,0,-0.37,0, 
-                                                                0.4,1.58,0.57,-0.0,
-                                                                0,0,-0.003,0.29,
-                                                                0.53,-0.40,0.74,4.5));
+        matMetaData->matrix4x4Data.emplace("ProjectionMatrix", Matrix4x4::Identity);
+        matMetaData->matrix4x4Data.emplace("ViewMatrix", Matrix4x4::Identity);
         // 空插槽索引？
         matMetaData->textureData.emplace("DiffuseTexture", nullptr);
         

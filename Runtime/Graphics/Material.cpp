@@ -84,6 +84,16 @@ namespace EngineCore
         RenderAPI::GetInstance().SetShaderTexture(this, slotName ,slotIndex, handle.Get()->GetInstanceID());
     }
 
+    void Material::SetMatrix4x4(const string &name, const Matrix4x4 &matrix4x4)
+    {
+        ASSERT(mMaterialdata.matrix4x4Data.count(name) > 0);
+        mMaterialdata.matrix4x4Data[name] = matrix4x4;
+        auto& map = mShader.Get()->mShaderBindingInfo.mShaderStageVariableInfoMap;
+        ASSERT(map.count(name) > 0);
+        auto& variableInfo = map[name];
+        RenderAPI::GetInstance().SetShaderMatrix4x4(this, variableInfo, matrix4x4);
+    }
+
      // todo：资源的统一管理， Material只会持有一个textureID，后续的信息都去ResouceManager的Texture中去找。
      void Material::SetTexture(const string& slotName, uint64_t texInstanceID)
      {

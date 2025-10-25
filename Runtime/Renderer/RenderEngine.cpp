@@ -2,7 +2,7 @@
 #include "RenderEngine.h"
 #include "RenderAPI.h"
 #include "Managers/WindowManager.h"
-#include "Graphics/Camera.h"
+#include "GameObject/Camera.h"
 #include "Renderer.h"
 #include "RenderPipeLine/OpaqueRenderPass.h"
 #include "Platforms/D3D12/D3D12RenderAPI.h"
@@ -51,7 +51,7 @@ namespace EngineCore
 
 
         //RenderAPI::GetInstance().Render();
-        Camera* cam = SceneManager::GetInstance().mCamera;
+        Camera* cam = SceneManager::GetInstance().mainCameraGo->GetComponent<Camera>();
         
         Culling::Run(cam, renderContext);
         
