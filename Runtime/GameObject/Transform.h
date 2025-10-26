@@ -20,7 +20,8 @@ namespace EngineCore
         Vector3 localPosition;
         Vector3 localScale;
         Quaternion localQuaternion;
-
+        Matrix4x4 worldMatrix;
+        
         ~Transform()
         {
             parent->RemoveChild(this);
@@ -47,5 +48,9 @@ namespace EngineCore
                 childTransform.erase(it);
             }
         };
+
+        void RotateX(float degree);
+        void RotateY(float degree);
+        void RotateZ(float degree);
     };
 } // namespace EngineCore

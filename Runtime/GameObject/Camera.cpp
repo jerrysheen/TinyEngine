@@ -9,7 +9,7 @@
 namespace EngineCore
 {
     Camera::Camera(GameObject *parent) : 
-        mFov(45.0f), mAspect(1.0f), mNear(0.2), mFar(200), mProjectionMatrix(Matrix4x4::Identity), mLookAt(Vector3{0.0f, 1.0f, 0.0f}), mViewMatrix(Matrix4x4::Identity), mWidth(1920.0f), mHeight(1080.0f)
+        mFov(25.0f), mAspect(1920.0f/1080.0f), mNear(0.2), mFar(200), mProjectionMatrix(Matrix4x4::Identity), mLookAt(Vector3{0.0f, 1.0f, 0.0f}), mViewMatrix(Matrix4x4::Identity), mWidth(1920.0f), mHeight(1080.0f)
     {
         mParentGO = parent;
         // fake one.
@@ -55,6 +55,11 @@ namespace EngineCore
 
         Vector3 forward = rotation.GetForward();
         Vector3 up = rotation.GetUp();
+
+        // 临时测试：让相机向下倾斜看
+        // forward = Vector3::Normalized(Vector3(0.0f, -0.5f, 1.0f));  // 向下看约26度
+        // forward = Vector3::Normalized(Vector3(0.0f, -1.0f, 1.0f));  // 向下看约45度
+        forward = Vector3::Normalized(Vector3(0.0f, -1.0f, 1.0f));  // 向下看45度
 
         Vector3 target = position + forward;
 

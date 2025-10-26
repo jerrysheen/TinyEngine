@@ -113,6 +113,12 @@
     <ClCompile Include="..\..\..\..\Runtime\GameObject\MeshFilter.cpp">
       <Filter>Runtime\GameObject</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\GameObject\MeshRenderer.cpp">
+      <Filter>Runtime\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\GameObject\MonoBehaviour.cpp">
+      <Filter>Runtime\GameObject</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\GameObject\Transform.cpp">
       <Filter>Runtime\GameObject</Filter>
     </ClCompile>

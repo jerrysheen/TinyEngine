@@ -11,7 +11,11 @@ namespace EngineCore
 
 		ModelMetaData* modelMetaData = static_cast<ModelMetaData*>(metaData);
 		Assimp::Importer import;
-		const aiScene* scene = import.ReadFile(modelMetaData->path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
+		const aiScene* scene = import.ReadFile(modelMetaData->path, 
+			aiProcess_Triangulate 
+			| aiProcess_JoinIdenticalVertices
+			| aiProcess_ConvertToLeftHanded
+		);
 
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 		{

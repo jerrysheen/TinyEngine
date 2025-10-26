@@ -11,6 +11,7 @@ namespace EngineCore
         ~Component(){};
         ///virtual ComponentType GetType() const = 0;
 
-        GameObject* mParentGO;
+        GameObject* mParentGO = nullptr;
+        bool enabled = true;
     };
 }

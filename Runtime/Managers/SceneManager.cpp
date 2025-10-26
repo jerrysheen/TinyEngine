@@ -2,7 +2,8 @@
 #include "SceneManager.h"
 #include "Graphics/Texture.h"
 #include "Resources/ResourceManager.h"
-
+#include "GameObject/MeshFilter.h"
+#include "GameObject/MeshRenderer.h"
 namespace EngineCore
 {
     std::unique_ptr<SceneManager> SceneManager::s_Instance = nullptr;
@@ -10,17 +11,14 @@ namespace EngineCore
     
     SceneManager::SceneManager()
     {
+        testTexture = ResourceManager::GetInstance()->LoadAsset<Texture>("D:/GitHubST/TinyEngine/Assets/Textures/viking_room.png");
+
         //std::cout << "Init Scene Manager!!" << std::endl;
         mTestGameObject = new GameObject();
-        mTestGameObject->AddComponent<MeshFilter>();
-        
-        
-        testMesh = ResourceManager::GetInstance()->LoadAsset<ModelData>("D:/GitHubST/TinyEngine/Assets/Model/cube.obj");
-        
-        testTexture = ResourceManager::GetInstance()->LoadAsset<Texture>("D:/GitHubST/TinyEngine/Assets/Textures/material.png");
-
-        testMat = ResourceManager::GetInstance()->LoadAsset<Material>("D:/GitHubST/TinyEngine/Assets/Material/testMat.mat");
-
+        auto meshfilter = mTestGameObject->AddComponent<MeshFilter>();
+        meshfilter->mMeshHandle = ResourceManager::GetInstance()->LoadAsset<ModelData>("D:/GitHubST/TinyEngine/Assets/Model/viking_room.obj");
+        auto meshRender = mTestGameObject->AddComponent<MeshRenderer>();
+        meshRender->mMatHandle = ResourceManager::GetInstance()->LoadAsset<Material>("D:/GitHubST/TinyEngine/Assets/Material/testMat.mat");
         testShader = ResourceManager::GetInstance()->LoadAsset<Shader>("D:/GitHubST/TinyEngine/Assets/Shader/SimpleTestShader.hlsl");
         
         //testMat->mShader = testShader;
@@ -44,8 +42,16 @@ namespace EngineCore
         //mainCameraGo->AddComponent<Transform>();
         mainCameraGo->AddComponent<Camera>();
         Transform* transform = mainCameraGo->GetComponent<Transform>();
-        transform->position = Vector3{0.0f, 3.0f, -10.0f};
+        transform->position = Vector3{0.0f, 5.0f, -5.0f};
         mainCameraGo->GetComponent<Camera>()->UpdateCameraMatrix();
+
+        
+        // update transform？
+        // 写一些辅助函数， 比如rotation按照轴rotate之类的
+        transform = mTestGameObject->GetComponent<Transform>();
+        transform->RotateX(90.0f);
+        transform->RotateY(135.0f);
+        meshRender->mMatHandle.Get()->SetMatrix4x4("WorldMatrix", transform->worldMatrix);
     }
 
     SceneManager::~SceneManager()
@@ -56,7 +62,7 @@ namespace EngineCore
 
     void SceneManager::Update()
     {
-        auto meshFilterComponent = mTestGameObject->GetComponent<MeshFilter>();
+
     }
 
     void SceneManager::Create()

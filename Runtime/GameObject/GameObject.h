@@ -3,6 +3,7 @@
 #include "ComponentType.h"
 #include "Component.h"
 #include "MeshFilter.h"
+#include "MeshRenderer.h"
 #include "Core/Object.h"
 #include "Transform.h"
 
@@ -22,7 +23,7 @@ namespace EngineCore
         template<typename T>
         inline T* GetComponent() const;
         template<typename T>
-        inline bool AddComponent();
+        inline T* AddComponent();
     private:
         std::unordered_map<ComponentType, Component*> components;
     };
@@ -41,16 +42,16 @@ namespace EngineCore
     }
 
     template<typename T>
-    inline bool GameObject::AddComponent()
+    inline T* GameObject::AddComponent()
     {
         ComponentType type = T::GetType();
         if(components.count(type) > 0)
         {
-            return false;
+            return nullptr;
         }
         T* component = new T(this);
         components.try_emplace(type, component);
-        return true;
+        return component;
     }
 
 }

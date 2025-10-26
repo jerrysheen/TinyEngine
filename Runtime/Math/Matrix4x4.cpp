@@ -32,8 +32,10 @@ namespace EngineCore
     Matrix4x4 Matrix4x4::LookAt(const Vector3 &position, const Vector3 &target, const Vector3 &up)
     {
         Vector3 zAxis = Vector3::Normalized((target - position));
-        Vector3 xAxis = Vector3::Normalized((Vector3::Cross(zAxis , up)));
-        Vector3 yAxis = Vector3::Normalized((Vector3::Cross(xAxis , zAxis)));
+        // 左手坐标系：up × forward = right
+        Vector3 xAxis = Vector3::Normalized((Vector3::Cross(up, zAxis)));
+        // 左手坐标系：forward × right = up
+        Vector3 yAxis = Vector3::Normalized((Vector3::Cross(zAxis, xAxis)));
     
         // 这个问题这么理解，首先思考从View -> World，很快能的出来R也就是旋转部分
         // 为什么，因为col方向是原先的基向量（view）在新的空间下的表示（world的xyz）
@@ -53,16 +55,91 @@ namespace EngineCore
 
     Matrix4x4 Matrix4x4::Perspective(const float &mFov, const float &mAspect, const float &mNear, const float &mFar)
     {
+        float fovRadians = mFov * 3.14159265359f / 180.0f; 
         //[NDC 0, 1] z轴已经对齐，不用转化
         #ifdef D3D12_API
             return Matrix4x4(
-                1.0f/(mAspect * std::tan(mFov/2)), 0.0f, 0.0f, 0.0f,
-                0.0f, 1.0f / (std::tan(mFov/2)), 0.0f, 0.0f,
+                1.0f/(mAspect * std::tan(fovRadians/2)), 0.0f, 0.0f, 0.0f,
+                0.0f, 1.0f / (std::tan(fovRadians/2)), 0.0f, 0.0f,
                 0.0f, 0.0f, mFar / (mFar - mNear), -(mFar * mNear) / (mFar - mNear),  // DirectX风格
                 0.0f, 0.0f, 1.0f, 0.0f
             );
         #elif
         //[NDC -1, 1] z轴需要反向，不用转化
         #endif
+    }
+
+    Matrix4x4 Matrix4x4::RotateX(float degrees)
+    {
+        float radians = degrees * 3.14159265359f / 180.0f;
+        float c = std::cos(radians);
+        float s = std::sin(radians);
+        
+        return Matrix4x4(
+            1.0f,  0.0f,  0.0f,  0.0f,
+            0.0f,  c,    -s,    0.0f,
+            0.0f,  s,     c,    0.0f,
+            0.0f,  0.0f,  0.0f,  1.0f
+        );
+    }
+
+    Matrix4x4 Matrix4x4::RotateY(float degrees)
+    {
+        float radians = degrees * 3.14159265359f / 180.0f;
+        float c = std::cos(radians);
+        float s = std::sin(radians);
+        
+        return Matrix4x4(
+            c,     0.0f,  s,    0.0f,
+            0.0f,  1.0f,  0.0f, 0.0f,
+           -s,     0.0f,  c,    0.0f,
+            0.0f,  0.0f,  0.0f, 1.0f
+        );
+    }
+
+    Matrix4x4 Matrix4x4::RotateZ(float degrees)
+    {
+        float radians = degrees * 3.14159265359f / 180.0f;
+        float c = std::cos(radians);
+        float s = std::sin(radians);
+        
+        return Matrix4x4(
+            c,    -s,    0.0f,  0.0f,
+            s,     c,    0.0f,  0.0f,
+            0.0f,  0.0f, 1.0f,  0.0f,
+            0.0f,  0.0f, 0.0f,  1.0f
+        );
+    }
+
+    // 矩阵乘法 RawMajor
+    // 结果矩阵 C = A * B
+    // C[i][j] = sum(A[i][k] * B[k][j])
+    Matrix4x4 Matrix4x4::operator*(const Matrix4x4& other) const
+    {
+        return Matrix4x4(
+            // 第一行
+            m00 * other.m00 + m01 * other.m10 + m02 * other.m20 + m03 * other.m30,
+            m00 * other.m01 + m01 * other.m11 + m02 * other.m21 + m03 * other.m31,
+            m00 * other.m02 + m01 * other.m12 + m02 * other.m22 + m03 * other.m32,
+            m00 * other.m03 + m01 * other.m13 + m02 * other.m23 + m03 * other.m33,
+            
+            // 第二行
+            m10 * other.m00 + m11 * other.m10 + m12 * other.m20 + m13 * other.m30,
+            m10 * other.m01 + m11 * other.m11 + m12 * other.m21 + m13 * other.m31,
+            m10 * other.m02 + m11 * other.m12 + m12 * other.m22 + m13 * other.m32,
+            m10 * other.m03 + m11 * other.m13 + m12 * other.m23 + m13 * other.m33,
+            
+            // 第三行
+            m20 * other.m00 + m21 * other.m10 + m22 * other.m20 + m23 * other.m30,
+            m20 * other.m01 + m21 * other.m11 + m22 * other.m21 + m23 * other.m31,
+            m20 * other.m02 + m21 * other.m12 + m22 * other.m22 + m23 * other.m32,
+            m20 * other.m03 + m21 * other.m13 + m22 * other.m23 + m23 * other.m33,
+            
+            // 第四行
+            m30 * other.m00 + m31 * other.m10 + m32 * other.m20 + m33 * other.m30,
+            m30 * other.m01 + m31 * other.m11 + m32 * other.m21 + m33 * other.m31,
+            m30 * other.m02 + m31 * other.m12 + m32 * other.m22 + m33 * other.m32,
+            m30 * other.m03 + m31 * other.m13 + m32 * other.m23 + m33 * other.m33
+        );
     }
 }

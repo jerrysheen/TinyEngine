@@ -4,7 +4,7 @@ namespace EngineCore
 {
     enum class ComponentType
     {
-        MeshRender,
+        MeshRenderer,
         MeshFilter,
         Camera,
         Transfrom

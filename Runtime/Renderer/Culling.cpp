@@ -1,6 +1,8 @@
 #include "PreCompiledHeader.h"
 #include "Culling.h"
 #include "Managers/SceneManager.h"
+#include "GameObject/MeshFilter.h"
+#include "GameObject/MeshRenderer.h"
 
 namespace EngineCore
 {
@@ -11,8 +13,8 @@ namespace EngineCore
         context.Reset();
         context.camera = cam;
         auto visibleItem = context.GetAvalileVisibleItem();
-        visibleItem->mat = SceneManager::GetInstance().testMat.Get();
-        visibleItem->model = SceneManager::GetInstance().testMesh.Get();
+        visibleItem->mat = SceneManager::GetInstance().mTestGameObject->GetComponent<MeshRenderer>()->mMatHandle.Get();
+        visibleItem->model = SceneManager::GetInstance().mTestGameObject->GetComponent<MeshFilter>()->mMeshHandle.Get();
         context.cameraVisibleItems.push_back(std::move(visibleItem));
     }
 
