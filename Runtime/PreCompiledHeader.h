@@ -1,3 +1,6 @@
+
+// todo： 根据 系统 linux windows android
+// 选择默认的API
 #define D3D12_API
 #define EDITOR
 
