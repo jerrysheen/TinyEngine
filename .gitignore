@@ -1053,3 +1053,7 @@ dkms.conf
 !Tools/
 !Tools/premake/
 !Tools/premake/**
+!Assets/**
+!/Vendor/libs/**
+!/Vendor/libs/**
+!/Vendor/Assimp/assimp/code/**
