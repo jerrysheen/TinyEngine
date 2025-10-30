@@ -1,4 +1,4 @@
-#include "PreCompiledHeader.h"
+﻿#include "PreCompiledHeader.h"
 #include "D3D12RenderAPI.h"
 #include "Managers/WindowManager.h"
 #include "Resources/MetaFile.h"
@@ -489,7 +489,7 @@ namespace EngineCore
         int tableCount = 0;
         if(cbCount > 0) tableCount++;
         if(texCount > 0) tableCount++;
-        if(samplerCount > 0) tableCount++;
+        //if(samplerCount > 0) tableCount++;
 
 
         vector<CD3DX12_ROOT_PARAMETER> slotRootParameter(tableCount);
@@ -515,18 +515,28 @@ namespace EngineCore
             slotRootParameter[paramIndex++].InitAsDescriptorTable(1,&descriptorRanges.back());
         }
 
-        if(samplerCount > 0)
-        {
-            CD3DX12_DESCRIPTOR_RANGE samplerRange;
-            samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, samplerCount, 0);
-            descriptorRanges.push_back(samplerRange);
-            slotRootParameter[paramIndex++].InitAsDescriptorTable(1,&descriptorRanges.back());
-        }
+		// todo: 使用动态采样器
+        //if(samplerCount > 0)
+        //{
+        //    CD3DX12_DESCRIPTOR_RANGE samplerRange;
+        //    samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, samplerCount, 0);
+        //    descriptorRanges.push_back(samplerRange);
+        //    slotRootParameter[paramIndex++].InitAsDescriptorTable(1,&descriptorRanges.back());
+        //}
+
+        // 在第 526 行之前添加
+        CD3DX12_STATIC_SAMPLER_DESC staticSampler(
+            0,  // shaderRegister: register(s0)
+            D3D12_FILTER_MIN_MAG_MIP_LINEAR,  // filter
+            D3D12_TEXTURE_ADDRESS_MODE_WRAP,   // addressU
+            D3D12_TEXTURE_ADDRESS_MODE_WRAP,   // addressV
+            D3D12_TEXTURE_ADDRESS_MODE_WRAP    // addressW
+        );
 
         ComPtr<ID3D12RootSignature> tempRootSignature;
         CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(
             static_cast<UINT>(slotRootParameter.size()), slotRootParameter.data(),
-            0, nullptr,
+            1, &staticSampler,
             D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
         ComPtr<ID3DBlob> serializedRootSig = nullptr;
