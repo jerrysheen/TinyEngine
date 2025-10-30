@@ -1,6 +1,6 @@
 #pragma once
-#include "PreCompiledHeader.h"
-#include "Manager.h"
+#include <map>
+#include "Managers/Manager.h"
 #include "GameObject/GameObject.h"
 #include "GameObject/Camera.h"
 #include "GameObject/Transform.h"
@@ -10,6 +10,8 @@
 #include "Graphics/Shader.h"
 #include "Graphics/Texture.h"
 #include "Resources/ResourceHandle.h"
+#include "Scene/Scene.h"
+
 
 namespace EngineCore
 {
@@ -20,25 +22,30 @@ namespace EngineCore
     public:
         void LoadScene();
         void UnloadScene();
+        GameObject* CreateGameObject(const std::string& name);
+        GameObject* FindGameObject(const std::string& name);
+
         static void Update();
         static void Create();
+
     public:
         SceneManager();
         ~SceneManager();
 
-        static GameObject* mTestGameObject;
-        
-        GameObject* mainCameraGo;
-        ResourceHandle<ModelData> testMesh;
-        //MaterialMetaData* testMatMetaData;
-        ResourceHandle <Material> testMat;
-        ResourceHandle<Shader> testShader;
-
+        // todo： 这部分数据也要找地方存， maybe一个Global的渲染处
         ResourceHandle<Material> blitMaterial;
         ResourceHandle<ModelData> quadMesh;
         ResourceHandle<Shader> blitShader;
-
+        //
         ResourceHandle<Texture> testTexture;
+
+        inline Scene* GetCurrentScene() { ASSERT(mCurrentScene != nullptr); return mCurrentScene; };
+        Scene* AddNewScene(const std::string& name);
+        void RemoveScene(const std::string& name);
+        void SwitchSceneTo(const std::string& name);
+    private:
+        Scene* mCurrentScene = nullptr;
+        unordered_map<std::string, Scene*> mSceneMap;
     };
 
 }

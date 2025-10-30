@@ -52,6 +52,9 @@
     <Filter Include="Runtime\Resources">
       <UniqueIdentifier>{F3A9E9FD-5FC0-E793-A837-73B5148DB81B}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Runtime\Scene">
+      <UniqueIdentifier>{2615CA8C-92D5-45C3-5B10-8F40C78F8A9F}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Editor\D3D12\D3D12EditorGUIManager.h">
@@ -140,9 +143,6 @@
     <ClCompile Include="..\..\..\..\Runtime\Graphics\Texture.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Managers\SceneManager.cpp">
-      <Filter>Runtime\Managers</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Managers\WindowManager.cpp">
       <Filter>Runtime\Managers</Filter>
     </ClCompile>
@@ -211,6 +211,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Resources\ResourceManager.cpp">
       <Filter>Runtime\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Scene\Scene.cpp">
+      <Filter>Runtime\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Scene\SceneManager.cpp">
+      <Filter>Runtime\Scene</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

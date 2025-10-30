@@ -13,6 +13,7 @@ namespace EngineCore
         Vector3 GetForward(){return Vector3(0.0f, 0.0f, 1.0f);};
         Vector3 GetUp(){return Vector3(0.0f, 1.0f, 0.0f);};
         Vector3 GetRight(){return Vector3(1.0f, 0.0f, 0.0f);};
+        static Quaternion FromRotationMatrix(const Vector3& col0, const Vector3& col1, const Vector3& col2);
     };
 
 

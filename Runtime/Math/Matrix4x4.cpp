@@ -1,6 +1,7 @@
 #include "PreCompiledHeader.h"
 #include "Matrix4x4.h"
 #include "Vector3.h"
+#include "Quaternion.h"
 
 namespace EngineCore
 {
@@ -53,7 +54,7 @@ namespace EngineCore
         );
     }   
 
-    Matrix4x4 Matrix4x4::Perspective(const float &mFov, const float &mAspect, const float &mNear, const float &mFar)
+    Matrix4x4 Matrix4x4::Perspective(float mFov, float mAspect, float mNear, float mFar)
     {
         float fovRadians = mFov * 3.14159265359f / 180.0f; 
         //[NDC 0, 1] z轴已经对齐，不用转化
@@ -67,6 +68,16 @@ namespace EngineCore
         #elif
         //[NDC -1, 1] z轴需要反向，不用转化
         #endif
+    }
+
+    Matrix4x4 Matrix4x4::TRS(const Vector3 &position, const Quaternion &rotation, const Vector3 &scale)
+    {
+        return Matrix4x4(
+            1, 0,0, position.x,
+            0,1,0, position.y,
+            0, 0, 1, position.z,
+            0, 0,0, 1
+        );
     }
 
     Matrix4x4 Matrix4x4::RotateX(float degrees)
@@ -109,6 +120,26 @@ namespace EngineCore
             0.0f,  0.0f, 1.0f,  0.0f,
             0.0f,  0.0f, 0.0f,  1.0f
         );
+    }
+
+    void Matrix4x4::WorldMatrixDecompose(const Matrix4x4 &matrix, Vector3 &position, Quaternion &quaternion, Vector3 &scale)
+    {
+        position = Vector3(matrix.m03, matrix.m13, matrix.m23);
+
+        Vector3 axisX = Vector3(matrix.m00, matrix.m10, matrix.m20);
+        Vector3 axisY = Vector3(matrix.m01, matrix.m11, matrix.m22);
+        Vector3 axisZ = Vector3(matrix.m02, matrix.m12, matrix.m22);
+
+        scale.x = Vector3::Length(axisX);
+        scale.y = Vector3::Length(axisY);
+        scale.z = Vector3::Length(axisZ);
+
+        ASSERT(scale.x != 0);
+        axisX /= scale.x;
+        axisY /= scale.y;
+        axisZ /= scale.z;
+
+        quaternion = Quaternion::FromRotationMatrix(axisX, axisY, axisZ);
     }
 
     // 矩阵乘法 RawMajor

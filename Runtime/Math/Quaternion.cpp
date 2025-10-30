@@ -7,4 +7,9 @@ namespace EngineCore
     {
     }
 
+    Quaternion Quaternion::FromRotationMatrix(const Vector3 &col0, const Vector3 &col1, const Vector3 &col2)
+    {
+        return Quaternion();
+    }
+
 } // namespace EngineCore

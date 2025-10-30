@@ -10,47 +10,83 @@ namespace EngineCore
     {
         Transform() = default;
         Transform(GameObject* parent);
+        virtual ~Transform() override;
         static ComponentType GetType() { return ComponentType::Transfrom; };
-
-        Vector3 position;
-        Quaternion quaternion;
-        Vector3 scale;
-        std::vector<Transform*> childTransform;
-
-        Vector3 localPosition;
-        Vector3 localScale;
-        Quaternion localQuaternion;
-        Matrix4x4 worldMatrix;
-        
-        ~Transform()
-        {
-            parent->RemoveChild(this);
-        };
-        Transform* parent;
-        GameObject* gameObject;
-        
+        void MarkDirty();
+        std::vector<Transform*> childTransforms;
+        Transform* parentTransform = nullptr;
+    
         inline void SetParent(Transform* transform)
         {
-            parent = transform; 
+            parentTransform = transform; 
             transform->AddChild(this);
         };
 
+        inline void DettachParent()
+        {
+            if(parentTransform != nullptr) parentTransform->RemoveChild(this);
+            parentTransform = nullptr;
+        }
+
         inline void AddChild(Transform* transform)
         {
-            childTransform.push_back(transform);
+            childTransforms.push_back(transform);
         };
 
         inline void RemoveChild(Transform* transform)
         {
-            auto it = std::find(childTransform.begin(), childTransform.end(), transform);
-            if(it != childTransform.end())
+            auto it = std::find(childTransforms.begin(), childTransforms.end(), transform);
+            if(it != childTransforms.end())
             {
-                childTransform.erase(it);
+                childTransforms.erase(it);
             }
         };
 
         void RotateX(float degree);
         void RotateY(float degree);
         void RotateZ(float degree);
+
+        const Vector3& GetWorldPosition(){ return mWorldPosition; };
+        const Quaternion& GetWorldQuaternion(){ return mWorldQuaternion; };
+        const Vector3& GetWorldScale(){ return mWorldScale; };
+
+        const Vector3& GetLocalPosition(){ return mLocalPosition; };
+        const Quaternion& GetLocalQuaternion(){ return mLocalQuaternion; };
+        const Vector3& GetLocalScale(){ return mLocalScale; };
+
+        void SetLocalPosition(const Vector3& localPosition);
+        void SetLocalQuaternion(const Quaternion& localQuaternion);
+        void SetLocalScale(const Vector3& localScale);
+
+        inline const Matrix4x4& GetWorldMatrix()
+        {
+            UpdateIfDirty(); 
+             return mWorldMatrix;
+        }
+        
+        inline const Matrix4x4& GetLocalMatrix()
+        {
+            UpdateIfDirty(); 
+            return mLocalMatrix;
+        }
+
+        void UpdateIfDirty();
+        void UpdateTransform();
+        inline void UpdateNow() { UpdateTransform(); };
+    public:
+        bool isDirty = false;
+    private:
+
+        Matrix4x4 mWorldMatrix;
+        Matrix4x4 mLocalMatrix;
+
+        // 外部只读WorldPosition
+        Vector3 mWorldPosition;
+        Quaternion mWorldQuaternion;
+        Vector3 mWorldScale;
+        // 外部能读写LocalPositon
+        Vector3 mLocalPosition;
+        Quaternion mLocalQuaternion;
+        Vector3 mLocalScale;
     };
 } // namespace EngineCore

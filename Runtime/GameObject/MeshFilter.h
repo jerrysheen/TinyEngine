@@ -12,7 +12,7 @@ namespace EngineCore
     public:
         MeshFilter() = default;
         MeshFilter(GameObject* gamObject);
-        ~MeshFilter(){};
+        virtual ~MeshFilter() override {};
         static ComponentType GetType() { return ComponentType::MeshFilter; };
     public:
         ResourceHandle<ModelData> mMeshHandle;

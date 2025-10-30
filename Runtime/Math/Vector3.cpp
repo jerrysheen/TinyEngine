@@ -22,6 +22,11 @@ namespace EngineCore
         );
     }
 
+    float Vector3::Length(const Vector3 &a)
+    {
+        return std::sqrt(Vector3::Dot(a, a));
+    }
+
     float Vector3::Dot(const Vector3 &a, const Vector3 &b)
     {
         return a.x * b.x +  a.y * b.y +  a.z * b.z;
@@ -49,5 +54,10 @@ namespace EngineCore
     Vector3 Vector3::operator+(const Vector3 &value) const
     {
         return Vector3(x + value.x, y + value.y, z + value.z);
+    }
+
+    Vector3 Vector3::operator/=(float value) const
+    {
+        return Vector3(x/value, y/value, z/value);
     }
 }

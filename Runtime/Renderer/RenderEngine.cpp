@@ -6,7 +6,7 @@
 #include "Renderer.h"
 #include "RenderPipeLine/OpaqueRenderPass.h"
 #include "Platforms/D3D12/D3D12RenderAPI.h"
-#include "Managers/SceneManager.h"
+#include "Scene/SceneManager.h"
 #include "Culling.h"
 #include "FrameBufferManager.h"
 
@@ -51,7 +51,7 @@ namespace EngineCore
 
 
         //RenderAPI::GetInstance().Render();
-        Camera* cam = SceneManager::GetInstance().mainCameraGo->GetComponent<Camera>();
+        Camera* cam = SceneManager::GetInstance().GetCurrentScene()->mainCamera;
         
         Culling::Run(cam, renderContext);
         

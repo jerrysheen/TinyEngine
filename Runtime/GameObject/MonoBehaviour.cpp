@@ -5,7 +5,7 @@ namespace EngineCore
 {
     MonoBehaviour::MonoBehaviour(GameObject* parent)
     {
-        mParentGO = parent;
+        mGO = parent;
     }
 
 };

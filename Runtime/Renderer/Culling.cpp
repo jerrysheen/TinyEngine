@@ -1,6 +1,6 @@
 #include "PreCompiledHeader.h"
 #include "Culling.h"
-#include "Managers/SceneManager.h"
+#include "Scene/SceneManager.h"
 #include "GameObject/MeshFilter.h"
 #include "GameObject/MeshRenderer.h"
 
@@ -12,10 +12,19 @@ namespace EngineCore
         // get some fake data....
         context.Reset();
         context.camera = cam;
-        auto visibleItem = context.GetAvalileVisibleItem();
-        visibleItem->mat = SceneManager::GetInstance().mTestGameObject->GetComponent<MeshRenderer>()->mMatHandle.Get();
-        visibleItem->model = SceneManager::GetInstance().mTestGameObject->GetComponent<MeshFilter>()->mMeshHandle.Get();
-        context.cameraVisibleItems.push_back(std::move(visibleItem));
+        auto* scene = SceneManager::GetInstance().GetCurrentScene();
+        for (auto* go : scene->objLists) 
+        {
+            auto* matComponent = go->GetComponent<MeshRenderer>();
+            auto* modelComponent = go->GetComponent<MeshFilter>();
+            if (matComponent != nullptr && modelComponent != nullptr) 
+            {
+                auto visibleItem = context.GetAvalileVisibleItem();
+                visibleItem->mat = matComponent->mMatHandle.Get();
+                visibleItem->model = modelComponent->mMeshHandle.Get();
+                context.cameraVisibleItems.push_back(std::move(visibleItem));
+            }
+        }
     }
 
 } // namespace EngineCore

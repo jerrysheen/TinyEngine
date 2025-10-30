@@ -2,7 +2,7 @@
 #include "FinalBlitPass.h"
 #include "Renderer/FrameBufferManager.h"
 #include "Renderer/Renderer.h"
-#include "Managers/SceneManager.h"
+#include "Scene/SceneManager.h"
 #include "Managers/WindowManager.h"
 #include "Core/PublicEnum.h"
 

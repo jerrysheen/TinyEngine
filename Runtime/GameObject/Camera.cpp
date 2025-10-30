@@ -8,10 +8,10 @@
 
 namespace EngineCore
 {
-    Camera::Camera(GameObject *parent) : 
+    Camera::Camera(GameObject* gameObject) : 
         mFov(25.0f), mAspect(1920.0f/1080.0f), mNear(0.2), mFar(200), mProjectionMatrix(Matrix4x4::Identity), mLookAt(Vector3{0.0f, 1.0f, 0.0f}), mViewMatrix(Matrix4x4::Identity), mWidth(1920.0f), mHeight(1080.0f)
     {
-        mParentGO = parent;
+        mGO = gameObject;
         // fake one.
         mRenderPassAsset.renderPasses.push_back(new OpaqueRenderPass());
         mRenderPassAsset.renderPasses.push_back(new FinalBlitPass());
@@ -49,9 +49,9 @@ namespace EngineCore
     // update view and perspective matrix
     void Camera::UpdateCameraMatrix()
     {
-        auto transform = this->mParentGO->GetComponent<Transform>();
-        auto& position = transform->position;
-        Quaternion rotation = transform->quaternion;
+        auto transform = this->mGO->GetComponent<Transform>();
+        auto& position = transform->GetWorldPosition();
+        Quaternion rotation = transform->GetWorldQuaternion();
 
         Vector3 forward = rotation.GetForward();
         Vector3 up = rotation.GetUp();
@@ -59,7 +59,7 @@ namespace EngineCore
         // 临时测试：让相机向下倾斜看
         // forward = Vector3::Normalized(Vector3(0.0f, -0.5f, 1.0f));  // 向下看约26度
         // forward = Vector3::Normalized(Vector3(0.0f, -1.0f, 1.0f));  // 向下看约45度
-        forward = Vector3::Normalized(Vector3(0.0f, -1.0f, 1.0f));  // 向下看45度
+        //forward = Vector3::Normalized(Vector3(0.0f, -1.0f, 1.0f));  // 向下看45度
 
         Vector3 target = position + forward;
 

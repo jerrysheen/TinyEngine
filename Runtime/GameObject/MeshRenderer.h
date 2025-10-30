@@ -12,7 +12,7 @@ namespace EngineCore
     public:
         MeshRenderer() = default;
         MeshRenderer(GameObject* gamObject);
-        ~MeshRenderer(){};
+        virtual ~MeshRenderer() override {};
         static ComponentType GetType() { return ComponentType::MeshRenderer; };
     public:
         ResourceHandle<Material> mMatHandle;

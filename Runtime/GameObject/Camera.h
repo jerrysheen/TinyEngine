@@ -11,6 +11,7 @@ namespace EngineCore
     public:
         Camera() = default;
         Camera(GameObject* parent);
+        virtual ~Camera() override {};
         float mFov;
         float mAspect;
         float mNear;

@@ -8,6 +8,6 @@ namespace EngineCore
 {
 	MeshRenderer::MeshRenderer(GameObject* gamObject)
 	{
-		mParentGO = gamObject;
+		mGO = gamObject;
 	}
 }

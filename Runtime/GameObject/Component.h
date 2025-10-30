@@ -8,10 +8,10 @@ namespace EngineCore
     {
     public:
         Component(){};
-        ~Component(){};
-        ///virtual ComponentType GetType() const = 0;
+        virtual ~Component() = 0;
+        //virtual ComponentType GetType() const = 0;
 
-        GameObject* mParentGO = nullptr;
+        GameObject* mGO = nullptr;
         bool enabled = true;
     };
 }
