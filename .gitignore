@@ -1048,3 +1048,8 @@ dkms.conf
 *.recipe
 *.tlog
 *.vcxproj
+
+# add for external tools
+!Tools/
+!Tools/premake/
+!Tools/premake/**
