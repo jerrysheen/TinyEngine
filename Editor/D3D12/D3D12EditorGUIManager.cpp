@@ -50,10 +50,6 @@ namespace EngineEditor
 		ImGui::NewFrame();
     }
 
-    void D3D12EditorGUIManager::Update()
-    {
-    }
-
     void D3D12EditorGUIManager::EndFrame()
     {
         auto renderAPI = static_cast<EngineCore::D3D12RenderAPI*>(&EngineCore::RenderAPI::GetInstance());

@@ -48,8 +48,9 @@ namespace  EngineCore
         virtual void RenderAPISetSissorRect(Payload_SetSissorRect payloadSetSissorrect) = 0;
         virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) = 0;
         virtual void RenderAPISetViewPort(Payload_SetViewPort payloadSetViewport) = 0;
-        virtual void RenderAPIEndFrame() = 0;
+        virtual void RenderAPISubmit() = 0;
         virtual void RenderAPIWindowResize(Payload_WindowResize payloadWindowResize) = 0;
+        virtual void RenderAPIPresentFrame() = 0;
 
     public:
         static std::unique_ptr<RenderAPI> s_Instance;

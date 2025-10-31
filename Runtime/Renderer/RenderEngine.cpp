@@ -40,8 +40,9 @@ namespace EngineCore
     {
         Renderer::GetInstance().ResizeWindow(width, height);
         
-    }    
-    
+    }
+
+
     void RenderEngine::Render()
     {
         // RenderEngine要做的事情，
@@ -69,4 +70,10 @@ namespace EngineCore
         //Renderer::GetInstance().EndFrame();
         RenderAPI::GetInstance().EndFrame();
     }
+
+    void RenderEngine::OnDrawGUI()
+    {
+        Renderer::GetInstance().OnDrawGUI();
+    }
+
 }

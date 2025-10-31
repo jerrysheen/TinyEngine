@@ -148,6 +148,13 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(temp);
     }
 
+    void Renderer::OnDrawGUI()
+    {
+        DrawCommand temp;
+        temp.op = RenderOp::kIssueEditorGUIDraw;
+        mRenderBuffer.PushBlocking(temp);
+    }
+
     void Renderer::Submit(const RenderPassInfo &info)
     {
         ConfigureRenderTarget(info);

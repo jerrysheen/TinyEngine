@@ -13,7 +13,8 @@ namespace EngineEditor
         static void Create();
         virtual void BeginFrame() = 0;
         virtual void EndFrame() = 0;
-        virtual void Update() = 0;
+        // Update不需要实现， 因为是一个纯Payload，无任何信息/
+        void Update();
         virtual void Render() = 0;
 
     };

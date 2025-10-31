@@ -19,6 +19,7 @@ namespace EngineCore
         kSetMaterial = 8,
         kConfigureRT = 9,
         kWindowResize = 10,
+        kIssueEditorGUIDraw = 11
     };
 
     enum class DepthComparisonFunc : uint8_t
@@ -153,6 +154,10 @@ namespace EngineCore
         int height;
     };
 
+    struct Payload_IssueEditorGUIDraw
+    {
+    };
+
     struct SissorRect
     {
         float x, y, w, h;
@@ -170,6 +175,7 @@ namespace EngineCore
         Payload_DrawCommand setDrawCmd;
         Payload_SetSissorRect setSissorRect;
         Payload_WindowResize onWindowResize;
+        Payload_IssueEditorGUIDraw onGUIDraw;
         CommandData() {};
     };
 

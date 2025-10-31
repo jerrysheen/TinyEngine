@@ -18,6 +18,7 @@ namespace EngineCore
         static void Create();
         
         static void OnResize(int width, int height);
+        static void OnDrawGUI();
         static void BeginRender();
         static void Render();
         static void EndRender();

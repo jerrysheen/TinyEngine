@@ -20,7 +20,7 @@ namespace EngineCore
         //std::cout << "Launch Game" << std::endl;
         // init Manager...
         #ifdef EDITOR
-        //EngineEditor::EditorGUIManager::Create();
+        EngineEditor::EditorGUIManager::Create();
         #endif
         while(!WindowManager::GetInstance().WindowShouldClose())
         {
@@ -35,23 +35,25 @@ namespace EngineCore
         //std::cout << "Update Game" << std::endl;
         SceneManager::GetInstance().Update();
         RenderEngine::GetInstance().Update();
+    
         #ifdef EDITOR
-        //EngineEditor::EditorGUIManager::GetInstance().Update();
         #endif
     }
 
     void Game::Render()
     {
-        //std::cout << "Render Scene" << std::endl;
         RenderEngine::GetInstance().BeginRender();
+
         #ifdef EDITOR
-        //EngineEditor::EditorGUIManager::GetInstance().BeginFrame();
+        // 需要在RenderEngineRender之前，提前标记这一帧需要IMGUI绘制。
+        EngineEditor::EditorGUIManager::GetInstance().Update();
         #endif
+
+
         RenderEngine::GetInstance().Render();
-        #ifdef EDITOR
-        //EngineEditor::EditorGUIManager::GetInstance().Render();
-        //EngineEditor::EditorGUIManager::GetInstance().EndFrame();
-        #endif
+
+
+
         RenderEngine::GetInstance().EndRender();
 
     }

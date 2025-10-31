@@ -61,7 +61,8 @@ namespace EngineCore
         virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) override;
         virtual void RenderAPISetViewPort(Payload_SetViewPort payloadSetViewport) override;
         virtual void RenderAPIWindowResize(Payload_WindowResize payloadWindowResize) override;
-        virtual void RenderAPIEndFrame() override;
+        virtual void RenderAPISubmit() override;
+        virtual void RenderAPIPresentFrame() override;
 
         TD3D12DescriptorHandle GetTextureSrvHanle(uint32_t textureID);
         TD3D12FrameBuffer* GetFrameBuffer(uint32_t bufferID, bool isBackBuffer = false);

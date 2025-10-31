@@ -332,6 +332,7 @@ namespace EngineCore
     }
 
 
+
     void D3D12RenderAPI::WaitForRenderFinish(TD3D12Fence* mFence)
 	{
 		SignalFence(mFence);
@@ -1558,7 +1559,9 @@ namespace EngineCore
 
     }
 
-    void D3D12RenderAPI::RenderAPIEndFrame()
+
+
+    void D3D12RenderAPI::RenderAPISubmit()
     {
         // 需要切换RT -> present Frame.
         // todo 切换backbuffer
@@ -1581,11 +1584,17 @@ namespace EngineCore
         SignalFence(mFrameFence);
 
         WaitForFence(mFrameFence);
+     
+        
+    }
+
+    // todo 这个分类似乎不合理
+    void D3D12RenderAPI::RenderAPIPresentFrame()
+    {
         ThrowIfFailed(mSwapChain->Present(0, 0));
         mCurrBackBuffer = (mCurrBackBuffer + 1) % SwapChainBufferCount;
         //WaitForRenderFinish();
         D3D12DescManager::GetInstance().ResetFrameAllocator();
-        
     }
 
 } // namespace EngineCore

@@ -9,10 +9,12 @@ namespace EngineEditor
     class D3D12EditorGUIManager : public EditorGUIManager
     {
     public:
+        // 渲染线程beginFrame，重置CommandList
         virtual void BeginFrame() override;
-        virtual void EndFrame() override;
-        virtual void Update() override;
+        // 渲染线程Render，收集渲染数据
         virtual void Render() override;
+        // 渲染线程EndFrame，提交指令
+        virtual void EndFrame() override;
         static void ApplyDpiScale(float scale)
         {
             // 1) 缩放 ImGui Style

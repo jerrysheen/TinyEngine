@@ -14,6 +14,11 @@
 #include "RenderAPI.h"
 #include <chrono>
 
+#ifdef EDITOR
+#include "Windows/EditorGUIManager.h"
+#endif
+
+
 namespace EngineCore
 {
     class Renderer : public Manager<Renderer>
@@ -45,6 +50,7 @@ namespace EngineCore
 
         void DrawIndexed(uint32_t vaoID, int count);
         void ResizeWindow(int width, int height);
+        void OnDrawGUI();
         
         void SetRenderState(const Material* mat, const RenderPassInfo &passinfo);
 
@@ -71,6 +77,7 @@ namespace EngineCore
         {
             Payload_WindowResize pendingResize = {0, 0};
             bool hasResize = false;
+            bool hasDrawGUI = false;
             while (mRunning.load(std::memory_order_acquire) == true) 
             {
                 DrawCommand cmd;
@@ -90,6 +97,11 @@ namespace EngineCore
                     pendingResize = cmd.data.onWindowResize;
                 }
 
+                if(cmd.op == RenderOp::kIssueEditorGUIDraw)
+                {
+                    hasDrawGUI = true;
+                }
+
                 if(cmd.op == RenderOp::kBeginFrame)
                 {
                     currState = RenderOp::kBeginFrame;
@@ -100,8 +112,18 @@ namespace EngineCore
                 if(cmd.op == RenderOp::kEndFrame)
                 {
                     currState = RenderOp::kEndFrame;
-                    RenderAPI::GetInstance().RenderAPIEndFrame();
+                    RenderAPI::GetInstance().RenderAPISubmit();
 
+#ifdef EDITOR                   
+                    if (hasDrawGUI)
+                    {
+                        EngineEditor::EditorGUIManager::GetInstance().BeginFrame();
+                        EngineEditor::EditorGUIManager::GetInstance().Render();
+                        EngineEditor::EditorGUIManager::GetInstance().EndFrame();
+                        hasDrawGUI = false;
+                    }
+#endif
+                    RenderAPI::GetInstance().RenderAPIPresentFrame();
                     if(hasResize)
                     {
                         RenderAPI::GetInstance().RenderAPIWindowResize(pendingResize);
