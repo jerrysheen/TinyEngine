@@ -1,5 +1,6 @@
-#include "PreCompiledHeader.h"
+﻿#include "PreCompiledHeader.h"
 #include "MetaFile.h"
+#include "Settings/ProjectSettings.h"
 
 namespace EngineCore
 {
@@ -42,10 +43,10 @@ namespace EngineCore
         
         // todo : 真实的Meta数据序列化
         MetaData texMeta;
-        texMeta.path = "D:/GitHubST/TinyEngine/Assets/Textures/viking_room.png";
+        texMeta.path = "Textures/viking_room.png";
         texMeta.assetType = AssetType::Texture2D;
         MetaData shaderMeta;
-        shaderMeta.path = "D:/GitHubST/TinyEngine/Assets/Shader/SimpleTestShader.hlsl";
+        shaderMeta.path = "Shader/SimpleTestShader.hlsl";
         shaderMeta.assetType = AssetType::Shader;                                         
         
         matMetaData->dependentMap.try_emplace("DiffuseTexture",texMeta);
@@ -58,7 +59,7 @@ namespace EngineCore
     TextureMetaData* MetaLoader::LoadTextureMetaData(const std::string &path)
     {
         TextureMetaData* texMetaData = new TextureMetaData();
-        texMetaData->path = "D:/GitHubST/TinyEngine/Assets/Textures/viking_room.png";
+        texMetaData->path = path;
         texMetaData->dimension = TextureDimension::TEXTURE2D;
         texMetaData->format = TextureFormat::R8G8B8A8;
         texMetaData->width = 64;

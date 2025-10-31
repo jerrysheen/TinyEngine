@@ -1,4 +1,4 @@
-#include "PreCompiledHeader.h"
+﻿#include "PreCompiledHeader.h"
 #include "Matrix4x4.h"
 #include "Vector3.h"
 #include "Quaternion.h"
@@ -72,11 +72,41 @@ namespace EngineCore
 
     Matrix4x4 Matrix4x4::TRS(const Vector3 &position, const Quaternion &rotation, const Vector3 &scale)
     {
+        // 从四元数计算旋转矩阵的元素
+        float xx = rotation.x * rotation.x;
+        float yy = rotation.y * rotation.y;
+        float zz = rotation.z * rotation.z;
+        float xy = rotation.x * rotation.y;
+        float xz = rotation.x * rotation.z;
+        float yz = rotation.y * rotation.z;
+        float wx = rotation.w * rotation.x;
+        float wy = rotation.w * rotation.y;
+        float wz = rotation.w * rotation.z;
+        
         return Matrix4x4(
-            1, 0,0, position.x,
-            0,1,0, position.y,
-            0, 0, 1, position.z,
-            0, 0,0, 1
+            // 第一行
+            (1.0f - 2.0f * (yy + zz)) * scale.x,  // m00
+            (2.0f * (xy - wz)) * scale.x,          // m01
+            (2.0f * (xz + wy)) * scale.x,          // m02
+            position.x,                             // m03 - 平移X
+            
+            // 第二行
+            (2.0f * (xy + wz)) * scale.y,          // m10
+            (1.0f - 2.0f * (xx + zz)) * scale.y,  // m11
+            (2.0f * (yz - wx)) * scale.y,          // m12
+            position.y,                             // m13 - 平移Y
+            
+            // 第三行
+            (2.0f * (xz - wy)) * scale.z,          // m20
+            (2.0f * (yz + wx)) * scale.z,          // m21
+            (1.0f - 2.0f * (xx + yy)) * scale.z,  // m22
+            position.z,                             // m23 - 平移Z
+            
+            // 第四行
+            0.0f,                                   // m30
+            0.0f,                                   // m31
+            0.0f,                                   // m32
+            1.0f                                    // m33
         );
     }
 
@@ -127,7 +157,7 @@ namespace EngineCore
         position = Vector3(matrix.m03, matrix.m13, matrix.m23);
 
         Vector3 axisX = Vector3(matrix.m00, matrix.m10, matrix.m20);
-        Vector3 axisY = Vector3(matrix.m01, matrix.m11, matrix.m22);
+        Vector3 axisY = Vector3(matrix.m01, matrix.m11, matrix.m21);
         Vector3 axisZ = Vector3(matrix.m02, matrix.m12, matrix.m22);
 
         scale.x = Vector3::Length(axisX);

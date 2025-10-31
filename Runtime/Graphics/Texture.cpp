@@ -3,7 +3,7 @@
 #include "stb_image.h"
 #include "Resources/MetaFile.h"
 #include "Renderer/RenderAPI.h"
-
+#include "Settings/ProjectSettings.h"
 
 namespace EngineCore
 {
@@ -22,7 +22,8 @@ namespace EngineCore
         mWidth = texMetaData->width;
         mHeight = texMetaData->height;
         int nrComponents;
-        stbi_uc* pixels = stbi_load(mPath.c_str(), &mWidth, &mHeight, &nrComponents, STBI_rgb_alpha);
+        string path = PathSettings::ResolveAssetPath(mPath);
+        stbi_uc* pixels = stbi_load(path.c_str(), &mWidth, &mHeight, &nrComponents, STBI_rgb_alpha);
         // 2. CreateData
         ASSERT(pixels != nullptr);
         RenderAPI::GetInstance().CreateTextureBuffer(pixels, this);

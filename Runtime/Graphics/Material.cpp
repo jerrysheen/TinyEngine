@@ -1,7 +1,8 @@
-#include "PreCompiledHeader.h"
+﻿#include "PreCompiledHeader.h"
 #include "Material.h"
 #include "Renderer/RenderAPI.h"
 #include "Resources/ResourceManager.h"
+
 namespace EngineCore
 {
     Material::Material(MetaData* metaData) : Resource(metaData)

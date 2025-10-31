@@ -55,6 +55,9 @@
     <Filter Include="Runtime\Scene">
       <UniqueIdentifier>{2615CA8C-92D5-45C3-5B10-8F40C78F8A9F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Runtime\Settings">
+      <UniqueIdentifier>{894C8599-7545-A4EB-9E77-89708ACF83F7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Editor\D3D12\D3D12EditorGUIManager.h">
@@ -72,9 +75,6 @@
       <Filter>Editor\Windows</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Core\Game.cpp">
-      <Filter>Runtime\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Core\ProjectSettings.cpp">
       <Filter>Runtime\Core</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Core\PublicEnum.cpp">
@@ -217,6 +217,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Scene\SceneManager.cpp">
       <Filter>Runtime\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Settings\ProjectSettings.cpp">
+      <Filter>Runtime\Settings</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

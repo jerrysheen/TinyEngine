@@ -7,13 +7,29 @@ namespace EngineCore
     class Quaternion
     {
     public:
+        float x, y , z ,w;
+        static Quaternion Identity;
+    public:    
         Quaternion() = default;
         Quaternion(float x, float y, float z, float w);    
         // todo: implement real Forward
-        Vector3 GetForward(){return Vector3(0.0f, 0.0f, 1.0f);};
-        Vector3 GetUp(){return Vector3(0.0f, 1.0f, 0.0f);};
-        Vector3 GetRight(){return Vector3(1.0f, 0.0f, 0.0f);};
+        Vector3 GetForward();
+        Vector3 GetUp();
+        Vector3 GetRight();
         static Quaternion FromRotationMatrix(const Vector3& col0, const Vector3& col1, const Vector3& col2);
+        static Quaternion AngleAxisX(float degree);
+        static Quaternion AngleAxisY(float degree);
+        static Quaternion AngleAxisZ(float degree);
+
+        static Quaternion Normalized(const Quaternion& quaternion);
+
+        static Quaternion Slerp(const Quaternion& a, const Quaternion& b, float t);
+        static Quaternion Lerp(const Quaternion& a, const Quaternion& b, float t);
+        Quaternion operator*(const Quaternion& other) const;
+
+
+        Quaternion Conjugate() const;
+        Quaternion Inverse() const;
     };
 
 

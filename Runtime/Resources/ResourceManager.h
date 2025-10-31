@@ -1,10 +1,11 @@
-#pragma once
+﻿#pragma once
 #include "Asset.h"
 #include "PreCompiledHeader.h"
 #include "ResourceHandle.h"
 #include "Asset.h"
 #include "MetaFile.h"
 #include "Resources/Resource.h"
+#include "Settings/ProjectSettings.h"
 
 namespace EngineCore
 {
@@ -18,8 +19,9 @@ namespace EngineCore
         ResourceManager(){};
 
         template<typename T>
-        ResourceHandle<T> LoadAsset(const string& path)
+        ResourceHandle<T> LoadAsset(const string& relativePath)
         {
+            string path = PathSettings::ResolveAssetPath(relativePath);
             // 根据path判断是否加载， 加载了就存ID和path:
             if(mPathToID.count(path) > 0)
             {

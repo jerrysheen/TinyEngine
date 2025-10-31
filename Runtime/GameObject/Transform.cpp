@@ -1,9 +1,11 @@
-#include "PreCompiledHeader.h"
+﻿#include "PreCompiledHeader.h"
 #include "Transform.h"
 
 namespace EngineCore
 {
     Transform::Transform(GameObject* gameObject)
+        :mWorldMatrix(Matrix4x4::Identity), mLocalMatrix(Matrix4x4::Identity),
+        mWorldPosition(Vector3::Zero), mWorldQuaternion(Quaternion::Identity), mWorldScale(Vector3::One), mLocalPosition(Vector3::Zero), mLocalQuaternion(Quaternion::Identity), mLocalScale(Vector3::One)
     {
         mGO = gameObject;
     }
@@ -34,7 +36,8 @@ namespace EngineCore
     // 矩阵从右往左读：先应用worldMatrix，再应用rotation
     void Transform::RotateX(float degree)
     {
-        Matrix4x4 rotation = Matrix4x4::RotateX(degree);
+        Quaternion rotationDelta = Quaternion::AngleAxisX(degree);
+        mLocalQuaternion = rotationDelta * mLocalQuaternion;
         MarkDirty();
     }
 
@@ -42,7 +45,8 @@ namespace EngineCore
     // 矩阵从右往左读：先应用worldMatrix，再应用rotation
     void Transform::RotateY(float degree)
     {
-        Matrix4x4 rotation = Matrix4x4::RotateY(degree);
+        Quaternion rotationDelta = Quaternion::AngleAxisY(degree);
+        mLocalQuaternion = rotationDelta * mLocalQuaternion;
         MarkDirty();
     }
 
@@ -50,7 +54,8 @@ namespace EngineCore
     // 矩阵从右往左读：先应用worldMatrix，再应用rotation
     void Transform::RotateZ(float degree)
     {
-        Matrix4x4 rotation = Matrix4x4::RotateZ(degree);
+        Quaternion rotationDelta = Quaternion::AngleAxisZ(degree);
+        mLocalQuaternion = rotationDelta * mLocalQuaternion;
         MarkDirty();
     }
 

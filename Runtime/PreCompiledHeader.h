@@ -4,7 +4,11 @@
 #define D3D12_API
 #define EDITOR
 
-
+// ========== Windows API（新增） ==========
+#ifdef _WIN32
+    #define WIN32_LEAN_AND_MEAN  // 排除一些不常用的 Windows API，加快编译
+    #include <Windows.h>
+#endif
 
 #include "iostream"
 #include <unordered_map>
@@ -14,6 +18,7 @@
 #include <string>
 #include <variant>
 #include <cmath> 
+#include <algorithm>
 using std::unordered_map;
 using std::string;
 using std::vector;

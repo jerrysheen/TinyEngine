@@ -1,10 +1,10 @@
-#include "PreCompiledHeader.h"
+﻿#include "PreCompiledHeader.h"
 #include "WindowManagerWindows.h"
 #include <WindowsX.h>
 #include "imgui_impl_win32.h"
 #include "Renderer/RenderEngine.h"
 #include "Renderer/RenderAPI.h"
-#include "Core/ProjectSettings.h"
+#include "Settings/ProjectSettings.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -36,8 +36,8 @@ namespace EngineCore
 		
 		RegisterClassExW(&wndClass);
 		
-		mWindowWidth = ProjectSettings::mWindowWidth;
-        mWindowHeight = ProjectSettings::mWindowHeight;
+		mWindowWidth = WindowSettings::s_WindowWidth;
+        mWindowHeight = WindowSettings::s_WindowHeight;
 
 		// CreateWindowW传入的窗口大小会包括标题栏和边框，需要根据客户区大小来计算实际窗口大小
 		RECT rc = { 0, 0, static_cast<LONG>(mWindowWidth), static_cast<LONG>(mWindowHeight) };

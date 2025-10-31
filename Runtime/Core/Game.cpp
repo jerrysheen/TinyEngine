@@ -1,15 +1,17 @@
-#include "PreCompiledHeader.h"
+﻿#include "PreCompiledHeader.h"
 #include "Game.h"
 #include "EngineCore.h"
 #include "Resources/ResourceManager.h"
 #ifdef EDITOR
 #include "Windows/EditorGUIManager.h"
 #endif
+#include "Settings/ProjectSettings.h"
 
 namespace EngineCore
 {
     void Game::Launch()
     {
+        ProjectSettings::Initialize();
         // InitManagers Here.
         ResourceManager::Create();
         RenderEngine::Create();

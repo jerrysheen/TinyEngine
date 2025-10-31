@@ -1,4 +1,4 @@
-#include "PreCompiledHeader.h"
+﻿#include "PreCompiledHeader.h"
 #include "SceneManager.h"
 #include "Graphics/Texture.h"
 #include "Resources/ResourceManager.h"
@@ -10,13 +10,12 @@ namespace EngineCore
     
     SceneManager::SceneManager()
     {
-        testTexture = ResourceManager::GetInstance()->LoadAsset<Texture>("D:/GitHubST/TinyEngine/Assets/Textures/viking_room.png");
-
+        testTexture = ResourceManager::GetInstance()->LoadAsset<Texture>("Textures/viking_room.png");
 
         // quad Mesh也应该通过它生成.
         //ResourceManager::GetInstance()->CreateResource<ModelData>(Primitive::Quad);
         quadMesh = ResourceManager::GetInstance()->CreateResource<ModelData>(Primitive::Quad);
-        blitShader = ResourceManager::GetInstance()->LoadAsset<Shader>("D:/GitHubST/TinyEngine/Assets/Shader/BlitShader.hlsl");
+        blitShader = ResourceManager::GetInstance()->LoadAsset<Shader>("Shader/BlitShader.hlsl");
         
         blitMaterial = ResourceManager::GetInstance()->CreateResource<Material>(blitShader);
         //blitMaterial->renderState.shaderInstanceID = blitShader->GetInstanceID();
@@ -32,18 +31,19 @@ namespace EngineCore
         auto* cameraComponent = cameraGO->AddComponent<Camera>();
         scene->AddCamToStack(cameraComponent);
         Transform* transform = cameraGO->GetComponent<Transform>();
-        transform->SetLocalPosition(Vector3{ 0.0f, 5.0f, -5.0f });
+        transform->SetLocalPosition(Vector3{ 0.0f, 0.0f, -5.0f });
         transform->UpdateNow();
         cameraComponent->UpdateCameraMatrix();
 
         auto* testObject = scene->CreateGameObject("house");
         auto meshfilter = testObject->AddComponent<MeshFilter>();
-        meshfilter->mMeshHandle = ResourceManager::GetInstance()->LoadAsset<ModelData>("D:/GitHubST/TinyEngine/Assets/Model/viking_room.obj");
+        meshfilter->mMeshHandle = ResourceManager::GetInstance()->LoadAsset<ModelData>("Model/viking_room.obj");
         auto meshRender = testObject->AddComponent<MeshRenderer>();
-        meshRender->mMatHandle = ResourceManager::GetInstance()->LoadAsset<Material>("D:/GitHubST/TinyEngine/Assets/Material/testMat.mat");
+        meshRender->mMatHandle = ResourceManager::GetInstance()->LoadAsset<Material>("Material/testMat.mat");
         transform = testObject->GetComponent<Transform>();
-        //transform->RotateX(90.0f);
-        //transform->RotateY(135.0f);
+        transform->RotateX(90.0f);
+        transform->RotateY(135.0f);
+        transform->UpdateNow();
         // todo ： 矩阵数据上传应该在哪里？
         // 应该在permatdata更新的地方
         meshRender->mMatHandle.Get()->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());

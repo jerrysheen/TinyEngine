@@ -128,20 +128,34 @@ project "EngineCore"
 		buildoptions { "/source-charset:utf-8", "/execution-charset:utf-8" }
 
 	filter "configurations:Debug"
-		defines "DEBUG_MODE"
+		defines {
+			"DEBUG_MODE",
+			'ENGINE_ROOT_PATH="' .. path.getabsolute(".") .. '/"',
+			'ASSETS_PATH="' .. path.getabsolute("./Assets") .. '/"'			
+		}
 		runtime "Debug"
 		staticruntime "on"
 		symbols "on"
 		links { "Vendor/libs/assimpd" }
+   		debugdir "%{wks.location}/../.."
 
 	filter "configurations:Release"
-		defines "RELEASE_MODE"
+		defines { 
+			"RELEASE_MODE",
+			'ENGINE_ROOT_PATH="' .. path.getabsolute(".") .. '/"',
+			'ASSETS_PATH="' .. path.getabsolute("./Assets") .. '/"'
+		}
 		runtime "Release"
 		optimize "on"
 		links { "Vendor/libs/assimp" }
+		debugdir "%{wks.location}/../.."
 
 	filter "configurations:Dist"
-		defines "DIST_MODE"
+		defines { 
+			"DIST_MODE",
+			'ENGINE_ROOT_PATH=""',  -- 发布版本使用相对于exe的路径
+			'ASSETS_PATH="Assets/"'
+		}
 		runtime "Release"
 		optimize "on"
 		links { "Vendor/libs/assimp" }
