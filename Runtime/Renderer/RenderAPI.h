@@ -18,7 +18,6 @@ namespace  EngineCore
         virtual void BeginFrame() = 0;
         virtual void Render() = 0;
         virtual void EndFrame() = 0;
-        virtual void OnResize(int width, int height) = 0;
         static void Create();
         virtual Shader* CompileShader(const string& path, Shader* shader) = 0;
 
@@ -50,6 +49,7 @@ namespace  EngineCore
         virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) = 0;
         virtual void RenderAPISetViewPort(Payload_SetViewPort payloadSetViewport) = 0;
         virtual void RenderAPIEndFrame() = 0;
+        virtual void RenderAPIWindowResize(Payload_WindowResize payloadWindowResize) = 0;
 
     public:
         static std::unique_ptr<RenderAPI> s_Instance;

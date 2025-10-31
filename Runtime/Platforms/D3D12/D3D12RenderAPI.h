@@ -28,7 +28,6 @@ namespace EngineCore
         virtual void BeginFrame() override;
         virtual void Render() override;
         virtual void EndFrame() override;
-        virtual void OnResize(int width, int height) override;
         D3D12RenderAPI();
         ~D3D12RenderAPI(){};
 
@@ -61,6 +60,7 @@ namespace EngineCore
         virtual void RenderAPISetSissorRect(Payload_SetSissorRect payloadSetSissorrect) override;
         virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) override;
         virtual void RenderAPISetViewPort(Payload_SetViewPort payloadSetViewport) override;
+        virtual void RenderAPIWindowResize(Payload_WindowResize payloadWindowResize) override;
         virtual void RenderAPIEndFrame() override;
 
         TD3D12DescriptorHandle GetTextureSrvHanle(uint32_t textureID);

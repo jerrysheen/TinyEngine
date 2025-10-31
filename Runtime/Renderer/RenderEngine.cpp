@@ -38,7 +38,8 @@ namespace EngineCore
     
     void RenderEngine::OnResize(int width, int height)
     {
-        RenderAPI::GetInstance().OnResize(width, height);
+        Renderer::GetInstance().ResizeWindow(width, height);
+        
     }    
     
     void RenderEngine::Render()

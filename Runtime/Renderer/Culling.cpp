@@ -13,6 +13,7 @@ namespace EngineCore
         context.Reset();
         context.camera = cam;
         auto* scene = SceneManager::GetInstance().GetCurrentScene();
+        // todo: 快速的剔除逻辑， boudns逻辑
         for (auto* go : scene->objLists) 
         {
             auto* matComponent = go->GetComponent<MeshRenderer>();

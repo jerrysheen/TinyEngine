@@ -139,6 +139,15 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(temp);
     }
 
+    void Renderer::ResizeWindow(int width, int height)
+    {
+        DrawCommand temp;
+        temp.op = RenderOp::kWindowResize;
+        temp.data.onWindowResize.width = width;
+        temp.data.onWindowResize.height = height;
+        mRenderBuffer.PushBlocking(temp);
+    }
+
     void Renderer::Submit(const RenderPassInfo &info)
     {
         ConfigureRenderTarget(info);

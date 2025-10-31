@@ -44,6 +44,7 @@ namespace EngineCore
 
 
         void DrawIndexed(uint32_t vaoID, int count);
+        void ResizeWindow(int width, int height);
         
         void SetRenderState(const Material* mat, const RenderPassInfo &passinfo);
 
@@ -68,6 +69,8 @@ namespace EngineCore
 
         void RenderLoop() 
         {
+            Payload_WindowResize pendingResize = {0, 0};
+            bool hasResize = false;
             while (mRunning.load(std::memory_order_acquire) == true) 
             {
                 DrawCommand cmd;
@@ -81,6 +84,12 @@ namespace EngineCore
                     continue;
                 }
 
+                if(cmd.op == RenderOp::kWindowResize)
+                {
+                    hasResize = true;
+                    pendingResize = cmd.data.onWindowResize;
+                }
+
                 if(cmd.op == RenderOp::kBeginFrame)
                 {
                     currState = RenderOp::kBeginFrame;
@@ -92,6 +101,12 @@ namespace EngineCore
                 {
                     currState = RenderOp::kEndFrame;
                     RenderAPI::GetInstance().RenderAPIEndFrame();
+
+                    if(hasResize)
+                    {
+                        RenderAPI::GetInstance().RenderAPIWindowResize(pendingResize);
+                        hasResize = false;
+                    }
                 }
                 
                 if(currState == RenderOp::kBeginFrame)
