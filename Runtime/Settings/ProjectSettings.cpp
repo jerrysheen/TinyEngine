@@ -79,7 +79,7 @@ namespace EngineCore
     }
 
 
-    int WindowSettings::s_WindowHeight = 720;
-    int WindowSettings::s_WindowWidth = 980;
+    int WindowSettings::s_WindowHeight = 1080;
+    int WindowSettings::s_WindowWidth = 1920;
 
 };

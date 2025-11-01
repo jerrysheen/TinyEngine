@@ -22,8 +22,31 @@ namespace EngineEditor
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-		// Setup Dear ImGui style
-		ImGui::StyleColorsDark();
+		ImGuiStyle& style = ImGui::GetStyle();
+
+		// 设置窗口背景色 - 白灰色主题
+		style.Colors[ImGuiCol_WindowBg] = ImVec4(0.94f, 0.94f, 0.94f, 1.0f);
+
+		// 设置标题栏背景色 - 浅灰色
+		style.Colors[ImGuiCol_TitleBg] = ImVec4(0.85f, 0.85f, 0.85f, 1.0f);
+		style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.80f, 0.80f, 0.80f, 1.0f);
+
+		// 设置菜单栏背景色 - 浅灰色
+		style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.88f, 0.88f, 0.88f, 1.0f);
+
+		// 设置按钮颜色 - 柔和的浅蓝灰色
+		style.Colors[ImGuiCol_Button] = ImVec4(0.75f, 0.80f, 0.85f, 1.0f);
+		style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.65f, 0.75f, 0.85f, 1.0f);
+		style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.55f, 0.65f, 0.75f, 1.0f);
+
+		// 设置边框颜色 - 中灰色
+		style.Colors[ImGuiCol_Border] = ImVec4(0.65f, 0.65f, 0.65f, 0.6f);
+		
+		// 设置文本颜色 - 深色（浅色背景需要深色文字）
+		style.Colors[ImGuiCol_Text] = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
+		
+		// 设置标题栏文本颜色
+		style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.90f, 0.90f, 0.90f, 0.75f);
         InitForDirectX12();
 
     }

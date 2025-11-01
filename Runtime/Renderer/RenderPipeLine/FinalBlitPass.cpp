@@ -6,6 +6,9 @@
 #include "Managers/WindowManager.h"
 #include "Core/PublicEnum.h"
 
+#ifdef EDITOR
+#include "EditorSettings.h"
+#endif
 
 namespace EngineCore
 {
@@ -17,7 +20,12 @@ namespace EngineCore
     {
         SetRenderTarget(FrameBufferManager::GetInstance().GetScreenBuffer(), ResourceHandle<FrameBufferObject>(0));
         SetClearFlag(ClearFlag::All, Vector3(0.0, 0.0, 0.0), 1.0f);
-        SetViewPort(Vector2(0, 0), Vector2(WindowManager::GetInstance().GetWidth(), WindowManager::GetInstance().GetHeight()));
+        #ifdef EDITOR
+            SetViewPort(EngineEditor::EditorSettings::GetGameViewPanelStartPos(), EngineEditor::EditorSettings::GetGameViewPanelEndPos());
+        #else
+            SetViewPort(Vector2(0, 0), Vector2(WindowManager::GetInstance().GetWidth(), WindowManager::GetInstance().GetHeight()));
+        #endif
+
     }
     void FinalBlitPass::Execute(const RenderContext& context)
     {

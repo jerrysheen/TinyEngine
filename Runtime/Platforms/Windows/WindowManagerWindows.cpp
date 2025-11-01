@@ -45,7 +45,7 @@ namespace EngineCore
 		int width = static_cast<int>(rc.right - rc.left);
 		int height = static_cast<int>(rc.bottom - rc.top);
 
-		mWindow = CreateWindowW(wndClass.lpszClassName, L"ZXEngine <Direct3D 12>", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+		mWindow = CreateWindowW(wndClass.lpszClassName, L"TinyEngine <Direct3D 12>", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
 			width, height, NULL, NULL, wndClass.hInstance, NULL);
 
     }
@@ -187,7 +187,10 @@ namespace EngineCore
     {
         //std::cout << "WindowManagerWindows::OnResize" << std::endl;
 		mResized = false;
-		if(RenderAPI::IsInitialized())RenderEngine::GetInstance().OnResize(mWindowWidth, mWindowHeight);
+		if(RenderAPI::IsInitialized())
+		{
+			RenderEngine::GetInstance().OnResize(mWindowWidth, mWindowHeight);
+		}
 		std::cout << mWindowHeight << std::endl;
 		std::cout << mWindowWidth << std:: endl;
     }

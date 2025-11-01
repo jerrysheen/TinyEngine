@@ -69,16 +69,25 @@
     <ClInclude Include="..\..\..\..\Editor\EditorSettings.h">
       <Filter>Editor</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Editor\Panel\EditorConsolePanel.h">
+      <Filter>Editor\Panel</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Editor\Panel\EditorGameViewPanel.h">
       <Filter>Editor\Panel</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Editor\Panel\EditorHierarchyPanel.h">
       <Filter>Editor\Panel</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Editor\Panel\EditorInspectorPanel.h">
+      <Filter>Editor\Panel</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Editor\Panel\EditorMainBar.h">
       <Filter>Editor\Panel</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Editor\Panel\EditorPanel.h">
+      <Filter>Editor\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Editor\Panel\EditorProjectPanel.h">
       <Filter>Editor\Panel</Filter>
     </ClInclude>
   </ItemGroup>
@@ -92,16 +101,25 @@
     <ClCompile Include="..\..\..\..\Editor\EditorSettings.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Editor\Panel\EditorConsolePanel.cpp">
+      <Filter>Editor\Panel</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Editor\Panel\EditorGameViewPanel.cpp">
       <Filter>Editor\Panel</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Editor\Panel\EditorHierarchyPanel.cpp">
       <Filter>Editor\Panel</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Editor\Panel\EditorInspectorPanel.cpp">
+      <Filter>Editor\Panel</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Editor\Panel\EditorMainBar.cpp">
       <Filter>Editor\Panel</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Editor\Panel\EditorPanel.cpp">
+      <Filter>Editor\Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Editor\Panel\EditorProjectPanel.cpp">
       <Filter>Editor\Panel</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Core\Game.cpp">
