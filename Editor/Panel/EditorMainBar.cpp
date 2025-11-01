@@ -1,0 +1,72 @@
+#include "PreCompiledHeader.h"
+#include "EditorMainBar.h"
+#include "imgui.h"
+#include "EditorSettings.h"
+
+namespace EngineEditor
+{
+    void EditorMainBar::DrawGUI()
+    {
+        		// ����С��λ��
+		ImGui::SetNextWindowPos(ImVec2(0, 0));
+		ImGui::SetNextWindowSize(ImVec2((float)EditorSettings::mainBarWidth, (float)EditorSettings::mainBarHeight));
+
+		// ��������������
+		if (ImGui::Begin("ZXEngine", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_MenuBar))
+		{
+			if (ImGui::BeginMenuBar())
+			{
+				if (ImGui::BeginMenu("File"))
+				{
+					if (ImGui::MenuItem("New Scene")){}
+						//EditorDialogBoxManager::GetInstance()->PopMessage("Notice", "This feature is not implemented yet.");
+					if (ImGui::MenuItem("Open Scene")){}
+						//EditorDialogBoxManager::GetInstance()->PopMessage("Notice", "This feature is not implemented yet.");
+					if (ImGui::MenuItem("Save Scene")){}
+						//EditorDialogBoxManager::GetInstance()->PopMessage("Notice", "This feature is not implemented yet.");
+
+					ImGui::Separator();
+
+					if (ImGui::MenuItem("New Project")){}
+						//EditorDialogBoxManager::GetInstance()->PopMessage("Notice", "This feature is not implemented yet.");
+					if (ImGui::MenuItem("Open Project")){}
+						//EditorDialogBoxManager::GetInstance()->PopMessage("Notice", "This feature is not implemented yet.");
+					if (ImGui::MenuItem("Save Project")){}
+						//EditorDialogBoxManager::GetInstance()->PopMessage("Notice", "This feature is not implemented yet.");
+
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("Edit"))
+				{
+					if (ImGui::MenuItem("Project Settings")) {}
+						//EditorDialogBoxManager::GetInstance()->PopMessage("Notice", "This feature is not implemented yet.");
+
+					ImGui::EndMenu();
+				}
+				if (ImGui::BeginMenu("Assets"))
+				{
+					if (ImGui::MenuItem("Compile All Shader for Vulkan"))
+					{
+					}
+
+					if (ImGui::MenuItem("Compile All Shader for DirectX12"))
+					{
+					}
+
+					if (ImGui::MenuItem("Generate HLSL for DirectX12"))
+					{
+					}
+
+					ImGui::EndMenu();
+				}
+				ImGui::EndMenuBar();
+			}
+
+		}
+		ImGui::End();
+    }
+    
+    EditorMainBar::~EditorMainBar()
+    {
+    }
+}

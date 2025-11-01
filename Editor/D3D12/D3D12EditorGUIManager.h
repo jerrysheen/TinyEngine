@@ -1,7 +1,7 @@
 #pragma once
 #include "PreCompiledHeader.h"
 #include "Platforms/D3D12/d3dUtil.h"
-#include "Windows/EditorGUIManager.h"
+#include "EditorGUIManager.h"
 #include "imgui.h"
 
 namespace EngineEditor
@@ -11,8 +11,6 @@ namespace EngineEditor
     public:
         // 渲染线程beginFrame，重置CommandList
         virtual void BeginFrame() override;
-        // 渲染线程Render，收集渲染数据
-        virtual void Render() override;
         // 渲染线程EndFrame，提交指令
         virtual void EndFrame() override;
         static void ApplyDpiScale(float scale)

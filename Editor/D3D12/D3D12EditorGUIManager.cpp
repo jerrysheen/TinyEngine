@@ -83,23 +83,6 @@ namespace EngineEditor
 		renderAPI->SignalFence(renderAPI->GetFrameFence());
     }
     
-
-    void D3D12EditorGUIManager::Render()
-    {
-        bool alwaystrue = true;
-        ImGui::Begin("Another Window", &alwaystrue);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                alwaystrue = false;
-        ImGui::End();
-		
-		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2(1920, 1080);
-		// Rendering
-		
-		ImGui::Render();
-    }
-    
     
     void D3D12EditorGUIManager::InitForDirectX12()
     {

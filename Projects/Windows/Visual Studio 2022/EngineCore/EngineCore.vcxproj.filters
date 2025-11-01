@@ -7,8 +7,8 @@
     <Filter Include="Editor\D3D12">
       <UniqueIdentifier>{79EAB23D-654D-42E2-0ED3-7A98FA140E65}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Editor\Windows">
-      <UniqueIdentifier>{C690B5AD-B25E-A9B3-9BF2-19DA875F8518}</UniqueIdentifier>
+    <Filter Include="Editor\Panel">
+      <UniqueIdentifier>{8B03A63E-7766-35E3-20EC-6D990C2E0166}</UniqueIdentifier>
     </Filter>
     <Filter Include="Runtime">
       <UniqueIdentifier>{4995DAC4-B574-5960-BE8C-E4362AEBBFC1}</UniqueIdentifier>
@@ -63,16 +63,46 @@
     <ClInclude Include="..\..\..\..\Editor\D3D12\D3D12EditorGUIManager.h">
       <Filter>Editor\D3D12</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Editor\Windows\EditorGUIManager.h">
-      <Filter>Editor\Windows</Filter>
+    <ClInclude Include="..\..\..\..\Editor\EditorGUIManager.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Editor\EditorSettings.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Editor\Panel\EditorGameViewPanel.h">
+      <Filter>Editor\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Editor\Panel\EditorHierarchyPanel.h">
+      <Filter>Editor\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Editor\Panel\EditorMainBar.h">
+      <Filter>Editor\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Editor\Panel\EditorPanel.h">
+      <Filter>Editor\Panel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\Editor\D3D12\D3D12EditorGUIManager.cpp">
       <Filter>Editor\D3D12</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Editor\Windows\EditorGUIManager.cpp">
-      <Filter>Editor\Windows</Filter>
+    <ClCompile Include="..\..\..\..\Editor\EditorGUIManager.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Editor\EditorSettings.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Editor\Panel\EditorGameViewPanel.cpp">
+      <Filter>Editor\Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Editor\Panel\EditorHierarchyPanel.cpp">
+      <Filter>Editor\Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Editor\Panel\EditorMainBar.cpp">
+      <Filter>Editor\Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Editor\Panel\EditorPanel.cpp">
+      <Filter>Editor\Panel</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Core\Game.cpp">
       <Filter>Runtime\Core</Filter>

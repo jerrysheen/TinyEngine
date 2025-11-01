@@ -3,7 +3,7 @@
 #include "EngineCore.h"
 #include "Resources/ResourceManager.h"
 #ifdef EDITOR
-#include "Windows/EditorGUIManager.h"
+#include "EditorGUIManager.h"
 #endif
 #include "Settings/ProjectSettings.h"
 

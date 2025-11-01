@@ -15,7 +15,7 @@
 #include <chrono>
 
 #ifdef EDITOR
-#include "Windows/EditorGUIManager.h"
+#include "EditorGUIManager.h"
 #endif
 
 
