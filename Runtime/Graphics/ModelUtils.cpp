@@ -17,6 +17,6 @@ namespace EngineCore
 			Vertex{Vector3(1,-1,0), Vector3(0,0,1), Vector2(1,0)},  // 右下
 			Vertex{Vector3(1, 1,0), Vector3(0,0,1), Vector2(1,1)}   // 右上
 			});
-		RenderAPI::GetInstance().SetUpMesh(modelData, false);
+		RenderAPI::GetInstance()->SetUpMesh(modelData, false);
 	}
 }

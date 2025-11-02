@@ -67,7 +67,7 @@ namespace EngineCore
     {
         auto handle = GetNextAvaliableDesc();
         handle.heapType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        auto mD3D12Device = static_cast<D3D12RenderAPI*>(&RenderAPI::GetInstance())->md3dDevice;
+        auto mD3D12Device = static_cast<D3D12RenderAPI*>(RenderAPI::GetInstance())->md3dDevice;
 
 		// 创建CBV
 		CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
@@ -86,7 +86,7 @@ namespace EngineCore
     {
         auto handle = GetNextAvaliableDesc();
         handle.heapType = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-        auto mD3D12Device = static_cast<D3D12RenderAPI*>(&RenderAPI::GetInstance())->md3dDevice;
+        auto mD3D12Device = static_cast<D3D12RenderAPI*>(RenderAPI::GetInstance())->md3dDevice;
 
         // 创建RTV
 		CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
@@ -102,7 +102,7 @@ namespace EngineCore
     {
         auto handle = GetNextAvaliableDesc();
         handle.heapType = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-        auto mD3D12Device = static_cast<D3D12RenderAPI*>(&RenderAPI::GetInstance())->md3dDevice;
+        auto mD3D12Device = static_cast<D3D12RenderAPI*>(RenderAPI::GetInstance())->md3dDevice;
 
 		// 创建DSV
 		CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
@@ -117,7 +117,7 @@ namespace EngineCore
     {
         auto handle = GetNextAvaliableDesc();
         handle.heapType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        auto mD3D12Device = static_cast<D3D12RenderAPI*>(&RenderAPI::GetInstance())->md3dDevice;
+        auto mD3D12Device = static_cast<D3D12RenderAPI*>(RenderAPI::GetInstance())->md3dDevice;
 
         // 创建CBV
         CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());

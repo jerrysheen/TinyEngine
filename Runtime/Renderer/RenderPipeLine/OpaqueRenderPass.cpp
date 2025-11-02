@@ -50,7 +50,7 @@ namespace EngineCore
     // 整理成一个结构体发往渲染管线？
     void OpaqueRenderPass::Submit()
     {
-        //Renderer::GetInstance().AddRenderPassInfo(&mRenderPassInfo);
+        //Renderer::GetInstance()->AddRenderPassInfo(&mRenderPassInfo);
     }
 
 

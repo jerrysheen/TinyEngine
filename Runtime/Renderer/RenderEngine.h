@@ -12,7 +12,7 @@ namespace EngineCore
     class RenderEngine
     {
     public:
-        static RenderEngine& GetInstance(){return *s_Instance;};
+        static RenderEngine* GetInstance(){return s_Instance.get();};
         static bool IsInitialized(){return s_Instance != nullptr;};
         static void Update();
         static void Create();
@@ -23,6 +23,7 @@ namespace EngineCore
         static void Render();
         static void EndRender();
 
+        static void Destory();
         RenderEngine(){};
         ~RenderEngine(){};
     private:

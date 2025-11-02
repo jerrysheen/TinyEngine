@@ -13,7 +13,7 @@ namespace  EngineCore
     class RenderAPI
     {
     public:
-        static RenderAPI& GetInstance(){ return *s_Instance.get();}
+        static RenderAPI* GetInstance(){ return s_Instance.get();}
         static bool IsInitialized(){return s_Instance != nullptr;};
         virtual void BeginFrame() = 0;
         virtual void Render() = 0;

@@ -26,7 +26,7 @@ namespace EngineCore
         stbi_uc* pixels = stbi_load(path.c_str(), &mWidth, &mHeight, &nrComponents, STBI_rgb_alpha);
         // 2. CreateData
         ASSERT(pixels != nullptr);
-        RenderAPI::GetInstance().CreateTextureBuffer(pixels, this);
+        RenderAPI::GetInstance()->CreateTextureBuffer(pixels, this);
 
         stbi_image_free(pixels);
     }

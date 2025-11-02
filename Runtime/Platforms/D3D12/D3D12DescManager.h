@@ -10,7 +10,7 @@ namespace EngineCore
     public:
         D3D12DescManager();
         ~D3D12DescManager();
-        static D3D12DescManager& GetInstance(){return *mInstance;};
+        static D3D12DescManager* GetInstance(){return mInstance;};
         static void Create(Microsoft::WRL::ComPtr<ID3D12Device> device);
         static Microsoft::WRL::ComPtr<ID3D12Device> mD3DDevice;
         

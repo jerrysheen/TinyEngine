@@ -9,9 +9,9 @@ namespace EngineCore
 {
     Scene::~Scene()
     {
-        if (this == SceneManager::GetInstance().GetCurrentScene()) 
+        if (SceneManager::GetInstance() != nullptr && this == SceneManager::GetInstance()->GetCurrentScene()) 
         {
-            SceneManager::GetInstance().SetCurrentScene(nullptr);
+            SceneManager::GetInstance()->SetCurrentScene(nullptr);
         }
         
         // 先清空列表，防止渲染线程访问到野指针
@@ -26,7 +26,7 @@ namespace EngineCore
         mainCamera = nullptr;
 
         // 析构的时候不应该去Remove，Remove应该是在外面
-        //SceneManager::GetInstance().RemoveScene(name);
+        //SceneManager::GetInstance()->RemoveScene(name);
     }
 
     void Scene::Open()

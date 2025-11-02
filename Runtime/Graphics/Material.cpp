@@ -60,7 +60,7 @@ namespace EngineCore
         // 保存新的，释放原来的
         mTexResourceMap[slotName] = handle;
         //gpu
-        RenderAPI::GetInstance().SetShaderTexture(this, slotName ,slotIndex, handle.Get()->GetInstanceID());
+        RenderAPI::GetInstance()->SetShaderTexture(this, slotName ,slotIndex, handle.Get()->GetInstanceID());
     }
     
     void Material::SetTexture(const string& slotName, ResourceHandle<FrameBufferObject> handle)
@@ -82,7 +82,7 @@ namespace EngineCore
         // 保存新的，释放原来的
         mTexResourceMap[slotName] = handle;
         //gpu
-        RenderAPI::GetInstance().SetShaderTexture(this, slotName ,slotIndex, handle.Get()->GetInstanceID());
+        RenderAPI::GetInstance()->SetShaderTexture(this, slotName ,slotIndex, handle.Get()->GetInstanceID());
     }
 
     void Material::SetMatrix4x4(const string &name, const Matrix4x4 &matrix4x4)
@@ -92,7 +92,7 @@ namespace EngineCore
         auto& map = mShader.Get()->mShaderBindingInfo.mShaderStageVariableInfoMap;
         ASSERT(map.count(name) > 0);
         auto& variableInfo = map[name];
-        RenderAPI::GetInstance().SetShaderMatrix4x4(this, variableInfo, matrix4x4);
+        RenderAPI::GetInstance()->SetShaderMatrix4x4(this, variableInfo, matrix4x4);
     }
 
      // todo：资源的统一管理， Material只会持有一个textureID，后续的信息都去ResouceManager的Texture中去找。
@@ -109,7 +109,7 @@ namespace EngineCore
          }
          ASSERT_MSG(slotIndex != -1, "Can't find this Texture");
          //gpu
-         RenderAPI::GetInstance().SetShaderTexture(this, slotName, slotIndex, texInstanceID);
+         RenderAPI::GetInstance()->SetShaderTexture(this, slotName, slotIndex, texInstanceID);
      }
 
 
@@ -118,7 +118,7 @@ namespace EngineCore
         mMaterialdata.floatData[name] = value;
         auto& map = mShader.Get()->mShaderBindingInfo.mShaderStageVariableInfoMap;
         auto& variableInfo = map[name];
-        RenderAPI::GetInstance().SetShaderFloat(this, variableInfo, value);
+        RenderAPI::GetInstance()->SetShaderFloat(this, variableInfo, value);
     }
 
     // 1. 加载ResouceHandle资源
@@ -158,10 +158,10 @@ namespace EngineCore
     // 后续资源应该用inFo.name 进行寻找
     void Material::SetUpGPUResources()
     {  
-        RenderAPI::GetInstance().CreateBuffersResource(this, mShader.Get()->mShaderBindingInfo.mBufferInfo);
-        RenderAPI::GetInstance().CreateSamplerResource(this, mShader.Get()->mShaderBindingInfo.mSamplerInfo);
-        RenderAPI::GetInstance().CreateTextureResource(this, mShader.Get()->mShaderBindingInfo.mTextureInfo);
-        RenderAPI::GetInstance().CreateUAVResource(this, mShader.Get()->mShaderBindingInfo.mUavInfo);
+        RenderAPI::GetInstance()->CreateBuffersResource(this, mShader.Get()->mShaderBindingInfo.mBufferInfo);
+        RenderAPI::GetInstance()->CreateSamplerResource(this, mShader.Get()->mShaderBindingInfo.mSamplerInfo);
+        RenderAPI::GetInstance()->CreateTextureResource(this, mShader.Get()->mShaderBindingInfo.mTextureInfo);
+        RenderAPI::GetInstance()->CreateUAVResource(this, mShader.Get()->mShaderBindingInfo.mUavInfo);
 
 
         UploadDataToGpu();
@@ -183,7 +183,7 @@ namespace EngineCore
             if(map.count(key) > 0)
             {
                 auto& variableInfo = map[key];
-                RenderAPI::GetInstance().SetShaderVector(this, variableInfo, value);
+                RenderAPI::GetInstance()->SetShaderVector(this, variableInfo, value);
             }
         }
         
@@ -195,7 +195,7 @@ namespace EngineCore
             if(map.count(key) > 0)
             {
                 auto& variableInfo = map[key];
-                RenderAPI::GetInstance().SetShaderMatrix4x4(this, variableInfo, value);
+                RenderAPI::GetInstance()->SetShaderMatrix4x4(this, variableInfo, value);
             }
         }
 

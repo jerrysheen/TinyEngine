@@ -53,7 +53,7 @@ namespace EngineEditor
     
     D3D12EditorGUIManager::~D3D12EditorGUIManager()
     {
-        auto renderAPI = static_cast<EngineCore::D3D12RenderAPI*>(&EngineCore::RenderAPI::GetInstance());
+        auto renderAPI = static_cast<EngineCore::D3D12RenderAPI*>(EngineCore::RenderAPI::GetInstance());
 
 
 		// todo::
@@ -75,7 +75,7 @@ namespace EngineEditor
 
     void D3D12EditorGUIManager::EndFrame()
     {
-        auto renderAPI = static_cast<EngineCore::D3D12RenderAPI*>(&EngineCore::RenderAPI::GetInstance());
+        auto renderAPI = static_cast<EngineCore::D3D12RenderAPI*>(EngineCore::RenderAPI::GetInstance());
 
 
 		commandAllocators[renderAPI->mCurrBackBuffer]->Reset();
@@ -109,9 +109,9 @@ namespace EngineEditor
     
     void D3D12EditorGUIManager::InitForDirectX12()
     {
-		auto renderAPI = static_cast<EngineCore::D3D12RenderAPI*>(&EngineCore::RenderAPI::GetInstance());
+		auto renderAPI = static_cast<EngineCore::D3D12RenderAPI*>(EngineCore::RenderAPI::GetInstance());
 
-		ImGui_ImplWin32_Init(static_cast<EngineCore::WindowManagerWindows*>(&EngineCore::WindowManager::GetInstance())->GetWindow());
+		ImGui_ImplWin32_Init(static_cast<EngineCore::WindowManagerWindows*>(EngineCore::WindowManager::GetInstance())->GetWindow());
 
 		// ���ﴴ�����������ѣ���һ���������ǹ̶���ImGui���ı�Texture�õģ�ʣ�µ��Ǹ�ͼƬ��Ⱦ�õ�
 		D3D12_DESCRIPTOR_HEAP_DESC desc = {};

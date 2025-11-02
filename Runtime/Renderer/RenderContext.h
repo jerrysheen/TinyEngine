@@ -9,6 +9,7 @@ namespace EngineCore
     class RenderContext
     {
     public:
+    // todo 指针释放
         Camera* camera;
         vector<LightData*> visibleLights;
         vector<Matrix4x4> shadowMatrixs;

@@ -30,7 +30,7 @@ namespace EngineCore
 		layout.push_back(InputLayout(VertexAttribute::NORMAL, 3 * sizeof(float), 3, 8 * sizeof(float), 3 * sizeof(float)));
 		layout.push_back(InputLayout(VertexAttribute::UV0, 2 * sizeof(float), 2, 8 * sizeof(float), 6 * sizeof(float)));
 
-		RenderAPI::GetInstance().SetUpMesh(this, false);
+		RenderAPI::GetInstance()->SetUpMesh(this, false);
     }
 
 

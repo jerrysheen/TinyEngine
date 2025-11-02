@@ -16,7 +16,7 @@ namespace EngineEditor
 		if (ImGui::Begin("Hierarchy", NULL, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize))
 		{
             nodeIdx = 0;
-			auto* scene = EngineCore::SceneManager::GetInstance().GetCurrentScene();
+			auto* scene = EngineCore::SceneManager::GetInstance()->GetCurrentScene();
             if (scene == nullptr ) 
             {
                 ImGui::End();
@@ -39,10 +39,6 @@ namespace EngineEditor
 
     void EditorHierarchyPanel::DrawNode(GameObject *gameObject)
     {
-        // 防止访问野指针或空指针
-        if (gameObject == nullptr) return;
-        if (gameObject->transform == nullptr) return;
-        
         nodeIdx++;
 
         ImGuiTreeNodeFlags nodeFlags = baseFlags;
@@ -70,7 +66,7 @@ namespace EngineEditor
 			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 			{
 				selectedGO = gameObject;
-				EditorGUIManager::GetInstance().SetCurrentSelected(gameObject);
+				EditorGUIManager::GetInstance()->SetCurrentSelected(gameObject);
 			}
 
         }
@@ -91,7 +87,7 @@ namespace EngineEditor
 			if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 			{
 				selectedGO = gameObject;
-				EditorGUIManager::GetInstance().SetCurrentSelected(gameObject);
+				EditorGUIManager::GetInstance()->SetCurrentSelected(gameObject);
 			}
 
 			if (nodeOpen)

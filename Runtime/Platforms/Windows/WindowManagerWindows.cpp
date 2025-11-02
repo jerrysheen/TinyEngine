@@ -12,7 +12,7 @@ namespace EngineCore
 {
     LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
-		return static_cast<WindowManagerWindows*>(&WindowManager::GetInstance())->WindowProcedure(hWnd, msg, wParam, lParam);
+		return static_cast<WindowManagerWindows*>(WindowManager::GetInstance())->WindowProcedure(hWnd, msg, wParam, lParam);
 	}
 
     WindowManagerWindows::WindowManagerWindows()
@@ -189,7 +189,7 @@ namespace EngineCore
 		mResized = false;
 		if(RenderAPI::IsInitialized())
 		{
-			RenderEngine::GetInstance().OnResize(mWindowWidth, mWindowHeight);
+			RenderEngine::GetInstance()->OnResize(mWindowWidth, mWindowHeight);
 		}
 		std::cout << mWindowHeight << std::endl;
 		std::cout << mWindowWidth << std:: endl;

@@ -23,7 +23,7 @@ namespace EngineCore
         colorAttachmentDesc.width = 800;
         colorAttachmentDesc.height = 600;
         colorAttachmentDesc.format = TextureFormat::R8G8B8A8;
-        colorAttachment = FrameBufferManager::GetInstance().CreateFBO(colorAttachmentDesc);
+        colorAttachment = FrameBufferManager::GetInstance()->CreateFBO(colorAttachmentDesc);
 
         FrameBufferDesc depthAttachmentDesc;
         depthAttachmentDesc.name = "CameraColorAttachment";
@@ -31,7 +31,7 @@ namespace EngineCore
         depthAttachmentDesc.width = 800;
         depthAttachmentDesc.height = 600;
         depthAttachmentDesc.format = TextureFormat::D24S8;
-        depthAttachment = FrameBufferManager::GetInstance().CreateFBO(depthAttachmentDesc);
+        depthAttachment = FrameBufferManager::GetInstance()->CreateFBO(depthAttachmentDesc);
         //todo： 全局材质更新
         
         //mPerspectiveMatrix =  Matrix4x4(0.52, 0, -0.37, 0,

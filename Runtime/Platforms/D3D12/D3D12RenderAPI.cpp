@@ -78,7 +78,7 @@ namespace EngineCore
     
     void D3D12RenderAPI::InitRenderTarget()
     {
-        auto [width, height] = WindowManager::GetInstance().GetWindowSize();
+        auto [width, height] = WindowManager::GetInstance()->GetWindowSize();
         mClientWidth = width;
         mClientHeight = height;
         // Flush before changing any resources.
@@ -257,7 +257,7 @@ namespace EngineCore
         sd.SampleDesc.Quality = m4xMsaaState ? (m4xMsaaQuality - 1) : 0;
         sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         sd.BufferCount = SwapChainBufferCount;
-        sd.OutputWindow = static_cast<HWND>(WindowManager::GetInstance().GetWindow());
+        sd.OutputWindow = static_cast<HWND>(WindowManager::GetInstance()->GetWindow());
         sd.Windowed = true;
         sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
         sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
@@ -327,7 +327,7 @@ namespace EngineCore
         // ThrowIfFailed(mSwapChain->Present(0, 0));
         // mCurrBackBuffer = (mCurrBackBuffer + 1) % SwapChainBufferCount;
         // //WaitForRenderFinish();
-        // D3D12DescManager::GetInstance().ResetFrameAllocator();
+        // D3D12DescManager::GetInstance()->ResetFrameAllocator();
 
     }
 
@@ -685,7 +685,7 @@ namespace EngineCore
                 cbvDesc.BufferLocation = constantBuffer.mBufferResource->GetGPUVirtualAddress();
                 cbvDesc.SizeInBytes = alignedSize;
 
-                constantBuffer.handleCBV = D3D12DescManager::GetInstance().CreateDescriptor(cbvDesc);
+                constantBuffer.handleCBV = D3D12DescManager::GetInstance()->CreateDescriptor(cbvDesc);
             });
             data.mConstantBufferArray.push_back(constantBuffer);
         }
@@ -765,7 +765,7 @@ namespace EngineCore
         // Create Descriptor:...
         if(fbodesc->mFormat == TextureFormat::R8G8B8A8)
         {
-            TD3D12DescriptorHandle descHandle = D3D12DescManager::GetInstance().CreateDescriptor(d3DFrameBufferObject.resource, D3D12_RENDER_TARGET_VIEW_DESC{});
+            TD3D12DescriptorHandle descHandle = D3D12DescManager::GetInstance()->CreateDescriptor(d3DFrameBufferObject.resource, D3D12_RENDER_TARGET_VIEW_DESC{});
             d3DFrameBufferObject.rtvHandle = descHandle.cpuHandle;
 
             D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -774,12 +774,12 @@ namespace EngineCore
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
             srvDesc.Texture2D.MipLevels = 1;
             
-            descHandle = D3D12DescManager::GetInstance().CreateDescriptor(d3DFrameBufferObject.resource, srvDesc);
+            descHandle = D3D12DescManager::GetInstance()->CreateDescriptor(d3DFrameBufferObject.resource, srvDesc);
             d3DFrameBufferObject.srvHandle = descHandle.cpuHandle;
         }
         else if (fbodesc->mFormat == TextureFormat::D24S8)
         {
-            TD3D12DescriptorHandle descHandle = D3D12DescManager::GetInstance().CreateDescriptor(d3DFrameBufferObject.resource, D3D12_DEPTH_STENCIL_VIEW_DESC{});
+            TD3D12DescriptorHandle descHandle = D3D12DescManager::GetInstance()->CreateDescriptor(d3DFrameBufferObject.resource, D3D12_DEPTH_STENCIL_VIEW_DESC{});
             d3DFrameBufferObject.dsvHandle = descHandle.cpuHandle;
 
             D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -788,7 +788,7 @@ namespace EngineCore
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
             srvDesc.Texture2D.MipLevels = 1;
             
-            descHandle = D3D12DescManager::GetInstance().CreateDescriptor(d3DFrameBufferObject.resource, srvDesc);
+            descHandle = D3D12DescManager::GetInstance()->CreateDescriptor(d3DFrameBufferObject.resource, srvDesc);
             d3DFrameBufferObject.srvHandle = descHandle.cpuHandle;
         }
 
@@ -862,7 +862,7 @@ namespace EngineCore
         srvDesc.Texture2D.MipLevels = 1;
         srvDesc.Texture2D.MostDetailedMip = 0;
         srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-        TD3D12DescriptorHandle handle = D3D12DescManager::GetInstance().CreateDescriptor(buffer.resource.Get(), srvDesc);
+        TD3D12DescriptorHandle handle = D3D12DescManager::GetInstance()->CreateDescriptor(buffer.resource.Get(), srvDesc);
 
         buffer.srvHandle = handle.cpuHandle;
 
@@ -1109,7 +1109,7 @@ namespace EngineCore
 
 
         //        ID3D12DescriptorHeap* heaps[] = {
-        //            D3D12DescManager::GetInstance().GetFrameCbvSrvUavHeap().Get(),
+        //            D3D12DescManager::GetInstance()->GetFrameCbvSrvUavHeap().Get(),
         //            // 如果用了采样器表，这里再加上 sampler heap
         //        };
         //        mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
@@ -1123,7 +1123,7 @@ namespace EngineCore
         //        if (cbvCount > 0 && matData.mConstantBufferArray.size() > 0)
         //        {
         //            // 分配CBV表空间
-        //            TD3D12DescriptorHandle handle = D3D12DescManager::GetInstance().GetFrameCbvSrvUavAllocator(cbvCount);
+        //            TD3D12DescriptorHandle handle = D3D12DescManager::GetInstance()->GetFrameCbvSrvUavAllocator(cbvCount);
         //            D3D12_CPU_DESCRIPTOR_HANDLE cbvTableStart = handle.cpuHandle;
         //            
         //            // 拷贝CBV描述符
@@ -1146,7 +1146,7 @@ namespace EngineCore
         //        if (srvCount > 0 && matData.mTextureBufferArray.size() > 0)
         //        {
         //            // 分配CBV表空间
-        //            TD3D12DescriptorHandle handle = D3D12DescManager::GetInstance().GetFrameCbvSrvUavAllocator(srvCount);
+        //            TD3D12DescriptorHandle handle = D3D12DescManager::GetInstance()->GetFrameCbvSrvUavAllocator(srvCount);
         //            D3D12_CPU_DESCRIPTOR_HANDLE srvTableStart = handle.cpuHandle;
 
         //            for (int i = 0; i < matData.mTextureBufferArray.size(); i++)
@@ -1297,7 +1297,7 @@ namespace EngineCore
         ThrowIfFailed(mDirectCmdListAlloc->Reset());
         ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), psoObj.Get()));
         ID3D12DescriptorHeap* heaps[] = {
-            D3D12DescManager::GetInstance().GetFrameCbvSrvUavHeap().Get(),
+            D3D12DescManager::GetInstance()->GetFrameCbvSrvUavHeap().Get(),
             // 如果用了采样器表，这里再加上 sampler heap
         };
         mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
@@ -1370,7 +1370,7 @@ namespace EngineCore
         if (cbvCount > 0)
         {
             // 分配CBV表空间
-            TD3D12DescriptorHandle handle = D3D12DescManager::GetInstance().GetFrameCbvSrvUavAllocator(cbvCount);
+            TD3D12DescriptorHandle handle = D3D12DescManager::GetInstance()->GetFrameCbvSrvUavAllocator(cbvCount);
             D3D12_CPU_DESCRIPTOR_HANDLE cbvTableStart = handle.cpuHandle;
             
             // 拷贝CBV描述符
@@ -1393,7 +1393,7 @@ namespace EngineCore
         if (srvCount > 0)
         {
             // 分配CBV表空间
-            TD3D12DescriptorHandle handle = D3D12DescManager::GetInstance().GetFrameCbvSrvUavAllocator(srvCount);
+            TD3D12DescriptorHandle handle = D3D12DescManager::GetInstance()->GetFrameCbvSrvUavAllocator(srvCount);
             D3D12_CPU_DESCRIPTOR_HANDLE srvTableStart = handle.cpuHandle;
 
             for (int i = 0; i < matData.mTextureBufferArray.size(); i++)
@@ -1594,7 +1594,7 @@ namespace EngineCore
         ThrowIfFailed(mSwapChain->Present(0, 0));
         mCurrBackBuffer = (mCurrBackBuffer + 1) % SwapChainBufferCount;
         //WaitForRenderFinish();
-        D3D12DescManager::GetInstance().ResetFrameAllocator();
+        D3D12DescManager::GetInstance()->ResetFrameAllocator();
     }
 
 } // namespace EngineCore

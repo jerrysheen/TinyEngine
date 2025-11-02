@@ -18,20 +18,20 @@ namespace EngineCore
     }
     void FinalBlitPass::Configure(const RenderContext& context)
     {
-        SetRenderTarget(FrameBufferManager::GetInstance().GetScreenBuffer(), ResourceHandle<FrameBufferObject>(0));
+        SetRenderTarget(FrameBufferManager::GetInstance()->GetScreenBuffer(), ResourceHandle<FrameBufferObject>(0));
         SetClearFlag(ClearFlag::All, Vector3(0.0, 0.0, 0.0), 1.0f);
         #ifdef EDITOR
             SetViewPort(EngineEditor::EditorSettings::GetGameViewPanelStartPos(), EngineEditor::EditorSettings::GetGameViewPanelEndPos());
         #else
-            SetViewPort(Vector2(0, 0), Vector2(WindowManager::GetInstance().GetWidth(), WindowManager::GetInstance().GetHeight()));
+            SetViewPort(Vector2(0, 0), Vector2(WindowManager::GetInstance()->GetWidth(), WindowManager::GetInstance()->GetHeight()));
         #endif
 
     }
     void FinalBlitPass::Execute(const RenderContext& context)
     {
-        Material* mat = SceneManager::GetInstance().blitMaterial.Get();
+        Material* mat = SceneManager::GetInstance()->blitMaterial.Get();
         mat->SetTexture("SrcTexture", context.camera->colorAttachment.Get()->GetInstanceID());
-        ModelData* model = SceneManager::GetInstance().quadMesh.Get();
+        ModelData* model = SceneManager::GetInstance()->quadMesh.Get();
         mRenderPassInfo.drawRecordList.emplace_back(mat, model);
     }
 
@@ -41,7 +41,7 @@ namespace EngineCore
 
     void FinalBlitPass::Submit()
     {
-        //Renderer::GetInstance().AddRenderPassInfo(&mRenderPassInfo);
+        //Renderer::GetInstance()->AddRenderPassInfo(&mRenderPassInfo);
     }
 
 

@@ -29,11 +29,20 @@ namespace EngineCore
         Renderer(): mRenderThread(&Renderer::RenderLoop, this), mRunning(true) {};
         ~Renderer()
         {
+            std::cout << "Renderer shutting down, stopping render thread..." << std::endl;
+            
+            // 1. 设置停止标志
             mRunning.store(false, std::memory_order_release);
-            // 改变状态后通知全局
+            
+            // 2. 唤醒可能在等待的渲染线程
             mSleepRenderThreadCV.notify_all();
 
-            if (mRenderThread.joinable()) mRenderThread.join();
+            // 3. 等待渲染线程结束
+            if (mRenderThread.joinable())
+            {
+                mRenderThread.join();
+                std::cout << "Render thread joined successfully." << std::endl;
+            }
         };
         static void Create();
 
@@ -105,28 +114,28 @@ namespace EngineCore
                 if(cmd.op == RenderOp::kBeginFrame)
                 {
                     currState = RenderOp::kBeginFrame;
-                    RenderAPI::GetInstance().RenderAPIBeginFrame();
+                    RenderAPI::GetInstance()->RenderAPIBeginFrame();
 
                 }
 
                 if(cmd.op == RenderOp::kEndFrame)
                 {
                     currState = RenderOp::kEndFrame;
-                    RenderAPI::GetInstance().RenderAPISubmit();
+                    RenderAPI::GetInstance()->RenderAPISubmit();
 
 #ifdef EDITOR                   
                     if (hasDrawGUI)
                     {
-                        EngineEditor::EditorGUIManager::GetInstance().BeginFrame();
-                        EngineEditor::EditorGUIManager::GetInstance().Render();
-                        EngineEditor::EditorGUIManager::GetInstance().EndFrame();
+                        EngineEditor::EditorGUIManager::GetInstance()->BeginFrame();
+                        EngineEditor::EditorGUIManager::GetInstance()->Render();
+                        EngineEditor::EditorGUIManager::GetInstance()->EndFrame();
                         hasDrawGUI = false;
                     }
 #endif
-                    RenderAPI::GetInstance().RenderAPIPresentFrame();
+                    RenderAPI::GetInstance()->RenderAPIPresentFrame();
                     if(hasResize)
                     {
-                        RenderAPI::GetInstance().RenderAPIWindowResize(pendingResize);
+                        RenderAPI::GetInstance()->RenderAPIWindowResize(pendingResize);
                         hasResize = false;
                     }
                 }

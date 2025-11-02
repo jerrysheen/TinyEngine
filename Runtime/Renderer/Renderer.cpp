@@ -18,7 +18,7 @@ namespace EngineCore
     {
         // Clear RenderInfo in RenderAPI
         // todo: 这个地方是否需要优化
-        RenderAPI::GetInstance().ClearRenderPassInfo();
+        RenderAPI::GetInstance()->ClearRenderPassInfo();
 
         DrawCommand temp;
         temp.op = RenderOp::kBeginFrame;
@@ -39,7 +39,7 @@ namespace EngineCore
             // 感觉不应该这么写， 而是从pass出发，pass去调用上传之类的。
             Submit(pass->GetRenderPassInfo());
         }
-        //RenderAPI::GetInstance().Submit(mRenderPassInfo);
+        //RenderAPI::GetInstance()->Submit(mRenderPassInfo);
         EndFrame();
         // 重置每个pass产生的渲染信息
         for (auto& pass : context.camera->mRenderPassAsset.renderPasses)
@@ -61,7 +61,7 @@ namespace EngineCore
     // 从PSOManager创建一个PSO，可以复用
     void Renderer::SetRenderState(const Material* mat, const RenderPassInfo &passinfo)
     {
-        //RenderAPI::GetInstance().GetOrCreatePSO(mat, passinfo);
+        //RenderAPI::GetInstance()->GetOrCreatePSO(mat, passinfo);
         DrawCommand temp;
         temp.op = RenderOp::kSetRenderState;
         PSODesc pso;
@@ -188,25 +188,25 @@ namespace EngineCore
         switch (cmd.op)
         {
         case RenderOp::kConfigureRT :
-            RenderAPI::GetInstance().RenderAPIConfigureRT(cmd.data.configureRT);
+            RenderAPI::GetInstance()->RenderAPIConfigureRT(cmd.data.configureRT);
         break;
         case RenderOp::kDrawIndexed :
-            RenderAPI::GetInstance().RenderAPIDrawIndexed(cmd.data.setDrawCmd);
+            RenderAPI::GetInstance()->RenderAPIDrawIndexed(cmd.data.setDrawCmd);
         break;        
         case RenderOp::kSetMaterial :
-            RenderAPI::GetInstance().RenderAPISetMaterial(cmd.data.setMaterial);
+            RenderAPI::GetInstance()->RenderAPISetMaterial(cmd.data.setMaterial);
         break;     
         case RenderOp::kSetRenderState :
-            RenderAPI::GetInstance().RenderAPISetRenderState(cmd.data.setRenderState);
+            RenderAPI::GetInstance()->RenderAPISetRenderState(cmd.data.setRenderState);
         break;     
         case RenderOp::kSetSissorRect :
-            RenderAPI::GetInstance().RenderAPISetSissorRect(cmd.data.setSissorRect);
+            RenderAPI::GetInstance()->RenderAPISetSissorRect(cmd.data.setSissorRect);
         break;    
         case RenderOp::kSetVBIB :
-            RenderAPI::GetInstance().RenderAPISetVBIB(cmd.data.setVBIB);
+            RenderAPI::GetInstance()->RenderAPISetVBIB(cmd.data.setVBIB);
         break;     
         case RenderOp::kSetViewPort :
-            RenderAPI::GetInstance().RenderAPISetViewPort(cmd.data.setViewPort);
+            RenderAPI::GetInstance()->RenderAPISetViewPort(cmd.data.setViewPort);
         break;     
         default:
             break;

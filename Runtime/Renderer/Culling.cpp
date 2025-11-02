@@ -13,7 +13,7 @@ namespace EngineCore
         // get some fake data....
         context.Reset();
         context.camera = cam;
-        auto* scene = SceneManager::GetInstance().GetCurrentScene();
+        auto* scene = SceneManager::GetInstance()->GetCurrentScene();
         // todo: 快速的剔除逻辑， boudns逻辑
         for (auto* go : scene->allObjList)
         {

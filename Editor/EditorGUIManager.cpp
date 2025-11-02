@@ -29,10 +29,19 @@ namespace EngineEditor
         s_Instance->InitPanel();
     }
 
+    void EditorGUIManager::OnDestory()
+    {
+        if (s_Instance)
+        {
+            delete s_Instance;  // 触发析构函数
+            s_Instance = nullptr;  // 避免悬空指针
+        }
+    }
+
 
     void EditorGUIManager::Update()
     {
-        EngineCore::RenderEngine::GetInstance().OnDrawGUI();
+        EngineCore::RenderEngine::GetInstance()->OnDrawGUI();
     }
     
     void EditorGUIManager::Render()

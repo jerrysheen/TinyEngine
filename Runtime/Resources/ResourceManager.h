@@ -18,6 +18,12 @@ namespace EngineCore
         ~ResourceManager(){};
         ResourceManager(){};
 
+        // todo :资源正确释放
+        static void Destroy()
+        {
+            delete sInstance;
+            sInstance = nullptr;
+        };
         template<typename T>
         ResourceHandle<T> LoadAsset(const string& relativePath)
         {

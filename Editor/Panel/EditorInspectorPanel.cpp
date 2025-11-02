@@ -20,7 +20,7 @@ namespace EngineEditor
             ImGuiWindowFlags_NoCollapse | 
             ImGuiWindowFlags_NoResize))
         {
-            auto* currentSelected = EditorGUIManager::GetInstance().GetCurrentSelected();
+            auto* currentSelected = EditorGUIManager::GetInstance()->GetCurrentSelected();
             if(currentSelected != nullptr)
             {
                 auto* transform = currentSelected->GetComponent<Transform>();

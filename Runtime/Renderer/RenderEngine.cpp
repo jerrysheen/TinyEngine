@@ -31,14 +31,14 @@ namespace EngineCore
     
     void RenderEngine::BeginRender()
     {
-        RenderAPI::GetInstance().BeginFrame();
-        //Renderer::GetInstance().BeginFrame();
+        RenderAPI::GetInstance()->BeginFrame();
+        //Renderer::GetInstance()->BeginFrame();
         renderContext.Reset();
     }    
     
     void RenderEngine::OnResize(int width, int height)
     {
-        Renderer::GetInstance().ResizeWindow(width, height);
+        Renderer::GetInstance()->ResizeWindow(width, height);
         
     }
 
@@ -52,8 +52,8 @@ namespace EngineCore
 
 
 
-        //RenderAPI::GetInstance().Render();
-        Camera* cam = SceneManager::GetInstance().GetCurrentScene()->mainCamera;
+        //RenderAPI::GetInstance()->Render();
+        Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->mainCamera;
         
         Culling::Run(cam, renderContext);
         
@@ -61,19 +61,41 @@ namespace EngineCore
         // todo：scenecamera的剔除在这个地方做？，那么阴影相机呢？，
         // 需要更加细化？ 暂时不搞，等到下个版本， 目前就是Renderpass。
         // 那么在此处做好剔除，
-        Renderer::GetInstance().Render(renderContext);
+        Renderer::GetInstance()->Render(renderContext);
     }
 
     void RenderEngine::EndRender()
     {
         renderContext.Reset();
-        //Renderer::GetInstance().EndFrame();
-        RenderAPI::GetInstance().EndFrame();
+        //Renderer::GetInstance()->EndFrame();
+        RenderAPI::GetInstance()->EndFrame();
+    }
+
+    void RenderEngine::Destory()
+    {
+        // Renderer 的析构函数会自动停止渲染线程
+        // 只需要销毁 Renderer 单例
+        Renderer::Destroy();
+        FrameBufferManager::Destroy();
+        //RenderAPI::Destroy();
+        WindowManager::Destroy();
+        
+        // 最后销毁 RenderEngine 自己
+        if (s_Instance)
+        {
+            // 先调用析构（智能指针自动管理）
+            s_Instance.reset();
+            // 此时：
+            // 1. 析构函数已完成
+            // 2. 内存已释放
+            // 3. s_Instance 已经是 nullptr
+            // 4. 后续 GetInstance() 不会返回野指针
+        }
     }
 
     void RenderEngine::OnDrawGUI()
     {
-        Renderer::GetInstance().OnDrawGUI();
+        Renderer::GetInstance()->OnDrawGUI();
     }
 
 }
