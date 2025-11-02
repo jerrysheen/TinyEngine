@@ -12,36 +12,19 @@
 namespace EngineCore
 {
     class Component;
+    class Scene;
+    class Transform;
     //class Transform;
     // later we will inherete from Object, now just keep it simple.
     class GameObject : Object
     {
     public:
-        GameObject()
-        {
-            transform = this->AddComponent<Transform>();
-        };
+        GameObject();
 
-        GameObject(const std::string& name) : name(name)
-        {
-            transform = this->AddComponent<Transform>();
-        };
-        ~GameObject()
-        {
-            // todo : component.OnDestroy;
-            //todo: 调用所有Component的OnDestory函数
-            for(auto& [key, value] : components)
-            {
-                if(value != nullptr)
-                {
-                    delete value;
-                    // 注意，不会自动更新value值
-                    value = nullptr;
-                }
-            }
-            components.clear();
-            scripts.clear();
-        };
+        GameObject::GameObject(const std::string& name, Scene* scene);
+
+        ~GameObject();
+        void SetParent(const GameObject* gameObject);
         template<typename T>
         inline T* GetComponent() const;
         template<typename T>
@@ -52,6 +35,8 @@ namespace EngineCore
         std::vector<MonoBehaviour*> scripts;
         std::string name;
         bool enabled = true;
+    private:
+        Scene* ownerScene = nullptr;
     };
 
     template<typename T>

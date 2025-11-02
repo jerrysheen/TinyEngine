@@ -4,6 +4,7 @@
 #include "Resources/ResourceManager.h"
 #include "GameObject/MeshFilter.h"
 #include "GameObject/MeshRenderer.h"
+#include "Scene.h"
 namespace EngineCore
 {
     std::unique_ptr<SceneManager> SceneManager::s_Instance = nullptr;
@@ -44,6 +45,10 @@ namespace EngineCore
         transform->RotateX(90.0f);
         transform->RotateY(135.0f);
         transform->UpdateNow();
+
+        auto* childObj = scene->CreateGameObject("testChild");
+        childObj->SetParent(testObject);
+        
         // todo ： 矩阵数据上传应该在哪里？
         // 应该在permatdata更新的地方
         meshRender->mMatHandle.Get()->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());
@@ -51,6 +56,7 @@ namespace EngineCore
 
     SceneManager::~SceneManager()
     {
+        mCurrentScene = nullptr;
         for (auto& [key, value] : mSceneMap) 
         {
             delete value;
@@ -73,7 +79,7 @@ namespace EngineCore
     }
 
     // todo : 谁去持有这个Scene， 如果是这里， 那这里要负责管理
-    inline void SceneManager::RemoveScene(const std::string& name)
+    void SceneManager::RemoveScene(const std::string& name)
     {
         ASSERT_MSG(mSceneMap.count(name) > 0, "Can't find this scene");
         // auto* 和 auto 是一样的道理， *在这个地方其实是一种语义，表示指针

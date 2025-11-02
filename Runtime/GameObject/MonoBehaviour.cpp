@@ -3,9 +3,9 @@
 #include "GameObject.h"
 namespace EngineCore
 {
-    MonoBehaviour::MonoBehaviour(GameObject* parent)
+    MonoBehaviour::MonoBehaviour(GameObject* go)
     {
-        mGO = parent;
+        gameObject = go;
     }
 
 };

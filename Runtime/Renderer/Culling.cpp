@@ -3,6 +3,7 @@
 #include "Scene/SceneManager.h"
 #include "GameObject/MeshFilter.h"
 #include "GameObject/MeshRenderer.h"
+#include "Scene/Scene.h"
 
 namespace EngineCore
 {
@@ -14,7 +15,7 @@ namespace EngineCore
         context.camera = cam;
         auto* scene = SceneManager::GetInstance().GetCurrentScene();
         // todo: 快速的剔除逻辑， boudns逻辑
-        for (auto* go : scene->objLists) 
+        for (auto* go : scene->allObjList)
         {
             auto* matComponent = go->GetComponent<MeshRenderer>();
             auto* modelComponent = go->GetComponent<MeshFilter>();

@@ -2,7 +2,6 @@
 #include "Core/PublicStruct.h"
 #include "Graphics/Texture.h"
 #include "Component.h"
-#include "GameObject/Transform.h"
 
 namespace EngineCore
 {

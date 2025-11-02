@@ -1,8 +1,9 @@
 #pragma once
-
+#include "GameObject/GameObject.h"
 
 namespace EngineEditor
 {
+    using GameObject = EngineCore::GameObject;
     class EditorPanel;
     class EditorGUIManager
     {
@@ -20,8 +21,18 @@ namespace EngineEditor
         // 录入指令部分，不需要有具体RenderAPI实现。
         void Render();
         void InitPanel();
+
+        inline void SetCurrentSelected(GameObject* go) 
+        { 
+            currentSelected = go; 
+        };
+        inline GameObject* GetCurrentSelected()
+        { 
+            return currentSelected;
+        };
     private:
         std::vector<EditorPanel*> mPanelList;
+        GameObject* currentSelected = nullptr;
     };
 
 

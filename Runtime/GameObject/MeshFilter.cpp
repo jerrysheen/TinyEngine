@@ -6,7 +6,8 @@
 
 namespace EngineCore
 {
-	MeshFilter::MeshFilter(GameObject* gamObject)
+	MeshFilter::MeshFilter(GameObject* go)
 	{
+		gameObject = go;
 	}
 }

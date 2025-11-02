@@ -21,6 +21,9 @@ namespace EngineCore
         static Quaternion AngleAxisY(float degree);
         static Quaternion AngleAxisZ(float degree);
 
+        static Quaternion FromEulerAngles(const Vector3& eulerAngles);
+        Vector3 ToEulerAngles() const;
+
         static Quaternion Normalized(const Quaternion& quaternion);
 
         static Quaternion Slerp(const Quaternion& a, const Quaternion& b, float t);

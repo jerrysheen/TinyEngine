@@ -10,11 +10,11 @@
 #include "Graphics/Shader.h"
 #include "Graphics/Texture.h"
 #include "Resources/ResourceHandle.h"
-#include "Scene/Scene.h"
 
 
 namespace EngineCore
 {
+    class Scene;
     class SceneManager : public Manager<SceneManager>
     {
         // 允许Manager类访问SceneManager私有函数。
@@ -25,6 +25,7 @@ namespace EngineCore
         GameObject* CreateGameObject(const std::string& name);
         GameObject* FindGameObject(const std::string& name);
 
+        void RemoveScene(const std::string& name);
         static void Update();
         static void Create();
 
@@ -39,9 +40,15 @@ namespace EngineCore
         //
         ResourceHandle<Texture> testTexture;
 
-        inline Scene* GetCurrentScene() { ASSERT(mCurrentScene != nullptr); return mCurrentScene; };
+        inline Scene* GetCurrentScene() 
+        { 
+            return mCurrentScene; 
+        };
+        inline void SetCurrentScene(Scene* scene) 
+        { 
+            mCurrentScene = scene; 
+        };
         Scene* AddNewScene(const std::string& name);
-        void RemoveScene(const std::string& name);
         void SwitchSceneTo(const std::string& name);
     private:
         Scene* mCurrentScene = nullptr;

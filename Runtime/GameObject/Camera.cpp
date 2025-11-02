@@ -5,13 +5,14 @@
 #include "Renderer/RenderPipeline/OpaqueRenderPass.h"
 #include "Renderer/RenderPipeline/FinalBlitPass.h"
 #include "GameObject/GameObject.h"
+#include "Transform.h"
 
 namespace EngineCore
 {
-    Camera::Camera(GameObject* gameObject) : 
+    Camera::Camera(GameObject* go) : 
         mFov(25.0f), mAspect(1920.0f/1080.0f), mNear(0.2), mFar(200), mProjectionMatrix(Matrix4x4::Identity), mLookAt(Vector3{0.0f, 1.0f, 0.0f}), mViewMatrix(Matrix4x4::Identity), mWidth(1920.0f), mHeight(1080.0f)
     {
-        mGO = gameObject;
+        gameObject = go;
         // fake one.
         mRenderPassAsset.renderPasses.push_back(new OpaqueRenderPass());
         mRenderPassAsset.renderPasses.push_back(new FinalBlitPass());
@@ -49,7 +50,7 @@ namespace EngineCore
     // update view and perspective matrix
     void Camera::UpdateCameraMatrix()
     {
-        auto transform = this->mGO->GetComponent<Transform>();
+        auto transform = this->gameObject->GetComponent<Transform>();
         auto& position = transform->GetWorldPosition();
         Quaternion rotation = transform->GetWorldQuaternion();
 

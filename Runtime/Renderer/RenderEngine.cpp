@@ -9,7 +9,7 @@
 #include "Scene/SceneManager.h"
 #include "Culling.h"
 #include "FrameBufferManager.h"
-
+#include "Scene/Scene.h"
 
 namespace EngineCore
 {

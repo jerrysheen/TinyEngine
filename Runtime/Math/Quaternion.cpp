@@ -180,4 +180,69 @@ namespace EngineCore
         );
     }
 
+    // 从欧拉角创建四元数（角度制，XYZ 外旋顺序，世界坐标系旋转）
+    Quaternion Quaternion::FromEulerAngles(const Vector3& eulerAngles)
+    {
+        // 创建三个基础旋转四元数
+        Quaternion qx = AngleAxisX(eulerAngles.x);  // 绕世界 X 轴旋转
+        Quaternion qy = AngleAxisY(eulerAngles.y);  // 绕世界 Y 轴旋转
+        Quaternion qz = AngleAxisZ(eulerAngles.z);  // 绕世界 Z 轴旋转
+        
+        // ============================================================================
+        // 世界坐标系 XYZ 外旋（Extrinsic Rotations）
+        // ============================================================================
+        // 外旋定义：所有旋转都相对于固定的世界坐标轴
+        // 1. 先绕世界 X 轴旋转 eulerAngles.x 度
+        // 2. 再绕世界 Y 轴旋转 eulerAngles.y 度  
+        // 3. 最后绕世界 Z 轴旋转 eulerAngles.z 度
+        // 
+        // 关键理解：
+        // - 外旋 XYZ = 内旋 ZYX（逆序关系）
+        // - 四元数乘法：右边先作用，左边后作用
+        // - 对于外旋 XYZ，我们希望旋转按 X→Y→Z 的顺序累积
+        // - 因此四元数顺序应该是：qX * qY * qZ
+        //   → qX 在最右（先作用，绕世界X轴）
+        //   → qY 在中间（次作用，绕世界Y轴）
+        //   → qZ 在最左（后作用，绕世界Z轴）
+        // 
+        // 这样转动 X 轴时，Y 和 Z 轴保持在世界坐标系的固定位置！
+        // ============================================================================
+        return qx * qy * qz;
+    }
+
+   // 将四元数转换为欧拉角（角度制，XYZ 外旋顺序，世界坐标系旋转）
+    Vector3 Quaternion::ToEulerAngles() const
+    {
+        const float PI = 3.14159265358979323846f;
+        Vector3 euler;
+
+        // XYZ 外旋顺序的四元数到欧拉角转换
+        // 对应旋转矩阵分解：R = Rx * Ry * Rz
+        
+        // 计算 Y 轴旋转（Pitch）
+        float sinY = 2.0f * (w * y - x * z);
+        
+        // 检查万向节死锁（gimbal lock）
+        if (sinY >= 0.998f) // 接近 +90 度
+        {
+            euler.y = 90.0f;
+            euler.x = std::atan2(-2.0f * (y * z - w * x), 1.0f - 2.0f * (x * x + y * y)) * 180.0f / PI;
+            euler.z = 0.0f;
+        }
+        else if (sinY <= -0.998f) // 接近 -90 度
+        {
+            euler.y = -90.0f;
+            euler.x = std::atan2(-2.0f * (y * z - w * x), 1.0f - 2.0f * (x * x + y * y)) * 180.0f / PI;
+            euler.z = 0.0f;
+        }
+        else
+        {
+            euler.y = std::asin(sinY) * 180.0f / PI;
+            euler.x = std::atan2(2.0f * (w * x + y * z), 1.0f - 2.0f * (x * x + y * y)) * 180.0f / PI;
+            euler.z = std::atan2(2.0f * (w * z + x * y), 1.0f - 2.0f * (x * x + z * z)) * 180.0f / PI;
+        }
+
+        return euler;
+    }
+
 } // namespace EngineCore

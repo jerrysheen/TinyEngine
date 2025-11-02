@@ -3,11 +3,16 @@
 
 namespace EngineCore
 {
-    Transform::Transform(GameObject* gameObject)
+    Transform::Transform()
         :mWorldMatrix(Matrix4x4::Identity), mLocalMatrix(Matrix4x4::Identity),
         mWorldPosition(Vector3::Zero), mWorldQuaternion(Quaternion::Identity), mWorldScale(Vector3::One), mLocalPosition(Vector3::Zero), mLocalQuaternion(Quaternion::Identity), mLocalScale(Vector3::One)
     {
-        mGO = gameObject;
+    }
+    Transform::Transform(GameObject* go)
+        :mWorldMatrix(Matrix4x4::Identity), mLocalMatrix(Matrix4x4::Identity),
+        mWorldPosition(Vector3::Zero), mWorldQuaternion(Quaternion::Identity), mWorldScale(Vector3::One), mLocalPosition(Vector3::Zero), mLocalQuaternion(Quaternion::Identity), mLocalScale(Vector3::One)
+    {
+        gameObject = go;
     }
 
     Transform::~Transform()
@@ -71,7 +76,7 @@ namespace EngineCore
         MarkDirty();
     }
 
-    void Transform::SetLocalScale(const Vector3 &localScale)
+    void Transform::SetLocalScale(const Vector3& localScale)
     {
         mLocalScale = localScale;
         MarkDirty();
@@ -91,12 +96,12 @@ namespace EngineCore
 
         //update worldPos worldScale worldRotation
         Matrix4x4::WorldMatrixDecompose(mWorldMatrix, mWorldPosition, mWorldQuaternion, mWorldScale);
+        isDirty = false;
 
         for(int i = 0; i < childTransforms.size(); i++)
         {
             childTransforms[i]->UpdateTransform();
         }
-        isDirty = false;
     }
 
     void Transform::UpdateIfDirty()
@@ -106,5 +111,16 @@ namespace EngineCore
             UpdateTransform();
             isDirty = false;
         }
+    }
+
+    const Vector3 Transform::GetLocalEulerAngles()
+    {
+        return mLocalQuaternion.ToEulerAngles();
+    }
+
+    void Transform::SetLocalEulerAngles(const Vector3& eulerAngles)
+    {
+        mLocalQuaternion = Quaternion::FromEulerAngles(eulerAngles);
+        MarkDirty();
     }
 }
