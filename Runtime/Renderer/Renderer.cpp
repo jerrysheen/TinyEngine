@@ -118,6 +118,7 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(temp);
     }
 
+    // SissorRect 和ViewPort参数不一样， 一个是widthheight ， 一个是start end
     void Renderer::SetSissorRect(const Vector2& viewportStartXY, const Vector2& viewportEndXY)
     {
         DrawCommand temp;
@@ -125,8 +126,8 @@ namespace EngineCore
         Payload_SetSissorRect& setSissorRect = temp.data.setSissorRect;
         setSissorRect.x = viewportStartXY.x;
         setSissorRect.y = viewportStartXY.y;
-        setSissorRect.w = viewportEndXY.x - viewportStartXY.x;
-        setSissorRect.h = viewportEndXY.y - viewportStartXY.y;
+        setSissorRect.w = viewportEndXY.x;
+        setSissorRect.h = viewportEndXY.y;
         mRenderBuffer.PushBlocking(temp);
     }
 
