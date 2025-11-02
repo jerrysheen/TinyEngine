@@ -88,6 +88,10 @@ namespace EngineCore
         {
             scene->Close();
         }
+        if(mCurrentScene == scene)
+        {
+            mCurrentScene = nullptr;
+        }
         delete scene;
         mSceneMap.erase(name);
     }

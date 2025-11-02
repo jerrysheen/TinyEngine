@@ -9,11 +9,6 @@ namespace EngineCore
 {
     Scene::~Scene()
     {
-        if (SceneManager::GetInstance() != nullptr && this == SceneManager::GetInstance()->GetCurrentScene()) 
-        {
-            SceneManager::GetInstance()->SetCurrentScene(nullptr);
-        }
-        
         // 先清空列表，防止渲染线程访问到野指针
         rootObjList.clear();
         
