@@ -74,8 +74,9 @@ project "EngineCore"
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
 		"Runtime/**.cpp",
-		"Editor/**.cpp",
+		"Runtime/**.h",
 		"Editor/**.h",
+		"Editor/**.cpp",
 		-- "ThirdParty/Runtime/Asset/stb_image/**.h",
 		-- "ThirdParty/Runtime/Asset/stb_image/**.cpp",
 		-- "ThirdParty/Runtime/Core/glm/glm/**.hpp",
@@ -92,6 +93,7 @@ project "EngineCore"
 		"Runtime/",
 		"Runtime/External/Imgui",
 		"Runtime/External/stb_image",
+		"Runtime/External/nlohmann",
 		"Editor/",
 		"Vendor/libs",
 		"Vendor/Assimp/assimp/include"
