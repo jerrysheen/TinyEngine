@@ -1,7 +1,7 @@
 #pragma once
 #include "Math.h"
 #include "MaterialData.h"
-#include "Resources/MetaFile.h"
+#include "Serialization/MetaData.h"
 #include "Shader.h"
 #include "Buffer.h"
 #include "Core/Object.h"

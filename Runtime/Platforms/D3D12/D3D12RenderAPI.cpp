@@ -1,7 +1,8 @@
 ﻿#include "PreCompiledHeader.h"
 #include "D3D12RenderAPI.h"
 #include "Managers/WindowManager.h"
-#include "Resources/MetaFile.h"
+#include "Serialization/MetaData.h"
+#include "Serialization/MetaLoader.h"
 #include "Core/PublicStruct.h"
 #include "D3D12DescManager.h"
 #include "d3dx12.h"  // 确保包含D3D12辅助类
@@ -577,6 +578,7 @@ namespace EngineCore
                 tempVariable.bufferIndex = i;
                 tempVariable.offset = varDesc.StartOffset;
                 tempVariable.size = varDesc.Size;
+                // todo : ?? 这是啥
                 tempVariable.type = MetaLoader::GetShaderVaribleType((uint32_t)varDesc.Size);
                 shaderVariableInfoMap.try_emplace(varDesc.Name, tempVariable);
             }

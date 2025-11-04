@@ -1,11 +1,14 @@
 #pragma once
-#include "PreCompiledHeader.h"
-#include "Math/Math.h"
-#include "Core/PublicEnum.h"
+#include "iostream"
+#include <unordered_map>
+#include <string>
 #include "Resources/Asset.h"
+#include "Core/PublicEnum.h"
+#include "Math/Math.h"
 
 namespace EngineCore
 {
+
     class Texture;
     class ModelData;
     class Material;
@@ -47,30 +50,4 @@ namespace EngineCore
         
     };
 
-    class MetaLoader
-    {
-    public:
-        static MaterialMetaData* LoadMaterialMetaData(const std::string& path);
-        static ShaderVariableType GetShaderVaribleType(uint32_t size);
-        static TextureMetaData* LoadTextureMetaData(const std::string& path);
-        static ModelMetaData* LoadModelMetaData(const std::string& path);
-        template<typename T>
-        static MetaData* LoadMetaData(const std::string& path)
-        {
-            MetaData* metaData = new MetaData();
-            metaData->path = path;
-            return metaData;
-            // do nothing, for example shader..
-        };
-
-    };
-    // 只声明特化
-    template<>
-    MetaData* MetaLoader::LoadMetaData<Texture>(const std::string& path);
-    
-    template<>
-    MetaData* MetaLoader::LoadMetaData<ModelData>(const std::string& path);
-
-    template<>
-    MetaData* MetaLoader::LoadMetaData<Material>(const std::string& path);
 }

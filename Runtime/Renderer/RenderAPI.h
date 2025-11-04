@@ -1,7 +1,7 @@
 #pragma once
 #include "PreCompiledHeader.h"
 #include "Graphics/Shader.h"
-#include "Resources/MetaFile.h"
+#include "Serialization/MetaData.h"
 #include "Core/PublicStruct.h"
 #include "Graphics/Material.h"
 #include "Graphics/ModelData.h"

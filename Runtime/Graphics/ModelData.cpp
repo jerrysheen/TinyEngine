@@ -1,12 +1,13 @@
 #include "PreCompiledHeader.h"
 #include "ModelData.h"
 #include "ModelUtils.h"
-
+#include "Resources/Asset.h"
 
 namespace EngineCore
 {
     ModelData::ModelData(MetaData *metaData) : Resource(metaData)
     {
+		mAssetType = AssetType::Mesh;
 		ASSERT(metaData->dependentMap.size() == 0);
 
 		ModelMetaData* modelMetaData = static_cast<ModelMetaData*>(metaData);

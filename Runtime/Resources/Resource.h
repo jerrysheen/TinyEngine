@@ -2,7 +2,7 @@
 #include "Core/Object.h"
 #include "Asset.h"
 #include "Utils/HashCombine.h"
-#include "Resources/MetaFile.h"
+#include "Serialization/MetaData.h"
 
 namespace EngineCore
 {
@@ -14,6 +14,7 @@ namespace EngineCore
     public :
         virtual ~Resource() = default;
         inline AssetID GetAssetID(){ return mAssetID; };
+        inline AssetType GetAssetType() const { return mAssetType; }
         inline void SetAssetID(const AssetID& id) { mAssetID.value = id.value; };
         const string& GetPath() const { return mPath; }
     protected:

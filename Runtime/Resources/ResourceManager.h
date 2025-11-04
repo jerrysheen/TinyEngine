@@ -3,7 +3,8 @@
 #include "PreCompiledHeader.h"
 #include "ResourceHandle.h"
 #include "Asset.h"
-#include "MetaFile.h"
+#include "Serialization/MetaData.h"
+#include "Serialization/MetaLoader.h"
 #include "Resources/Resource.h"
 #include "Settings/ProjectSettings.h"
 
@@ -119,7 +120,9 @@ namespace EngineCore
             mResourceCache[id] = resource;
             return ResourceHandle<T>(id);
         }
-    private:
+
+    // todo: temp public for Editor Test
+    public:
         void LoadDependencies(const std::vector<MetaData>& dependenciesList);
         static ResourceManager* sInstance;
         unordered_map<AssetID, Resource*> mResourceCache;

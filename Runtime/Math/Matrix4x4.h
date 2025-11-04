@@ -24,7 +24,7 @@ namespace EngineCore
       // 矩阵乘法运算符
       Matrix4x4 operator*(const Matrix4x4& other) const;
       
-    private:
+    public:
 		  float m00; float m01; float m02; float m03;
 		  float m10; float m11; float m12; float m13;
 		  float m20; float m21; float m22; float m23;

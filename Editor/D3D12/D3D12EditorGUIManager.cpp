@@ -44,7 +44,15 @@ namespace EngineEditor
 		
 		// 设置文本颜色 - 深色（浅色背景需要深色文字）
 		style.Colors[ImGuiCol_Text] = ImVec4(0.1f, 0.1f, 0.1f, 1.0f);
-		
+		// 在第 46 行之后添加：
+
+		// 设置弹出菜单背景色 - 白色/浅灰色
+		style.Colors[ImGuiCol_PopupBg] = ImVec4(0.96f, 0.96f, 0.96f, 1.0f);
+			
+		// 设置菜单项的悬停和选中颜色
+		style.Colors[ImGuiCol_Header] = ImVec4(0.75f, 0.80f, 0.85f, 0.8f);  // 悬停时的背景
+		style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.65f, 0.75f, 0.85f, 0.8f);  // 鼠标悬停
+		style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.55f, 0.65f, 0.75f, 1.0f);  // 点击时
 		// 设置标题栏文本颜色
 		style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.90f, 0.90f, 0.90f, 0.75f);
         InitForDirectX12();

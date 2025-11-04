@@ -1,6 +1,6 @@
 #pragma once
 #include "PreCompiledHeader.h"
-#include "Resources/MetaFile.h"
+#include "Serialization/MetaData.h"
 #include "Resources/Resource.h"
 #include "Core/PublicStruct.h"
 #include "Core/Object.h"

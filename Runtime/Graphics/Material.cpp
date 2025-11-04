@@ -2,11 +2,14 @@
 #include "Material.h"
 #include "Renderer/RenderAPI.h"
 #include "Resources/ResourceManager.h"
+#include "Resources/Asset.h"
 
 namespace EngineCore
 {
     Material::Material(MetaData* metaData) : Resource(metaData)
     {
+        mAssetType = AssetType::Material;
+
         MaterialMetaData* matMetaData = static_cast<MaterialMetaData*>(metaData);
         // 加载引用
 

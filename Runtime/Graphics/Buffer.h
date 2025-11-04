@@ -1,7 +1,7 @@
 #pragma once
 #include "Resources/Resource.h"
 #include "Core/PublicEnum.h"
-#include "Resources/MetaFile.h"
+#include "Serialization/MetaData.h"
 #include "Resources/Asset.h"
 //#include "Resources/Resource.h"
 
@@ -17,8 +17,9 @@ namespace EngineCore
         Buffer2D() = default;
         Buffer2D(MetaData* metaData)
         {
+
             mPath = metaData->path;
-            mAssetType = metaData->assetType;
+            mAssetType = AssetType::Texture2D;
             SetAssetID(AssetIDGenerator::NewFromFile(mPath));
         };
     };

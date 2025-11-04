@@ -1,7 +1,7 @@
 #pragma once
 #include "PreCompiledHeader.h"
 #include "Math/Math.h"
-#include "Resources/MetaFile.h"
+#include "Serialization/MetaData.h"
 #include "Texture.h"
 
 namespace EngineCore

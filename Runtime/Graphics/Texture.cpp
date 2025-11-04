@@ -1,7 +1,7 @@
 #include "PreCompiledHeader.h"
 #include "Texture.h"
 #include "stb_image.h"
-#include "Resources/MetaFile.h"
+#include "Serialization/MetaData.h"
 #include "Renderer/RenderAPI.h"
 #include "Settings/ProjectSettings.h"
 

@@ -6,7 +6,7 @@
 #include "GameObject/Transform.h"
 #include "Graphics/ModelUtils.h"
 #include "Graphics/Material.h"
-#include "Resources/MetaFile.h"
+#include "Serialization/MetaData.h"
 #include "Graphics/Shader.h"
 #include "Graphics/Texture.h"
 #include "Resources/ResourceHandle.h"

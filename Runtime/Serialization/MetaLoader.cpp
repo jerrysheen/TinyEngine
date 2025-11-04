@@ -1,6 +1,9 @@
 ﻿#include "PreCompiledHeader.h"
-#include "MetaFile.h"
+#include "json.hpp"
+#include <fstream>   
+#include "MetaLoader.h"
 #include "Settings/ProjectSettings.h"
+#include "MetaFileSerialization.h"
 
 namespace EngineCore
 {
@@ -51,6 +54,7 @@ namespace EngineCore
         
         matMetaData->dependentMap.try_emplace("DiffuseTexture",texMeta);
         matMetaData->dependentMap.try_emplace("Shader",shaderMeta);
+        
         return matMetaData;
     }
     
@@ -64,6 +68,11 @@ namespace EngineCore
         texMetaData->format = TextureFormat::R8G8B8A8;
         texMetaData->width = 64;
         texMetaData->height = 64;
+        
+        string metaPath = PathSettings::ResolveAssetPath("Textures/viking_room.meta");
+        nlohmann::json j = *texMetaData;
+        std::ofstream file(metaPath);
+        file << j.dump(4);
         return texMetaData;
     }
 

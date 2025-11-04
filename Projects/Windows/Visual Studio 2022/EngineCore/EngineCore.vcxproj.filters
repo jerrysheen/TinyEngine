@@ -22,6 +22,9 @@
     <Filter Include="Runtime\External\Imgui">
       <UniqueIdentifier>{252F5A2E-1129-8380-FA95-1991E62EE9EC}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Runtime\External\stb_image">
+      <UniqueIdentifier>{F557B7FE-E167-63CF-4A21-C8ED36505268}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Runtime\GameObject">
       <UniqueIdentifier>{29D0A5D7-15B4-662D-7E14-61806A1751AF}</UniqueIdentifier>
     </Filter>
@@ -55,8 +58,14 @@
     <Filter Include="Runtime\Scene">
       <UniqueIdentifier>{2615CA8C-92D5-45C3-5B10-8F40C78F8A9F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Runtime\Serialization">
+      <UniqueIdentifier>{96F917DA-0266-D3D4-CB59-6B323785F53C}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Runtime\Settings">
       <UniqueIdentifier>{894C8599-7545-A4EB-9E77-89708ACF83F7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\Utils">
+      <UniqueIdentifier>{69A9F78C-D569-73C3-9EA4-BC400A24B89F}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -89,6 +98,222 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\Editor\Panel\EditorProjectPanel.h">
       <Filter>Editor\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Core\Game.h">
+      <Filter>Runtime\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Core\InstanceID.h">
+      <Filter>Runtime\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Core\Object.h">
+      <Filter>Runtime\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Core\PublicEnum.h">
+      <Filter>Runtime\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Core\PublicStruct.h">
+      <Filter>Runtime\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\EngineCore.h">
+      <Filter>Runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\External\Imgui\imconfig.h">
+      <Filter>Runtime\External\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\External\Imgui\imgui.h">
+      <Filter>Runtime\External\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\External\Imgui\imgui_impl_dx12.h">
+      <Filter>Runtime\External\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\External\Imgui\imgui_impl_vulkan.h">
+      <Filter>Runtime\External\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\External\Imgui\imgui_impl_win32.h">
+      <Filter>Runtime\External\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\External\Imgui\imgui_internal.h">
+      <Filter>Runtime\External\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\External\Imgui\imstb_rectpack.h">
+      <Filter>Runtime\External\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\External\Imgui\imstb_textedit.h">
+      <Filter>Runtime\External\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\External\Imgui\imstb_truetype.h">
+      <Filter>Runtime\External\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\External\stb_image\stb_image.h">
+      <Filter>Runtime\External\stb_image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\GameObject\Camera.h">
+      <Filter>Runtime\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\GameObject\Component.h">
+      <Filter>Runtime\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\GameObject\ComponentType.h">
+      <Filter>Runtime\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\GameObject\GameObject.h">
+      <Filter>Runtime\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\GameObject\MeshFilter.h">
+      <Filter>Runtime\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\GameObject\MeshRenderer.h">
+      <Filter>Runtime\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\GameObject\MonoBehaviour.h">
+      <Filter>Runtime\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\GameObject\Transform.h">
+      <Filter>Runtime\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\Buffer.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\FrameBufferObject.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\Material.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\MaterialData.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\ModelData.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\ModelUtils.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\Shader.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\Texture.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Managers\Manager.h">
+      <Filter>Runtime\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Managers\WindowManager.h">
+      <Filter>Runtime\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Math\Math.h">
+      <Filter>Runtime\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Math\Matrix4x4.h">
+      <Filter>Runtime\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Math\Quaternion.h">
+      <Filter>Runtime\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Math\Vector2.h">
+      <Filter>Runtime\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Math\Vector3.h">
+      <Filter>Runtime\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12DescAllocator.h">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12DescManager.h">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PSOManager.h">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12RenderAPI.h">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12Struct.h">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\d3dUtil.h">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\d3dx12.h">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Platforms\Windows\WindowManagerWindows.h">
+      <Filter>Runtime\Platforms\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\PreCompiledHeader.h">
+      <Filter>Runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\Culling.h">
+      <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\FrameBufferManager.h">
+      <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderAPI.h">
+      <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderCommand.h">
+      <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderContext.h">
+      <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderEngine.h">
+      <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\FinalBlitPass.h">
+      <Filter>Runtime\Renderer\RenderPipeLine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\OpaqueRenderPass.h">
+      <Filter>Runtime\Renderer\RenderPipeLine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\RenderPass.h">
+      <Filter>Runtime\Renderer\RenderPipeLine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\Renderer.h">
+      <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\SPSCRingBuffer.h">
+      <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Resources\Asset.h">
+      <Filter>Runtime\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Resources\Resource.h">
+      <Filter>Runtime\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Resources\ResourceHandle.h">
+      <Filter>Runtime\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Resources\ResourceManager.h">
+      <Filter>Runtime\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Scene\Scene.h">
+      <Filter>Runtime\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Scene\SceneManager.h">
+      <Filter>Runtime\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\BaseTypeAndEnumSerialization.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\MetaData.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\MetaFileSerialization.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\MetaLoader.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\MetaSaver.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Settings\ProjectSettings.h">
+      <Filter>Runtime\Settings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Utils\HashCombine.h">
+      <Filter>Runtime\Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -254,9 +479,6 @@
     <ClCompile Include="..\..\..\..\Runtime\Renderer\Renderer.cpp">
       <Filter>Runtime\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Resources\MetaFile.cpp">
-      <Filter>Runtime\Resources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Resources\ResourceManager.cpp">
       <Filter>Runtime\Resources</Filter>
     </ClCompile>
@@ -265,6 +487,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Scene\SceneManager.cpp">
       <Filter>Runtime\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Serialization\MetaLoader.cpp">
+      <Filter>Runtime\Serialization</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Settings\ProjectSettings.cpp">
       <Filter>Runtime\Settings</Filter>

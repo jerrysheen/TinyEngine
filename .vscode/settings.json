@@ -82,7 +82,12 @@
         "thread": "cpp",
         "unordered_set": "cpp",
         "variant": "cpp",
-        "*.rh": "cpp"
+        "*.rh": "cpp",
+        "filesystem": "cpp",
+        "codecvt": "cpp",
+        "ranges": "cpp",
+        "span": "cpp",
+        "valarray": "cpp"
     },
 
     "files.exclude": {
