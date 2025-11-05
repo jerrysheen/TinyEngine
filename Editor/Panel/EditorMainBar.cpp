@@ -142,14 +142,33 @@ namespace EngineEditor
 
 	void EditorMainBar::GenerateTextureMetaFile(const Texture* tex)
 	{
+		EngineCore::TextureMetaData meta;
+		meta.assetType = tex->GetAssetType();
+		meta.path = tex->GetPath();
+		meta.dimension = EngineCore::TextureDimension::TEXTURE2D;
+		meta.format = EngineCore::TextureFormat::R8G8B8A8;
+		meta.height = tex->mHeight;
+		meta.width = tex->mWidth;
+		meta.path = tex->GetPath();
+		EngineCore::MetaSaver::SaveMetaData<EngineCore::TextureMetaData>(&meta, meta.path);
 	}
 
 	void EditorMainBar::GenerateMeshMetaFile(const ModelData* data)
 	{
+		EngineCore::ModelMetaData meta;
+		meta.assetType = data->GetAssetType();
+		meta.path = data->GetPath();
+		meta.path = data->GetPath();
+		EngineCore::MetaSaver::SaveMetaData<EngineCore::ModelMetaData>(&meta, meta.path);
 	}
 
 	void EditorMainBar::GenerateShaderMetaFile(const Shader* shader)
 	{
+		EngineCore::MetaData meta;
+		meta.assetType = shader->GetAssetType();
+		meta.path = shader->GetPath();
+		meta.path = shader->GetPath();
+		EngineCore::MetaSaver::SaveMetaData<EngineCore::MetaData>(&meta, meta.path);
 	}
 
 }
