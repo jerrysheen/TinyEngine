@@ -52,7 +52,8 @@ namespace EngineCore
 
 
         inline AssetID GetAssetID() const {return mAssetID;};
-    private :
+    // todo : temp data for jason sereilization;
+    public :
         AssetID mAssetID;
     };
 }

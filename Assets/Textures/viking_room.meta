@@ -1,9 +1,9 @@
 {
-    "AssetType": "Texture2D",
+    "AssetType": "Default",
     "Dependencies": {},
     "Dimension": "Texture2D",
     "Format": "Texture2D",
-    "Height": 1024,
+    "Height": 64,
     "Path": "D:/GitHubST/TinyEngine/Assets/Textures/viking_room.png",
-    "Width": 1024
+    "Width": 64
 }

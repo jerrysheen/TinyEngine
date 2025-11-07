@@ -12,7 +12,8 @@ namespace EngineCore
         Transform();
         Transform(GameObject* parent);
         virtual ~Transform() override;
-        static ComponentType GetType() { return ComponentType::Transfrom; };
+        static ComponentType GetStaticType() { return ComponentType::Transform; };
+        virtual ComponentType GetType() const override{ return ComponentType::Transform; };
         void MarkDirty();
 
 
@@ -27,9 +28,9 @@ namespace EngineCore
         const Quaternion GetWorldQuaternion(){ return mWorldQuaternion; };
         const Vector3 GetWorldScale(){ return mWorldScale; };
 
-        const Vector3 GetLocalPosition(){ return mLocalPosition; };
-        const Quaternion GetLocalQuaternion(){ return mLocalQuaternion; };
-        const Vector3 GetLocalScale(){ return mLocalScale; };
+        const Vector3 GetLocalPosition() const { return mLocalPosition; };
+        const Quaternion GetLocalQuaternion() const { return mLocalQuaternion; };
+        const Vector3 GetLocalScale() const { return mLocalScale; };
 
         void SetLocalPosition(const Vector3& localPosition);
         void SetLocalQuaternion(const Quaternion& localQuaternion);
@@ -50,6 +51,7 @@ namespace EngineCore
         void UpdateIfDirty();
         void UpdateTransform();
         inline void UpdateNow() { UpdateTransform(); };
+
     public:
         bool isDirty = false;
         std::vector<Transform*> childTransforms;

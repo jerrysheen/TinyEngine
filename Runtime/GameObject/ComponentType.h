@@ -7,7 +7,7 @@ namespace EngineCore
         MeshRenderer,
         MeshFilter,
         Camera,
-        Transfrom,
+        Transform,
         Script
     };
     

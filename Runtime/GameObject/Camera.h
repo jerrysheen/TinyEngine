@@ -21,7 +21,9 @@ namespace EngineCore
         Vector3 mLookAt;
         Matrix4x4 mViewMatrix;
 
-        static ComponentType GetType() { return ComponentType::Camera; };
+
+        static ComponentType GetStaticType() { return ComponentType::Camera; };
+        virtual ComponentType GetType() const override { return ComponentType::Camera; };
         void Update();
     public:
         RenderPassAsset mRenderPassAsset;

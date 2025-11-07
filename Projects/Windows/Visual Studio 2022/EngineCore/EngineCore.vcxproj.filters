@@ -58,6 +58,9 @@
     <Filter Include="Runtime\Scene">
       <UniqueIdentifier>{2615CA8C-92D5-45C3-5B10-8F40C78F8A9F}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Runtime\Scripts">
+      <UniqueIdentifier>{80B58CE8-EC40-FAAC-F551-7DA1615C56AD}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Runtime\Serialization">
       <UniqueIdentifier>{96F917DA-0266-D3D4-CB59-6B323785F53C}</UniqueIdentifier>
     </Filter>
@@ -294,10 +297,19 @@
     <ClInclude Include="..\..\..\..\Runtime\Scene\SceneManager.h">
       <Filter>Runtime\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Scripts\CameraController.h">
+      <Filter>Runtime\Scripts</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Serialization\BaseTypeAndEnumSerialization.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\GameObjectAndComponentSerialization.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Serialization\MetaData.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\MetaFactory.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Serialization\MetaFileSerialization.h">
@@ -307,6 +319,9 @@
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Serialization\MetaSaver.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\ScriptFactory.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Settings\ProjectSettings.h">
@@ -488,11 +503,15 @@
     <ClCompile Include="..\..\..\..\Runtime\Scene\SceneManager.cpp">
       <Filter>Runtime\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Scripts\CameraController.cpp">
+      <Filter>Runtime\Scripts</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Serialization\MetaLoader.cpp">
       <Filter>Runtime\Serialization</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Settings\ProjectSettings.cpp">
       <Filter>Runtime\Settings</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Serialization\MetaFactory.cpp" />
   </ItemGroup>
 </Project>

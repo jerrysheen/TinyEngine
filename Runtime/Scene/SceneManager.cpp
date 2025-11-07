@@ -4,6 +4,7 @@
 #include "Resources/ResourceManager.h"
 #include "GameObject/MeshFilter.h"
 #include "GameObject/MeshRenderer.h"
+#include "Scripts/CameraController.h"
 #include "Scene.h"
 namespace EngineCore
 {
@@ -45,6 +46,8 @@ namespace EngineCore
         transform->RotateX(90.0f);
         transform->RotateY(135.0f);
         transform->UpdateNow();
+        testObject->AddComponent<CameraController>();
+        testObject->GetComponent<CameraController>()->testVal = 100.0f;
 
         auto* childObj = scene->CreateGameObject("testChild");
         childObj->SetParent(testObject);

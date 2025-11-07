@@ -4,6 +4,7 @@
 #include "Core/PublicEnum.h"
 #include "Resources/Asset.h"
 #include "Graphics/Texture.h"
+#include "Resources/ResourceHandle.h"
 
 namespace EngineCore
 {
@@ -21,7 +22,7 @@ namespace EngineCore
         j.at("z").get_to(v.z);
     }
 
-
+    //vector2
     inline void to_json(json& j, const EngineCore::Vector2& v)
     {
         j = json{ {"x", v.x}, {"y", v.y}};
@@ -50,6 +51,25 @@ namespace EngineCore
         j.at("m10").get_to(m.m10); j.at("m11").get_to(m.m11); j.at("m12").get_to(m.m12); j.at("m13").get_to(m.m13);
         j.at("m20").get_to(m.m20); j.at("m21").get_to(m.m21); j.at("m22").get_to(m.m22); j.at("m23").get_to(m.m23);
         j.at("m30").get_to(m.m30); j.at("m31").get_to(m.m31); j.at("m32").get_to(m.m32); j.at("m33").get_to(m.m33);
+    }
+
+    // Quaternion
+    inline void to_json(json& j, const EngineCore::Quaternion& m)
+    {
+        j = json{
+            {"x", m.x},
+            {"y", m.y},
+            {"z", m.z},
+            {"w", m.w},
+        };
+    }
+
+    inline void from_json(const json& j, EngineCore::Quaternion& m)
+    {
+        j.at("x").get_to(m.x);
+        j.at("y").get_to(m.y);
+        j.at("z").get_to(m.z);
+        j.at("w").get_to(m.w);
     }
 
 
@@ -89,5 +109,34 @@ namespace EngineCore
         {EngineCore::TextureFormat::D24S8, "Texture3D"},
         {EngineCore::TextureFormat::EMPTY, "TextureCube"},
     })
+
+    // Asset ID：
+    inline void to_json(json& j, const AssetID& v)
+    {
+        j = json{
+           {"ID", v.value}
+        };
+    }
+
+    inline void from_json(const json& j, AssetID& assetID)
+    {
+        j.at("ID").get_to(assetID.value);
+    }
+
+
+    // ResourceHandle：   
+    template<typename T>
+    inline void to_json(json& j, const ResourceHandle<T>& v)
+    {
+        j = json{
+           {"ID", v.GetAssetID()}
+        };
+    }
+
+    template<typename T>
+    inline void from_json(const json& j, ResourceHandle<T>& handle)
+    {
+        j.at("ID").get_to(handle.mAssetID);
+    }
 
 }

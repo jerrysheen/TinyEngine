@@ -3,6 +3,7 @@
 #include "Scene/SceneManager.h"
 #include "Scene/Scene.h"
 #include "Transform.h"
+#include "Component.h"
 
 namespace EngineCore
 {
@@ -25,13 +26,36 @@ namespace EngineCore
         {
             // 回归到根节点。
             transform->SetParent(nullptr);
-            ownerScene->AddRootGameObject(this);
+            if(ownerScene != nullptr) ownerScene->AddRootGameObject(this);
         }
         else 
         {
             transform->SetParent(gameObject->transform);
-            ownerScene->TryRemoveRootGameObject(this);
+            if(ownerScene != nullptr) ownerScene->TryRemoveRootGameObject(this);
             // 放入某个节点， 清除scene中的GameObject
+        }
+    }
+
+    std::vector<GameObject*> GameObject::GetChildren() const
+    {
+        std::vector<GameObject*> result;
+        for (Transform* childTrans : transform->childTransforms) {
+            result.push_back(childTrans->gameObject);
+        }
+        return result;
+    }
+
+    void GameObject::AddComponent(Component * component)
+    {
+        ComponentType type = component->GetType();
+        if(components.count(type) > 0)
+        {
+            return;
+        }
+        components.try_emplace(type, component);
+        if(type == ComponentType::Script)
+        {
+            scripts.push_back(reinterpret_cast<MonoBehaviour*>(component));
         }
     }
 

@@ -29,12 +29,16 @@ namespace EngineCore
         inline T* GetComponent() const;
         template<typename T>
         inline T* AddComponent();
+
+        std::vector<GameObject*> GetChildren() const;
     public:
         Transform* transform;
         std::unordered_map<ComponentType, Component*> components;
         std::vector<MonoBehaviour*> scripts;
         std::string name;
         bool enabled = true;
+            // 非模板方式
+        void AddComponent(Component* compont);
     private:
         Scene* ownerScene = nullptr;
     };
@@ -43,7 +47,7 @@ namespace EngineCore
     inline T* GameObject::GetComponent() const
     {
         // const 后不能直接用 conponents[type]， 因为可能会产生修改。
-        ComponentType type = T::GetType();
+        ComponentType type = T::GetStaticType();
         auto it = components.find(type);
         if(it != components.end())
         {
@@ -57,7 +61,7 @@ namespace EngineCore
     {
         // todo: 这边确实该用multimap的， 因为原则上MonoBehaviour可以挂多个
 
-        ComponentType type = T::GetType();
+        ComponentType type = T::GetStaticType();
         if(components.count(type) > 0)
         {
             return nullptr;
@@ -70,5 +74,7 @@ namespace EngineCore
         }
         return component;
     }
+
+
 
 }

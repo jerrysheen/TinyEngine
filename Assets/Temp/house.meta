@@ -1,0 +1,86 @@
+{
+    "ChildGameObject": [
+        {
+            "ChildGameObject": [],
+            "Component": [
+                {
+                    "Data": {
+                        "LocalPosition": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "LocalQuaternion": {
+                            "w": 1.0,
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "LocalScale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        }
+                    },
+                    "Type": "Transform"
+                }
+            ],
+            "Enabled": true,
+            "Name": "testChild"
+        }
+    ],
+    "Component": [
+        {
+            "Data": {
+                "LocalPosition": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "LocalQuaternion": {
+                    "w": 0.27059805393218994,
+                    "x": 0.27059805393218994,
+                    "y": 0.6532814502716064,
+                    "z": -0.6532814502716064
+                },
+                "LocalScale": {
+                    "x": 1.0,
+                    "y": 1.0,
+                    "z": 1.0
+                }
+            },
+            "Type": "Transform"
+        },
+        {
+            "Data": {
+                "AssetHandle": {
+                    "ID": {
+                        "ID": 4721838792633486921
+                    }
+                }
+            },
+            "Type": "MeshFilter"
+        },
+        {
+            "Data": {
+                "AssetHandle": {
+                    "ID": {
+                        "ID": 9717983853578401568
+                    }
+                }
+            },
+            "Type": "MeshRenderer"
+        },
+        {
+            "Data": {
+                "Fields": {
+                    "TestVal": 100.0
+                },
+                "ScriptName": "CameraController"
+            },
+            "Type": "Script"
+        }
+    ],
+    "Enabled": true,
+    "Name": "house"
+}

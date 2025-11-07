@@ -4,6 +4,7 @@
 #include "json.hpp"
 #include "MetaFileSerialization.h"
 #include "Serialization/MetaData.h"
+#include "GameObjectAndComponentSerialization.h"
 
 namespace EngineCore
 {

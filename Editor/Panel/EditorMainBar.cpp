@@ -5,11 +5,14 @@
 
 #include "Serialization/MetaData.h"
 #include "Serialization/MetaSaver.h"
+#include "Serialization/MetaFactory.h"
 #include "Resources/ResourceHandle.h"
+#include "Settings/ProjectSettings.h"
+
 
 namespace EngineEditor
 {
-
+	using json = nlohmann::json;
 
     void EditorMainBar::DrawGUI()
     {
@@ -51,17 +54,24 @@ namespace EngineEditor
 				}
 				if (ImGui::BeginMenu("Assets"))
 				{
-					if (ImGui::MenuItem("Generate Test MetaFile"))
+					if (ImGui::MenuItem("Generate Scene MetaFile"))
 					{
-						GenerateTestMetaFile();
+						GenerateSceneResourceMetaFile();
 					}
 
-					if (ImGui::MenuItem("Compile All Shader for DirectX12"))
+					if (ImGui::MenuItem("Save SceneFile"))
 					{
+
 					}
 
-					if (ImGui::MenuItem("Generate HLSL for DirectX12"))
+					if (ImGui::MenuItem("TestSaveGO"))
 					{
+						TempTestGameObjectSerialization();
+					}
+					
+					if (ImGui::MenuItem("LoadTestGO"))
+					{
+						TempTestGameObjectDeSerialization();
 					}
 
 					ImGui::EndMenu();
@@ -78,7 +88,7 @@ namespace EngineEditor
 
     }
 
-    void EditorMainBar::GenerateTestMetaFile()
+    void EditorMainBar::GenerateSceneResourceMetaFile()
     {
 		auto resouceManager = ResourceManager::GetInstance();
         unordered_map<AssetID, Resource*> mResourceCache = resouceManager->mResourceCache;
@@ -169,6 +179,45 @@ namespace EngineEditor
 		meta.path = shader->GetPath();
 		meta.path = shader->GetPath();
 		EngineCore::MetaSaver::SaveMetaData<EngineCore::MetaData>(&meta, meta.path);
+	}
+
+    void EditorMainBar::TempTestGameObjectSerialization()
+    {
+		EngineCore::GameObject* house = EngineCore::SceneManager::GetInstance()->FindGameObject("house");
+		ASSERT(house != nullptr);
+		EngineCore::MetaSaver::SaveMetaData<EngineCore::GameObject>(house, "/Temp/house.meta");
+	}
+
+    void EditorMainBar::TempTestGameObjectDeSerialization()
+    {
+		    // 方案1: 使用MetaLoader直接加载（推荐）
+			string metaPath = EngineCore::PathSettings::ResolveAssetPath("/Temp/house.meta");
+    
+			// 读取JSON文件并解析
+			std::ifstream file(metaPath);
+
+			if(!file.is_open())
+			{
+				// 错误处理：文件打不开
+				std::cerr << "无法打开文件: " << metaPath << std::endl;
+				return;
+			}
+			
+			json j = json::parse(file);
+			file.close();
+			
+			// 使用MetaFactory从JSON创建GameObject
+			EngineCore::GameObject* go = EngineCore::MetaFactory::CreateGameObjectFromMeta(j);
+
+    }
+
+    void EditorMainBar::GenerateSceneMetaFile()
+	{
+		auto* scene = SceneManager::GetInstance()->GetCurrentScene();
+		for (auto* go : scene->allObjList) 
+		{
+			EngineCore::MetaSaver::SaveMetaData<EngineCore::GameObject>(go, "F:/" + go->name + ".meta");
+		}
 	}
 
 }
