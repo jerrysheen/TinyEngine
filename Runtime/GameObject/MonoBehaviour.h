@@ -1,17 +1,15 @@
 #pragma once
 #include "Component.h"
-#include "json.hpp"
 
 namespace EngineCore
 {
-    using json = nlohmann::json;
     class GameObject;
     class MonoBehaviour : public Component
     {
     public:
         MonoBehaviour() = default;
         MonoBehaviour(GameObject* parent);
-        virtual ~MonoBehaviour() override {};
+        virtual ~MonoBehaviour() = default;
         // 非纯虚， 不一定要实现
         virtual void Awake() {};
         virtual void Start() {};
@@ -19,11 +17,12 @@ namespace EngineCore
         virtual void LateUpdate() {};
         virtual void OnDestroy() {};
         static ComponentType GetStaticType() { return ComponentType::Script; }
-        virtual ComponentType GetType() const override{ return ComponentType::Script; };
+        virtual ComponentType GetType() const { return ComponentType::Script; };
         
+        // 每个类需要自己实现序列化和反序列化方法。
         virtual const char* GetScriptName() const = 0;
-        virtual json SerializeFields() const { return json::object(); }
-        virtual void DeserializedFields(const json& j) {};
+        virtual json SerializedFields() { return json::object(); }
+        virtual void DeserializedFields(const json& j)  {};
     protected:
 
 

@@ -2,17 +2,19 @@
 #include <string.h>
 #include <fstream> 
 #include "json.hpp"
-#include "MetaFileSerialization.h"
 #include "Serialization/MetaData.h"
-#include "GameObjectAndComponentSerialization.h"
+#include "Settings/ProjectSettings.h"
 
+// 这个类负责读取和写回json，不负责别的功能。
 namespace EngineCore
 {
-    class MetaSaver
+    using json = nlohmann::json;
+
+    class JsonSerializer
     {
     public:
         template<typename T>
-        static void SaveMetaData(const T* data, const string& relativePath)
+        static void SvaeAsJson(const T* data, const string& relativePath)
         {
             string metaPath = PathSettings::ResolveAssetPath(relativePath);
 
@@ -24,7 +26,7 @@ namespace EngineCore
 
             metaPath += ".meta";
             
-            json j = *data;
+            json j = MetaFactory::ConvertToJson<T>(data);
 
             // 确保目录存在
             std::filesystem::path filePath(metaPath);
@@ -45,5 +47,25 @@ namespace EngineCore
             
             return;
         };
+
+    
+        static json ReadFromJson(const string& path)
+        {
+			string metaPath = EngineCore::PathSettings::ResolveAssetPath(path);
+    
+			// 读取JSON文件并解析
+			std::ifstream file(metaPath);
+
+			if(!file.is_open())
+			{
+				// 错误处理：文件打不开
+				std::cerr << "无法打开文件: " << metaPath << std::endl;
+                return json{};
+			}
+			
+			json j = json::parse(file);
+			file.close();
+            return j;
+        }
     };
 }

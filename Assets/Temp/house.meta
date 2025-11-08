@@ -53,7 +53,7 @@
         },
         {
             "Data": {
-                "AssetHandle": {
+                "MeshHandle": {
                     "ID": {
                         "ID": 4721838792633486921
                     }
@@ -63,7 +63,7 @@
         },
         {
             "Data": {
-                "AssetHandle": {
+                "MatHandle": {
                     "ID": {
                         "ID": 9717983853578401568
                     }
@@ -73,12 +73,9 @@
         },
         {
             "Data": {
-                "Fields": {
-                    "TestVal": 100.0
-                },
-                "ScriptName": "CameraController"
+                "TestVal": 100.0
             },
-            "Type": "Script"
+            "Type": "CameraController"
         }
     ],
     "Enabled": true,

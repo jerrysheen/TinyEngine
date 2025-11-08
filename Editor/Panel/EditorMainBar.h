@@ -1,6 +1,6 @@
 #pragma once
 #include "EditorPanel.h"
-#include "Serialization/MetaSaver.h"
+#include "Serialization/JsonSerializer.h"
 #include "Resources/ResourceManager.h"
 #include "Resources/Asset.h"
 #include "Resources/Resource.h"

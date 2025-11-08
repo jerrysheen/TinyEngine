@@ -7,7 +7,6 @@
 #include "Core/Object.h"
 #include "Transform.h"
 #include "MonoBehaviour.h"
-#include "Core/Object.h"
 
 namespace EngineCore
 {

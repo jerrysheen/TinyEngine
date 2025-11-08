@@ -3,7 +3,7 @@
 #include "ComponentType.h"
 #include "Resources/ResourceHandle.h"
 #include "Graphics/ModelData.h"
-
+#include "Serialization/BaseTypeSerialization.h"
 namespace EngineCore
 {
     class MeshFilter : public Component
@@ -17,6 +17,17 @@ namespace EngineCore
         virtual ComponentType GetType() const override{ return ComponentType::MeshFilter; };
     public:
         ResourceHandle<ModelData> mMeshHandle;
+
+        virtual const char* GetScriptName() const override { return "MeshFilter"; }
+        virtual json SerializedFields() const override {
+            return json{
+                {"MeshHandle", mMeshHandle},
+            };
+        }
+        
+        virtual void DeserializedFields(const json& data) override {
+            data.at("MeshHandle").get_to(mMeshHandle);
+        }
     };
 
 }

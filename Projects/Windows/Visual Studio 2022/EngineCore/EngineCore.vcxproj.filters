@@ -300,10 +300,16 @@
     <ClInclude Include="..\..\..\..\Runtime\Scripts\CameraController.h">
       <Filter>Runtime\Scripts</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Serialization\BaseTypeAndEnumSerialization.h">
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\AssetSerialization.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Serialization\GameObjectAndComponentSerialization.h">
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\BaseTypeSerialization.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\ComponentFactory.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\JsonSerializer.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Serialization\MetaData.h">
@@ -312,16 +318,7 @@
     <ClInclude Include="..\..\..\..\Runtime\Serialization\MetaFactory.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Serialization\MetaFileSerialization.h">
-      <Filter>Runtime\Serialization</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Serialization\MetaLoader.h">
-      <Filter>Runtime\Serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Serialization\MetaSaver.h">
-      <Filter>Runtime\Serialization</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Serialization\ScriptFactory.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Settings\ProjectSettings.h">
@@ -506,12 +503,14 @@
     <ClCompile Include="..\..\..\..\Runtime\Scripts\CameraController.cpp">
       <Filter>Runtime\Scripts</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Serialization\MetaFactory.cpp">
+      <Filter>Runtime\Serialization</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Serialization\MetaLoader.cpp">
       <Filter>Runtime\Serialization</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Settings\ProjectSettings.cpp">
       <Filter>Runtime\Settings</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Serialization\MetaFactory.cpp" />
   </ItemGroup>
 </Project>

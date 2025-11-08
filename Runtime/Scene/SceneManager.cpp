@@ -6,6 +6,7 @@
 #include "GameObject/MeshRenderer.h"
 #include "Scripts/CameraController.h"
 #include "Scene.h"
+
 namespace EngineCore
 {
     std::unique_ptr<SceneManager> SceneManager::s_Instance = nullptr;

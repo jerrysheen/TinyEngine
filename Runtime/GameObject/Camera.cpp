@@ -6,6 +6,10 @@
 #include "Renderer/RenderPipeline/FinalBlitPass.h"
 #include "GameObject/GameObject.h"
 #include "Transform.h"
+#include "Serialization/ComponentFactory.h"
+
+
+REGISTER_SCRIPT(Camera)
 
 namespace EngineCore
 {

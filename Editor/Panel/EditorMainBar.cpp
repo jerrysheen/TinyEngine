@@ -4,7 +4,7 @@
 #include "EditorSettings.h"
 
 #include "Serialization/MetaData.h"
-#include "Serialization/MetaSaver.h"
+#include "Serialization/JsonSerializer.h"
 #include "Serialization/MetaFactory.h"
 #include "Resources/ResourceHandle.h"
 #include "Settings/ProjectSettings.h"
@@ -147,7 +147,7 @@ namespace EngineEditor
 		meta.shaderPath = mat->mShader->GetPath();
 		meta.vec2Data = mat->mMaterialdata.vec2Data;
 		meta.vec3Data = mat->mMaterialdata.vec3Data;
-		EngineCore::MetaSaver::SaveMetaData<EngineCore::MaterialMetaData>(&meta, meta.path);
+		EngineCore::JsonSerializer::SvaeAsJson<EngineCore::MaterialMetaData>(&meta, meta.path);
 	}
 
 	void EditorMainBar::GenerateTextureMetaFile(const Texture* tex)
@@ -160,7 +160,7 @@ namespace EngineEditor
 		meta.height = tex->mHeight;
 		meta.width = tex->mWidth;
 		meta.path = tex->GetPath();
-		EngineCore::MetaSaver::SaveMetaData<EngineCore::TextureMetaData>(&meta, meta.path);
+		EngineCore::JsonSerializer::SvaeAsJson<EngineCore::TextureMetaData>(&meta, meta.path);
 	}
 
 	void EditorMainBar::GenerateMeshMetaFile(const ModelData* data)
@@ -169,7 +169,7 @@ namespace EngineEditor
 		meta.assetType = data->GetAssetType();
 		meta.path = data->GetPath();
 		meta.path = data->GetPath();
-		EngineCore::MetaSaver::SaveMetaData<EngineCore::ModelMetaData>(&meta, meta.path);
+		EngineCore::JsonSerializer::SvaeAsJson<EngineCore::ModelMetaData>(&meta, meta.path);
 	}
 
 	void EditorMainBar::GenerateShaderMetaFile(const Shader* shader)
@@ -178,37 +178,24 @@ namespace EngineEditor
 		meta.assetType = shader->GetAssetType();
 		meta.path = shader->GetPath();
 		meta.path = shader->GetPath();
-		EngineCore::MetaSaver::SaveMetaData<EngineCore::MetaData>(&meta, meta.path);
+		EngineCore::JsonSerializer::SvaeAsJson<EngineCore::MetaData>(&meta, meta.path);
 	}
 
     void EditorMainBar::TempTestGameObjectSerialization()
     {
 		EngineCore::GameObject* house = EngineCore::SceneManager::GetInstance()->FindGameObject("house");
 		ASSERT(house != nullptr);
-		EngineCore::MetaSaver::SaveMetaData<EngineCore::GameObject>(house, "/Temp/house.meta");
+		
+		EngineCore::JsonSerializer::SvaeAsJson<EngineCore::GameObject>(house, "/Temp/house.meta");
 	}
 
     void EditorMainBar::TempTestGameObjectDeSerialization()
     {
-		    // 方案1: 使用MetaLoader直接加载（推荐）
-			string metaPath = EngineCore::PathSettings::ResolveAssetPath("/Temp/house.meta");
-    
-			// 读取JSON文件并解析
-			std::ifstream file(metaPath);
 
-			if(!file.is_open())
-			{
-				// 错误处理：文件打不开
-				std::cerr << "无法打开文件: " << metaPath << std::endl;
-				return;
-			}
-			
-			json j = json::parse(file);
-			file.close();
-			
-			// 使用MetaFactory从JSON创建GameObject
-			EngineCore::GameObject* go = EngineCore::MetaFactory::CreateGameObjectFromMeta(j);
-
+		json j = EngineCore::JsonSerializer::ReadFromJson("/Temp/house.meta");
+		// 使用MetaFactory从JSON创建GameObject
+		EngineCore::GameObject* go = EngineCore::MetaFactory::CreateGameObjectFromMeta(j);
+		EngineCore::SceneManager::GetInstance()->GetCurrentScene()->AddGameObjectToSceneList(go);
     }
 
     void EditorMainBar::GenerateSceneMetaFile()
@@ -216,7 +203,7 @@ namespace EngineEditor
 		auto* scene = SceneManager::GetInstance()->GetCurrentScene();
 		for (auto* go : scene->allObjList) 
 		{
-			EngineCore::MetaSaver::SaveMetaData<EngineCore::GameObject>(go, "F:/" + go->name + ".meta");
+			EngineCore::JsonSerializer::SvaeAsJson<EngineCore::GameObject>(go, "F:/" + go->name + ".meta");
 		}
 	}
 

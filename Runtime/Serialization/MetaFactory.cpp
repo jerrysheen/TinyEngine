@@ -27,4 +27,15 @@ namespace EngineCore
 
         return go;
     }
+
+    
+    Component *MetaFactory::CreateComponent(const json &source, GameObject *go)
+    {
+        string componentName  = source.at("Type");
+
+        Component* component = ComponentFactory::Create(componentName, go);
+        json data  = source.at("Data");
+        component->DeserializedFields(data);
+        return component;
+    }
 }

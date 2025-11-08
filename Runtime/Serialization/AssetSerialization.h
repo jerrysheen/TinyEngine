@@ -1,6 +1,6 @@
 #pragma once
 #include "json.hpp"
-#include "BaseTypeAndEnumSerialization.h"
+#include "BaseTypeSerialization.h"
 #include "Serialization/MetaData.h"
 
 

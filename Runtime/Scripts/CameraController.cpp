@@ -1,8 +1,8 @@
 #include "PreCompiledHeader.h"
 #include "CameraController.h"
 #include "GameObject/GameObject.h"
-#include "Serialization/ScriptFactory.h"
 #include "json.hpp"
+#include "Serialization/ComponentFactory.h"
 
 
 REGISTER_SCRIPT(CameraController)
@@ -24,7 +24,7 @@ namespace EngineCore
         return "CameraController";;
     }
 
-    json CameraController::SerializeFields() const
+    json CameraController::SerializedFields() const
     {
         json j = 
         {

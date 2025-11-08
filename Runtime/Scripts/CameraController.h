@@ -10,9 +10,11 @@ namespace EngineCore
     public:
         CameraController() = default;
         CameraController(GameObject* go);
+        virtual ~CameraController() override {};
+
         virtual void Update() override;
         virtual const char* GetScriptName() const override;
-        virtual json SerializeFields() const override;
+        virtual json SerializedFields() const override;
         virtual void DeserializedFields(const json& j) override;
     public:
         float testVal = 0;

@@ -8,12 +8,15 @@
 #include "GameObject/MonoBehaviour.h"
 #include "GameObject/Transform.h"
 #include "json.hpp"
-#include "Serialization/ScriptFactory.h"
-#include "GameObjectAndComponentSerialization.h"
+#include "Serialization/ComponentFactory.h"
+#include "AssetSerialization.h"
+
 
 // 提供各种反序列化操作工厂，比如输入一个json，输出一个反序列化完的GameObject
 namespace EngineCore
 {
+    using json = nlohmann::json;
+
     class MetaFactory
     {
     public:
@@ -21,49 +24,45 @@ namespace EngineCore
 
         static GameObject* CreateGameObjectFromMeta(const json& json);
 
-        inline static Component* CreateComponent(const json& source, GameObject* go)
-        {
-            ComponentType type = source.at("Type").get<ComponentType>();
-            const json& data  = source.at("Data");
-
-            switch(type)
-            {
-                case ComponentType::Camera: return CreateComponentHelper<Camera>(data, go);
-                case ComponentType::MeshFilter:   return CreateComponentHelper<MeshFilter>(data, go);
-                case ComponentType::MeshRenderer: return CreateComponentHelper<MeshRenderer>(data, go);
-                case ComponentType::Transform:    return CreateComponentHelper<Transform>(data, go);
-                case ComponentType::Script: return CreateScriptComponentHelper(data, go);
-            }
-            return nullptr;
-        }
-
+        // 非特化的转换
         template<typename T>
-        inline static Component* CreateComponentHelper(const json& json, GameObject* go)
+        inline json static ConvertToJson(const T* data)
         {
-            T* comp = new T();
-            *comp = json.get<T>();
-            comp->gameObject = go;
-            return comp;
+            return *data;
         }
 
-        inline static Component* CreateScriptComponentHelper(const json& json, GameObject* go)
-        {
-            string scriptName = json["ScriptName"];
-            MonoBehaviour* script = ScriptFactory::Create(scriptName, go);
-            script->DeserializedFields(json["Fields"]);
-            return script;
-        }
-        
-        // 模板特化，针对Transform
         template<>
-        inline static Component* MetaFactory::CreateComponentHelper<Transform>(const json& source, GameObject* go)
+        inline json static ConvertToJson<GameObject>(const GameObject* obj)
         {
-            Transform* comp = new Transform();
-            *comp = source.get<Transform>();
-            comp->gameObject = go;
-            go->transform = comp;
-            return comp;
+
+            json componentsArray = json::array();
+
+            // 遍历所有组件，手动根据类型调用对应的序列化
+            for (const auto& [type, comp] : obj->components)
+            {
+                json compJson;
+                compJson["Type"] = comp->GetScriptName();
+                compJson["Data"] = comp->SerializedFields();
+                componentsArray.push_back(compJson);
+            }
+    
+            // 递归序列化子对象
+            json childrenArray = json::array();
+            for (GameObject* child : obj->GetChildren()) {  // 或 obj->GetChildren()
+                childrenArray.push_back(ConvertToJson<GameObject>(child));  
+            }
+    
+            json j = json{ 
+                {"Enabled", obj->enabled},
+                {"Name", obj->name},
+                {"Component", componentsArray},
+                {"ChildGameObject", childrenArray}
+            };
+
+            return j;
         }
+
+        static Component* CreateComponent(const json& source, GameObject* go);
 
     };
     

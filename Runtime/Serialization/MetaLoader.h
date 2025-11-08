@@ -1,10 +1,10 @@
 #pragma once
 #include "json.hpp"
-#include "MetaFileSerialization.h"
 #include "PreCompiledHeader.h"
 #include "Math/Math.h"
 #include "Core/PublicEnum.h"
 #include "Resources/Asset.h"
+#include "MetaData.h"
 
 namespace EngineCore
 {

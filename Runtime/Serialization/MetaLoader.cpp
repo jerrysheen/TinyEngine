@@ -3,7 +3,8 @@
 #include <fstream>   
 #include "MetaLoader.h"
 #include "Settings/ProjectSettings.h"
-#include "MetaFileSerialization.h"
+#include "MetaData.h"
+#include "AssetSerialization.h" 
 
 namespace EngineCore
 {
@@ -76,6 +77,10 @@ namespace EngineCore
         return texMetaData;
     }
 
+
+
+
+    
     ModelMetaData* MetaLoader::LoadModelMetaData(const std::string& path)
     {
         ModelMetaData* metaData = new ModelMetaData();
