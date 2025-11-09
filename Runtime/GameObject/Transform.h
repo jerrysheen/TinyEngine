@@ -121,6 +121,8 @@ namespace EngineCore
             data.at("LocalPosition").get_to(mLocalPosition);
             data.at("LocalQuaternion").get_to(mLocalQuaternion);
             data.at("LocalScale").get_to(mLocalScale);
+
+            UpdateNow();
         };
 
     };

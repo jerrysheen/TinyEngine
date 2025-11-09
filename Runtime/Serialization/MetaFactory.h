@@ -10,6 +10,8 @@
 #include "json.hpp"
 #include "Serialization/ComponentFactory.h"
 #include "AssetSerialization.h"
+#include "Scene/Scene.h"
+#include "Scene/SceneManager.h"
 
 
 // 提供各种反序列化操作工厂，比如输入一个json，输出一个反序列化完的GameObject
@@ -23,6 +25,7 @@ namespace EngineCore
         using json = nlohmann::json;
 
         static GameObject* CreateGameObjectFromMeta(const json& json);
+        static Scene* CreateSceneFromMeta(const json& json);
 
         // 非特化的转换
         template<typename T>
@@ -59,6 +62,27 @@ namespace EngineCore
                 {"ChildGameObject", childrenArray}
             };
 
+            return j;
+        }
+
+
+        template<>
+        inline json static ConvertToJson<Scene>(const Scene* scene)
+        {
+            json rootObjectArray = json::array();
+
+            // 遍历所有组件，手动根据类型调用对应的序列化
+            for (const auto& go : scene->rootObjList)
+            {
+                json compJson = ConvertToJson<GameObject>(go);
+                rootObjectArray.push_back(compJson);
+            }
+
+            json j = json
+            {
+                {"Name", scene->name},
+                {"RootObject", rootObjectArray},
+            };
             return j;
         }
 

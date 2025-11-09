@@ -6,6 +6,8 @@
 #include "GameObject/MeshRenderer.h"
 #include "Scripts/CameraController.h"
 #include "Scene.h"
+#include "Serialization/MetaFactory.h"
+#include "Serialization/JsonSerializer.h"
 
 namespace EngineCore
 {
@@ -13,49 +15,48 @@ namespace EngineCore
     
     SceneManager::SceneManager()
     {
-        testTexture = ResourceManager::GetInstance()->LoadAsset<Texture>("Textures/viking_room.png");
+        json j = EngineCore::JsonSerializer::ReadFromJson("/Scenes/SampleScene.meta");
+        Scene* scene = MetaFactory::CreateSceneFromMeta(j);
+        mCurrentScene = scene;
 
-        // quad Mesh也应该通过它生成.
-        //ResourceManager::GetInstance()->CreateResource<ModelData>(Primitive::Quad);
+
+        // temp: 这个数据是临时的，后续肯定不会在这里创建，
         quadMesh = ResourceManager::GetInstance()->CreateResource<ModelData>(Primitive::Quad);
         blitShader = ResourceManager::GetInstance()->LoadAsset<Shader>("Shader/BlitShader.hlsl");
         
         blitMaterial = ResourceManager::GetInstance()->CreateResource<Material>(blitShader);
-        //blitMaterial->renderState.shaderInstanceID = blitShader->GetInstanceID();
-        //blitMaterial->SetUpGPUResources();
         blitMaterial->SetFloat("_FlipY", 1.0f);
-        //blitMaterial->SetTexture("SrcTexture", Texture("CameraColorAttachment"));
 
 
 
-        auto* scene = AddNewScene("SampleScene");
+        //auto* scene = AddNewScene("SampleScene");
+        //testTexture = ResourceManager::GetInstance()->LoadAsset<Texture>("Textures/viking_room.png");
+        //auto* cameraGO = scene->CreateGameObject("Camera");
+        //auto* cameraComponent = cameraGO->AddComponent<Camera>();
+        //scene->AddCamToStack(cameraComponent);
+        //Transform* transform = cameraGO->GetComponent<Transform>();
+        //transform->SetLocalPosition(Vector3{ 0.0f, 0.0f, -5.0f });
+        //transform->UpdateNow();
+        //cameraComponent->UpdateCameraMatrix();
 
-        auto* cameraGO = scene->CreateGameObject("Camera");
-        auto* cameraComponent = cameraGO->AddComponent<Camera>();
-        scene->AddCamToStack(cameraComponent);
-        Transform* transform = cameraGO->GetComponent<Transform>();
-        transform->SetLocalPosition(Vector3{ 0.0f, 0.0f, -5.0f });
-        transform->UpdateNow();
-        cameraComponent->UpdateCameraMatrix();
+        //auto* testObject = scene->CreateGameObject("house");
+        //auto meshfilter = testObject->AddComponent<MeshFilter>();
+        //meshfilter->mMeshHandle = ResourceManager::GetInstance()->LoadAsset<ModelData>("Model/viking_room.obj");
+        //auto meshRender = testObject->AddComponent<MeshRenderer>();
+        //meshRender->mMatHandle = ResourceManager::GetInstance()->LoadAsset<Material>("Material/testMat.mat");
+        //transform = testObject->GetComponent<Transform>();
+        //transform->RotateX(90.0f);
+        //transform->RotateY(135.0f);
+        //transform->UpdateNow();
+        //testObject->AddComponent<CameraController>();
+        //testObject->GetComponent<CameraController>()->testVal = 100.0f;
 
-        auto* testObject = scene->CreateGameObject("house");
-        auto meshfilter = testObject->AddComponent<MeshFilter>();
-        meshfilter->mMeshHandle = ResourceManager::GetInstance()->LoadAsset<ModelData>("Model/viking_room.obj");
-        auto meshRender = testObject->AddComponent<MeshRenderer>();
-        meshRender->mMatHandle = ResourceManager::GetInstance()->LoadAsset<Material>("Material/testMat.mat");
-        transform = testObject->GetComponent<Transform>();
-        transform->RotateX(90.0f);
-        transform->RotateY(135.0f);
-        transform->UpdateNow();
-        testObject->AddComponent<CameraController>();
-        testObject->GetComponent<CameraController>()->testVal = 100.0f;
-
-        auto* childObj = scene->CreateGameObject("testChild");
-        childObj->SetParent(testObject);
-        
-        // todo ： 矩阵数据上传应该在哪里？
-        // 应该在permatdata更新的地方
-        meshRender->mMatHandle.Get()->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());
+        //auto* childObj = scene->CreateGameObject("testChild");
+        //childObj->SetParent(testObject);
+        //
+        //// todo ： 矩阵数据上传应该在哪里？
+        //// 应该在permatdata更新的地方
+        //meshRender->mMatHandle.Get()->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());
     }
 
     SceneManager::~SceneManager()

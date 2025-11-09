@@ -1,7 +1,7 @@
 ﻿#include "PreCompiledHeader.h"
 #include "Transform.h"
 #include "Serialization/ComponentFactory.h"
-
+#include "GameObject.h"
 
 REGISTER_SCRIPT(Transform)
 namespace EngineCore
@@ -16,6 +16,7 @@ namespace EngineCore
         mWorldPosition(Vector3::Zero), mWorldQuaternion(Quaternion::Identity), mWorldScale(Vector3::One), mLocalPosition(Vector3::Zero), mLocalQuaternion(Quaternion::Identity), mLocalScale(Vector3::One)
     {
         gameObject = go;
+        go->transform = this;
     }
 
     Transform::~Transform()
@@ -106,6 +107,8 @@ namespace EngineCore
             childTransforms[i]->UpdateTransform();
         }
     }
+
+
 
     void Transform::UpdateIfDirty()
     {

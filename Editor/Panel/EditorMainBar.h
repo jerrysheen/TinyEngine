@@ -34,15 +34,8 @@ namespace EngineEditor
         virtual void DrawGUI() override;
         virtual ~EditorMainBar() override;
     private:
-        void GenerateSceneResourceMetaFile();
         void GenerateSceneMetaFile();
-        void GenerateMaterialMetaFile(const Material* mat);
-        void GenerateTextureMetaFile(const Texture* tex);
-        void GenerateMeshMetaFile(const ModelData* data);
-        void GenerateShaderMetaFile(const Shader* shader);
 
-        void TempTestGameObjectSerialization();
-        void TempTestGameObjectDeSerialization();
     };
 
 }

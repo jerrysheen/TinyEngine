@@ -5,7 +5,7 @@
 #include "Resources/Asset.h"
 #include "Graphics/Texture.h"
 #include "Resources/ResourceHandle.h"
-
+#include "Resources/ResourceManager.h"
 namespace EngineCore
 {
     // // Vector3
@@ -128,15 +128,27 @@ namespace EngineCore
     template<typename T>
     inline void to_json(json& j, const ResourceHandle<T>& v)
     {
+        // 空地址怎么处理？ 空地址表示的是程序生成的资源
+        string path = v.Get()->GetPath();
         j = json{
-           {"ID", v.GetAssetID()}
+           {"ID", v.GetAssetID()},
+           {"Path", path}
         };
     }
 
     template<typename T>
     inline void from_json(const json& j, ResourceHandle<T>& handle)
     {
-        j.at("ID").get_to(handle.mAssetID);
+        // 空地址，程序生成的资源，等运行起来会有别的地方进行创建？这里只需要填id即可
+        string path = j.at("Path");
+        if(path != "")
+        {
+            handle = ResourceManager::GetInstance()->LoadAsset<T>(path);
+        }
+        else
+        {
+            j.at("ID").get_to(handle.mAssetID);
+        }
     }
 
 }
