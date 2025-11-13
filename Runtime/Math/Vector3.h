@@ -22,6 +22,8 @@ namespace EngineCore
     
         Vector3 operator-(const Vector3& value) const;
         Vector3 operator+(const Vector3& value) const;
-        Vector3 operator/=(float value) const;
+        Vector3 operator*(float value) const;
+        Vector3 operator/(float value) const;
+        Vector3& operator/=(float value);
     };
 }

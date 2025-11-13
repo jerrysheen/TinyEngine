@@ -1,6 +1,7 @@
 #pragma once
 #include "Vector3.h"
 #include "Quaternion.h"
+#include "Vector4.h"
 
 namespace EngineCore
 {
@@ -20,6 +21,9 @@ namespace EngineCore
       static Matrix4x4 RotateX(float degrees);
       static Matrix4x4 RotateY(float degrees);
       static Matrix4x4 RotateZ(float degrees);
+      
+      static Vector4 Matrix4x4::Multiply(const Matrix4x4& matrixA, const Vector4& vector);
+      static Matrix4x4 Matrix4x4::Multiply(const Matrix4x4& matrixA, const Matrix4x4& matrixB);
       static void WorldMatrixDecompose(const Matrix4x4& matrix, Vector3& position, Quaternion& quaternion, Vector3& scale); 
       // 矩阵乘法运算符
       Matrix4x4 operator*(const Matrix4x4& other) const;

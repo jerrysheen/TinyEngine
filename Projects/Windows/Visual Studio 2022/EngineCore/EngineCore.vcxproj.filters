@@ -204,10 +204,19 @@
     <ClInclude Include="..\..\..\..\Runtime\Managers\WindowManager.h">
       <Filter>Runtime\Managers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Math\AABB.h">
+      <Filter>Runtime\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Math\Frustum.h">
+      <Filter>Runtime\Math</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Math\Math.h">
       <Filter>Runtime\Math</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Math\Matrix4x4.h">
+      <Filter>Runtime\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Math\Plane.h">
       <Filter>Runtime\Math</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Math\Quaternion.h">
@@ -217,6 +226,9 @@
       <Filter>Runtime\Math</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Math\Vector3.h">
+      <Filter>Runtime\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Math\Vector4.h">
       <Filter>Runtime\Math</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12DescAllocator.h">
@@ -431,7 +443,16 @@
     <ClCompile Include="..\..\..\..\Runtime\Managers\WindowManager.cpp">
       <Filter>Runtime\Managers</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Math\AABB.cpp">
+      <Filter>Runtime\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Math\Frustum.cpp">
+      <Filter>Runtime\Math</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Math\Matrix4x4.cpp">
+      <Filter>Runtime\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Math\Plane.cpp">
       <Filter>Runtime\Math</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Math\Quaternion.cpp">
@@ -441,6 +462,9 @@
       <Filter>Runtime\Math</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Math\Vector3.cpp">
+      <Filter>Runtime\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Math\Vector4.cpp">
       <Filter>Runtime\Math</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12DescAllocator.cpp">

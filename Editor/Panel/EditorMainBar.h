@@ -35,6 +35,7 @@ namespace EngineEditor
         virtual ~EditorMainBar() override;
     private:
         void GenerateSceneMetaFile();
+        void CreateHouseGameObject();
 
     };
 

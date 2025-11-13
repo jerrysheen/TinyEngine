@@ -3,6 +3,7 @@
 #include "Scene/SceneManager.h"
 #include "GameObject/MeshFilter.h"
 #include "GameObject/MeshRenderer.h"
+#include "GameObject/Transform.h"
 #include "Scene/Scene.h"
 
 namespace EngineCore
@@ -27,6 +28,7 @@ namespace EngineCore
                 context.cameraVisibleItems.push_back(std::move(visibleItem));
             }
         }
+        // todo: Culling::Run
     }
 
 } // namespace EngineCore

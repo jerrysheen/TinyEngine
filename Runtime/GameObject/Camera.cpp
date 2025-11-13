@@ -7,6 +7,7 @@
 #include "GameObject/GameObject.h"
 #include "Transform.h"
 #include "Serialization/ComponentFactory.h"
+#include "Math/Frustum.h"
 
 
 REGISTER_SCRIPT(Camera)
@@ -49,6 +50,10 @@ namespace EngineCore
     void Camera::Update()
     {
         UpdateCameraMatrix();
+        Matrix4x4 model = this->gameObject->GetComponent<Transform>()->GetWorldMatrix();
+        Matrix4x4 mv = Matrix4x4::Multiply(mViewMatrix, model);
+        Matrix4x4 mvp = Matrix4x4::Multiply(mProjectionMatrix, mv);
+        mFrustum.UpdateFrustumPlane(mvp);
     }
     
     // update view and perspective matrix

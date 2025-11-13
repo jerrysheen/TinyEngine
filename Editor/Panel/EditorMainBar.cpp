@@ -8,6 +8,10 @@
 #include "Serialization/MetaFactory.h"
 #include "Resources/ResourceHandle.h"
 #include "Settings/ProjectSettings.h"
+#include "GameObject/MeshFilter.h"
+#include "GameObject/MeshRenderer.h"
+#include "GameObject/Transform.h"
+#include "Resources/ResourceManager.h"
 
 
 namespace EngineEditor
@@ -52,18 +56,27 @@ namespace EngineEditor
 
 					ImGui::EndMenu();
 				}
-				if (ImGui::BeginMenu("Assets"))
+			if (ImGui::BeginMenu("Assets"))
+			{
+
+
+				if (ImGui::MenuItem("Save SceneFile"))
 				{
-
-
-					if (ImGui::MenuItem("Save SceneFile"))
-					{
-						GenerateSceneMetaFile();
-					}
-
-
-					ImGui::EndMenu();
+					GenerateSceneMetaFile();
 				}
+
+
+				ImGui::EndMenu();
+			}
+			if (ImGui::BeginMenu("GameObject"))
+			{
+				if (ImGui::MenuItem("Create House"))
+				{
+					CreateHouseGameObject();
+				}
+
+				ImGui::EndMenu();
+			}
 				ImGui::EndMenuBar();
 			}
 
@@ -80,6 +93,38 @@ namespace EngineEditor
 	{
 		auto* scene = SceneManager::GetInstance()->GetCurrentScene();
 		EngineCore::JsonSerializer::SvaeAsJson<EngineCore::Scene>(scene, "Scenes/" + scene->name);
+	}
+
+	void EditorMainBar::CreateHouseGameObject()
+	{
+		using namespace EngineCore;
+
+		auto* scene = SceneManager::GetInstance()->GetCurrentScene();
+		if (!scene)
+		{
+			// 可以弹出错误提示
+			return;
+		}
+
+		// 创建房子GameObject
+		auto* houseObj = scene->CreateGameObject("House");
+
+		// 添加MeshFilter组件
+		auto* meshFilter = houseObj->AddComponent<MeshFilter>();
+		meshFilter->mMeshHandle = ResourceManager::GetInstance()->LoadAsset<ModelData>("Model/viking_room.obj");
+
+		// 添加MeshRenderer组件
+		auto* meshRenderer = houseObj->AddComponent<MeshRenderer>();
+		meshRenderer->mMatHandle = ResourceManager::GetInstance()->LoadAsset<Material>("Material/testMat.mat");
+
+		// 设置Transform
+		auto* transform = houseObj->GetComponent<Transform>();
+		transform->RotateX(90.0f);
+		transform->RotateY(135.0f);
+		transform->UpdateNow();
+
+		// 更新材质的世界矩阵
+		meshRenderer->mMatHandle.Get()->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());
 	}
 
 }

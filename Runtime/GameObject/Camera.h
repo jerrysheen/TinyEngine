@@ -3,6 +3,7 @@
 #include "Graphics/Texture.h"
 #include "Component.h"
 #include "Serialization/BaseTypeSerialization.h"
+#include "Math/Frustum.h"
 
 namespace EngineCore
 {
@@ -21,7 +22,7 @@ namespace EngineCore
         Matrix4x4 mProjectionMatrix;
         Vector3 mLookAt;
         Matrix4x4 mViewMatrix;
-
+        Frustum mFrustum;
 
         static ComponentType GetStaticType() { return ComponentType::Camera; };
         virtual ComponentType GetType() const override { return ComponentType::Camera; };
@@ -54,7 +55,6 @@ namespace EngineCore
             data.at("Width").get_to(mWidth);
             data.at("Height").get_to(mHeight);
         }
-        
     };
 
 }

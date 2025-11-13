@@ -56,7 +56,21 @@ namespace EngineCore
         return Vector3(x + value.x, y + value.y, z + value.z);
     }
 
-    Vector3 Vector3::operator/=(float value) const
+    Vector3 &Vector3::operator/=(float value)
+    {
+        // TODO: insert return statement here
+        x /= value;
+        y /= value;
+        z /= value;
+        return *this;
+    }
+
+    Vector3 Vector3::operator*(float value) const
+    {
+        return Vector3(x * value, y * value, z * value);
+    }
+
+    Vector3 Vector3::operator/(float value) const
     {
         return Vector3(x/value, y/value, z/value);
     }

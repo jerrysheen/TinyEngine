@@ -72,6 +72,7 @@ namespace EngineCore
 				currVertex.position.y = 0;
 				currVertex.position.z = 0;
 			}
+			bounds.Encapsulate(currVertex.position);
 
 			if (aiMesh->mNormals)
 			{

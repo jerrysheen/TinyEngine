@@ -9,6 +9,7 @@
 #include <assimp/scene.h>           // Output data structure
 #include <assimp/postprocess.h>     // Post processing flags
 #include "Renderer/RenderAPI.h"
+#include "Math/AABB.h"
 
 namespace EngineCore
 {
@@ -16,6 +17,8 @@ namespace EngineCore
     class ModelData : public Resource
     {
     public:
+        // todo: 先这么写，后续或许抽成单独Component
+        AABB bounds;
         std::vector<Vertex> vertex;
         std::vector<int> index;
         std::vector<InputLayout> layout;

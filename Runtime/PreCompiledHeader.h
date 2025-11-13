@@ -6,8 +6,9 @@
 
 // ========== Windows API（新增） ==========
 #ifdef _WIN32
-    #define WIN32_LEAN_AND_MEAN  // 排除一些不常用的 Windows API，加快编译
-    #include <Windows.h>
+#define NOMINMAX                // 禁用 Windows 的 min/max 宏，避免与 std::min/max 冲突
+#define WIN32_LEAN_AND_MEAN     // 排除一些不常用的 Windows API，加快编译
+#include <Windows.h>
 #endif
 
 #include "iostream"

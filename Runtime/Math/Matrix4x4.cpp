@@ -2,6 +2,7 @@
 #include "Matrix4x4.h"
 #include "Vector3.h"
 #include "Quaternion.h"
+#include "Vector4.h"
 
 namespace EngineCore
 {
@@ -149,6 +150,49 @@ namespace EngineCore
             s,     c,    0.0f,  0.0f,
             0.0f,  0.0f, 1.0f,  0.0f,
             0.0f,  0.0f, 0.0f,  1.0f
+        );
+    }
+
+    Vector4 Matrix4x4::Multiply(const Matrix4x4& matrixA, const Vector4& vector)
+    {
+        return Vector4(
+            // 第一行
+            matrixA.m00 * vector.x + matrixA.m01 * vector.y + matrixA.m02 * vector.z + matrixA.m03 * vector.w,
+
+            // 第二行
+            matrixA.m10* vector.x + matrixA.m11 * vector.y + matrixA.m12 * vector.z + matrixA.m13 * vector.w,
+
+            // 第三行
+            matrixA.m20* vector.x + matrixA.m21 * vector.y + matrixA.m22 * vector.z + matrixA.m23 * vector.w,
+
+            // 第四行
+            matrixA.m30* vector.x + matrixA.m31 * vector.y + matrixA.m32 * vector.z + matrixA.m33 * vector.w
+        );
+    }
+
+    Matrix4x4 Matrix4x4::Multiply(const Matrix4x4& matrixA, const Matrix4x4& matrixB)
+    {
+        return Matrix4x4(
+            // 第一行
+            matrixA.m00 * matrixB.m00 + matrixA.m01 * matrixB.m10 + matrixA.m02 * matrixB.m20 + matrixA.m03 * matrixB.m30,
+            matrixA.m00 * matrixB.m01 + matrixA.m01 * matrixB.m11 + matrixA.m02 * matrixB.m21 + matrixA.m03 * matrixB.m31,
+            matrixA.m00 * matrixB.m02 + matrixA.m01 * matrixB.m12 + matrixA.m02 * matrixB.m22 + matrixA.m03 * matrixB.m32,
+            matrixA.m00 * matrixB.m03 + matrixA.m01 * matrixB.m13 + matrixA.m02 * matrixB.m23 + matrixA.m03 * matrixB.m33,
+            
+            matrixA.m10 * matrixB.m00 + matrixA.m11 * matrixB.m10 + matrixA.m12 * matrixB.m20 + matrixA.m13 * matrixB.m30,
+            matrixA.m10 * matrixB.m01 + matrixA.m11 * matrixB.m11 + matrixA.m12 * matrixB.m21 + matrixA.m13 * matrixB.m31,
+            matrixA.m10 * matrixB.m02 + matrixA.m11 * matrixB.m12 + matrixA.m12 * matrixB.m22 + matrixA.m13 * matrixB.m32,
+            matrixA.m10 * matrixB.m03 + matrixA.m11 * matrixB.m13 + matrixA.m12 * matrixB.m23 + matrixA.m13 * matrixB.m33,
+            
+            matrixA.m20 * matrixB.m00 + matrixA.m21 * matrixB.m10 + matrixA.m22 * matrixB.m20 + matrixA.m23 * matrixB.m30,
+            matrixA.m20 * matrixB.m01 + matrixA.m21 * matrixB.m11 + matrixA.m22 * matrixB.m21 + matrixA.m23 * matrixB.m31,
+            matrixA.m20 * matrixB.m02 + matrixA.m21 * matrixB.m12 + matrixA.m22 * matrixB.m22 + matrixA.m23 * matrixB.m32,
+            matrixA.m20 * matrixB.m03 + matrixA.m21 * matrixB.m13 + matrixA.m22 * matrixB.m23 + matrixA.m23 * matrixB.m33,
+            
+            matrixA.m30 * matrixB.m00 + matrixA.m31 * matrixB.m10 + matrixA.m32 * matrixB.m20 + matrixA.m33 * matrixB.m30,
+            matrixA.m30 * matrixB.m01 + matrixA.m31 * matrixB.m11 + matrixA.m32 * matrixB.m21 + matrixA.m33 * matrixB.m31,
+            matrixA.m30 * matrixB.m02 + matrixA.m31 * matrixB.m12 + matrixA.m32 * matrixB.m22 + matrixA.m33 * matrixB.m32,
+            matrixA.m30 * matrixB.m03 + matrixA.m31 * matrixB.m13 + matrixA.m32 * matrixB.m23 + matrixA.m33 * matrixB.m33
         );
     }
 
