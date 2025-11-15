@@ -34,10 +34,6 @@ namespace EngineCore
         // todo bug修改， cpu数据靠这里同步的话， 会报错， 变成一定要在这里写了
         MaterialMetaData* matMetaData = new MaterialMetaData();
         matMetaData->path = path;
-        matMetaData->vec3Data.emplace("LightDirection", Vector3(0.3,0.4,0.5));
-        matMetaData->vec3Data.emplace("LightColor", Vector3(0.3,0.4,0.5));
-        matMetaData->vec3Data.emplace("CameraPosition", Vector3(0.3,0.4,0.5));
-        matMetaData->matrix4x4Data.emplace("WorldMatrix", Matrix4x4());
         matMetaData->matrix4x4Data.emplace("ProjectionMatrix", Matrix4x4::Identity);
         matMetaData->matrix4x4Data.emplace("ViewMatrix", Matrix4x4::Identity);
         matMetaData->matrix4x4Data.emplace("WorldMatrix", Matrix4x4::Identity);
@@ -86,39 +82,6 @@ namespace EngineCore
         ModelMetaData* metaData = new ModelMetaData();
         metaData->path = path;
         return metaData;
-    }
-
-
-    
-    ShaderVariableType MetaLoader::GetShaderVaribleType(uint32_t size)
-    {
-        // 以byte为准 比如float为4byte
-        switch (size)
-        {
-        case 4:
-            return ShaderVariableType::FLOAT; 
-            break;
-        case 8:
-            return ShaderVariableType::VECTOR2;
-            break;
-        case 12:
-            return ShaderVariableType::VECTOR2;
-            break;
-        case 16:
-            return ShaderVariableType::VECTOR2;
-            break;
-        case 64:
-            return ShaderVariableType::VECTOR2;
-            break;
-        case 48:
-            return ShaderVariableType::VECTOR2;
-            break;
-        case 36:
-            return ShaderVariableType::VECTOR2;
-            break;
-        default:
-            break;
-        }
     }
 
 

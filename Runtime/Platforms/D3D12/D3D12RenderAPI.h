@@ -32,24 +32,22 @@ namespace EngineCore
         ~D3D12RenderAPI(){};
 
         virtual Shader* CompileShader(const string& path, Shader* shader) override;
-        bool CompileShaderStage(const string& path, string entrypoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob);
+        bool CompileShaderStageAndGetReflection(const string& path, string entrypoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob);
 
-        virtual void CreateBuffersResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) override;
-        virtual void CreateSamplerResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) override;
-        virtual void CreateTextureResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) override;
-        virtual void CreateUAVResource(const Material* mat, const vector<ShaderResourceInfo>& resourceInfos) override;
+        virtual void CreateMaterialConstantBuffers(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
+        virtual void CreateMaterialSamplerSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
+        virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
+        virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
 
         inline TD3D12Fence* GetFrameFence() { return mFrameFence; };
-        virtual void SetShaderFloat(const Material* mat, const ShaderVariableInfo& variableInfo, float value) override;
-        virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector3& value) override;
-        virtual void SetShaderVector(const Material* mat, const ShaderVariableInfo& variableInfo, const Vector2& value) override {};
-        virtual void SetShaderMatrix4x4(const Material* mat, const ShaderVariableInfo& variableInfo, const Matrix4x4& value) override;
+        virtual void SetShaderFloat(const Material* mat, const ShaderConstantInfo& variableInfo, float value) override;
+        virtual void SetShaderVector(const Material* mat, const ShaderConstantInfo& variableInfo, const Vector3& value) override;
+        virtual void SetShaderVector(const Material* mat, const ShaderConstantInfo& variableInfo, const Vector2& value) override {};
+        virtual void SetShaderMatrix4x4(const Material* mat, const ShaderConstantInfo& variableInfo, const Matrix4x4& value) override;
         virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, uint32_t texInstanceID) override;
         virtual void SetUpMesh(ModelData* data, bool isStatic = true) override;
         virtual void CreateFBO(FrameBufferObject* fbodesc) override;
         virtual void CreateTextureBuffer(unsigned char* data, Texture* tbdesc) override;
-        //virtual void GetOrCreatePSO(const Material& mat, const RenderPassInfo &passinfo) override;
-        virtual void Submit(const vector<RenderPassInfo*>& renderPassInfos) override;
         
         // 多线程代码：
         virtual void RenderAPIBeginFrame() override;
@@ -66,6 +64,16 @@ namespace EngineCore
 
         TD3D12DescriptorHandle GetTextureSrvHanle(uint32_t textureID);
         TD3D12FrameBuffer* GetFrameBuffer(uint32_t bufferID, bool isBackBuffer = false);
+        
+        virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) override;
+        virtual void CreateGlobalTexHandler(uint32_t texID) override;
+
+
+        virtual void SetGlobalDataImpl(uint32_t bufferID, uint32_t offset, uint32_t size, const void* value) override;
+
+
+        TD3D12ConstantBuffer CreateConstantBuffer(uint32_t size);
+
         Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;
         UINT mRtvDescriptorSize = 0;
         UINT mDsvDescriptorSize = 0;
@@ -160,15 +168,16 @@ namespace EngineCore
         int mClientHeight = 720;
 
         unordered_map<uint32_t, TD3D12MaterialData> m_DataMap;
-        //vector<TD3D12VAO> mVAOList;
         vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
         unordered_map<uint32_t, TD3D12TextureBuffer> m_TextureBufferMap;
-        //unordered_map<uint32_t, TD3D12ShaderPSO> m_PipeLineStateObjectMap;
         unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> vsBlobMap;
         unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> psBlobMap;
         unordered_map<uint32_t, ComPtr<ID3D12RootSignature>> shaderRootSignatureMap;
         unordered_map<uint32_t, ComPtr<ID3D12PipelineState>> shaderPSOMap;
         unordered_map<uint32_t, TD3D12VAO> VAOMap;
+
+        unordered_map<uint32_t, TD3D12ConstantBuffer> mGlobalConstantBufferMap;
+        unordered_map<uint32_t, TD3D12TextureHander> mGlobalTexHandlerMap;
     };
 
 }

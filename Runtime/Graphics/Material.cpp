@@ -51,7 +51,7 @@ namespace EngineCore
         ASSERT(handle.IsValid());
         mMaterialdata.textureData[slotName] = handle.Get();
         int slotIndex = -1;
-        for (auto& textureInfo : mShader.Get()->mShaderBindingInfo.mTextureInfo)
+        for (auto& textureInfo : mShader.Get()->mShaderReflectionInfo.mTextureInfo)
         {
             if (textureInfo.resourceName == slotName) 
             {
@@ -73,7 +73,7 @@ namespace EngineCore
         
         mMaterialdata.textureData[slotName] = handle.Get();
         int slotIndex = -1;
-        for (auto& textureInfo : mShader.Get()->mShaderBindingInfo.mTextureInfo)
+        for (auto& textureInfo : mShader.Get()->mShaderReflectionInfo.mTextureInfo)
         {
             if (textureInfo.resourceName == slotName) 
             {
@@ -92,7 +92,7 @@ namespace EngineCore
     {
         ASSERT(mMaterialdata.matrix4x4Data.count(name) > 0);
         mMaterialdata.matrix4x4Data[name] = matrix4x4;
-        auto& map = mShader.Get()->mShaderBindingInfo.mShaderStageVariableInfoMap;
+        auto& map = mShader.Get()->mShaderReflectionInfo.mShaderStageVariableInfoMap;
         ASSERT(map.count(name) > 0);
         auto& variableInfo = map[name];
         RenderAPI::GetInstance()->SetShaderMatrix4x4(this, variableInfo, matrix4x4);
@@ -103,7 +103,7 @@ namespace EngineCore
      {
          //cpu, 更新data数据，
          int slotIndex = -1;
-         for (auto& textureInfo : mShader.Get()->mShaderBindingInfo.mTextureInfo)
+         for (auto& textureInfo : mShader.Get()->mShaderReflectionInfo.mTextureInfo)
          {
              if (textureInfo.resourceName == slotName)
              {
@@ -119,7 +119,7 @@ namespace EngineCore
     void Material::SetFloat(const string &name, float value)
     {
         mMaterialdata.floatData[name] = value;
-        auto& map = mShader.Get()->mShaderBindingInfo.mShaderStageVariableInfoMap;
+        auto& map = mShader.Get()->mShaderReflectionInfo.mShaderStageVariableInfoMap;
         auto& variableInfo = map[name];
         RenderAPI::GetInstance()->SetShaderFloat(this, variableInfo, value);
     }
@@ -161,10 +161,10 @@ namespace EngineCore
     // 后续资源应该用inFo.name 进行寻找
     void Material::SetUpGPUResources()
     {  
-        RenderAPI::GetInstance()->CreateBuffersResource(this, mShader.Get()->mShaderBindingInfo.mBufferInfo);
-        RenderAPI::GetInstance()->CreateSamplerResource(this, mShader.Get()->mShaderBindingInfo.mSamplerInfo);
-        RenderAPI::GetInstance()->CreateTextureResource(this, mShader.Get()->mShaderBindingInfo.mTextureInfo);
-        RenderAPI::GetInstance()->CreateUAVResource(this, mShader.Get()->mShaderBindingInfo.mUavInfo);
+        RenderAPI::GetInstance()->CreateMaterialConstantBuffers(this, mShader.Get()->mShaderReflectionInfo.mBufferInfo);
+        RenderAPI::GetInstance()->CreateMaterialSamplerSlots(this, mShader.Get()->mShaderReflectionInfo.mSamplerInfo);
+        RenderAPI::GetInstance()->CreateMaterialTextureSlots(this, mShader.Get()->mShaderReflectionInfo.mTextureInfo);
+        RenderAPI::GetInstance()->CreateMaterialUAVSlots(this, mShader.Get()->mShaderReflectionInfo.mUavInfo);
 
 
         UploadDataToGpu();
@@ -182,7 +182,7 @@ namespace EngineCore
             const string& key = pair.first;     
             const Vector3& value = pair.second;
             
-            auto& map = mShader.Get()->mShaderBindingInfo.mShaderStageVariableInfoMap;
+            auto& map = mShader.Get()->mShaderReflectionInfo.mShaderStageVariableInfoMap;
             if(map.count(key) > 0)
             {
                 auto& variableInfo = map[key];
@@ -194,7 +194,7 @@ namespace EngineCore
         {
             const string& key = pair.first;
             const Matrix4x4& value = pair.second;
-            auto& map = mShader.Get()->mShaderBindingInfo.mShaderStageVariableInfoMap;
+            auto& map = mShader.Get()->mShaderReflectionInfo.mShaderStageVariableInfoMap;
             if(map.count(key) > 0)
             {
                 auto& variableInfo = map[key];

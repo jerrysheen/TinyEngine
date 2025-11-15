@@ -94,5 +94,7 @@
         "Vendor/**": true,
         "Projects/**": true,
         "Tools/**": true,
-    }
+    },
+
+    "chatgpt.runCodexInWindowsSubsystemForLinux": true
 }

@@ -1,48 +1,39 @@
 // SimpleTestShader.hlsl - 简化版测试着色器
 
-// 变换矩阵缓冲区
-cbuffer TransformBuffer : register(b0)
-{
-    float4x4 WorldMatrix;
-    float4x4 ViewMatrix; 
-    float4x4 ProjectionMatrix;
-    //float4x4 VPMatrix;
-    float3 CameraPosition;
-    float Time;
-};
+#include "include/Core.hlsl"
 
-// 材质参数缓冲区
-cbuffer MaterialBuffer : register(b1)
+
+ // 材质相关的数据，先把Pass相关也放在这里
+cbuffer PerMaterialData : register(b0, space2)
 {
     float4 DiffuseColor;
     float4 SpecularColor;
     float Roughness;
     float Metallic;
     float2 TilingFactor;
-};
+}
 
-// 光照缓冲区
-cbuffer LightBuffer : register(b2)
+// 每一个Drawcall都不同的数据
+cbuffer PerDrawData : register(b0, space3)
 {
-    float3 LightDirection;
-    float LightIntensity;
-    float3 LightColor;
-    float padding;
-    float3 AmbientColor;
-    float AmbientStrength;
+    float3 CameraPosition;
+    float4x4 ViewMatrix; 
+    float4x4 ProjectionMatrix;
+    float4x4 WorldMatrix;
+    //float4x4 VPMatrix;
 };
 
 // 纹理资源
-Texture2D DiffuseTexture : register(t0);
-Texture2D NormalTexture : register(t1);
-Texture2D SpecularTexture : register(t2);
-TextureCube EnvironmentMap : register(t3);
+Texture2D DiffuseTexture : register(t0, space0);
+Texture2D NormalTexture : register(t1, space0);
+Texture2D SpecularTexture : register(t2, space0);
+TextureCube EnvironmentMap : register(t3, space0);
 
 // 采样器
-SamplerState LinearSampler : register(s0);
-SamplerState PointSampler : register(s1);
-SamplerState AnisotropicSampler : register(s2);
-SamplerComparisonState ShadowSampler : register(s3);
+SamplerState LinearSampler : register(s0, space0);
+SamplerState PointSampler : register(s1, space0);
+SamplerState AnisotropicSampler : register(s2,space0);
+SamplerComparisonState ShadowSampler : register(s3, space0);
 
 // 顶点着色器输入
 struct VertexInput
@@ -88,7 +79,8 @@ VertexOutput VSMain(VertexInput input)
 // 像素着色器
 float4 PSMain(VertexOutput input) : SV_Target
 {
-    float4 diffuseColor = DiffuseTexture.Sample(LinearSampler, input.TexCoord);
+    half4 diffuseColor = half4(0.0f, 0.0f,0.0f,1.0f);
+    diffuseColor.xyz = DiffuseTexture.Sample(LinearSampler, input.TexCoord).xyz * AmbientColor;
     return diffuseColor;
 
     // // 采样纹理

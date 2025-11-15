@@ -155,16 +155,16 @@ namespace EngineCore
     // todo ： 材质数据的更新放在渲染处
     void Scene::UpdatePerMaterialData()
     {
-        // // for (auto& go : allObjList) 
-        // {
-        //     auto* transform = go->GetComponent<Transform>();
-        //     auto* meshFilter = go->GetComponent<MeshRenderer>();
+         for (auto& go : allObjList) 
+         {
+             auto* transform = go->GetComponent<Transform>();
+             auto* meshFilter = go->GetComponent<MeshRenderer>();
 
-        //     if (transform && meshFilter) 
-        //     {
-        //         auto* material = meshFilter->mMatHandle.Get();
-        //         material->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());
-        //     }
-        // }
+             if (transform && meshFilter) 
+             {
+                 auto* material = meshFilter->mMatHandle.Get();
+                 material->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());
+             }
+         }
     }
 }

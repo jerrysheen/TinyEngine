@@ -12,7 +12,7 @@ namespace EngineCore
     {
     public:
         Shader(MetaData* metaFile);
-        ShaderReflectionInfo mShaderBindingInfo;
+        ShaderReflectionInfo mShaderReflectionInfo;
         vector<InputLayout> mShaderInputLayout;
 
         Shader();

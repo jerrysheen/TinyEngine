@@ -1,11 +1,16 @@
-cbuffer PerDrawData : register(b0)
+// #define PER_FRAME_CB(name, slot)  cbuffer name : register(b##slot, space0)
+// #define PER_MATERIAL_CB(name, slot)   cbuffer name : register(b##slot, space1)
+// #define PER_DRAW_CB(name, slot) cbuffer name : register(b##slot, space2)
+
+
+cbuffer PerDrawData : register(b0, space3)
 {
     float _FlipY;
 };
 
 // BlitShader.hlsl
-Texture2D SrcTexture : register(t0);
-SamplerState LinearSampler : register(s0);
+Texture2D SrcTexture : register(t0, space0);
+SamplerState LinearSampler : register(s0, space0);
 
 // 使用传统的顶点输入
 struct VertexInput

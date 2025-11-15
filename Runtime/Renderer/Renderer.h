@@ -13,6 +13,7 @@
 #include "SPSCRingBuffer.h"
 #include "RenderAPI.h"
 #include <chrono>
+#include "RenderUniforms.h"
 
 #ifdef EDITOR
 #include "EditorGUIManager.h"
@@ -26,30 +27,13 @@ namespace EngineCore
     public:
 
 
-        Renderer(): mRenderThread(&Renderer::RenderLoop, this), mRunning(true) {};
-        ~Renderer()
-        {
-            std::cout << "Renderer shutting down, stopping render thread..." << std::endl;
-            
-            // 1. 设置停止标志
-            mRunning.store(false, std::memory_order_release);
-            
-            // 2. 唤醒可能在等待的渲染线程
-            mSleepRenderThreadCV.notify_all();
-
-            // 3. 等待渲染线程结束
-            if (mRenderThread.joinable())
-            {
-                mRenderThread.join();
-                std::cout << "Render thread joined successfully." << std::endl;
-            }
-        };
+        Renderer(): mRenderThread(&Renderer::RenderLoop, this), mRunning(true), mPerFrameData{}{};
+        ~Renderer();
         static void Create();
 
         void BeginFrame();
         void Render(const RenderContext& context);
         void EndFrame();
-
         // maybe 一些上一帧的clear操作
 
         //void BeginFrame(int frame);
@@ -156,5 +140,10 @@ namespace EngineCore
         std::mutex mSleepRenderThreadMutex;
         std::condition_variable mSleepRenderThreadCV;
         std::atomic<bool> mRunning;
+        PerFrameData mPerFrameData;
+
+        void FlushPerFrameData();
+        void CreatePerFrameData();
+
     };
 }

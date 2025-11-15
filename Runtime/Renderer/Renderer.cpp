@@ -8,9 +8,27 @@ namespace EngineCore
 {
     std::unique_ptr<Renderer> Renderer::s_Instance = nullptr;
 
+    Renderer::~Renderer()
+    {
+        std::cout << "Renderer shutting down, stopping render thread..." << std::endl;
+        
+        // 1. 设置停止标志
+        mRunning.store(false, std::memory_order_release);
+        
+        // 2. 唤醒可能在等待的渲染线程
+        mSleepRenderThreadCV.notify_all();
+        // 3. 等待渲染线程结束
+        if (mRenderThread.joinable())
+        {
+            mRenderThread.join();
+            std::cout << "Render thread joined successfully." << std::endl;
+        }
+    }
+
     void Renderer::Create()
     {
         s_Instance = std::make_unique<Renderer>();
+        s_Instance->CreatePerFrameData();
     }
 
 
@@ -28,6 +46,7 @@ namespace EngineCore
     void Renderer::Render(const RenderContext& context)
     {
         BeginFrame();
+        FlushPerFrameData();
         for(auto& pass : context.camera->mRenderPassAsset.renderPasses)
         {
             pass->Configure(context);
@@ -56,7 +75,17 @@ namespace EngineCore
         temp.op = RenderOp::kEndFrame;
         mRenderBuffer.PushBlocking(temp);
     }
-    
+
+    void Renderer::FlushPerFrameData()
+    {
+        mPerFrameData.AmbientColor = Vector3(1.0f, 1.0f, 0.0f);
+        RenderAPI::GetInstance()->SetGlobalValue<PerFrameData>((uint32_t)UniformBufferType::PerFrameData, 0, &mPerFrameData);
+    }
+
+    void Renderer::CreatePerFrameData()
+    {
+        RenderAPI::GetInstance()->CreateGlobalConstantBuffer((uint32_t)UniformBufferType::PerFrameData, sizeof(mPerFrameData));
+    }
 
     // 从PSOManager创建一个PSO，可以复用
     void Renderer::SetRenderState(const Material* mat, const RenderPassInfo &passinfo)
@@ -79,6 +108,7 @@ namespace EngineCore
         DrawCommand temp;
         temp.op = RenderOp::kSetMaterial;
         temp.data.setMaterial.matId = mat->GetInstanceID();
+        temp.data.setMaterial.shader = mat->mShader.Get();
         mRenderBuffer.PushBlocking(temp);
     }
 

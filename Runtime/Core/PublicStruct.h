@@ -22,7 +22,7 @@ namespace EngineCore
         {
             type = _type; size = _size; dimension = _dimension; stride = _stride; offset = _offset;
         };
-        
+        InputLayout() = default;
         InputLayout(VertexAttribute type) : type(type) {};
     };
 
@@ -33,8 +33,18 @@ namespace EngineCore
         Vector2 uv;
     };
 
+    struct DescriptorTableInfo
+    {
+        ShaderResourceType type;
+        UINT space;
+        UINT rootParamIndex;
+        DescriptorTableInfo() = default;
+        DescriptorTableInfo(const ShaderResourceType type, UINT space, UINT rootParamIndex)
+            : type(type), space(space), rootParamIndex(rootParamIndex){}
+    };
+
     // constantbuffer中的变量记录
-    struct ShaderVariableInfo
+    struct ShaderConstantInfo
     {
         string variableName;
         ShaderVariableType type;
@@ -44,27 +54,29 @@ namespace EngineCore
     };
 
     // shader中通过反射得到的资源名称、类型
-    struct ShaderResourceInfo
+    struct ShaderBindingInfo 
     {
         string resourceName;
         ShaderResourceType type;
         int registerSlot;              
         int size = 0;                  // 对CB有意义，其他资源可为0
-        struct ShaderResourceInfo(const string& resourceName, ShaderResourceType type, int registerSlot, int size)
-            : resourceName(resourceName), type(type), registerSlot(registerSlot), size(size)
+        int space = 0;
+        ShaderBindingInfo (const string& resourceName, ShaderResourceType type, int registerSlot, int size, int space)
+            : resourceName(resourceName), type(type), registerSlot(registerSlot), size(size),
+            space(space)
         {};
     };
 
     struct ShaderReflectionInfo
     {
         ShaderStageType type;
-        vector<ShaderResourceInfo> mTextureInfo;
-        vector<ShaderResourceInfo> mSamplerInfo;
-        vector<ShaderResourceInfo> mBufferInfo;
-        vector<ShaderResourceInfo> mUavInfo;
-
+        vector<ShaderBindingInfo > mTextureInfo;
+        vector<ShaderBindingInfo > mSamplerInfo;
+        vector<ShaderBindingInfo > mBufferInfo;
+        vector<ShaderBindingInfo > mUavInfo;
+        vector<DescriptorTableInfo> rootParamLayout;
         ShaderReflectionInfo(){};
-        unordered_map<string, ShaderVariableInfo> mShaderStageVariableInfoMap;
+        unordered_map<string, ShaderConstantInfo> mShaderStageVariableInfoMap;
 
     };
 

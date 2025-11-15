@@ -3,7 +3,6 @@
 #include "Utils/HashCombine.h"
 #include "Core/PublicEnum.h"
 
-
 namespace EngineCore
 {
     enum class RenderOp : uint8_t
@@ -119,9 +118,11 @@ namespace EngineCore
     };
 
     // 绑定渲染材质，
+    class Shader;
     struct Payload_SetMaterial 
     {
         uint32_t matId;
+        Shader* shader;
     };
     
     struct Payload_ConfigureRT
