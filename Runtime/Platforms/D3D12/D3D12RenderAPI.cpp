@@ -406,27 +406,12 @@ namespace EngineCore
     
         // 固定布局：直接创建 4 个 Root Parameters，不查反射
         // 根据 RenderDataFrenquent 枚举硬编码布局
-        
-        // Root Param 0: PerFrameData (b0, space0) - Descriptor Table
-        descriptorRanges.emplace_back();
-        descriptorRanges.back().Init( D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, (UINT)RenderDataFrenquent::PerFrameData, 0 );
         slotRootParameter.emplace_back();
-        slotRootParameter.back().InitAsDescriptorTable(1, &descriptorRanges.back());
-        
-        // Root Param 1: PerPassData (b0, space1) - Descriptor Table
-        descriptorRanges.emplace_back();
-        descriptorRanges.back().Init( D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, (UINT)RenderDataFrenquent::PerPassData, 0 );
+        slotRootParameter.back().InitAsConstantBufferView( 0, (UINT)RenderDataFrenquent::PerFrameData );
         slotRootParameter.emplace_back();
-        slotRootParameter.back().InitAsDescriptorTable(1, &descriptorRanges.back());
-        
-        // Root Param 2: PerMaterialData (b0, space2) - Descriptor Table
-        descriptorRanges.emplace_back();
-        descriptorRanges.back().Init( D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, (UINT)RenderDataFrenquent::PerMaterialData, 0 );
-
+        slotRootParameter.back().InitAsConstantBufferView( 0, (UINT)RenderDataFrenquent::PerPassData );
         slotRootParameter.emplace_back();
-        slotRootParameter.back().InitAsDescriptorTable(1, &descriptorRanges.back());
-        
-        // Root Param 3: PerDrawData (b0, space3) - Root CBV
+        slotRootParameter.back().InitAsConstantBufferView( 0, (UINT)RenderDataFrenquent::PerMaterialData );
         slotRootParameter.emplace_back();
         slotRootParameter.back().InitAsConstantBufferView( 0, (UINT)RenderDataFrenquent::PerDrawData );
     
@@ -1178,20 +1163,11 @@ namespace EngineCore
             if (mGlobalConstantBufferMap.count(perFrameBufferID) > 0)
             {
                 TD3D12ConstantBuffer& buffer = mGlobalConstantBufferMap[perFrameBufferID];
-                TD3D12DescriptorHandle tableHandle = 
-                    D3D12DescManager::GetInstance()->GetFrameCbvSrvUavAllocator(1);
-    
-                D3D12_CPU_DESCRIPTOR_HANDLE dest = { tableHandle.cpuHandle.ptr };
-                md3dDevice->CopyDescriptorsSimple(
-                    1, dest,
-                    buffer.handleCBV.cpuHandle,
-                    D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
-                );
-    
-                // ⭐ 固定使用 Root Param 0
-                mCommandList->SetGraphicsRootDescriptorTable(
-                    (UINT)RenderDataFrenquent::PerFrameData,  // 0
-                    tableHandle.gpuHandle
+                uint64_t gpuAddr = buffer.mGPUAddress;
+
+                mCommandList->SetGraphicsRootConstantBufferView(
+                    (UINT)RenderDataFrenquent::PerFrameData,
+                    gpuAddr
                 );
             }
         }
@@ -1203,26 +1179,17 @@ namespace EngineCore
         if (matData.mConstantBufferArray.size() > 0)
         {
             std::vector<TD3D12ConstantBuffer>& cbvSource = matData.mConstantBufferArray;
-            TD3D12DescriptorHandle tableHandle =
-                D3D12DescManager::GetInstance()->GetFrameCbvSrvUavAllocator(cbvSource.size());
     
-            for (int i = 0; i < cbvSource.size(); i++)
+            if (cbvSource.size() > 0)
             {
-                D3D12_CPU_DESCRIPTOR_HANDLE dest = {
-                    tableHandle.cpuHandle.ptr + i * mCbvSrvUavDescriptorSize
-                };
-                md3dDevice->CopyDescriptorsSimple(
-                    1, dest,
-                    cbvSource[i].handleCBV.cpuHandle,
-                    D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
+                TD3D12ConstantBuffer& buffer = cbvSource[0];
+                uint64_t gpuAddr = buffer.mGPUAddress;
+
+                mCommandList->SetGraphicsRootConstantBufferView(
+                    (UINT)RenderDataFrenquent::PerMaterialData,
+                    gpuAddr
                 );
             }
-    
-            // ⭐ 固定使用 Root Param 2
-            mCommandList->SetGraphicsRootDescriptorTable(
-                (UINT)RenderDataFrenquent::PerMaterialData,  // 2
-                tableHandle.gpuHandle
-            );
         }
         
         // === 4. PerDrawData (Root Param 3) 不在这里处理 ===

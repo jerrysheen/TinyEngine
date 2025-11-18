@@ -75,15 +75,15 @@
                 {
                     "Data": {
                         "LocalPosition": {
-                            "x": 0.0,
-                            "y": -0.6000000238418579,
-                            "z": 0.0
+                            "x": 0.75,
+                            "y": -0.44999998807907104,
+                            "z": -0.15000000596046448
                         },
                         "LocalQuaternion": {
-                            "w": 0.27059805393218994,
-                            "x": 0.27059805393218994,
-                            "y": 0.6532814502716064,
-                            "z": -0.6532814502716064
+                            "w": 0.2947561740875244,
+                            "x": 0.24406015872955322,
+                            "y": 0.5892131924629211,
+                            "z": -0.7116041779518127
                         },
                         "LocalScale": {
                             "x": 1.0,
@@ -124,6 +124,56 @@
             ],
             "Enabled": true,
             "Name": "house"
+        },
+        {
+            "ChildGameObject": [],
+            "Component": [
+                {
+                    "Data": {
+                        "LocalPosition": {
+                            "x": -0.6000000238418579,
+                            "y": -0.15000000596046448,
+                            "z": 1.5
+                        },
+                        "LocalQuaternion": {
+                            "w": 0.39149460196495056,
+                            "x": 0.34498265385627747,
+                            "y": 0.496303528547287,
+                            "z": -0.6938304305076599
+                        },
+                        "LocalScale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        }
+                    },
+                    "Type": "Transform"
+                },
+                {
+                    "Data": {
+                        "MeshHandle": {
+                            "ID": {
+                                "ID": 4721838792633486921
+                            },
+                            "Path": "D:/GitHubST/TinyEngine/Assets/Model/viking_room.obj"
+                        }
+                    },
+                    "Type": "MeshFilter"
+                },
+                {
+                    "Data": {
+                        "MatHandle": {
+                            "ID": {
+                                "ID": 9717983853578401568
+                            },
+                            "Path": "D:/GitHubST/TinyEngine/Assets/Material/testMat.mat"
+                        }
+                    },
+                    "Type": "MeshRenderer"
+                }
+            ],
+            "Enabled": true,
+            "Name": "House"
         }
     ]
 }
