@@ -80,6 +80,7 @@ namespace EngineCore
     {
         mPerFrameData.AmbientColor = Vector3(1.0f, 1.0f, 0.0f);
         RenderAPI::GetInstance()->SetGlobalValue<PerFrameData>((uint32_t)UniformBufferType::PerFrameData, 0, &mPerFrameData);
+        SetPerFrameData((UINT)RenderDataFrenquent::PerFrameData);
     }
 
     void Renderer::CreatePerFrameData()
@@ -206,12 +207,31 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(temp);
     }
 
+    void Renderer::SetPerPassData(UINT perPassBufferID)
+    {
+        DrawCommand temp;
+        temp.op = RenderOp::kSetPerPassData;
+        temp.data.setPerPassData.perPassBufferID = perPassBufferID;
+        mRenderBuffer.PushBlocking(temp);
+    }
+
+    void Renderer::SetPerFrameData(UINT perFrameBufferID)
+    {
+        DrawCommand temp;
+        temp.op = RenderOp::kSetPerFrameData;
+        temp.data.setPerFrameData.perFrameBufferID = perFrameBufferID;
+        mRenderBuffer.PushBlocking(temp);
+    }
+
+
+
     void Renderer::Submit(const RenderPassInfo &info)
     {
         ConfigureRenderTarget(info);
         SetViewPort(info.viewportStartPos, info.viewportEndPos);
         SetSissorRect(info.viewportStartPos, info.viewportEndPos);
         
+        SetPerPassData((UINT)info.mRenderDataFrenquent);
         for each(auto& record in info.drawRecordList)
         {
             // 根据mat + pass信息组织pippeline
@@ -268,7 +288,13 @@ namespace EngineCore
         break;     
         case RenderOp::kDrawInstanced :
             RenderAPI::GetInstance()->RenderAPIDrawInstanceCmd(cmd.data.setDrawInstanceCmd);
+        break;   
+        case RenderOp::kSetPerPassData :
+            RenderAPI::GetInstance()->RenderAPISetPerPassData(cmd.data.setPerPassData);
         break;     
+        case RenderOp::kSetPerFrameData :
+            RenderAPI::GetInstance()->RenderAPISetPerFrameData(cmd.data.setPerFrameData);
+            break;     
         default:
             break;
         }

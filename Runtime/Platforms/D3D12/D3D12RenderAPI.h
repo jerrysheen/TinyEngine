@@ -63,7 +63,8 @@ namespace EngineCore
         virtual void RenderAPIPresentFrame() override;
         virtual void RenderAPISetPerDrawData(Payload_SetPerDrawData setPerDrawData) override;
         virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) override;
-        
+        virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) override;
+        virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) override;
         
         TD3D12DescriptorHandle GetTextureSrvHanle(uint32_t textureID);
         TD3D12FrameBuffer* GetFrameBuffer(uint32_t bufferID, bool isBackBuffer = false);
@@ -184,6 +185,10 @@ namespace EngineCore
         unordered_map<uint32_t, TD3D12TextureHander> mGlobalTexHandlerMap;
 
         std::unique_ptr<D3D12PerDrawAllocator> mPerDrawAllocator;
+
+        ComPtr<ID3D12PipelineState> currentPSO;
+        UINT currentPerFrameBufferID;
+        UINT currentPerPassBufferID;
     };
 
 }

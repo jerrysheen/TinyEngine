@@ -143,7 +143,7 @@ namespace EngineCore
         Vector2 viewportEndPos;
         
         vector<DrawRecord> drawRecordList;
-
+        RenderDataFrenquent mRenderDataFrenquent;
         inline void Reset()
         {
             clearFlag = ClearFlag::None;

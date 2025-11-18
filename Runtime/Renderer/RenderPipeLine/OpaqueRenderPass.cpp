@@ -36,6 +36,8 @@ namespace EngineCore
         // 往哪里添加这个执行结果？
         for(auto* items : context.cameraVisibleItems)
         {
+            // todo: 后续会换成不同的比如opaquepass独有的data
+            mRenderDataFrenquent = RenderDataFrenquent::PerPassData;
             auto& mpb = items->meshRenderer->GetMaterialPropertyBlock();
             mpb.SetValue("ProjectionMatrix", context.camera->mProjectionMatrix);
             mpb.SetValue("ViewMatrix", context.camera->mViewMatrix);

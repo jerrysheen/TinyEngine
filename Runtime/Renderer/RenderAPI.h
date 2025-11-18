@@ -49,7 +49,9 @@ namespace  EngineCore
         virtual void RenderAPISubmit() = 0;
         virtual void RenderAPIWindowResize(Payload_WindowResize payloadWindowResize) = 0;
         virtual void RenderAPIPresentFrame() = 0;
-
+        virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) = 0;
+        virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) = 0;
+        
         virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) = 0;
         virtual void CreateGlobalTexHandler(uint32_t texID) = 0;
         virtual PerDrawHandle AllocatePerDrawData(uint32_t size) = 0;

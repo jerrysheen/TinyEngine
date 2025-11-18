@@ -21,7 +21,9 @@ namespace EngineCore
         kWindowResize = 10,
         kIssueEditorGUIDraw = 11,
         kSetPerDrawData = 12,
-        kDrawInstanced = 13
+        kDrawInstanced = 13,
+        kSetPerFrameData = 14,
+        kSetPerPassData = 15,
     };
 
     enum class DepthComparisonFunc : uint8_t
@@ -120,6 +122,17 @@ namespace EngineCore
         uint32_t vaoId;
     };
 
+    struct Payload_SetPerFrameData
+    {
+        UINT perFrameBufferID;
+    };
+
+    struct Payload_SetPerPassData
+    {
+        UINT perPassBufferID;
+    };
+
+
     // 绑定渲染材质，
     class Shader;
     struct Payload_SetMaterial 
@@ -196,6 +209,8 @@ namespace EngineCore
         Payload_IssueEditorGUIDraw onGUIDraw;
         Payload_SetPerDrawData setPerDrawData;
         Payload_DrawInstancedCommand setDrawInstanceCmd;
+        Payload_SetPerFrameData setPerFrameData;
+        Payload_SetPerPassData setPerPassData;
         CommandData() {};
     };
 

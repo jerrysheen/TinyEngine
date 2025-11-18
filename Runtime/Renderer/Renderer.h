@@ -46,6 +46,8 @@ namespace EngineCore
         void OnDrawGUI();
         void SetPerDrawData(const PerDrawHandle& perDrawHandle);
         void DrawIndexedInstanced(uint32_t vaoID, int count, const PerDrawHandle& perDrawHandle);
+        void SetPerFrameData(UINT perFrameBufferID);
+        void SetPerPassData(UINT perPassBufferID);
         
         void SetRenderState(const Material* mat, const RenderPassInfo &passinfo);
 

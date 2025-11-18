@@ -1155,26 +1155,7 @@ namespace EngineCore
         TD3D12MaterialData& matData = m_DataMap[payloadSetMaterial.matId];
         Shader* shader = payloadSetMaterial.shader;
         
-        // ⭐ 固定插槽：直接使用 RenderDataFrenquent 枚举值作为 root parameter index
-        
-        // === 1. 绑定 PerFrameData (Root Param 0) ===
-        {
-            uint32_t perFrameBufferID = (uint32_t)UniformBufferType::PerFrameData;
-            if (mGlobalConstantBufferMap.count(perFrameBufferID) > 0)
-            {
-                TD3D12ConstantBuffer& buffer = mGlobalConstantBufferMap[perFrameBufferID];
-                uint64_t gpuAddr = buffer.mGPUAddress;
-
-                mCommandList->SetGraphicsRootConstantBufferView(
-                    (UINT)RenderDataFrenquent::PerFrameData,
-                    gpuAddr
-                );
-            }
-        }
-        
-        // === 2. PerPassData (Root Param 1) - 暂时跳过 ===
-        // TODO: 实现 PerPassData
-        
+        // 固定插槽：直接使用 RenderDataFrenquent 枚举值作为 root parameter index
         // === 3. 绑定 PerMaterialData (Root Param 2) ===
         if (matData.mConstantBufferArray.size() > 0)
         {
@@ -1191,10 +1172,7 @@ namespace EngineCore
                 );
             }
         }
-        
-        // === 4. PerDrawData (Root Param 3) 不在这里处理 ===
-        // 在 RenderAPISetPerDrawData 中单独处理
-        
+                
         // === 5. 绑定纹理 (Root Param 4+) ===
         if (matData.mTextureBufferArray.size() > 0)
         {
@@ -1241,6 +1219,34 @@ namespace EngineCore
         mCommandList->SetGraphicsRootSignature(rootSig.Get());
         ComPtr<ID3D12PipelineState> pso = GetOrCreatePSO(psoDesc);  // 添加这行
         mCommandList->SetPipelineState(pso.Get()); 
+        
+        if(pso != currentPSO)
+        {
+            currentPSO = pso;
+            // === 1. 绑定 PerFrameData (Root Param 0) ===
+            uint32_t perFrameBufferID = (uint32_t)UniformBufferType::PerFrameData;
+            if (mGlobalConstantBufferMap.count(perFrameBufferID) > 0)
+            {
+                TD3D12ConstantBuffer& buffer = mGlobalConstantBufferMap[perFrameBufferID];
+                uint64_t gpuAddr = buffer.mGPUAddress;
+                mCommandList->SetGraphicsRootConstantBufferView(
+                    (UINT)RenderDataFrenquent::PerFrameData,
+                    gpuAddr
+                );
+            }
+            // todo : PerPassData
+            // === 2. PerPassData (Root Param 1) - 暂时跳过 ===
+            // uint32_t perPassBufferID = currentPerPassBufferID;
+            // if (mGlobalConstantBufferMap.count(perPassBufferID) > 0)
+            // {
+            //     TD3D12ConstantBuffer& buffer = mGlobalConstantBufferMap[perPassBufferID];
+            //     uint64_t gpuAddr = buffer.mGPUAddress;
+            //     mCommandList->SetGraphicsRootConstantBufferView(
+            //         (UINT)RenderDataFrenquent::PerPassData,
+            //         gpuAddr
+            //     );
+            // }
+        }
         
     }
 
@@ -1424,6 +1430,16 @@ namespace EngineCore
         // mCommandList->SetGraphicsRootConstantBufferView(setDrawInstanceCmd.perDrawRootParamIndex, gpuAddr);
         // mCommandList->DrawIndexedInstanced(indexCount, payload.instanceCount, 0, 0, 0);
         ASSERT_MSG(false, "Not Implemented!");
-    }   
+    }
+
+    void D3D12RenderAPI::RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData)
+    {
+        currentPerPassBufferID = setPerPassData.perPassBufferID;
+    }
+
+    void D3D12RenderAPI::RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData)
+    {
+        currentPerFrameBufferID = setPerFrameData.perFrameBufferID;
+    }
 
 } // namespace EngineCore

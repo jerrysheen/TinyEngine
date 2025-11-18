@@ -29,6 +29,7 @@ namespace EngineCore
     }
     void FinalBlitPass::Execute(const RenderContext& context)
     {
+        mRenderDataFrenquent = RenderDataFrenquent::PerPassData;
         Material* mat = SceneManager::GetInstance()->blitMaterial.Get();
         mat->SetTexture("SrcTexture", context.camera->colorAttachment.Get()->GetInstanceID());
         ModelData* model = SceneManager::GetInstance()->quadMesh.Get();
