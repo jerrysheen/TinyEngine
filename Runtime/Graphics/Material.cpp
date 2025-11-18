@@ -208,7 +208,7 @@ namespace EngineCore
     // 后续资源应该用inFo.name 进行寻找
     void Material::SetUpGPUResources()
     {  
-        RenderAPI::GetInstance()->CreateMaterialConstantBuffers(this, mShader.Get()->mShaderReflectionInfo.mBufferInfo);
+        RenderAPI::GetInstance()->CreateMaterialConstantBuffers(this, mShader.Get()->mShaderReflectionInfo.perMaterialBufferSize);
         RenderAPI::GetInstance()->CreateMaterialSamplerSlots(this, mShader.Get()->mShaderReflectionInfo.mSamplerInfo);
         RenderAPI::GetInstance()->CreateMaterialTextureSlots(this, mShader.Get()->mShaderReflectionInfo.mTextureInfo);
         RenderAPI::GetInstance()->CreateMaterialUAVSlots(this, mShader.Get()->mShaderReflectionInfo.mUavInfo);

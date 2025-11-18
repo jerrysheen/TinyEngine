@@ -34,16 +34,6 @@ namespace EngineCore
         Vector2 uv;
     };
 
-    struct DescriptorTableInfo
-    {
-        ShaderResourceType type;
-        UINT space;
-        UINT rootParamIndex;
-        DescriptorTableInfo() = default;
-        DescriptorTableInfo(const ShaderResourceType type, UINT space, UINT rootParamIndex)
-            : type(type), space(space), rootParamIndex(rootParamIndex){}
-    };
-
     // constantbuffer中的变量记录
     struct ShaderConstantInfo
     {
@@ -76,14 +66,12 @@ namespace EngineCore
         vector<ShaderBindingInfo > mSamplerInfo;
         vector<ShaderBindingInfo > mBufferInfo;
         vector<ShaderBindingInfo > mUavInfo;
-        vector<DescriptorTableInfo> rootParamLayout;
+
         ShaderReflectionInfo(){};
         unordered_map<string, ShaderConstantInfo> mPerDrawConstantBuffferReflectionInfo;
         unordered_map<string, ShaderConstantInfo> mPerMaterialConstantBuffferReflectionInfo;
-        uint32_t perDrawBufferSize = -1;
-        uint32_t perMaterialBufferSize = -1;
-        int perDrawBufferIndex = -1;
-        int perMaterialBufferIndex = -1;
+        uint32_t perDrawBufferSize = 0;
+        uint32_t perMaterialBufferSize = 0;
     };
 
     struct LightData
