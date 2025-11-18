@@ -34,12 +34,16 @@ namespace EngineCore
     void EngineCore::OpaqueRenderPass::Execute(const RenderContext& context)
     {
         // 往哪里添加这个执行结果？
-        for(auto& items : context.cameraVisibleItems)
+        for(auto* items : context.cameraVisibleItems)
         {
-
-            items->mat->SetMatrix4x4("ProjectionMatrix", context.camera->mProjectionMatrix);
-            items->mat->SetMatrix4x4("ViewMatrix", context.camera->mViewMatrix);
-            mRenderPassInfo.drawRecordList.emplace_back(items->mat, items->model);
+            auto& mpb = items->meshRenderer->GetMaterialPropertyBlock();
+            mpb.SetValue("ProjectionMatrix", context.camera->mProjectionMatrix);
+            mpb.SetValue("ViewMatrix", context.camera->mViewMatrix);
+            mpb.SetValue("WorldMatrix", items->transform->GetWorldMatrix());
+            
+            PerDrawHandle handle = RenderAPI::GetInstance()->AllocatePerDrawData(mpb.GetSize());
+            memcpy(handle.destPtr, mpb.GetData(), mpb.GetSize());
+            mRenderPassInfo.drawRecordList.emplace_back(items->meshRenderer->GetMaterial(), items->meshFilter->mMeshHandle.Get(), handle, 1);
         }
     }
 

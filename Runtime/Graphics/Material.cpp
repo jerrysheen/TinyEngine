@@ -36,10 +36,20 @@ namespace EngineCore
     Material::Material(ResourceHandle<Shader> shader)
         : mShader(shader)
     {
+        GetMaterialDataFromShaderReflection();
         SetUpRenderState();
         SetUpGPUResources();
     }
 
+    Material::Material(const Material &other)
+        : mMaterialdata(other.mMaterialdata), mShader(other.mShader),
+        mTexResourceMap(other.mTexResourceMap), mRenderState(other.mRenderState)
+    {
+        mAssetType = AssetType::Material;
+
+        // 创建GPU资源,并且进行同步.
+        SetUpGPUResources();
+    }
 
     Material::~Material()
     {
@@ -92,7 +102,7 @@ namespace EngineCore
     {
         ASSERT(mMaterialdata.matrix4x4Data.count(name) > 0);
         mMaterialdata.matrix4x4Data[name] = matrix4x4;
-        auto& map = mShader.Get()->mShaderReflectionInfo.mShaderStageVariableInfoMap;
+        auto& map = mShader.Get()->mShaderReflectionInfo.mPerMaterialConstantBuffferReflectionInfo;
         ASSERT(map.count(name) > 0);
         auto& variableInfo = map[name];
         RenderAPI::GetInstance()->SetShaderMatrix4x4(this, variableInfo, matrix4x4);
@@ -118,8 +128,9 @@ namespace EngineCore
 
     void Material::SetFloat(const string &name, float value)
     {
+        ASSERT(mMaterialdata.floatData.count(name) > 0);
         mMaterialdata.floatData[name] = value;
-        auto& map = mShader.Get()->mShaderReflectionInfo.mShaderStageVariableInfoMap;
+        auto& map = mShader.Get()->mShaderReflectionInfo.mPerMaterialConstantBuffferReflectionInfo;
         auto& variableInfo = map[name];
         RenderAPI::GetInstance()->SetShaderFloat(this, variableInfo, value);
     }
@@ -155,6 +166,42 @@ namespace EngineCore
         mRenderState.shaderInstanceID = mShader.Get()->GetInstanceID();
     }
 
+    void Material::GetMaterialDataFromShaderReflection()
+    {
+        // 新增：根据 Shader 反射信息初始化 MaterialData
+        ASSERT(mShader.IsValid());
+        auto& reflectionInfo = mShader.Get()->mShaderReflectionInfo.mPerMaterialConstantBuffferReflectionInfo;
+        // 遍历反射信息，根据类型初始化对应的数据槽位
+        for (const auto& [name, constInfo] : reflectionInfo)
+        {
+            switch (constInfo.type)
+            {
+            case ShaderVariableType::FLOAT:
+                mMaterialdata.floatData[name] = 0.0f;  // 默认值
+                break;
+            case ShaderVariableType::VECTOR2:
+                mMaterialdata.vec2Data[name] = Vector2::Zero;
+                break;
+            case ShaderVariableType::VECTOR3:
+                mMaterialdata.vec3Data[name] = Vector3::Zero;
+                break;
+            case ShaderVariableType::MATRIX4X4:
+                mMaterialdata.matrix4x4Data[name] = Matrix4x4::Identity;
+                break;
+            // 如果有 VECTOR4 或其他类型，需要添加对应的处理
+            default:
+                // LOG_WARNING("Unsupported shader variable type for: " + name);
+                break;
+            }
+        }
+        
+        // 初始化纹理槽位（从 mTextureInfo 中获取）
+        for (const auto& texInfo : mShader.Get()->mShaderReflectionInfo.mTextureInfo)
+        {
+            mMaterialdata.textureData[texInfo.resourceName] = nullptr;  // 初始化为空
+        }
+    }
+
     // 根据Shader信息，创建GPU buffer，进行数据映射。
     // todo： 数据优化，第一版设计，会在VS PS上传重复数据。
     // CPU handle在哪里持有？
@@ -182,7 +229,7 @@ namespace EngineCore
             const string& key = pair.first;     
             const Vector3& value = pair.second;
             
-            auto& map = mShader.Get()->mShaderReflectionInfo.mShaderStageVariableInfoMap;
+            auto& map = mShader.Get()->mShaderReflectionInfo.mPerMaterialConstantBuffferReflectionInfo;
             if(map.count(key) > 0)
             {
                 auto& variableInfo = map[key];
@@ -194,7 +241,7 @@ namespace EngineCore
         {
             const string& key = pair.first;
             const Matrix4x4& value = pair.second;
-            auto& map = mShader.Get()->mShaderReflectionInfo.mShaderStageVariableInfoMap;
+            auto& map = mShader.Get()->mShaderReflectionInfo.mPerMaterialConstantBuffferReflectionInfo;
             if(map.count(key) > 0)
             {
                 auto& variableInfo = map[key];

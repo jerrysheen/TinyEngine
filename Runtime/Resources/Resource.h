@@ -23,6 +23,11 @@ namespace EngineCore
         {
             SetAssetID(AssetIDGenerator::NewFromInstanceID(GetInstanceID()));
         };
+
+        Resource(const Resource& other)
+        {
+            SetAssetID(AssetIDGenerator::NewFromInstanceID(GetInstanceID()));
+        };
         
         Resource(AssetType type, const string& path)
             :mAssetType(type), mPath(path){}

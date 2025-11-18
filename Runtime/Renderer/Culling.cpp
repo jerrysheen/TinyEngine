@@ -20,11 +20,14 @@ namespace EngineCore
         {
             auto* matComponent = go->GetComponent<MeshRenderer>();
             auto* modelComponent = go->GetComponent<MeshFilter>();
+            auto* transformComponet = go->GetComponent<Transform>();
             if (matComponent != nullptr && modelComponent != nullptr) 
             {
                 auto visibleItem = context.GetAvalileVisibleItem();
-                visibleItem->mat = matComponent->mMatHandle.Get();
-                visibleItem->model = modelComponent->mMeshHandle.Get();
+                
+                visibleItem->meshRenderer = matComponent;
+                visibleItem->meshFilter = modelComponent;
+                visibleItem->transform = transformComponet;
                 context.cameraVisibleItems.push_back(std::move(visibleItem));
             }
         }

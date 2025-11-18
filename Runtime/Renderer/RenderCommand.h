@@ -2,6 +2,7 @@
 #include <iostream>
 #include "Utils/HashCombine.h"
 #include "Core/PublicEnum.h"
+#include "Core/PublicStruct.h"
 
 namespace EngineCore
 {
@@ -18,7 +19,9 @@ namespace EngineCore
         kSetMaterial = 8,
         kConfigureRT = 9,
         kWindowResize = 10,
-        kIssueEditorGUIDraw = 11
+        kIssueEditorGUIDraw = 11,
+        kSetPerDrawData = 12,
+        kDrawInstanced = 13
     };
 
     enum class DepthComparisonFunc : uint8_t
@@ -164,6 +167,20 @@ namespace EngineCore
         float x, y, w, h;
     };
 
+    struct Payload_SetPerDrawData
+    {
+        uint32_t perDrawOffset;
+        uint32_t perDrawSize;
+    };
+
+    struct Payload_DrawInstancedCommand
+    {
+        uint32_t vaoID;
+        int count;
+        uint32_t perDrawOffset;
+        uint32_t perDrawStride;
+    };
+
     union CommandData 
     {
         Payload_BeginFrame beginFrame;
@@ -177,6 +194,8 @@ namespace EngineCore
         Payload_SetSissorRect setSissorRect;
         Payload_WindowResize onWindowResize;
         Payload_IssueEditorGUIDraw onGUIDraw;
+        Payload_SetPerDrawData setPerDrawData;
+        Payload_DrawInstancedCommand setDrawInstanceCmd;
         CommandData() {};
     };
 

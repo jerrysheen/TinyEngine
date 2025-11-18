@@ -115,7 +115,7 @@ namespace EngineEditor
 
 		// 添加MeshRenderer组件
 		auto* meshRenderer = houseObj->AddComponent<MeshRenderer>();
-		meshRenderer->mMatHandle = ResourceManager::GetInstance()->LoadAsset<Material>("Material/testMat.mat");
+		meshRenderer->SetSharedMaterial( ResourceManager::GetInstance()->LoadAsset<Material>("Material/testMat.mat"));
 
 		// 设置Transform
 		auto* transform = houseObj->GetComponent<Transform>();
@@ -124,7 +124,7 @@ namespace EngineEditor
 		transform->UpdateNow();
 
 		// 更新材质的世界矩阵
-		meshRenderer->mMatHandle.Get()->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());
+		//meshRenderer->mMatHandle.Get()->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());
 	}
 
 }

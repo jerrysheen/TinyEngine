@@ -186,6 +186,26 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(temp);
     }
 
+    void Renderer::SetPerDrawData(const PerDrawHandle &perDrawHandle)
+    {
+        DrawCommand temp;
+        temp.op = RenderOp::kSetPerDrawData;
+        temp.data.setPerDrawData.perDrawOffset = perDrawHandle.offset;
+        temp.data.setPerDrawData.perDrawSize= perDrawHandle.size;
+        mRenderBuffer.PushBlocking(temp);
+    }
+
+    void Renderer::DrawIndexedInstanced(uint32_t vaoID, int count, const PerDrawHandle &perDrawHandle)
+    {
+        DrawCommand temp;
+        temp.op = RenderOp::kDrawInstanced;
+        temp.data.setDrawInstanceCmd.vaoID = vaoID;
+        temp.data.setDrawInstanceCmd.count = count;
+        temp.data.setDrawInstanceCmd.perDrawOffset = perDrawHandle.offset;
+        temp.data.setDrawInstanceCmd.perDrawStride = perDrawHandle.size / count;
+        mRenderBuffer.PushBlocking(temp);
+    }
+
     void Renderer::Submit(const RenderPassInfo &info)
     {
         ConfigureRenderTarget(info);
@@ -194,22 +214,26 @@ namespace EngineCore
         
         for each(auto& record in info.drawRecordList)
         {
-            // GetorCreate PSO...
             // 根据mat + pass信息组织pippeline
-            // todo: we need batch here...
-
             SetRenderState(record.mat, info);
-            // todo： 这个粒度是否还是太大。。材质中应该涉及到某些block不变才对。
-
             // copy gpu material data desc 
             SetMaterialData(record.mat);
-
             // bind mesh vertexbuffer and indexbuffer.
             SetMeshData(record.model);
 
-            DrawIndexed(record.model->GetInstanceID(), 1);
-            // todo :  提交的信号是什么
-            // 应该像unity那样
+            if(record.perDrawHandle.size > 0)
+            {
+                SetPerDrawData(record.perDrawHandle);
+            }            
+
+            if(record.instanceCount > 1)
+            {
+                DrawIndexedInstanced(record.model->GetInstanceID(), record.instanceCount, record.perDrawHandle);
+            }
+            else
+            {
+                DrawIndexed(record.model->GetInstanceID(), 1);
+            }
         }
     }
 
@@ -238,6 +262,12 @@ namespace EngineCore
         break;     
         case RenderOp::kSetViewPort :
             RenderAPI::GetInstance()->RenderAPISetViewPort(cmd.data.setViewPort);
+        break;     
+        case RenderOp::kSetPerDrawData :
+            RenderAPI::GetInstance()->RenderAPISetPerDrawData(cmd.data.setPerDrawData);
+        break;     
+        case RenderOp::kDrawInstanced :
+            RenderAPI::GetInstance()->RenderAPIDrawInstanceCmd(cmd.data.setDrawInstanceCmd);
         break;     
         default:
             break;

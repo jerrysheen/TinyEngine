@@ -52,7 +52,10 @@ namespace  EngineCore
 
         virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) = 0;
         virtual void CreateGlobalTexHandler(uint32_t texID) = 0;
+        virtual PerDrawHandle AllocatePerDrawData(uint32_t size) = 0;
         
+        virtual void RenderAPISetPerDrawData(Payload_SetPerDrawData setPerDrawData) = 0;
+        virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) = 0;
         template<typename T>
         void SetGlobalValue(uint32_t bufferID, uint32_t offset, T* value)
         {

@@ -28,6 +28,7 @@ namespace EngineCore
         Material() = default;
         Material(MetaData* metaData);
         Material(ResourceHandle<Shader> shader);
+        Material(const Material& other);
         void SetUpGPUResources();
         void UploadDataToGpu();
         ~Material();
@@ -44,5 +45,6 @@ namespace EngineCore
         void LoadDependency(const std::unordered_map<std::string, MetaData>& dependentMap);
         void SetUpRenderState();
         MaterailRenderState mRenderState;
+        void GetMaterialDataFromShaderReflection();
     };
 }

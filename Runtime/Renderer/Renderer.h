@@ -44,6 +44,8 @@ namespace EngineCore
         void DrawIndexed(uint32_t vaoID, int count);
         void ResizeWindow(int width, int height);
         void OnDrawGUI();
+        void SetPerDrawData(const PerDrawHandle& perDrawHandle);
+        void DrawIndexedInstanced(uint32_t vaoID, int count, const PerDrawHandle& perDrawHandle);
         
         void SetRenderState(const Material* mat, const RenderPassInfo &passinfo);
 
@@ -99,7 +101,6 @@ namespace EngineCore
                 {
                     currState = RenderOp::kBeginFrame;
                     RenderAPI::GetInstance()->RenderAPIBeginFrame();
-
                 }
 
                 if(cmd.op == RenderOp::kEndFrame)

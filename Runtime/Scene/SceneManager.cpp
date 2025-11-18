@@ -21,6 +21,7 @@ namespace EngineCore
 
 
         // temp: 这个数据是临时的，后续肯定不会在这里创建，
+
         quadMesh = ResourceManager::GetInstance()->CreateResource<ModelData>(Primitive::Quad);
         blitShader = ResourceManager::GetInstance()->LoadAsset<Shader>("Shader/BlitShader.hlsl");
         

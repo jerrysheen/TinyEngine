@@ -2,11 +2,11 @@
 // #define PER_MATERIAL_CB(name, slot)   cbuffer name : register(b##slot, space1)
 // #define PER_DRAW_CB(name, slot) cbuffer name : register(b##slot, space2)
 
-
-cbuffer PerDrawData : register(b0, space3)
+cbuffer PerMaterialData : register(b0, space2)
 {
     float _FlipY;
-};
+}
+
 
 // BlitShader.hlsl
 Texture2D SrcTexture : register(t0, space0);

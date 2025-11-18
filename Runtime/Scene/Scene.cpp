@@ -4,6 +4,7 @@
 #include "GameObject/Transform.h"
 #include "GameObject/MeshRenderer.h"
 #include "Graphics/Material.h"
+#include "Graphics/MaterialPropertyBlock.h"
 
 namespace EngineCore
 {
@@ -158,12 +159,13 @@ namespace EngineCore
          for (auto& go : allObjList) 
          {
              auto* transform = go->GetComponent<Transform>();
-             auto* meshFilter = go->GetComponent<MeshRenderer>();
+             auto* meshRenderer = go->GetComponent<MeshRenderer>();
 
-             if (transform && meshFilter) 
+             if (transform && meshRenderer) 
              {
-                 auto* material = meshFilter->mMatHandle.Get();
-                 material->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());
+                 auto mpb = meshRenderer->GetMaterialPropertyBlock();
+                 mpb.SetValue("WorldMatrix", transform->GetWorldMatrix());
+                 //material->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());
              }
          }
     }

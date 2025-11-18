@@ -6,6 +6,7 @@
 //#include "Graphics/FrameBufferObject.h"
 #include "Resources/ResourceHandle.h"
 
+
 namespace EngineCore
 {
 
@@ -69,6 +70,7 @@ namespace EngineCore
 
     struct ShaderReflectionInfo
     {
+        // todo: 确定这个地方是用vector还是直接单个对象
         ShaderStageType type;
         vector<ShaderBindingInfo > mTextureInfo;
         vector<ShaderBindingInfo > mSamplerInfo;
@@ -76,8 +78,12 @@ namespace EngineCore
         vector<ShaderBindingInfo > mUavInfo;
         vector<DescriptorTableInfo> rootParamLayout;
         ShaderReflectionInfo(){};
-        unordered_map<string, ShaderConstantInfo> mShaderStageVariableInfoMap;
-
+        unordered_map<string, ShaderConstantInfo> mPerDrawConstantBuffferReflectionInfo;
+        unordered_map<string, ShaderConstantInfo> mPerMaterialConstantBuffferReflectionInfo;
+        uint32_t perDrawBufferSize = -1;
+        uint32_t perMaterialBufferSize = -1;
+        int perDrawBufferIndex = -1;
+        int perMaterialBufferIndex = -1;
     };
 
     struct LightData
@@ -87,39 +93,53 @@ namespace EngineCore
 
 
     // 前向声明，防止循环引用。
-    class Material;
-    class ModelData;
+    class Transform;
+    class MeshRenderer;
+    class MeshFilter;
 
     struct VisibleItem
     {
         // 为了测试，先用直接塞数据的方式。
-        Material* mat;
-        ModelData* model;
+        MeshRenderer* meshRenderer;
+        MeshFilter* meshFilter;
+        Transform* transform;
+    };
+
+    struct PerDrawHandle
+    {
+        uint8_t* destPtr;
+        uint32_t offset;
+        uint32_t size;
     };
 
 
     struct DrawRecord
     {
-        // temp 方案：
-        // 为了测试，先用直接塞数据的方式。
         Material* mat;
         ModelData* model;
-        DrawRecord(Material* mat, ModelData* data):mat(mat),model(data){};
+
+        PerDrawHandle perDrawHandle;
+        uint32_t instanceCount = 1;
+
+        DrawRecord(Material* mat, ModelData* data)
+            :mat(mat), model(data), perDrawHandle{0,0}, instanceCount(1) {}
+        DrawRecord(Material* mat, ModelData* data, const PerDrawHandle& handle, uint32_t instCount = 1)
+            :mat(mat), model(data), perDrawHandle(handle), instanceCount(instCount){}
     };
     
-    struct PerDrawData
-    {
-        Matrix4x4 objectToWorldMatrix;
-        Matrix4x4 worldToViewMatrix;
-        Matrix4x4 viewToProjectionMatrix;
+    //struct PerDrawData
+    //{
+    //    Matrix4x4 objectToWorldMatrix;
+    //    Matrix4x4 worldToViewMatrix;
+    //    Matrix4x4 viewToProjectionMatrix;
 
-        inline void Reset()
-        {
-            objectToWorldMatrix = Matrix4x4::Identity;
-            worldToViewMatrix = Matrix4x4::Identity;
-            viewToProjectionMatrix = Matrix4x4::Identity;
-        };
-    };
+    //    inline void Reset()
+    //    {
+    //        objectToWorldMatrix = Matrix4x4::Identity;
+    //        worldToViewMatrix = Matrix4x4::Identity;
+    //        viewToProjectionMatrix = Matrix4x4::Identity;
+    //    };
+    //};
 
     class FrameBufferObject;
     struct RenderPassInfo
@@ -130,7 +150,7 @@ namespace EngineCore
         Vector3 clearColorValue;
         float clearDepthValue;
 
-        PerDrawData perdrawData;
+        //PerDrawData perdrawData;
         Vector2 viewportStartPos;
         Vector2 viewportEndPos;
         
@@ -141,7 +161,7 @@ namespace EngineCore
             clearFlag = ClearFlag::None;
             clearColorValue = Vector3::Zero;
             clearDepthValue = 1.0;
-            perdrawData.Reset();
+            //perdrawData.Reset();
             viewportStartPos = Vector2::Zero;
             viewportStartPos = Vector2::Zero;
             drawRecordList.clear();

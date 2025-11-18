@@ -25,6 +25,8 @@ namespace EngineCore
             delete sInstance;
             sInstance = nullptr;
         };
+
+
         template<typename T>
         ResourceHandle<T> LoadAsset(const string& relativePath)
         {
@@ -52,6 +54,20 @@ namespace EngineCore
             mPathToID[path] = id;
             mResourceCache[id] = resource;
             delete metaData;
+            return ResourceHandle<T>(id);
+        }
+
+        template<typename T>
+        ResourceHandle<T> Instantiate(const ResourceHandle<T>& sourceHandle)
+        {
+            T* src = sourceHandle.Get();
+            ASSERT(src != nullptr);
+
+            Resource* resource = new T(*src);
+            ASSERT(resource != nullptr);
+            // 将metaData设置填入Resource中
+            AssetID id = resource->GetAssetID();
+            mResourceCache[id] = resource;
             return ResourceHandle<T>(id);
         }
 

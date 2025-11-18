@@ -17,7 +17,7 @@
 #include "Graphics/Texture.h"
 #include "Core/InstanceID.h"
 #include "Core/PublicEnum.h"
-
+#include "D3D12PerDrawAllocator.h"
 
 namespace EngineCore
 {
@@ -61,7 +61,10 @@ namespace EngineCore
         virtual void RenderAPIWindowResize(Payload_WindowResize payloadWindowResize) override;
         virtual void RenderAPISubmit() override;
         virtual void RenderAPIPresentFrame() override;
-
+        virtual void RenderAPISetPerDrawData(Payload_SetPerDrawData setPerDrawData) override;
+        virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) override;
+        
+        
         TD3D12DescriptorHandle GetTextureSrvHanle(uint32_t textureID);
         TD3D12FrameBuffer* GetFrameBuffer(uint32_t bufferID, bool isBackBuffer = false);
         
@@ -70,7 +73,7 @@ namespace EngineCore
 
 
         virtual void SetGlobalDataImpl(uint32_t bufferID, uint32_t offset, uint32_t size, const void* value) override;
-
+        virtual PerDrawHandle AllocatePerDrawData(uint32_t size) override;
 
         TD3D12ConstantBuffer CreateConstantBuffer(uint32_t size);
 
@@ -124,6 +127,7 @@ namespace EngineCore
         void InitCommandObject();
         void InitSwapChain();
         void InitRenderTarget();
+        void InitPerDrawLargeBuffer();
         void CreateRootSignatureByShaderReflection(Shader* shader);
 
         int GetNextVAOIndex();
@@ -178,6 +182,8 @@ namespace EngineCore
 
         unordered_map<uint32_t, TD3D12ConstantBuffer> mGlobalConstantBufferMap;
         unordered_map<uint32_t, TD3D12TextureHander> mGlobalTexHandlerMap;
+
+        std::unique_ptr<D3D12PerDrawAllocator> mPerDrawAllocator;
     };
 
 }

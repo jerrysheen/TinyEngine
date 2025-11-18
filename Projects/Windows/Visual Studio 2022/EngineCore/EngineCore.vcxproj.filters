@@ -186,6 +186,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Graphics\MaterialData.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\MaterialPropertyBlock.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\ModelData.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
@@ -240,6 +243,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PSOManager.h">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PerDrawAllocator.h">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12RenderAPI.h">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClInclude>
@@ -262,6 +268,9 @@
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\FrameBufferManager.h">
+      <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\PerDrawAllocator.h">
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderAPI.h">
@@ -431,6 +440,9 @@
     <ClCompile Include="..\..\..\..\Runtime\Graphics\MaterialData.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\MaterialPropertyBlock.cpp">
+      <Filter>Runtime\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\ModelData.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
@@ -477,6 +489,9 @@
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PSOManager.cpp">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PerDrawAllocator.cpp">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12RenderAPI.cpp">

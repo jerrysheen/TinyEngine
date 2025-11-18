@@ -34,6 +34,7 @@ namespace EngineCore
         ~SceneManager();
 
         // todo： 这部分数据也要找地方存， maybe一个Global的渲染处
+
         ResourceHandle<Material> blitMaterial;
         ResourceHandle<ModelData> quadMesh;
         ResourceHandle<Shader> blitShader;
