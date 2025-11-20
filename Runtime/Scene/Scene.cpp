@@ -49,7 +49,13 @@ namespace EngineCore
                 {
                     script->Update();
                 }
+               //temp:
+                if (go->GetComponent<Camera>() != nullptr) 
+                {
+                    go->GetComponent<Camera>()->Update();
+                }
             }
+
         }
 
         // Transform延迟更新
@@ -58,6 +64,8 @@ namespace EngineCore
 
         //todo: temp: 更新材质信息，这部分应该在别的地方做：
         UpdatePerMaterialData();
+
+        
     }
 
     GameObject* Scene::FindGameObject(const std::string &name)

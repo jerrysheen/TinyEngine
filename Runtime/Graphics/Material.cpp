@@ -69,7 +69,7 @@ namespace EngineCore
             }
         }
         ASSERT_MSG(slotIndex != -1, "Can't find this Texture");
-        ASSERT(mTexResourceMap.count(slotName) > 0);
+        //ASSERT(mTexResourceMap.count(slotName) > 0);
         // 保存新的，释放原来的
         mTexResourceMap[slotName] = handle;
         //gpu

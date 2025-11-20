@@ -47,8 +47,8 @@ namespace EngineCore
         switch (heapType)
         {
         case D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV:
-            maxCount = 1000;
-            return 1000;
+            maxCount = 10000;
+            return 10000;
             break;
         case D3D12_DESCRIPTOR_HEAP_TYPE_RTV:
         case D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER:

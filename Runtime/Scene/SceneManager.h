@@ -54,6 +54,8 @@ namespace EngineCore
     private:
         Scene* mCurrentScene = nullptr;
         unordered_map<std::string, Scene*> mSceneMap;
+
+        vector<ResourceHandle<Texture>> texHandler;
     };
 
 }

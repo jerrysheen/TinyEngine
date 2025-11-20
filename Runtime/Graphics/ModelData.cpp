@@ -11,8 +11,14 @@ namespace EngineCore
 		ASSERT(metaData->dependentMap.size() == 0);
 
 		ModelMetaData* modelMetaData = static_cast<ModelMetaData*>(metaData);
+		LoadAiMesh(modelMetaData->path);
+    }
+
+
+	void ModelData::LoadAiMesh(const string& path)
+	{
 		Assimp::Importer import;
-		const aiScene* scene = import.ReadFile(modelMetaData->path, 
+		const aiScene* scene = import.ReadFile(path, 
 			aiProcess_Triangulate 
 			| aiProcess_JoinIdenticalVertices
 			| aiProcess_ConvertToLeftHanded
@@ -32,9 +38,7 @@ namespace EngineCore
 		layout.push_back(InputLayout(VertexAttribute::UV0, 2 * sizeof(float), 2, 8 * sizeof(float), 6 * sizeof(float)));
 
 		RenderAPI::GetInstance()->SetUpMesh(this, false);
-    }
-
-
+	}
 
     void ModelData::ProcessNode(aiNode* node, const aiScene* scene)
 	{
@@ -119,9 +123,15 @@ namespace EngineCore
 		:Resource()
     {
 		switch (primitiveType)
-		{
+		{	
 		case Primitive::Quad :
-			ModelUtils::GetFullScreenQuad(this);	
+			ModelUtils::GetFullScreenQuad(this);
+			break;
+		case Primitive::Cube:
+			LoadAiMesh(PathSettings::ResolveAssetPath("Model/Primitives/Cube.obj"));
+			break;
+		case Primitive::Sphere:
+			LoadAiMesh(PathSettings::ResolveAssetPath("Model/Primitives/Sphere.obj"));
 			break;
 		default:
 			break;

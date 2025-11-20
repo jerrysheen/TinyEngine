@@ -15,13 +15,11 @@ namespace EngineCore
     
     SceneManager::SceneManager()
     {
-        json j = EngineCore::JsonSerializer::ReadFromJson("/Scenes/SampleScene.meta");
+        json j = EngineCore::JsonSerializer::ReadFromJson("/Scenes/PerformanceTestScene.meta");
         Scene* scene = MetaFactory::CreateSceneFromMeta(j);
         mCurrentScene = scene;
 
-
-        // temp: 这个数据是临时的，后续肯定不会在这里创建，
-
+        // todo: 应该能保存序列化 更多的meta， 包括场景中代码创建的， 只要是shader和texture是代码创建的， 应该就可以，而不是像现在这样。
         quadMesh = ResourceManager::GetInstance()->CreateResource<ModelData>(Primitive::Quad);
         blitShader = ResourceManager::GetInstance()->LoadAsset<Shader>("Shader/BlitShader.hlsl");
         

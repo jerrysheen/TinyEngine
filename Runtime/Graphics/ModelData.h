@@ -27,6 +27,7 @@ namespace EngineCore
         ModelData(Primitive primitiveType);
     private:
         void ProcessNode(aiNode* node, const aiScene* scene);
+        void LoadAiMesh(const string& path);
         void ProcessMesh(aiMesh* aiMesh, const aiScene* scene);
     };
 

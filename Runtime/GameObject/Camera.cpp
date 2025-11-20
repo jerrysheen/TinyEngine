@@ -15,7 +15,7 @@ REGISTER_SCRIPT(Camera)
 namespace EngineCore
 {
     Camera::Camera(GameObject* go) : 
-        mFov(25.0f), mAspect(1920.0f/1080.0f), mNear(0.2), mFar(200), mProjectionMatrix(Matrix4x4::Identity), mLookAt(Vector3{0.0f, 1.0f, 0.0f}), mViewMatrix(Matrix4x4::Identity), mWidth(1920.0f), mHeight(1080.0f)
+        mFov(25.0f), mAspect(1920.0f/1080.0f), mNear(0.2), mFar(400), mProjectionMatrix(Matrix4x4::Identity), mLookAt(Vector3{0.0f, 1.0f, 0.0f}), mViewMatrix(Matrix4x4::Identity), mWidth(1920.0f), mHeight(1080.0f)
     {
         gameObject = go;
         // fake one.
