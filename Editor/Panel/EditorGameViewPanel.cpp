@@ -40,6 +40,7 @@ namespace EngineEditor
             ImGui::Text("Visible: %u", 1);
             ImGui::Text("Culled: %u",  3);
             ImGui::Text("SRP Batches: %u", 1);
+            ImGui::Text("FPS: %.2f", EngineCore::Profiler::Get().GetFPS());
 
             ImGui::EndChild();
 

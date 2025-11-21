@@ -16,6 +16,7 @@ namespace EngineCore
     SceneManager::SceneManager()
     {
         json j = EngineCore::JsonSerializer::ReadFromJson("/Scenes/PerformanceTestScene.meta");
+        //json j = EngineCore::JsonSerializer::ReadFromJson("/Scenes/SampleScene.meta");
         Scene* scene = MetaFactory::CreateSceneFromMeta(j);
         mCurrentScene = scene;
 

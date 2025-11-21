@@ -24,8 +24,10 @@ namespace EngineCore
         #endif
         while(!WindowManager::GetInstance()->WindowShouldClose())
         {
+            PROFILER_FRAME_MARK("TinyProfiler");
             Update();
 
+            PROFILER_ZONE("MainThreadTime");
             Render();
         }
 

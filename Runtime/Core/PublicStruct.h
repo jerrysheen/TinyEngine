@@ -132,6 +132,7 @@ namespace EngineCore
     class FrameBufferObject;
     struct RenderPassInfo
     {
+        std::string passName;
         ResourceHandle<FrameBufferObject> colorAttachment;
         ResourceHandle<FrameBufferObject> depthAttachment;
         ClearFlag clearFlag;

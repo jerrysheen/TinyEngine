@@ -37,11 +37,11 @@ namespace EngineCore
 
     void RenderContext::ReturnItemToPool()
     {
-        for (auto ptr : cameraVisibleItems) 
-        {
-            visibleItemPool.push_back(std::move(cameraVisibleItems.back()));
-            cameraVisibleItems.pop_back();
-        }
+        visibleItemPool.insert(
+            visibleItemPool.end(),
+            cameraVisibleItems.begin(),
+            cameraVisibleItems.end());
+        cameraVisibleItems.clear();
         //visibleItemPool.insert(
         //    visibleItemPool.end(),
         //    std::make_move_iterator(cameraVisibleItems.begin()),

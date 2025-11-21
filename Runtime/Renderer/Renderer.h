@@ -130,7 +130,7 @@ namespace EngineCore
                 if(currState == RenderOp::kBeginFrame)
                     ProcessDrawCommand(cmd);
 
-                cout << "Thread Runing!!!" << endl;
+                //cout << "Thread Runing!!!" << endl;
             }
         };
 

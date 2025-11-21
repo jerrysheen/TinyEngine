@@ -66,7 +66,6 @@ namespace EngineCore
 
     void RenderEngine::EndRender()
     {
-        renderContext.Reset();
         //Renderer::GetInstance()->EndFrame();
         RenderAPI::GetInstance()->EndFrame();
     }

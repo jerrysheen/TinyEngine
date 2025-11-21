@@ -45,6 +45,7 @@ namespace EngineCore
 
     void Renderer::Render(const RenderContext& context)
     {
+        PROFILER_ZONE("Renderer::Render");
         BeginFrame();
         FlushPerFrameData();
         for(auto& pass : context.camera->mRenderPassAsset.renderPasses)
@@ -227,6 +228,8 @@ namespace EngineCore
 
     void Renderer::Submit(const RenderPassInfo &info)
     {
+        
+        PROFILER_ZONE("Renderer::Submit");
         ConfigureRenderTarget(info);
         SetViewPort(info.viewportStartPos, info.viewportEndPos);
         SetSissorRect(info.viewportStartPos, info.viewportEndPos);

@@ -23,6 +23,7 @@ namespace EngineCore
     
     void EngineCore::OpaqueRenderPass::Configure(const RenderContext& context)
     {
+        mRenderPassInfo.passName = "OpaqueRenderPass";
         ResourceHandle<FrameBufferObject> colorAttachment = context.camera->colorAttachment;
         ResourceHandle<FrameBufferObject> depthAttachment = context.camera->depthAttachment;
         SetRenderTarget(colorAttachment, depthAttachment);

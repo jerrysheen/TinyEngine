@@ -20,6 +20,7 @@
 #include <variant>
 #include <cmath> 
 #include <algorithm>
+#include "Core/Profiler.h"
 
 using std::unordered_map;
 using std::string;
