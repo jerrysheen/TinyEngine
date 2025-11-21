@@ -59,12 +59,13 @@ namespace EngineCore
         virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) override;
         virtual void RenderAPISetViewPort(Payload_SetViewPort payloadSetViewport) override;
         virtual void RenderAPIWindowResize(Payload_WindowResize payloadWindowResize) override;
-        virtual void RenderAPISubmit() override;
+        virtual uint64_t RenderAPISubmit() override;
         virtual void RenderAPIPresentFrame() override;
         virtual void RenderAPISetPerDrawData(Payload_SetPerDrawData setPerDrawData) override;
         virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) override;
         virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) override;
         virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) override;
+        virtual void WaitForFenceValue(uint64_t value) override;
         
         TD3D12DescriptorHandle GetTextureSrvHanle(uint32_t textureID);
         TD3D12FrameBuffer* GetFrameBuffer(uint32_t bufferID, bool isBackBuffer = false);
@@ -112,6 +113,7 @@ namespace EngineCore
             return mBackBuffer[mCurrBackBuffer].resource.Get();
         }
 
+        uint64_t SignalFrameFence();
         void SignalFence(TD3D12Fence* mFence);
         void WaitForFence(TD3D12Fence* mFence);
         void WaitForRenderFinish(TD3D12Fence* mFence);

@@ -14,6 +14,7 @@
 #include "RenderAPI.h"
 #include <chrono>
 #include "RenderUniforms.h"
+#include <cstdint>
 
 #ifdef EDITOR
 #include "EditorGUIManager.h"
@@ -27,7 +28,7 @@ namespace EngineCore
     public:
 
 
-        Renderer(): mRenderThread(&Renderer::RenderLoop, this), mRunning(true), mPerFrameData{}{};
+        Renderer(): mRenderThread(&Renderer::RenderLoop, this), mRunning(true), mPerFrameData{}, mFrameSlots{}, mFrameIndex(0), mCurrentFrameSlot(0), mSubmitFrameSlot(0){};
         ~Renderer();
         static void Create();
 
@@ -108,9 +109,10 @@ namespace EngineCore
                 if(cmd.op == RenderOp::kEndFrame)
                 {
                     currState = RenderOp::kEndFrame;
-                    RenderAPI::GetInstance()->RenderAPISubmit();
+                    uint64_t fenceValue = RenderAPI::GetInstance()->RenderAPISubmit();
+                    mFrameSlots[mSubmitFrameSlot].fenceValue = fenceValue;
 
-#ifdef EDITOR                   
+#ifdef EDITOR
                     if (hasDrawGUI)
                     {
                         EngineEditor::EditorGUIManager::GetInstance()->BeginFrame();
@@ -125,6 +127,7 @@ namespace EngineCore
                         RenderAPI::GetInstance()->RenderAPIWindowResize(pendingResize);
                         hasResize = false;
                     }
+                    mSubmitFrameSlot = (mSubmitFrameSlot + 1) % kFrameSlotCount;
                 }
                 
                 if(currState == RenderOp::kBeginFrame)
@@ -136,14 +139,25 @@ namespace EngineCore
 
 
     private:
+        struct FrameSlot
+        {
+            uint64_t fenceValue = 0;
+        };
+
+        static const int kFrameSlotCount = 2;
+
         SPSCRingBuffer<1024> mRenderBuffer;
         std::thread mRenderThread;
-        
+
         RenderOp currState = RenderOp::kInvalid;
         std::mutex mSleepRenderThreadMutex;
         std::condition_variable mSleepRenderThreadCV;
         std::atomic<bool> mRunning;
         PerFrameData mPerFrameData;
+        FrameSlot mFrameSlots[kFrameSlotCount];
+        uint64_t mFrameIndex = 0;
+        int mCurrentFrameSlot = 0;
+        int mSubmitFrameSlot = 0;
 
         void FlushPerFrameData();
         void CreatePerFrameData();
