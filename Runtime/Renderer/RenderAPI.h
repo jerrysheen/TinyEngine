@@ -6,6 +6,7 @@
 #include "Graphics/ModelData.h"
 #include "Graphics/Texture.h"
 #include "Renderer/RenderCommand.h"
+#include <cstdint>
 
 namespace  EngineCore
 {
@@ -46,7 +47,8 @@ namespace  EngineCore
         virtual void RenderAPISetSissorRect(Payload_SetSissorRect payloadSetSissorrect) = 0;
         virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) = 0;
         virtual void RenderAPISetViewPort(Payload_SetViewPort payloadSetViewport) = 0;
-        virtual void RenderAPISubmit() = 0;
+        virtual uint64_t RenderAPISubmit() = 0;
+        virtual void WaitForFenceValue(uint64_t value) = 0;
         virtual void RenderAPIWindowResize(Payload_WindowResize payloadWindowResize) = 0;
         virtual void RenderAPIPresentFrame() = 0;
         virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) = 0;

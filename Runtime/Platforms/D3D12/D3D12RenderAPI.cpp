@@ -343,10 +343,21 @@ namespace EngineCore
 
 
     void D3D12RenderAPI::WaitForRenderFinish(TD3D12Fence* mFence)
-	{
-		SignalFence(mFence);
-		WaitForFence(mFence);
-	}
+        {
+                SignalFence(mFence);
+                WaitForFence(mFence);
+        }
+
+    uint64_t D3D12RenderAPI::SignalFrameFence()
+    {
+            mFrameFence->mCurrentFence++;
+            uint64_t value = mFrameFence->mCurrentFence;
+
+            ThrowIfFailed(
+                mCommandQueue->Signal(mFrameFence->mFence.Get(), value)
+            );
+            return value;
+    }
 
     void D3D12RenderAPI::SignalFence(TD3D12Fence* mFence)
 	{
@@ -354,11 +365,11 @@ namespace EngineCore
 		ThrowIfFailed(mCommandQueue->Signal(mFence->mFence.Get(), mFence->mCurrentFence));
 	}
 
-	void D3D12RenderAPI::WaitForFence(TD3D12Fence* mFence)
-	{
-		if (mFence->mCurrentFence > 0 && mFence->mFence->GetCompletedValue() < mFence->mCurrentFence)
-		{
-			auto event = CreateEventEx(nullptr, NULL, NULL, EVENT_ALL_ACCESS);
+        void D3D12RenderAPI::WaitForFence(TD3D12Fence* mFence)
+        {
+                if (mFence->mCurrentFence > 0 && mFence->mFence->GetCompletedValue() < mFence->mCurrentFence)
+                {
+                        auto event = CreateEventEx(nullptr, NULL, NULL, EVENT_ALL_ACCESS);
 			if (event)
 			{
 				ThrowIfFailed(mFence->mFence->SetEventOnCompletion(mFence->mCurrentFence, event));
@@ -368,10 +379,23 @@ namespace EngineCore
 			}
 			else
 			{
-				std::cout << "Create event failed !" << std::endl;
-			}
-		}
-	}
+                                std::cout << "Create event failed !" << std::endl;
+                        }
+                }
+        }
+
+    void D3D12RenderAPI::WaitForFenceValue(uint64_t value)
+    {
+        if (mFrameFence->mFence->GetCompletedValue() < value)
+        {
+            HANDLE eventHandle = CreateEventEx(nullptr, FALSE, FALSE, EVENT_ALL_ACCESS);
+            ThrowIfFailed(
+                mFrameFence->mFence->SetEventOnCompletion(value, eventHandle)
+            );
+            WaitForSingleObject(eventHandle, INFINITE);
+            CloseHandle(eventHandle);
+        }
+    }
 
     Shader* D3D12RenderAPI::CompileShader(const string& path, Shader* shader)
     {
@@ -1375,7 +1399,7 @@ namespace EngineCore
 
 
 
-    void D3D12RenderAPI::RenderAPISubmit()
+    uint64_t D3D12RenderAPI::RenderAPISubmit()
     {
         // 需要切换RT -> present Frame.
         // todo 切换backbuffer
@@ -1395,11 +1419,9 @@ namespace EngineCore
         mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
 
         // swap the back and front buffers
-        SignalFence(mFrameFence);
+        uint64_t fenceValue = SignalFrameFence();
+        return fenceValue;
 
-        WaitForFence(mFrameFence);
-     
-        
     }
 
     // todo 这个分类似乎不合理

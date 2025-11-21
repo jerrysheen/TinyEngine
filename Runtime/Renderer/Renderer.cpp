@@ -46,6 +46,14 @@ namespace EngineCore
     void Renderer::Render(const RenderContext& context)
     {
         PROFILER_ZONE("Renderer::Render");
+        uint64_t frameIndex = ++mFrameIndex;
+        mCurrentFrameSlot = frameIndex % kFrameSlotCount;
+        FrameSlot& slot = mFrameSlots[mCurrentFrameSlot];
+        if (slot.fenceValue != 0)
+        {
+            RenderAPI::GetInstance()->WaitForFenceValue(slot.fenceValue);
+            slot.fenceValue = 0;
+        }
         BeginFrame();
         FlushPerFrameData();
         for(auto& pass : context.camera->mRenderPassAsset.renderPasses)
