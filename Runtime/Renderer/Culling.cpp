@@ -32,6 +32,9 @@ namespace EngineCore
             }
         }
         // todo: Culling::Run
+        PROFILER_COUNTER_ADD("SceneItems", scene->allObjList.size());
+        PROFILER_COUNTER_ADD("Visible Objects", context.cameraVisibleItems.size());
+
     }
 
 } // namespace EngineCore

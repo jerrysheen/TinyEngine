@@ -44,6 +44,7 @@ namespace EngineCore
     {
 
         WaitForLastFrameFinished();
+        RenderAPI::GetInstance()->WaitForGpuFinished();
 
         Renderer::GetInstance()->BeginFrame();
         renderContext.Reset();
@@ -61,6 +62,7 @@ namespace EngineCore
         Renderer::GetInstance()->EndFrame();
 
         SignalMainThreadSubmited();
+
     }
 
     void RenderEngine::Destory()

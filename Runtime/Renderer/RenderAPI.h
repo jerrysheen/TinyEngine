@@ -62,7 +62,7 @@ namespace  EngineCore
             uint32_t size = sizeof(T);
             SetGlobalDataImpl(bufferID, offset, size, static_cast<void*>(value));
         }
-        
+        virtual void WaitForGpuFinished() = 0;
     public:
         static std::unique_ptr<RenderAPI> s_Instance;
     protected:

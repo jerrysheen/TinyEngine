@@ -260,12 +260,14 @@ namespace EngineCore
             RenderAPI::GetInstance()->RenderAPIConfigureRT(cmd.data.configureRT);
         break;
         case RenderOp::kDrawIndexed :
+            PROFILER_COUNTER_ADD("RenderDrawCalls", 1);
             RenderAPI::GetInstance()->RenderAPIDrawIndexed(cmd.data.setDrawCmd);
         break;        
         case RenderOp::kSetMaterial :
             RenderAPI::GetInstance()->RenderAPISetMaterial(cmd.data.setMaterial);
         break;     
         case RenderOp::kSetRenderState :
+            PROFILER_COUNTER_ADD("RenderBatches", 1);
             RenderAPI::GetInstance()->RenderAPISetRenderState(cmd.data.setRenderState);
         break;     
         case RenderOp::kSetSissorRect :
@@ -281,6 +283,7 @@ namespace EngineCore
             RenderAPI::GetInstance()->RenderAPISetPerDrawData(cmd.data.setPerDrawData);
         break;     
         case RenderOp::kDrawInstanced :
+            PROFILER_COUNTER_ADD("RenderDrawCalls", 1);
             RenderAPI::GetInstance()->RenderAPIDrawInstanceCmd(cmd.data.setDrawInstanceCmd);
         break;   
         case RenderOp::kSetPerPassData :

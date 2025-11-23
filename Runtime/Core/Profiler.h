@@ -42,7 +42,7 @@ namespace EngineCore
 
         std::vector<ProfilerEvent> events;
 
-        std::unordered_map<const char*, uint32_t> counterIndex;
+        std::unordered_map<std::string, uint32_t> counterIndex;
 
         void Clear()
         {
@@ -87,19 +87,32 @@ namespace EngineCore
             );
         }
 
-        void AddCounter(const char* name, double value)
+        void AddCounter(const char* name, double value = 1)
         {
             ProfilerFrame& frame = m_frams[m_currentFrameIndex];
             std::lock_guard<std::mutex> lock(m_frameMutex);
 
             if(frame.counterIndex.count(name) > 0)
             {
-                frame.counterIndex[name] = frame.counterIndex[name]++;
+                frame.counterIndex[name] += value;
             }
             else
             {
-                frame.counterIndex[name] = 1;
+                frame.counterIndex[name] = value;
             }
+        }
+
+        ProfilerFrame& GetCurrentFrame()
+        {
+            return m_frams[m_currentFrameIndex];  // 使用传入的 index
+        }
+
+        ProfilerFrame& GetLastFrame()
+        {
+            const uint32_t prevIndex = (m_currentFrameIndex > 0)
+                ? (m_currentFrameIndex - 1)
+                : (kMaxFrames - 1);
+            return m_frams[prevIndex];  // 使用传入的 index
         }
 
         const ProfilerFrame& GetFrame(uint32_t index) const

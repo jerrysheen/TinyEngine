@@ -36,10 +36,10 @@ namespace EngineEditor
             ImGui::BeginChild("GameViewStats", overlaySize, true,
                             ImGuiWindowFlags_NoScrollbar);
 
-            ImGui::Text("Draws: %u",  2);
-            ImGui::Text("Visible: %u", 1);
-            ImGui::Text("Culled: %u",  3);
-            ImGui::Text("SRP Batches: %u", 1);
+            ImGui::Text("Draws: %u",  EngineCore::Profiler::Get().GetLastFrame().counterIndex["RenderDrawCalls"]);
+            ImGui::Text("Visible: %u", EngineCore::Profiler::Get().GetLastFrame().counterIndex["Visible Objects"]);
+            ImGui::Text("SceneItems: %u",  EngineCore::Profiler::Get().GetLastFrame().counterIndex["SceneItems"]);
+            ImGui::Text("SRP Batches: %u", EngineCore::Profiler::Get().GetLastFrame().counterIndex["RenderBatches"]);
             ImGui::Text("FPS: %.2f", EngineCore::Profiler::Get().GetFPS());
 
             ImGui::EndChild();

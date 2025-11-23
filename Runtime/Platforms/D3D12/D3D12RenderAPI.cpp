@@ -1333,7 +1333,6 @@ namespace EngineCore
         // swap the back and front buffers
         SignalFence(mFrameFence);
 
-        WaitForFence(mFrameFence);
         PROFILER_EVENT_END("GPU Process::WaitForGPUFinished");
     }
 
@@ -1342,7 +1341,6 @@ namespace EngineCore
     {
         ThrowIfFailed(mSwapChain->Present(0, 0));
         mCurrBackBuffer = (mCurrBackBuffer + 1) % SwapChainBufferCount;
-        //WaitForRenderFinish();
         D3D12DescManager::GetInstance()->ResetFrameAllocator();
     }
 

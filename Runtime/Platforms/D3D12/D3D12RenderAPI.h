@@ -112,6 +112,7 @@ namespace EngineCore
         void SignalFence(TD3D12Fence* mFence);
         void WaitForFence(TD3D12Fence* mFence);
         void WaitForRenderFinish(TD3D12Fence* mFence);
+        virtual void WaitForGpuFinished() override { WaitForFence(mFrameFence); }
 
         ComPtr<ID3D12PipelineState> psoObj;
         ComPtr<ID3D12RootSignature> rootSignature;
