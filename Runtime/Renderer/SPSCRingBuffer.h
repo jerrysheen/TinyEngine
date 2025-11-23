@@ -12,57 +12,42 @@ namespace EngineCore
     {
         static_assert(((CapacityPow2 & (CapacityPow2 - 1)) == 0), "Must Be Power of two");
     public:
-        bool TryPush(const DrawCommand& cmd)
+        // 阻塞直到push成功
+        bool PushBlocking(const DrawCommand& cmd)
         {
-            // get head
+            std::unique_lock<std::mutex> lk(m_mu);
+            mCVIsNotFull.wait(lk, [&]() {return !IsFull(); });
+
+            if (IsFull()) 
+            {
+                return false;
+            }
             size_t head = mHead.load(std::memory_order_relaxed);
             size_t next = (head + 1) & (CapacityPow2 - 1);
-            if(next == mTail.load(std::memory_order_acquire))
-            {
-                cout << "Render Queue is Full" << endl;
-                return false;
-            }
             mCmdQueue[head] = std::move(cmd);
             mHead.store(next, std::memory_order_release);
-            return true;
-        }
-        // 阻塞直到push成功
-        void PushBlocking(const DrawCommand& cmd)
-        {
-            while(!TryPush(cmd))
-            {
-                std::unique_lock<std::mutex> lk(m_mu);
-                mCVIsNotFull.wait(lk, [&](){return !IsFull();});
-            }
-
             mCVIsNotEmpty.notify_all();
+            return true;
         };
 
-        // 消费者消费：
-        bool TryPop(DrawCommand& cmd)
+
+        // 阻塞直到pop成功
+        bool PopBlocking(DrawCommand& cmd)
         {
-            size_t tail = mTail.load(std::memory_order_relaxed);
-            if( tail == mHead.load(std::memory_order_acquire))
+            std::unique_lock<std::mutex> lk(m_mu);
+            mCVIsNotEmpty.wait(lk, [&] {return !IsEmpty(); });
+
+            if (IsEmpty()) 
             {
-                cout << "Render Queue is Empty" << endl;
                 return false;
             }
+
+            size_t tail = mTail.load(std::memory_order_relaxed);
             cmd = mCmdQueue[tail];
             size_t next = (tail + 1) & (CapacityPow2 - 1);
             mTail.store(next, std::memory_order_release);
             mCVIsNotFull.notify_all();
             return true;
-        }
-
-        // 阻塞直到pop成功
-        void PopBlocking(DrawCommand& cmd)
-        {
-            while(!TryPop(cmd))
-            {
-                std::unique_lock<std::mutex> lk(m_mu);
-                mCVIsNotEmpty.wait(lk, [&]{return !IsEmpty();});
-            }
-            mCVIsNotFull.notify_all();
         }
 
         bool IsEmpty() const 

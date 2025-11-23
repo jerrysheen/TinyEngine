@@ -16,6 +16,9 @@
     <Filter Include="Runtime\Core">
       <UniqueIdentifier>{416F811B-2DD2-10C0-D657-4976C299DC42}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Runtime\Core\Concurrency">
+      <UniqueIdentifier>{1BC54711-07EA-9691-3035-7C211CB995AF}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Runtime\External">
       <UniqueIdentifier>{9BA97363-87A2-92B5-B0D4-773A9C2C72C1}</UniqueIdentifier>
     </Filter>
@@ -101,6 +104,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\Editor\Panel\EditorProjectPanel.h">
       <Filter>Editor\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Core\Concurrency\CpuEvent.h">
+      <Filter>Runtime\Core\Concurrency</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Core\Game.h">
       <Filter>Runtime\Core</Filter>
@@ -385,6 +391,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Editor\Panel\EditorProjectPanel.cpp">
       <Filter>Editor\Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Core\Concurrency\CpuEvent.cpp">
+      <Filter>Runtime\Core\Concurrency</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Core\Game.cpp">
       <Filter>Runtime\Core</Filter>

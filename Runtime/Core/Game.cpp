@@ -27,7 +27,6 @@ namespace EngineCore
             PROFILER_FRAME_MARK("TinyProfiler");
             Update();
 
-            PROFILER_ZONE("MainThreadTime");
             Render();
         }
 
@@ -63,30 +62,15 @@ namespace EngineCore
 
     void Game::Update()
     {
-        //std::cout << "Update Game" << std::endl;
+        PROFILER_ZONE("MainThread::GameUpdate");
         SceneManager::GetInstance()->Update();
-        RenderEngine::GetInstance()->Update();
     
-        #ifdef EDITOR
-        #endif
     }
 
     void Game::Render()
     {
-        RenderEngine::GetInstance()->BeginRender();
-
-        #ifdef EDITOR
-        // 需要在RenderEngineRender之前，提前标记这一帧需要IMGUI绘制。
-        EngineEditor::EditorGUIManager::GetInstance()->Update();
-        #endif
-
-
-        RenderEngine::GetInstance()->Render();
-
-
-
-        RenderEngine::GetInstance()->EndRender();
-
+        PROFILER_ZONE("MainThread::RenderTick");
+        RenderEngine::GetInstance()->Tick();
     }
 
 }

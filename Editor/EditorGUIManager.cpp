@@ -38,12 +38,12 @@ namespace EngineEditor
         }
     }
 
-
+    // Imgui依赖数据，不需要update
     void EditorGUIManager::Update()
     {
-        EngineCore::RenderEngine::GetInstance()->OnDrawGUI();
     }
     
+    // Imgui真正的Render指令搜集
     void EditorGUIManager::Render()
     {
         for(int i = 0; i < mPanelList.size(); i++)

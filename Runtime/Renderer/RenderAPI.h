@@ -14,9 +14,7 @@ namespace  EngineCore
     public:
         static RenderAPI* GetInstance(){ return s_Instance.get();}
         static bool IsInitialized(){return s_Instance != nullptr;};
-        virtual void BeginFrame() = 0;
-        virtual void Render() = 0;
-        virtual void EndFrame() = 0;
+       
         static void Create();
         virtual Shader* CompileShader(const string& path, Shader* shader) = 0;
 

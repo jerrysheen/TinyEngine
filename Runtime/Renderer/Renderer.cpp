@@ -3,6 +3,7 @@
 #include "RenderAPI.h"
 #include "Core/PublicEnum.h"
 #include "Graphics/FrameBufferObject.h"
+#include "Core/Concurrency/CpuEvent.h"
 
 namespace EngineCore
 {
@@ -33,9 +34,7 @@ namespace EngineCore
 
 
     void Renderer::BeginFrame()
-    {
-        // Clear RenderInfo in RenderAPI
-        // todo: 这个地方是否需要优化
+    {        
         RenderAPI::GetInstance()->ClearRenderPassInfo();
 
         DrawCommand temp;
@@ -45,33 +44,26 @@ namespace EngineCore
 
     void Renderer::Render(const RenderContext& context)
     {
-        PROFILER_ZONE("Renderer::Render");
-        BeginFrame();
+        PROFILER_ZONE("MainThread::Renderer::Render");
+
         FlushPerFrameData();
         for(auto& pass : context.camera->mRenderPassAsset.renderPasses)
         {
             pass->Configure(context);
             pass->Filter(context);
             pass->Execute(context);
-            //pass->Submit();
-            
-            // 处理每个pass的渲染信息：
-            // 感觉不应该这么写， 而是从pass出发，pass去调用上传之类的。
             Submit(pass->GetRenderPassInfo());
         }
-        //RenderAPI::GetInstance()->Submit(mRenderPassInfo);
-        EndFrame();
-        // 重置每个pass产生的渲染信息
+        
         for (auto& pass : context.camera->mRenderPassAsset.renderPasses)
         {
             pass->Clear();
         }
+       
     }
 
     void Renderer::EndFrame()
     {
-        // submit data to renderthread.
-        //mRenderPassInfo.clear();
         DrawCommand temp;
         temp.op = RenderOp::kEndFrame;
         mRenderBuffer.PushBlocking(temp);
@@ -229,7 +221,6 @@ namespace EngineCore
     void Renderer::Submit(const RenderPassInfo &info)
     {
         
-        PROFILER_ZONE("Renderer::Submit");
         ConfigureRenderTarget(info);
         SetViewPort(info.viewportStartPos, info.viewportEndPos);
         SetSissorRect(info.viewportStartPos, info.viewportEndPos);
@@ -297,7 +288,14 @@ namespace EngineCore
         break;     
         case RenderOp::kSetPerFrameData :
             RenderAPI::GetInstance()->RenderAPISetPerFrameData(cmd.data.setPerFrameData);
-            break;     
+            break;  
+        case RenderOp::kWindowResize:
+            hasResize = true;
+            pendingResize = cmd.data.onWindowResize;
+            break;
+        case RenderOp::kIssueEditorGUIDraw:
+            hasDrawGUI = true;
+            break;
         default:
             break;
         }

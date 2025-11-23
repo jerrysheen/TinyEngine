@@ -11,6 +11,12 @@
 #include "FrameBufferManager.h"
 #include "Scene/Scene.h"
 
+
+// RenderEngine 类的设计逻辑：
+// 负责创建渲染相关的，比如窗口，渲染API， Renderer，
+// 负责拉起每一帧的渲染， Renderer的主线程数据组织， Culling的运行
+// 【优化】： 其实这个地方可以变成一个Tick操作， 里面包含begin， Render， end，更加简单。
+// RenderEngine不负责直接和RenderAPI沟通，那个在Renderer里面解决
 namespace EngineCore
 {
     std::unique_ptr<RenderEngine> RenderEngine::s_Instance = nullptr;
@@ -29,51 +35,37 @@ namespace EngineCore
     {
     }    
     
-    void RenderEngine::BeginRender()
-    {
-        RenderAPI::GetInstance()->BeginFrame();
-        //Renderer::GetInstance()->BeginFrame();
-        renderContext.Reset();
-    }    
-    
     void RenderEngine::OnResize(int width, int height)
     {
         Renderer::GetInstance()->ResizeWindow(width, height);
-        
     }
 
-
-    void RenderEngine::Render()
+    void RenderEngine::Tick()
     {
-        // RenderEngine要做的事情，
-        // 进行Culling，生成Camcalling 和 LightCulling，
-        // 将这些获得的数据放在Context里面， 
-        // 然后针对pass去draw， 每个pass自己去配置需要的RT，自己去获取需要的上下文数据。
 
+        WaitForLastFrameFinished();
 
+        Renderer::GetInstance()->BeginFrame();
+        renderContext.Reset();
 
-        //RenderAPI::GetInstance()->Render();
+        // todo： 这个地方culling逻辑是不是应该放到Update
         Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->mainCamera;
-        
         Culling::Run(cam, renderContext);
-        
-        // 极简...  先不做unity那种根据相机判断。
-        // todo：scenecamera的剔除在这个地方做？，那么阴影相机呢？，
-        // 需要更加细化？ 暂时不搞，等到下个版本， 目前就是Renderpass。
-        // 那么在此处做好剔除，
-        Renderer::GetInstance()->Render(renderContext);
-    }
 
-    void RenderEngine::EndRender()
-    {
-        //Renderer::GetInstance()->EndFrame();
-        RenderAPI::GetInstance()->EndFrame();
+        Renderer::GetInstance()->Render(renderContext);
+       
+        #ifdef EDITOR
+        Renderer::GetInstance()->OnDrawGUI();
+        #endif
+        
+        Renderer::GetInstance()->EndFrame();
+
+        SignalMainThreadSubmited();
     }
 
     void RenderEngine::Destory()
     {
         // Renderer 的析构函数会自动停止渲染线程
-        // 只需要销毁 Renderer 单例
         Renderer::Destroy();
         FrameBufferManager::Destroy();
         //RenderAPI::Destroy();
@@ -92,9 +84,17 @@ namespace EngineCore
         }
     }
 
-    void RenderEngine::OnDrawGUI()
+    void RenderEngine::WaitForLastFrameFinished()
     {
-        Renderer::GetInstance()->OnDrawGUI();
+        PROFILER_EVENT_BEGIN("MainThread::WaitforSignalFromRenderThread");
+        CpuEvent::RenderThreadSubmited().Wait();
+        PROFILER_EVENT_END("MainThread::WaitforSignalFromRenderThread");
+
+    }
+
+    void RenderEngine::SignalMainThreadSubmited()
+    {
+        CpuEvent::MainThreadSubmited().Signal();
     }
 
 }

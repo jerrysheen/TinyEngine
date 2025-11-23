@@ -25,21 +25,18 @@ namespace EngineCore
     {
     public:
 
-        virtual void BeginFrame() override;
-        virtual void Render() override;
-        virtual void EndFrame() override;
         D3D12RenderAPI();
         ~D3D12RenderAPI(){};
 
         virtual Shader* CompileShader(const string& path, Shader* shader) override;
         bool CompileShaderStageAndGetReflection(const string& path, string entrypoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob);
-
         virtual void CreateMaterialConstantBuffers(const Material* mat, uint32_t bufferSize) override;
         virtual void CreateMaterialSamplerSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
         virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
         virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
 
         inline TD3D12Fence* GetFrameFence() { return mFrameFence; };
+        // todo: maybe可以清理成模板。
         virtual void SetShaderFloat(const Material* mat, const ShaderConstantInfo& variableInfo, float value) override;
         virtual void SetShaderVector(const Material* mat, const ShaderConstantInfo& variableInfo, const Vector3& value) override;
         virtual void SetShaderVector(const Material* mat, const ShaderConstantInfo& variableInfo, const Vector2& value) override {};
@@ -49,7 +46,7 @@ namespace EngineCore
         virtual void CreateFBO(FrameBufferObject* fbodesc) override;
         virtual void CreateTextureBuffer(unsigned char* data, Texture* tbdesc) override;
         
-        // 多线程代码：
+        // 渲染线程调用接口
         virtual void RenderAPIBeginFrame() override;
         virtual void RenderAPIConfigureRT(Payload_ConfigureRT payloadConfigureRT) override;
         virtual void RenderAPIDrawIndexed(Payload_DrawCommand payloadDrawCommand) override;

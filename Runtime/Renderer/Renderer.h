@@ -19,27 +19,21 @@
 #include "EditorGUIManager.h"
 #endif
 
+#include "Core/Concurrency/CpuEvent.h"
+
 
 namespace EngineCore
 {
     class Renderer : public Manager<Renderer>
     {
     public:
-
-
-        Renderer(): mRenderThread(&Renderer::RenderLoop, this), mRunning(true), mPerFrameData{}{};
+        Renderer(): mRenderThread(&Renderer::RenderThreadMain, this), mRunning(true), mPerFrameData{}{};
         ~Renderer();
         static void Create();
 
         void BeginFrame();
         void Render(const RenderContext& context);
         void EndFrame();
-        // maybe 一些上一帧的clear操作
-
-        //void BeginFrame(int frame);
-        //void EndFrame(int frame);
-        // 所有逻辑判断都放在Render层， API层只实现简单的逻辑， 找到对应资源，绑定对应资源。
-
 
         void DrawIndexed(uint32_t vaoID, int count);
         void ResizeWindow(int width, int height);
@@ -61,85 +55,68 @@ namespace EngineCore
         // todo: complete this..
         void SetSissorRect(const Vector2& viewportStartXY, const Vector2& viewportEndXY);
 
-        inline void AddRenderPassInfo(RenderPassInfo* renderpassInfo)
-        {
-            //mRenderPassInfo.push_back(renderpassInfo);
-        }
-
         void Submit(const RenderPassInfo& info);
 
         void ProcessDrawCommand(const DrawCommand& cmd);
 
-        void RenderLoop() 
+        void RenderThreadMain() 
         {
-            Payload_WindowResize pendingResize = {0, 0};
-            bool hasResize = false;
-            bool hasDrawGUI = false;
             while (mRunning.load(std::memory_order_acquire) == true) 
             {
+                PROFILER_ZONE("RenderThread::RenderLoop");
+
+                PROFILER_EVENT_BEGIN("RenderThread::WaitForSignalFromMainThread");
+                CpuEvent::MainThreadSubmited().Wait();
+                PROFILER_EVENT_END("RenderThread::WaitForSignalFromMainThread");
+
+                RenderAPI::GetInstance()->RenderAPIBeginFrame();
                 DrawCommand cmd;
-                // 如果pop不出来东西， 说明没渲染指令需要消费，睡
-                if(!mRenderBuffer.TryPop(cmd))
-                {
-                    std::unique_lock<std::mutex> lk(mSleepRenderThreadMutex);
-                    // 等待1ms的语法
-                    mSleepRenderThreadCV.wait_for(lk, std::chrono::milliseconds(1));
-                    // 为什么这个地方要用 continue？
-                    continue;
-                }
 
-                if(cmd.op == RenderOp::kWindowResize)
+                PROFILER_EVENT_BEGIN("RenderThread::ProcessDrawComand");
+                while(mRenderBuffer.PopBlocking(cmd))
                 {
-                    hasResize = true;
-                    pendingResize = cmd.data.onWindowResize;
-                }
-
-                if(cmd.op == RenderOp::kIssueEditorGUIDraw)
-                {
-                    hasDrawGUI = true;
-                }
-
-                if(cmd.op == RenderOp::kBeginFrame)
-                {
-                    currState = RenderOp::kBeginFrame;
-                    RenderAPI::GetInstance()->RenderAPIBeginFrame();
-                }
-
-                if(cmd.op == RenderOp::kEndFrame)
-                {
-                    currState = RenderOp::kEndFrame;
-                    RenderAPI::GetInstance()->RenderAPISubmit();
-
-#ifdef EDITOR                   
-                    if (hasDrawGUI)
-                    {
-                        EngineEditor::EditorGUIManager::GetInstance()->BeginFrame();
-                        EngineEditor::EditorGUIManager::GetInstance()->Render();
-                        EngineEditor::EditorGUIManager::GetInstance()->EndFrame();
-                        hasDrawGUI = false;
-                    }
-#endif
-                    RenderAPI::GetInstance()->RenderAPIPresentFrame();
-                    if(hasResize)
-                    {
-                        RenderAPI::GetInstance()->RenderAPIWindowResize(pendingResize);
-                        hasResize = false;
-                    }
-                }
-                
-                if(currState == RenderOp::kBeginFrame)
+                    if (cmd.op == RenderOp::kEndFrame) break;
                     ProcessDrawCommand(cmd);
+                }
+                PROFILER_EVENT_END("RenderThread::ProcessDrawComand");
+                // later do Gpu Fence...
+                RenderAPI::GetInstance()->RenderAPISubmit();
 
-                //cout << "Thread Runing!!!" << endl;
+#ifdef EDITOR          
+                PROFILER_EVENT_BEGIN("RenderThread::ProcessEditorGUI");
+                if (hasDrawGUI)
+                {
+                    EngineEditor::EditorGUIManager::GetInstance()->BeginFrame();
+                    EngineEditor::EditorGUIManager::GetInstance()->Render();
+                    EngineEditor::EditorGUIManager::GetInstance()->EndFrame();
+                    hasDrawGUI = false;
+                }
+                PROFILER_EVENT_END("RenderThread::ProcessEditorGUI");
+#endif
+
+
+                RenderAPI::GetInstance()->RenderAPIPresentFrame();
+
+                CpuEvent::RenderThreadSubmited().Signal();
+
+                if (hasResize)
+                {
+                    RenderAPI::GetInstance()->RenderAPIWindowResize(pendingResize);
+                    hasResize = false;
+                    pendingResize = { 0,0 };
+                }
+
             }
         };
-
+        
 
     private:
-        SPSCRingBuffer<1024> mRenderBuffer;
+        SPSCRingBuffer<8192> mRenderBuffer;
         std::thread mRenderThread;
-        
-        RenderOp currState = RenderOp::kInvalid;
+        bool hasResize = false;
+        bool hasDrawGUI = false;
+        Payload_WindowResize pendingResize = { 0, 0 };
+
         std::mutex mSleepRenderThreadMutex;
         std::condition_variable mSleepRenderThreadCV;
         std::atomic<bool> mRunning;

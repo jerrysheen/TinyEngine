@@ -19,13 +19,13 @@ namespace EngineCore
         
         static void OnResize(int width, int height);
         static void OnDrawGUI();
-        static void BeginRender();
-        static void Render();
-        static void EndRender();
+        static void Tick();
 
         static void Destory();
         RenderEngine(){};
         ~RenderEngine(){};
+        static void WaitForLastFrameFinished();
+        static void SignalMainThreadSubmited();
     private:
         static std::unique_ptr<RenderEngine> s_Instance;
         static RenderContext renderContext;
