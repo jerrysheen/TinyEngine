@@ -121,7 +121,7 @@ namespace EngineEditor
 		auto* transform = houseObj->GetComponent<Transform>();
 		transform->RotateX(90.0f);
 		transform->RotateY(135.0f);
-		transform->UpdateNow();
+		//transform->UpdateNow();
 
 		// 更新材质的世界矩阵
 		//meshRenderer->mMatHandle.Get()->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());

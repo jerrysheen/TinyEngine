@@ -11,6 +11,8 @@ namespace EngineCore
     // x, w 是由 Mmvp x P得到的。也就是第一行和第四行
     // x' = m00·x + m01·y + m02·z + m03·1
     // w' = m30·x + m31·y + m32·z + m33·1
+    // 这边的z是多少？0 ~ 1
+    // 所以满足 z ≥ 0 和 z - w ≤ 0
     // 那么我们已经得到了平面方程的 ABCD了， 剩下的就是normalize
     // 【注： 得到的平面朝向都指向内部】
     void Frustum::UpdateFrustumPlane(const Matrix4x4 &matrix)
@@ -50,10 +52,10 @@ namespace EngineCore
         // Near
         frustumPlane[4] = Plane{
             Vector3(
-                matrix.m30 + matrix.m20,
-                matrix.m31 + matrix.m21,
-                matrix.m32 + matrix.m22),
-            matrix.m33 + matrix.m23};
+                matrix.m20,
+                matrix.m21,
+                matrix.m22),
+                matrix.m23};
 
         // far
         frustumPlane[5] = Plane{
@@ -61,7 +63,7 @@ namespace EngineCore
                 matrix.m30 - matrix.m20,
                 matrix.m31 - matrix.m21,
                 matrix.m32 - matrix.m22),
-            matrix.m33 - matrix.m23};
+                matrix.m33 - matrix.m23};
 
         // nromalized
         for(int i = 0; i < 6; i++)
@@ -95,17 +97,20 @@ namespace EngineCore
             if(plane.normal.y >= 0) negativeVertex.y = bound.minValue.y;
             if(plane.normal.z >= 0) negativeVertex.z = bound.minValue.z;
 
+            // 如果positive都在平面外面，就直接返回
             if(plane.GetDistanceToPoint(positiveVertex) < 0)
             {
                 return IntersectResult::Outside;
             }
 
+            // 如果最小点在外面， 则应该是相交
             if(plane.GetDistanceToPoint(negativeVertex) < 0)
             {
-                return IntersectResult::Intersect;
+                result = IntersectResult::Intersect;
             }
-            return result;
         }
+        // 如果所有平面都没检测到相交，那么就是在里面
+        return result;
 
     }
 

@@ -5,6 +5,7 @@
 #include "GameObject/MeshRenderer.h"
 #include "GameObject/Transform.h"
 #include "Scene/Scene.h"
+#include "Math/Frustum.h"
 
 namespace EngineCore
 {
@@ -23,12 +24,15 @@ namespace EngineCore
             auto* transformComponet = go->GetComponent<Transform>();
             if (matComponent != nullptr && modelComponent != nullptr) 
             {
-                auto visibleItem = context.GetAvalileVisibleItem();
-                
-                visibleItem->meshRenderer = matComponent;
-                visibleItem->meshFilter = modelComponent;
-                visibleItem->transform = transformComponet;
-                context.cameraVisibleItems.push_back(std::move(visibleItem));
+                if (cam->mFrustum.TestAABB(matComponent->worldBounds) != IntersectResult::Outside) {
+
+                    auto visibleItem = context.GetAvalileVisibleItem();
+
+                    visibleItem->meshRenderer = matComponent;
+                    visibleItem->meshFilter = modelComponent;
+                    visibleItem->transform = transformComponet;
+                    context.cameraVisibleItems.push_back(std::move(visibleItem));
+                }
             }
         }
         // todo: Culling::Run

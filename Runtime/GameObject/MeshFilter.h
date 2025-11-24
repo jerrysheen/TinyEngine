@@ -4,6 +4,8 @@
 #include "Resources/ResourceHandle.h"
 #include "Graphics/ModelData.h"
 #include "Serialization/BaseTypeSerialization.h"
+#include "Math/AABB.h"
+
 namespace EngineCore
 {
     class MeshFilter : public Component

@@ -5,6 +5,8 @@
 #include "Graphics/Material.h"
 #include "Serialization/BaseTypeSerialization.h"
 #include "Graphics/MaterialPropertyBlock.h"
+#include "GameObject/Transform.h"
+#include "Math/AABB.h"
 
 namespace EngineCore
 {
@@ -45,7 +47,14 @@ namespace EngineCore
         Material* GetMaterial();
         inline MaterialPropertyBlock& GetMaterialPropertyBlock(){return mMaterialPropertyBlock;}
         inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
+
+        inline void MarkWorldBoundsDirty(){ needUpdateWorldBounds = true;}
+        inline bool ShouldUpdateWorldBounds(){ return needUpdateWorldBounds;}
+        void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
+        AABB worldBounds;
     private:
+        bool needUpdateWorldBounds = true;
+
         ResourceHandle<Material> mShardMatHandler;
         ResourceHandle<Material> mInstanceMatHandler;
         MaterialPropertyBlock mMaterialPropertyBlock;

@@ -51,10 +51,10 @@ namespace EngineCore
 
         void UpdateIfDirty();
         void UpdateTransform();
-        inline void UpdateNow() { UpdateTransform(); };
+        //inline void UpdateNow() { UpdateTransform(); };
 
     public:
-        bool isDirty = false;
+        bool isDirty = true;
         std::vector<Transform*> childTransforms;
         Transform* parentTransform = nullptr;
         
@@ -122,7 +122,7 @@ namespace EngineCore
             data.at("LocalQuaternion").get_to(mLocalQuaternion);
             data.at("LocalScale").get_to(mLocalScale);
 
-            UpdateNow();
+            //UpdateNow();
         };
 
     };

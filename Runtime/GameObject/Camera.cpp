@@ -46,14 +46,13 @@ namespace EngineCore
         UpdateCameraMatrix();
     }
 
-
+    // view 矩阵已经叠加位置关系， 不需要再乘model矩阵，直接用vp矩阵
     void Camera::Update()
     {
         UpdateCameraMatrix();
         Matrix4x4 model = this->gameObject->GetComponent<Transform>()->GetWorldMatrix();
-        Matrix4x4 mv = Matrix4x4::Multiply(mViewMatrix, model);
-        Matrix4x4 mvp = Matrix4x4::Multiply(mProjectionMatrix, mv);
-        mFrustum.UpdateFrustumPlane(mvp);
+        Matrix4x4 vp = Matrix4x4::Multiply(mProjectionMatrix, mViewMatrix);
+        mFrustum.UpdateFrustumPlane(vp);
     }
     
     // update view and perspective matrix

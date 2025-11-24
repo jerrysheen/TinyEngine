@@ -16,7 +16,6 @@ namespace EngineCore
 
     void CameraController::Update()
     {
-        std::cout << testVal << std::endl;
     }
 
     const char *CameraController::GetScriptName() const

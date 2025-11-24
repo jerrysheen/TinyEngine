@@ -34,4 +34,11 @@ namespace EngineCore
 		ASSERT(mInstanceMatHandler.IsValid());
         return mInstanceMatHandler.Get();
     }
+
+    void MeshRenderer::UpdateBounds(const AABB &localBounds, const Matrix4x4 &worldMatrix)
+    {
+		worldBounds = localBounds;
+		worldBounds.Transform(worldMatrix);
+		needUpdateWorldBounds = false;
+    }
 }

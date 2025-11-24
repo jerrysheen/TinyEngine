@@ -40,6 +40,7 @@ namespace EngineCore
         // todo: temp的， 后面要更改
         void UpdatePerMaterialData();
     private:
-        void UpdateAllTransforms();
+        void UpdateGOWorldBounds();
+        void UpdateAllTransformsAndBounds();
     };    
 } // namespace EngineCore

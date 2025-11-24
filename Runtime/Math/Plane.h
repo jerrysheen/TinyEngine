@@ -16,9 +16,12 @@ namespace EngineCore
         Plane() = default;
         Plane(const Vector3& normal, float distance);
 
+        // 规定大于0为正向，
+        // 假设 0，0，-1， 200， 可以得到平面为正方向为 -z，在z轴200处。
+        // p(0, 0, 190)，在平面内， 所以是相加大于0在平面内
         float GetDistanceToPoint(const Vector3& point)
         {
-            return (Vector3::Dot(normal, point) - distance);
+            return (Vector3::Dot(normal, point) + distance);
         }
     };
 }

@@ -39,6 +39,6 @@ namespace EngineCore
         }
 
         /// Transform变换后的AABB（考虑旋转和缩放）
-        void Transform(const Matrix4x4& matrix) const;
+        void Transform(const Matrix4x4& matrix);
     };
 }

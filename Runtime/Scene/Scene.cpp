@@ -60,11 +60,12 @@ namespace EngineCore
 
         // Transform延迟更新
 
-        UpdateAllTransforms();
+        UpdateAllTransformsAndBounds();
 
         //todo: temp: 更新材质信息，这部分应该在别的地方做：
         UpdatePerMaterialData();
 
+        UpdateGOWorldBounds();
         
     }
 
@@ -147,7 +148,24 @@ namespace EngineCore
         }
     }
 
-    void Scene::UpdateAllTransforms()
+    void Scene::UpdateGOWorldBounds()
+    {
+        for(auto& go : allObjList)
+        {
+            auto* meshFiler = go->GetComponent<MeshFilter>();
+            auto* meshRender = go->GetComponent<MeshRenderer>();
+            auto* transform = go->GetComponent<Transform>();
+            if(meshFiler && meshRender)
+            {
+                if(meshRender->ShouldUpdateWorldBounds())
+                {
+                    meshRender->UpdateBounds(meshFiler->mMeshHandle.Get()->bounds, transform->GetWorldMatrix());
+                }
+            }
+        }
+    }
+
+    void Scene::UpdateAllTransformsAndBounds()
     {
         for(auto* go : allObjList)
         {
@@ -156,6 +174,8 @@ namespace EngineCore
                 if(go->transform->isDirty)
                 {
                     go->transform->UpdateTransform();
+                    auto* meshRenderer = go->GetComponent<MeshRenderer>();
+                    if(meshRenderer) meshRenderer->MarkWorldBoundsDirty();
                 }
             }
         }
