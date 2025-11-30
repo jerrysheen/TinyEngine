@@ -91,6 +91,7 @@ namespace EngineCore
         MeshRenderer* meshRenderer;
         MeshFilter* meshFilter;
         Transform* transform;
+        float distanToCamera = 0;
     };
 
     struct PerDrawHandle
@@ -168,5 +169,14 @@ namespace EngineCore
         };
     };
 
+    struct ContextDrawSettings
+    {
+        SortingCriteria sortingCriteria;
+    };
+
+    struct ContextFilterSettings
+    {
+
+    };
 
 }

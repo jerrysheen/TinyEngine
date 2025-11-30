@@ -35,19 +35,13 @@ namespace EngineCore
     void EngineCore::OpaqueRenderPass::Execute(const RenderContext& context)
     {
         // 往哪里添加这个执行结果？
-        for(auto* items : context.cameraVisibleItems)
-        {
-            // todo: 后续会换成不同的比如opaquepass独有的data
-            mRenderDataFrenquent = RenderDataFrenquent::PerPassData;
-            auto& mpb = items->meshRenderer->GetMaterialPropertyBlock();
-            mpb.SetValue("ProjectionMatrix", context.camera->mProjectionMatrix);
-            mpb.SetValue("ViewMatrix", context.camera->mViewMatrix);
-            mpb.SetValue("WorldMatrix", items->transform->GetWorldMatrix());
-            
-            PerDrawHandle handle = RenderAPI::GetInstance()->AllocatePerDrawData(mpb.GetSize());
-            memcpy(handle.destPtr, mpb.GetData(), mpb.GetSize());
-            mRenderPassInfo.drawRecordList.emplace_back(items->meshRenderer->GetMaterial(), items->meshFilter->mMeshHandle.Get(), handle, 1);
-        }
+        ContextFilterSettings filterSettings;
+        ContextDrawSettings drawSettings;
+        drawSettings.sortingCriteria = SortingCriteria::ComonOpaque;
+        RenderContext::DrawRenderers(context,
+                                        drawSettings,
+                                        filterSettings,
+                                        mRenderPassInfo.drawRecordList);
     }
 
     void OpaqueRenderPass::Filter(const RenderContext &context)

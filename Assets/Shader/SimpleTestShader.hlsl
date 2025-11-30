@@ -16,9 +16,6 @@ cbuffer PerMaterialData : register(b0, space2)
 // 每一个Drawcall都不同的数据
 cbuffer PerDrawData : register(b0, space3)
 {
-    float3 CameraPosition;
-    float4x4 ViewMatrix; 
-    float4x4 ProjectionMatrix;
     float4x4 WorldMatrix;
     //float4x4 VPMatrix;
 };

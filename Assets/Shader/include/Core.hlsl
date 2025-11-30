@@ -15,7 +15,9 @@ cbuffer PerFrameData : register(b0, space0)
 
 cbuffer PerPassData : register(b0, space1)
 {
-
+    float3 CameraPosition;
+    float4x4 ViewMatrix; 
+    float4x4 ProjectionMatrix;
 }
 
 #endif

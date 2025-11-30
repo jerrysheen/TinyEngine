@@ -26,6 +26,17 @@ namespace EngineCore
 
         VisibleItem* GetAvalileVisibleItem();
         LightData* GetAvalibleLightData();
+
+        static void DrawRenderers(const RenderContext& renderContext, 
+                           const ContextDrawSettings& drawingSettings, 
+                           const ContextFilterSettings& filteringSettings, 
+                           std::vector<DrawRecord>& outDrawRecords);
+        
+        static void SortingContext(const RenderContext& renderContext, 
+                           const ContextDrawSettings& drawingSettings, 
+                           std::vector<VisibleItem*>& sortedItem);
+        static void BatchContext(std::vector<VisibleItem*>& sortedItem);
+
     private:
         void ReturnLightToPool();
         void ReturnItemToPool();
@@ -35,4 +46,5 @@ namespace EngineCore
 
     };
 } // namespace EngineCore
+
 

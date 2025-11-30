@@ -44,7 +44,10 @@ namespace EngineCore
             SetUpMaterialPropertyBlock();
         }
 
-        Material* GetMaterial();
+        // return a new Material Instance;
+        Material* GetOrCreateMatInstance();
+        // 
+        ResourceHandle<Material> GetMaterial();
         inline MaterialPropertyBlock& GetMaterialPropertyBlock(){return mMaterialPropertyBlock;}
         inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
 
@@ -54,9 +57,9 @@ namespace EngineCore
         AABB worldBounds;
     private:
         bool needUpdateWorldBounds = true;
-
         ResourceHandle<Material> mShardMatHandler;
         ResourceHandle<Material> mInstanceMatHandler;
+
         MaterialPropertyBlock mMaterialPropertyBlock;
 
     };

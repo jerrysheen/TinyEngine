@@ -11,6 +11,7 @@ namespace EngineCore
 
         static Vector3 Normalized(const Vector3& value);
         static Vector3 Cross(const Vector3& a, const Vector3& b);
+        static float Distance(const Vector3& a, const Vector3& b);
         static float Length(const Vector3& a);
         static float Dot(const Vector3& a, const Vector3& b);
         float x;

@@ -3,6 +3,7 @@
 #include "Utils/HashCombine.h"
 #include "Core/PublicEnum.h"
 #include "Core/PublicStruct.h"
+#include <tuple>
 
 namespace EngineCore
 {
@@ -57,13 +58,45 @@ namespace EngineCore
 
         // depth stencil state:
         bool enableDepthTest = true;
-        DepthComparisonFunc depthComparisonFunc = DepthComparisonFunc::LEQUAL;
         bool enableDepthWrite = true;
+        DepthComparisonFunc depthComparisonFunc = DepthComparisonFunc::LEQUAL;
 
         // blend mode
         bool enableBlend = false;
         BlendState srcBlend;
         BlendState destBlend;
+
+        inline bool operator<(const MaterailRenderState& other) const
+        {
+            // depthTest开启为true > false, 我们需要depthTest开启的在
+            // 前面， 所以就要!enableDepthTest
+            return std::forward_as_tuple(shaderInstanceID, !enableDepthTest,
+                !enableDepthWrite, enableBlend, depthComparisonFunc,
+                srcBlend, destBlend)
+            < std::forward_as_tuple(other.shaderInstanceID, !other.enableDepthTest,
+                !other.enableDepthWrite, other.enableBlend, other.depthComparisonFunc,
+                other.srcBlend, other.destBlend);
+        }
+
+        inline bool operator==(const MaterailRenderState& other) const
+        {
+            return std::forward_as_tuple(shaderInstanceID, !enableDepthTest,
+                !enableDepthWrite, enableBlend, depthComparisonFunc,
+                srcBlend, destBlend)
+            == std::forward_as_tuple(other.shaderInstanceID, !other.enableDepthTest,
+                !other.enableDepthWrite, other.enableBlend, other.depthComparisonFunc,
+                other.srcBlend, other.destBlend);
+        }
+
+        inline bool operator>(const MaterailRenderState& other) const
+        {
+            return std::forward_as_tuple(shaderInstanceID, !enableDepthTest,
+                !enableDepthWrite, enableBlend, depthComparisonFunc,
+                srcBlend, destBlend)
+            > std::forward_as_tuple(other.shaderInstanceID, !other.enableDepthTest,
+                !other.enableDepthWrite, other.enableBlend, other.depthComparisonFunc,
+                other.srcBlend, other.destBlend);
+        }
     };
 
     struct PSODesc

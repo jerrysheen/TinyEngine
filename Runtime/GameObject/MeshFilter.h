@@ -19,7 +19,7 @@ namespace EngineCore
         virtual ComponentType GetType() const override{ return ComponentType::MeshFilter; };
     public:
         ResourceHandle<ModelData> mMeshHandle;
-
+        
         virtual const char* GetScriptName() const override { return "MeshFilter"; }
         virtual json SerializedFields() const override {
             return json{

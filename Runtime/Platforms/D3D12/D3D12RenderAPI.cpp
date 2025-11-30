@@ -1170,6 +1170,17 @@ namespace EngineCore
                     gpuAddr
                 );
             }
+
+            uint32_t perPassBufferID = (uint32_t)UniformBufferType::PerPassData_Foraward;
+            if (mGlobalConstantBufferMap.count(perPassBufferID) > 0)
+            {
+                TD3D12ConstantBuffer& buffer = mGlobalConstantBufferMap[perPassBufferID];
+                uint64_t gpuAddr = buffer.mGPUAddress;
+                mCommandList->SetGraphicsRootConstantBufferView(
+                    (UINT)RenderDataFrenquent::PerPassData,
+                    gpuAddr
+                );
+            }
             // todo : PerPassData
             // === 2. PerPassData (Root Param 1) - 暂时跳过 ===
             // uint32_t perPassBufferID = currentPerPassBufferID;

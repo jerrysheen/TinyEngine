@@ -30,6 +30,7 @@ namespace EngineCore
     {
         s_Instance = std::make_unique<Renderer>();
         s_Instance->CreatePerFrameData();
+        s_Instance->CreatePerPassForwardData();
     }
 
 
@@ -49,6 +50,7 @@ namespace EngineCore
         FlushPerFrameData();
         for(auto& pass : context.camera->mRenderPassAsset.renderPasses)
         {
+            FlushPerPassData(context);
             pass->Configure(context);
             pass->Filter(context);
             pass->Execute(context);
@@ -76,9 +78,22 @@ namespace EngineCore
         SetPerFrameData((UINT)RenderDataFrenquent::PerFrameData);
     }
 
+    void Renderer::FlushPerPassData(const RenderContext &context)
+    {
+        mPerPassData_Forward.ProjectionMatrix = context.camera->mProjectionMatrix;
+        mPerPassData_Forward.ViewMatrix = context.camera->mViewMatrix;
+        RenderAPI::GetInstance()->SetGlobalValue<PerPassData_Forward>((uint32_t)UniformBufferType::PerPassData_Foraward, 0, &mPerPassData_Forward);
+        SetPerPassData((UINT)RenderDataFrenquent::PerPassData);
+    }
+
     void Renderer::CreatePerFrameData()
     {
         RenderAPI::GetInstance()->CreateGlobalConstantBuffer((uint32_t)UniformBufferType::PerFrameData, sizeof(mPerFrameData));
+    }
+
+    void Renderer::CreatePerPassForwardData()
+    {
+        RenderAPI::GetInstance()->CreateGlobalConstantBuffer((uint32_t)UniformBufferType::PerPassData_Foraward, sizeof(mPerPassData_Forward));
     }
 
     // 从PSOManager创建一个PSO，可以复用
@@ -220,7 +235,7 @@ namespace EngineCore
 
     void Renderer::Submit(const RenderPassInfo &info)
     {
-        
+        // todo： 后面挪到别的地方， 先做Batch的部分：
         ConfigureRenderTarget(info);
         SetViewPort(info.viewportStartPos, info.viewportEndPos);
         SetSissorRect(info.viewportStartPos, info.viewportEndPos);

@@ -23,7 +23,7 @@ namespace EngineCore
     }
 
 
-    Material* MeshRenderer::GetMaterial()
+    Material* MeshRenderer::GetOrCreateMatInstance()
     {
 		if(mInstanceMatHandler.IsValid())
 		{
@@ -34,6 +34,12 @@ namespace EngineCore
 		ASSERT(mInstanceMatHandler.IsValid());
         return mInstanceMatHandler.Get();
     }
+
+	ResourceHandle<Material> MeshRenderer::GetMaterial()
+	{
+		return HasMaterialOverride() ? mInstanceMatHandler : mShardMatHandler;
+	}
+
 
     void MeshRenderer::UpdateBounds(const AABB &localBounds, const Matrix4x4 &worldMatrix)
     {

@@ -23,6 +23,12 @@ namespace EngineCore
         );
     }
 
+    float Vector3::Distance(const Vector3 &a, const Vector3 &b)
+    {
+        //return std::sqrt(a.x * b.x + a.y * b.y + a.z * b.z);
+        return Length(a - b);
+    }
+
     float Vector3::Length(const Vector3 &a)
     {
         return std::sqrt(Vector3::Dot(a, a));

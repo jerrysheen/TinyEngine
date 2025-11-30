@@ -130,6 +130,7 @@ namespace EngineCore
             return static_cast<float>(us / 1000.0);
         }
 
+        // data是threadLocal的static data，所以在这个线程上直接拿
         void BeginRange(const char* name)
         {
             RangeData& data = GetThreadRangeData();

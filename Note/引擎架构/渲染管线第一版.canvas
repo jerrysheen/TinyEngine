@@ -1,0 +1,23 @@
+{
+	"nodes":[
+		{"id":"c0aed67e17f806f8","x":-640,"y":-320,"width":250,"height":140,"type":"text","text":"### Renderer\nCamera\nCulling"},
+		{"id":"5f1bde01adef3b23","x":-640,"y":-80,"width":250,"height":180,"type":"text","text":"### RenderPass\nConfigure\nFilter\nExecute\nSubmit"},
+		{"id":"d107e7bccfb9a689","type":"text","text":"### ScriptableContext\nDrawRenderer\nDrawShadow\nSubmit\n","x":-220,"y":-170,"width":250,"height":135},
+		{"id":"e45bf82450e42fa1","type":"text","text":"### cmd.SetCommand\n","x":-220,"y":10,"width":250,"height":90},
+		{"id":"f083b6421ecc67fa","type":"text","text":"### ScriptableContextRenderer\nBigCommand\nSmallCommand\n","x":180,"y":-115,"width":340,"height":160},
+		{"id":"8571f95f5573b95d","type":"text","text":"### BigCommand\nPreProcess -> RenderNode\nBatchRenderNode -> Batch\nDrawBatch -> opCode\n\n\n","x":640,"y":-115,"width":360,"height":160},
+		{"id":"529fe1f06d64a6f3","type":"text","text":"### SmallCommand\nopCode\n\n\n","x":640,"y":100,"width":360,"height":160},
+		{"id":"0676ae6e8f289d07","type":"text","text":"### GfxClient\n处理opcode，可多线程提交Command\n\n\n","x":1140,"y":-115,"width":360,"height":160}
+	],
+	"edges":[
+		{"id":"e427e813dc6e7dcc","fromNode":"5f1bde01adef3b23","fromSide":"right","toNode":"d107e7bccfb9a689","toSide":"left"},
+		{"id":"f68e84c4fa0037f0","fromNode":"5f1bde01adef3b23","fromSide":"right","toNode":"e45bf82450e42fa1","toSide":"left"},
+		{"id":"1335671ae46df748","fromNode":"d107e7bccfb9a689","fromSide":"right","toNode":"f083b6421ecc67fa","toSide":"left"},
+		{"id":"8b0c66ada5ee50f0","fromNode":"e45bf82450e42fa1","fromSide":"right","toNode":"f083b6421ecc67fa","toSide":"left"},
+		{"id":"ae8f592d038f334d","fromNode":"f083b6421ecc67fa","fromSide":"right","toNode":"8571f95f5573b95d","toSide":"left"},
+		{"id":"b1135b9119c4f820","fromNode":"f083b6421ecc67fa","fromSide":"right","toNode":"529fe1f06d64a6f3","toSide":"left"},
+		{"id":"cdb866179af443dc","fromNode":"8571f95f5573b95d","fromSide":"right","toNode":"0676ae6e8f289d07","toSide":"left"},
+		{"id":"7712f9ef0a0aaa4a","fromNode":"529fe1f06d64a6f3","fromSide":"right","toNode":"0676ae6e8f289d07","toSide":"left"},
+		{"id":"c77b42adcd39e1eb","fromNode":"c0aed67e17f806f8","fromSide":"bottom","toNode":"5f1bde01adef3b23","toSide":"top"}
+	]
+}

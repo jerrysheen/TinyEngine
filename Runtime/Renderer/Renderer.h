@@ -121,9 +121,13 @@ namespace EngineCore
         std::condition_variable mSleepRenderThreadCV;
         std::atomic<bool> mRunning;
         PerFrameData mPerFrameData;
+        // todo： 后面可能不应该这么设置？ 丧失灵活性了， 至少保证Core里面的内容改了这边同步
+        PerPassData_Forward mPerPassData_Forward;
 
         void FlushPerFrameData();
+        void FlushPerPassData(const RenderContext& context);
         void CreatePerFrameData();
+        void CreatePerPassForwardData();
 
     };
 }

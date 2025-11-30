@@ -303,6 +303,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\RenderPass.h">
       <Filter>Runtime\Renderer\RenderPipeLine</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderSorter.h">
+      <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderUniforms.h">
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>

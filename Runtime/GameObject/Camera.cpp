@@ -46,7 +46,7 @@ namespace EngineCore
         UpdateCameraMatrix();
     }
 
-    // view 矩阵已经叠加位置关系， 不需要再乘model矩阵，直接用vp矩阵
+    // 物体已经在世界坐标系中， 所以只需要用vp矩阵判断， Mvp * p;
     void Camera::Update()
     {
         UpdateCameraMatrix();

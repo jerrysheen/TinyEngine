@@ -57,9 +57,7 @@ namespace EngineCore
         Cube,
         Sphere
     };
-
-
-        
+   
     inline ShaderVariableType InferShaderVaribleTypeBySize(uint32_t size)
     {
         // 以byte为准 比如float为4byte
@@ -91,5 +89,9 @@ namespace EngineCore
         }
     }
     
-
+    enum class SortingCriteria
+    {
+        ComonOpaque,
+        ComonTransparent
+    };
 }

@@ -11,6 +11,7 @@
 #include <variant>
 #include "Graphics/FrameBufferObject.h"
 #include "Graphics/Texture.h"
+#include <tuple>
 
 namespace EngineCore
 {
@@ -41,10 +42,30 @@ namespace EngineCore
 
         inline MaterailRenderState GetMaterialRenderState() const { return mRenderState;};
         // todo  自己同步材质；
+
+        inline bool operator<(const Material& other)
+        {
+            return mRenderState
+                < mRenderState;
+        }
+
+        inline bool operator==(const Material& other)
+        {
+            return mRenderState
+                == mRenderState;
+        }
+
+        inline bool operator>(const Material& other)
+        {
+            return mRenderState
+                > mRenderState;
+        }
+
+        
+        MaterailRenderState mRenderState;
     private:
         void LoadDependency(const std::unordered_map<std::string, MetaData>& dependentMap);
         void SetUpRenderState();
-        MaterailRenderState mRenderState;
         void GetMaterialDataFromShaderReflection();
     };
 }
