@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant GameLogic as 外部逻辑 (Game)
+    participant Allocator as 分配器 (LinearAllocator)
+    participant RHI as RHI设备 (RHIDevice)
+    participant GPUBuffer as 显存资源 (IGPUBuffer/D3D12Buffer)
+
+    Note over Allocator, GPUBuffer: 初始化阶段
+    Allocator->>RHI: 1. 申请 64MB 大页内存 (CreateBuffer)
+    RHI-->>Allocator: 返回 IGPUBuffer* (大块独占显存)
+
+    Note over GameLogic, Allocator: 每一帧 / 加载阶段
+    GameLogic->>Allocator: 2. 我要存 1KB 的顶点数据 (Allocate)
+    
+    Allocator->>Allocator: 计算偏移 (Offset += 1KB)
+    Allocator->>GPUBuffer: (如果需要) Map/Copy 数据
+    
+    Allocator-->>GameLogic: 3. 返回 Allocation (Buffer指针 + Offset)
+
+    Note over GameLogic: 渲染阶段
+    GameLogic->>RHI: 4. 绘制 (拿着 Allocation 信息绑定 VBV)

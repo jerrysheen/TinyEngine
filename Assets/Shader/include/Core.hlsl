@@ -1,6 +1,12 @@
 #ifndef CORE_HLSLI
 #define CORE_HLSLI
 
+cbuffer DrawIndices : register(b1, space0)
+{
+    uint objectIndex;
+
+}
+
 cbuffer PerFrameData : register(b0, space0)
 {
     float3 LightDirection;
@@ -12,6 +18,10 @@ cbuffer PerFrameData : register(b0, space0)
     float Time;
 }
 
+struct PerObjectData
+{
+    float4x4 objectToWorld;
+};
 
 cbuffer PerPassData : register(b0, space1)
 {

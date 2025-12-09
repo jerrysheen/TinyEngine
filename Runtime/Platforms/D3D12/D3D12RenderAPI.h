@@ -18,6 +18,7 @@
 #include "Core/InstanceID.h"
 #include "Core/PublicEnum.h"
 #include "D3D12PerDrawAllocator.h"
+#include "Graphics/IGPUBuffer.h"
 
 namespace EngineCore
 {
@@ -118,6 +119,10 @@ namespace EngineCore
         ComPtr<ID3D12RootSignature> rootSignature;
         
         void ImmediatelyExecute(std::function<void(ComPtr<ID3D12GraphicsCommandList> cmdList)>&& function);
+        
+        virtual IGPUBuffer* CreateBuffer(const BufferDesc& desc, void* data) override;
+        virtual void UploadBuffer(IGPUBuffer* bufferResource, uint32_t offset, void* data, uint32_t size) override;
+
     private:
 
         bool InitDirect3D();

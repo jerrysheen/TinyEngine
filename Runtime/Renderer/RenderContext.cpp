@@ -46,11 +46,12 @@ namespace EngineCore
         {
             auto& items = renderContext.cameraVisibleItems[sortItems[i].itemIndex];
             // todo: 后续会换成不同的比如opaquepass独有的data
-            auto& mpb = items->meshRenderer->GetMaterialPropertyBlock();
-            mpb.SetValue("WorldMatrix", items->transform->GetWorldMatrix());
-
-            PerDrawHandle handle = RenderAPI::GetInstance()->AllocatePerDrawData(mpb.GetSize());
-            memcpy(handle.destPtr, mpb.GetData(), mpb.GetSize());
+            //auto& mpb = items->meshRenderer->GetMaterialPropertyBlock();
+            //mpb.SetValue("WorldMatrix", items->transform->GetWorldMatrix());
+            uint32_t objIndex = items->meshRenderer->perObjectDataAllocation.offset / items->meshRenderer->perObjectDataAllocation.size;
+            PerDrawHandle handle;
+            handle.offset = objIndex;
+            //memcpy(handle.destPtr, mpb.GetData(), mpb.GetSize());
             outDrawRecords.emplace_back(items->meshRenderer->GetMaterial().Get(), items->meshFilter->mMeshHandle.Get(), handle, 1);
         }
     }
@@ -71,7 +72,7 @@ namespace EngineCore
                     // true排在队列前面，相当于先渲染。
                     Material* matA = itemA->meshRenderer->GetSharedMaterial();
                     Material* matB = itemB->meshRenderer->GetSharedMaterial();
-                    if(matA != matB) return *matA < *matB;
+                    if(matA != matB) return matA < matB;
                     ModelData* modelA = itemA->meshFilter->mMeshHandle.Get();
                     ModelData* modelB = itemB->meshFilter->mMeshHandle.Get();
                     if(modelA != modelB) return modelA < modelB;

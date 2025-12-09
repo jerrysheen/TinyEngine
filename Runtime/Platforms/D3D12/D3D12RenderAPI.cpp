@@ -11,6 +11,9 @@
 #include "Graphics/FrameBufferObject.h"
 #include "Renderer/RenderUniforms.h"
 
+#include "Graphics/GPUSceneManager.h"
+#include "D3D12Buffer.h"
+
 namespace EngineCore
 {
     D3D12RenderAPI::D3D12RenderAPI()
@@ -350,9 +353,18 @@ namespace EngineCore
         slotRootParameter.back().InitAsConstantBufferView( 0, (UINT)RenderDataFrenquent::PerMaterialData );
         slotRootParameter.emplace_back();
         slotRootParameter.back().InitAsConstantBufferView( 0, (UINT)RenderDataFrenquent::PerDrawData );
-    
-    
-        // ⭐ 处理 SRV (纹理) - Root Param 4+
+
+        slotRootParameter.emplace_back();
+        slotRootParameter.back().InitAsConstants(1, 1, (UINT)0);
+
+        // ⭐ 处理 UAV (Structured Buffer) - Root Param 4
+        // 采用和 CBV 类似的固定插槽策略，这里假设 UAV 使用 register(u0)
+        // 使用 Root UAV (InitAsUnorderedAccessView) 而不是 Descriptor Table，这样可以直接绑定 Buffer 的 GPU 虚拟地址
+        slotRootParameter.emplace_back();
+        slotRootParameter.back().InitAsShaderResourceView(0, (UINT)RenderDataFrenquent::PerDrawData); // register(u0, space0)
+
+
+        // ⭐ 处理 SRV (纹理) - Root Param 5+
         std::unordered_map<UINT, std::vector<ShaderBindingInfo>> srvBySpace;
         for(auto& bindingInfo : srvInfo)
         {
@@ -534,6 +546,36 @@ namespace EngineCore
                     if (x.resourceName == bindDesc.Name) break;
                 }
                 ShaderReflectionInfo->mSamplerInfo.emplace_back(bindDesc.Name, ShaderResourceType::SAMPLER, bindDesc.BindPoint, 0, bindDesc.Space);
+                break;
+            case D3D_SIT_STRUCTURED:
+            case D3D_SIT_UAV_RWTYPED:
+            case D3D_SIT_UAV_RWSTRUCTURED:
+            case D3D_SIT_UAV_RWBYTEADDRESS:
+            case D3D_SIT_UAV_APPEND_STRUCTURED:
+            case D3D_SIT_UAV_CONSUME_STRUCTURED:
+            case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
+                {
+                    bool alreadyExists = false;
+                    for (auto& x : ShaderReflectionInfo->mUavInfo)
+                    {
+                        if (x.resourceName == bindDesc.Name) 
+                        {
+                            alreadyExists = true;
+                            break;
+                        }
+                    }
+                    if (!alreadyExists)
+                    {
+                        // 记录 UAV 信息：名字、类型(UAV)、绑定点(register uX)、大小(0)、空间(space)
+                        ShaderReflectionInfo->mUavInfo.emplace_back(
+                            bindDesc.Name, 
+                            ShaderResourceType::UAV, 
+                            bindDesc.BindPoint, 
+                            0, 
+                            bindDesc.Space
+                        );
+                    }
+                }
                 break;
             default:
                 std::cout << " Not find any exites shader resource type " << std::endl;
@@ -814,6 +856,138 @@ namespace EngineCore
         
         // swap the back and front buffers
         SignalFence(mImediatelyFence);
+    }
+
+    IGPUBuffer* D3D12RenderAPI::CreateBuffer(const BufferDesc &desc, void *data)
+    {
+        // Align size to 256 bytes (D3D12 Constant Buffer requirement)
+        uint64_t alignedSize = (desc.size + 255) & ~255;
+
+        D3D12_RESOURCE_DESC resourceDesc = {};
+        resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+        resourceDesc.Width = alignedSize;
+        resourceDesc.Height = 1;
+        resourceDesc.DepthOrArraySize = 1;
+        resourceDesc.MipLevels = 1;
+        resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
+        resourceDesc.SampleDesc.Count = 1;
+        resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+        resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+        D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
+        D3D12_HEAP_TYPE heapType = D3D12_HEAP_TYPE_DEFAULT;
+
+        switch(desc.memoryType)
+        {
+            case BufferMemoryType::Default:
+                heapType = D3D12_HEAP_TYPE_DEFAULT;
+                initialState = D3D12_RESOURCE_STATE_COMMON;
+                if(desc.usage == BufferUsage::StructuredBuffer || desc.usage == BufferUsage::ByteAddress)
+                {
+                    resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+                }
+                break;
+            case BufferMemoryType::Upload:
+                heapType = D3D12_HEAP_TYPE_UPLOAD;
+                initialState = D3D12_RESOURCE_STATE_GENERIC_READ;
+                break;
+            case BufferMemoryType::ReadBack:
+                heapType = D3D12_HEAP_TYPE_READBACK;
+                initialState = D3D12_RESOURCE_STATE_COPY_DEST;
+                break;
+        }
+
+        ComPtr<ID3D12Resource> bufferResource;
+        ThrowIfFailed(md3dDevice->CreateCommittedResource(
+            &CD3DX12_HEAP_PROPERTIES(heapType),
+            D3D12_HEAP_FLAG_NONE,
+            &resourceDesc,
+            initialState,
+            nullptr,
+            IID_PPV_ARGS(&bufferResource)));
+
+        if(desc.debugName) bufferResource->SetName(desc.debugName);
+
+        if(data)
+        {
+            if(desc.memoryType == BufferMemoryType::Upload)
+            {
+                void* mappedData;
+                // 第0个子资源， nullptr表示read range为整个buffer
+                bufferResource->Map(0, nullptr, &mappedData);
+                memcpy(mappedData, data, desc.size);
+                bufferResource->Unmap(0, nullptr);
+            }
+            else if(desc.memoryType == BufferMemoryType::Default)
+            {
+                // 创建临时的UploadBuffer
+                ComPtr<ID3D12Resource> uploadBuffer;
+                ThrowIfFailed(md3dDevice->CreateCommittedResource(
+                    &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+                    D3D12_HEAP_FLAG_NONE,
+                    &CD3DX12_RESOURCE_DESC::Buffer(desc.size),
+                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                    nullptr,
+                    IID_PPV_ARGS(&uploadBuffer)
+                ));
+
+                void* mappedData;
+                uploadBuffer->Map(0, nullptr, &mappedData);
+                memcpy(mappedData, data, desc.size);
+                uploadBuffer->Unmap(0, nullptr);
+
+                // todo 加入pendingtoList， 保持索引，在下一帧首释放。
+                ImmediatelyExecute([&](ComPtr<ID3D12GraphicsCommandList> cmdList)
+                {
+                    cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(bufferResource.Get(), initialState, D3D12_RESOURCE_STATE_COPY_DEST));
+                    cmdList->CopyBufferRegion(bufferResource.Get(), 0, uploadBuffer.Get(), 0, desc.size);
+                    cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(bufferResource.Get(), D3D12_RESOURCE_STATE_COPY_DEST, initialState));
+                });
+                WaitForRenderFinish(mImediatelyFence);
+            }
+        }
+        return new D3D12Buffer(bufferResource, desc);
+    }
+
+    void D3D12RenderAPI::UploadBuffer(IGPUBuffer *bufferResource, uint32_t offset, void *data, uint32_t size)
+    {
+        const BufferDesc& desc = bufferResource->GetDesc();
+        if(data)
+        {
+            if(desc.memoryType == BufferMemoryType::Upload)
+            {
+                void* mappedData = bufferResource->Map();
+                memcpy(static_cast<char*>(mappedData) + offset * desc.stride, data, size);
+            }
+            else if(desc.memoryType == BufferMemoryType::Default)
+            {
+                // 创建临时的UploadBuffer
+                ComPtr<ID3D12Resource> uploadBuffer;
+                ThrowIfFailed(md3dDevice->CreateCommittedResource(
+                    &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+                    D3D12_HEAP_FLAG_NONE,
+                    &CD3DX12_RESOURCE_DESC::Buffer(size),
+                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                    nullptr,
+                    IID_PPV_ARGS(&uploadBuffer)
+                ));
+
+                void* mappedData;
+                uploadBuffer->Map(0, nullptr, &mappedData);
+                memcpy(mappedData, data, size);
+                uploadBuffer->Unmap(0, nullptr);
+
+                // todo 加入pendingtoList， 保持索引，在下一帧首释放。
+                ID3D12Resource* nativeHandle = static_cast<ID3D12Resource*>(bufferResource->GetNativeHandle());
+                ImmediatelyExecute([&](ComPtr<ID3D12GraphicsCommandList> cmdList)
+                {
+                    cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(nativeHandle, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST));
+                    cmdList->CopyBufferRegion(nativeHandle, offset, uploadBuffer.Get(), 0, size);
+                    cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(nativeHandle, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON));
+                });
+                WaitForRenderFinish(mImediatelyFence);
+            }
+        }
     }
 
     void D3D12RenderAPI::SetShaderFloat(const Material *mat, const ShaderConstantInfo &variableInfo, float value)
@@ -1108,8 +1282,14 @@ namespace EngineCore
                 );
             }
         }
-                
-        // === 5. 绑定纹理 (Root Param 4+) ===
+             
+        // todo： 重写buffer 绑定逻辑
+        uint64_t gpuAddr = GPUSceneManager::GetInstance()->allObjectDataBuffer->GetBaseGPUAddress();
+
+        mCommandList->SetGraphicsRootShaderResourceView(
+            5,
+            gpuAddr);
+        // === 5. 绑定纹理 (Root Param 5+) ===
         if (matData.mTextureBufferArray.size() > 0)
         {
             std::vector<TD3D12TextureHander>& srvSource = matData.mTextureBufferArray;
@@ -1132,8 +1312,8 @@ namespace EngineCore
                 );
             }
             
-            // ⭐ 纹理使用 Root Param 4（固定）
-            mCommandList->SetGraphicsRootDescriptorTable(4, tableHandle.gpuHandle);
+            // ⭐ 纹理使用 Root Param 5（固定，因为 Slot 4 留给了 UAV）
+            mCommandList->SetGraphicsRootDescriptorTable(6, tableHandle.gpuHandle);
         }
     }
 
@@ -1367,13 +1547,10 @@ namespace EngineCore
 
     void D3D12RenderAPI::RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd)
     {
-        // uint64_t gpuAddr = mPerDrawAllocator->GetGPUBaseAddress() + setDrawInstanceCmd.perDrawOffset;
-    
-        // // 可以用 Structured Buffer 或者动态计算偏移
-        // // 方案 1：每次 Draw 前设置 base address（简单）
-        // mCommandList->SetGraphicsRootConstantBufferView(setDrawInstanceCmd.perDrawRootParamIndex, gpuAddr);
-        // mCommandList->DrawIndexedInstanced(indexCount, payload.instanceCount, 0, 0, 0);
-        ASSERT_MSG(false, "Not Implemented!");
+        auto& vao = VAOMap[setDrawInstanceCmd.vaoID];
+        mCommandList->SetGraphicsRoot32BitConstants(4, 1, &setDrawInstanceCmd.perDrawOffset, 0);
+        mCommandList->DrawIndexedInstanced(vao.indexBufferView.SizeInBytes / sizeof(int), 1, 0, 0, setDrawInstanceCmd.perDrawOffset);
+        //ASSERT_MSG(false, "Not Implemented!");
     }
 
     void D3D12RenderAPI::RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData)

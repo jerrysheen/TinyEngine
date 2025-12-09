@@ -22,4 +22,21 @@ namespace EngineCore
         delete sInstance;
         sInstance = nullptr;
     }
+    
+    void ResourceManager::RegisterMaterial(const Material *mat)
+    {
+    //        mAllMaterialData.push_back(mat);
+    }
+    
+    void ResourceManager::UnRegisterMaterial(const Material *mat)
+    {
+        //for(int i = 0; i < mAllMaterialData.size(); i++)
+        //{
+        //    if(mat == mAllMaterialData[i])
+        //    {
+        //        mAllMaterialData[i] = nullptr;
+        //        return;
+        //    }
+        //}
+    }
 }

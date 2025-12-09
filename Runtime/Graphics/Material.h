@@ -18,6 +18,7 @@ namespace EngineCore
     class Material : public Resource
     {
     public:
+        bool isDirty = true;
         MaterialData mMaterialdata;
 
         // 真正持有的资源句柄
@@ -42,26 +43,6 @@ namespace EngineCore
 
         inline MaterailRenderState GetMaterialRenderState() const { return mRenderState;};
         // todo  自己同步材质；
-
-        inline bool operator<(const Material& other)
-        {
-            return mRenderState
-                < mRenderState;
-        }
-
-        inline bool operator==(const Material& other)
-        {
-            return mRenderState
-                == mRenderState;
-        }
-
-        inline bool operator>(const Material& other)
-        {
-            return mRenderState
-                > mRenderState;
-        }
-
-        
         MaterailRenderState mRenderState;
     private:
         void LoadDependency(const std::unordered_map<std::string, MetaData>& dependentMap);

@@ -29,6 +29,17 @@ namespace EngineCore
         Matrix4x4 ProjectionMatrix = Matrix4x4::Identity;
    };
 
+   struct PerObjectData
+   {
+      Matrix4x4 objectToWorld;
+   };
+
+   struct DrawIndices
+   {
+       uint32_t objectIndex;
+       uint32_t materialIndex;
+   };
+
    struct PerPassData_Shadow
    {
       float temp;

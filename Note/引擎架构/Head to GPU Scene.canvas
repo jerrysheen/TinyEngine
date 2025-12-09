@@ -1,0 +1,25 @@
+{
+	"nodes":[
+		{"id":"25e5c881e5b7708d","type":"text","text":"当前架构： SRP Batch + Instancing","x":-527,"y":-170,"width":427,"height":70},
+		{"id":"f4288963fedcfd77","type":"text","text":"RenderPass排序+产生Batch\n筛选可见物体，产生Batch，同步生成Batch数据","x":-463,"y":-40,"width":300,"height":160},
+		{"id":"c96df6052638ba30","type":"text","text":"拆解Batch，生成具体DrawCall，\n上层就是pass设置，比如setRT setSissor，SetPSO\n然后Drawcall部分则是绑定DrawIndexedInstanced","x":-123,"y":-40,"width":300,"height":160},
+		{"id":"c3f051d20109be82","type":"text","text":"Scene Culling\n可见物体","x":-743,"y":10,"width":250,"height":60},
+		{"id":"dcb3bb0155baefa4","type":"text","text":"","x":-743,"y":140,"width":943,"height":50},
+		{"id":"3e81c04a6401124f","type":"text","text":"中间阶段，统一数据，但仍GPU主导，CPU端组织+发起","x":-527,"y":240,"width":447,"height":50},
+		{"id":"b140cbfda0013324","type":"text","text":"这一阶段的主要思路， 是把数据都统整起来，用统一的方式去寻址，绘制。\n```hlsl\n改动1. Shader ： 大量使用StructuredBuffer， 用来存放PerObjectData， PerMaterialData。这些都存在megaBuffer里面。\nPerObjectData用 sv_instanceID去索引，发起的时候就是用DrawIndexedInstanced(count, offset)， GPU端直接取到AllPerObjectData[svinstanceID]\n针对MaterialData数据，MaterialMegaBuffer中已经有了，AllPerObjectData里面可以存一个offsetID，\n拿到RawMaterialData，直接去shader里面解码。\nSetRootSignature的时候保证了切换到对应的Shader，所以完全不用担心解码错误，只要保证好顺序就ok\n```\n","x":-743,"y":320,"width":943,"height":280},
+		{"id":"53a8d8fb5d79fe93","type":"text","text":"RenderPass排序+产生Batch\n筛选可见物体，产生Batch，Batch中需要记录每个渲染物体的，offset","x":-463,"y":640,"width":300,"height":160},
+		{"id":"c0f50dac254fb825","type":"text","text":"拆解Batch，生成具体DrawCall，\n上层就是pass设置，比如setRT setSissor，SetPSO\n然后Drawcall部分则是绑定DrawIndexedInstanced(0, offset)","x":-123,"y":640,"width":300,"height":160},
+		{"id":"25c692d7cdba27e8","type":"text","text":"如果要优化Instanced，因为现在的ObjectData是碎的，所以需要额外传一个InstanceArgs，每个index记录真正所在位置， Shader根据index的index找到真正的数据","x":-123,"y":840,"width":300,"height":160},
+		{"id":"b848af5aaf66fd4c","type":"text","text":"","x":-743,"y":1040,"width":943,"height":50},
+		{"id":"88793d8034e4a313","type":"text","text":"纯GPU Scene","x":-536,"y":1120,"width":447,"height":50},
+		{"id":"2b7c40a582f48895","type":"text","text":"上一步中，数据搞定了，但是DrawCall部分还是没联系在一起， 这一步，引入一个新的DrawIndirectIndexedInstance\n首先，Culling部分，用GPU加速计算， 每个index+ bounds得到相机内的，输入到一个id里面。\n最后经过sorting之后，我们得到了一堆不同的mesh","x":-743,"y":1200,"width":943,"height":280},
+		{"id":"b6f0ec996e704042","type":"text","text":"Scene Culling\n可见物体 abc\n此时按照Shader不同和mesh不同切分","x":-777,"y":665,"width":250,"height":110}
+	],
+	"edges":[
+		{"id":"57a0726496e2d81c","fromNode":"c3f051d20109be82","fromSide":"right","toNode":"f4288963fedcfd77","toSide":"left"},
+		{"id":"0819c701886a5820","fromNode":"f4288963fedcfd77","fromSide":"right","toNode":"c96df6052638ba30","toSide":"left"},
+		{"id":"0a5b266425d197c3","fromNode":"53a8d8fb5d79fe93","fromSide":"right","toNode":"c0f50dac254fb825","toSide":"left"},
+		{"id":"d44ba37409913cee","fromNode":"b6f0ec996e704042","fromSide":"right","toNode":"53a8d8fb5d79fe93","toSide":"left"},
+		{"id":"780a11f17c5f9489","fromNode":"c0f50dac254fb825","fromSide":"bottom","toNode":"25c692d7cdba27e8","toSide":"top"}
+	]
+}

@@ -13,12 +13,15 @@ cbuffer PerMaterialData : register(b0, space2)
     float2 TilingFactor;
 }
 
-// 每一个Drawcall都不同的数据
-cbuffer PerDrawData : register(b0, space3)
-{
-    float4x4 WorldMatrix;
-    //float4x4 VPMatrix;
-};
+//// 每一个Drawcall都不同的数据
+//cbuffer PerDrawData : register(b0, space3)
+//{
+//    float4x4 WorldMatrix;
+//    //float4x4 VPMatrix;
+//};
+
+StructuredBuffer<PerObjectData> AllPerObjectData : register(t0, space3);
+
 
 // 纹理资源
 Texture2D DiffuseTexture : register(t0, space0);
@@ -47,15 +50,19 @@ struct VertexOutput
     float3 WorldPos : WORLD_POSITION;
     float3 Normal : NORMAL;
     float2 TexCoord : TEXCOORD0;
+    nointerpolation int index : TEXCOORD1;
 };
 
 // 顶点着色器
-VertexOutput VSMain(VertexInput input)
+VertexOutput VSMain(VertexInput input, uint instanceID : SV_InstanceID)
 {
     VertexOutput output;
     
+    int index = objectIndex + instanceID;
     // 变换到世界空间
-    float4 worldPos = mul(float4(input.Position, 1.0f), WorldMatrix);
+    PerObjectData data = AllPerObjectData[index];
+
+    float4 worldPos = mul(float4(input.Position, 1.0f), data.objectToWorld);
     output.WorldPos = worldPos.xyz;
     
     // 变换到投影空间
@@ -64,12 +71,12 @@ VertexOutput VSMain(VertexInput input)
     output.Position = mul(viewPos, ProjectionMatrix);
     
     // 变换法向量
-    output.Normal = normalize(mul(input.Normal, (float3x3)WorldMatrix));
+    output.Normal = normalize(mul(input.Normal, (float3x3)data.objectToWorld));
     
     // 传递纹理坐标和颜色
     //output.TexCoord = input.TexCoord * TilingFactor;
     output.TexCoord = input.TexCoord;
-    
+    output.index = instanceID;
     return output;
 }
 
@@ -77,7 +84,7 @@ VertexOutput VSMain(VertexInput input)
 float4 PSMain(VertexOutput input) : SV_Target
 {
     half4 diffuseColor = half4(0.0f, 0.0f,0.0f,1.0f);
-    diffuseColor.xyz = DiffuseTexture.Sample(LinearSampler, input.TexCoord).xyz * AmbientColor;
+    diffuseColor.xyz = DiffuseTexture.Sample(LinearSampler, input.TexCoord).xyz * AmbientColor + input.index /10000.0f;
     return diffuseColor;
 
     // // 采样纹理

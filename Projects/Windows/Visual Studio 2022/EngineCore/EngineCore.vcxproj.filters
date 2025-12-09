@@ -189,6 +189,15 @@
     <ClInclude Include="..\..\..\..\Runtime\Graphics\FrameBufferObject.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\GPUSceneManager.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\IGPUBuffer.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\IGPUBufferAllocator.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\Material.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
@@ -202,6 +211,9 @@
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\ModelUtils.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\PersistantBuffer.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\Shader.h">
@@ -242,6 +254,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Math\Vector4.h">
       <Filter>Runtime\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12Buffer.h">
+      <Filter>Runtime\Platforms\D3D12</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12DescAllocator.h">
       <Filter>Runtime\Platforms\D3D12</Filter>
@@ -304,6 +319,9 @@
       <Filter>Runtime\Renderer\RenderPipeLine</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderSorter.h">
+      <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderStruct.h">
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderUniforms.h">
@@ -449,6 +467,9 @@
     <ClCompile Include="..\..\..\..\Runtime\GameObject\Transform.cpp">
       <Filter>Runtime\GameObject</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\GPUSceneManager.cpp">
+      <Filter>Runtime\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\Material.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
@@ -462,6 +483,9 @@
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\ModelUtils.cpp">
+      <Filter>Runtime\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\PersistantBuffer.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\Shader.cpp">

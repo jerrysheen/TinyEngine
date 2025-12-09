@@ -250,19 +250,19 @@ namespace EngineCore
             // bind mesh vertexbuffer and indexbuffer.
             SetMeshData(record.model);
 
-            if(record.perDrawHandle.size > 0)
+/*            if(record.perDrawHandle.size > 0)
             {
                 SetPerDrawData(record.perDrawHandle);
-            }            
+            }        */    
 
-            if(record.instanceCount > 1)
-            {
-                DrawIndexedInstanced(record.model->GetInstanceID(), record.instanceCount, record.perDrawHandle);
-            }
-            else
-            {
-                DrawIndexed(record.model->GetInstanceID(), 1);
-            }
+            //if(record.instanceCount > 1)
+            //{
+            DrawIndexedInstanced(record.model->GetInstanceID(), record.instanceCount, record.perDrawHandle);
+            //}
+            //else
+            //{
+            //    DrawIndexed(record.model->GetInstanceID(), 1);
+            //}
         }
     }
 

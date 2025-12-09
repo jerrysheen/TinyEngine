@@ -6,6 +6,7 @@
 #include "Graphics/ModelData.h"
 #include "Graphics/Texture.h"
 #include "Renderer/RenderCommand.h"
+#include "Graphics/IGPUBuffer.h"
 
 namespace  EngineCore
 {
@@ -56,6 +57,10 @@ namespace  EngineCore
         
         virtual void RenderAPISetPerDrawData(Payload_SetPerDrawData setPerDrawData) = 0;
         virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) = 0;
+        
+        virtual IGPUBuffer* CreateBuffer(const BufferDesc& desc, void* data) = 0;
+        virtual void UploadBuffer(IGPUBuffer* buffer, uint32_t offset, void* data, uint32_t size) = 0;
+        
         template<typename T>
         void SetGlobalValue(uint32_t bufferID, uint32_t offset, T* value)
         {

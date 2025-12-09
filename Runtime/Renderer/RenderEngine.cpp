@@ -10,7 +10,7 @@
 #include "Culling.h"
 #include "FrameBufferManager.h"
 #include "Scene/Scene.h"
-
+#include "Graphics/GPUSceneManager.h"
 
 // RenderEngine 类的设计逻辑：
 // 负责创建渲染相关的，比如窗口，渲染API， Renderer，
@@ -42,11 +42,13 @@ namespace EngineCore
 
     void RenderEngine::Tick()
     {
-
         WaitForLastFrameFinished();
         RenderAPI::GetInstance()->WaitForGpuFinished();
 
+        GPUSceneManager::GetInstance()->Tick();
         Renderer::GetInstance()->BeginFrame();
+        //auto& matList = ResourceManager::GetInstance()->mAllMaterialData;
+        //RenderAPI::GetInstance()->SyncMaterialToMatMegaBuffer(matList);
         renderContext.Reset();
 
         // todo： 这个地方culling逻辑是不是应该放到Update

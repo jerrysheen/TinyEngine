@@ -7,6 +7,7 @@
 #include "Graphics/MaterialPropertyBlock.h"
 #include "GameObject/Transform.h"
 #include "Math/AABB.h"
+#include "Renderer/RenderStruct.h"
 
 namespace EngineCore
 {
@@ -16,7 +17,7 @@ namespace EngineCore
     public:
         MeshRenderer() = default;
         MeshRenderer(GameObject* gamObject);
-        virtual ~MeshRenderer() override {};
+        virtual ~MeshRenderer() override;
         static ComponentType GetStaticType() { return ComponentType::MeshRenderer; };
         virtual ComponentType GetType() const override{ return ComponentType::MeshRenderer; };
 
@@ -54,7 +55,10 @@ namespace EngineCore
         inline void MarkWorldBoundsDirty(){ needUpdateWorldBounds = true;}
         inline bool ShouldUpdateWorldBounds(){ return needUpdateWorldBounds;}
         void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
+        void SyncPerObjectDataIfDirty();
         AABB worldBounds;
+        bool IsDirty = true;
+        BufferAllocation perObjectDataAllocation;
     private:
         bool needUpdateWorldBounds = true;
         ResourceHandle<Material> mShardMatHandler;

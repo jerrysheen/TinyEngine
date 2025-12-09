@@ -192,7 +192,7 @@ namespace EngineCore
              if (transform && meshRenderer) 
              {
                  auto mpb = meshRenderer->GetMaterialPropertyBlock();
-                 mpb.SetValue("WorldMatrix", transform->GetWorldMatrix());
+                 //mpb.SetValue("WorldMatrix", transform->GetWorldMatrix());
                  //material->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());
              }
          }

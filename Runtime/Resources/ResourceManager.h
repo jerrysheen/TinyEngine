@@ -8,6 +8,7 @@
 #include "Resources/Resource.h"
 #include "Settings/ProjectSettings.h"
 
+
 namespace EngineCore
 {
     class ResourceManager
@@ -144,7 +145,10 @@ namespace EngineCore
         unordered_map<AssetID, Resource*> mResourceCache;
         unordered_map<string, AssetID> mPathToID;
         std::vector<Resource*> mPendingDeleteList;
-
+        void RegisterMaterial(const Material* mat);
+        void UnRegisterMaterial(const Material* mat);
+        // todo: 之后会把所有资源类，放在一个线性分配器里面
+        //std::vector<Material*> mAllMaterialData;
     };
 
 }

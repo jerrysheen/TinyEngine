@@ -5,6 +5,9 @@
 #include "GameObject.h"
 #include "Serialization/ComponentFactory.h"
 #include "Resources/ResourceManager.h"
+#include "Graphics/GPUSceneManager.h"
+#include "Renderer/RenderUniforms.h"
+
 
 REGISTER_SCRIPT(MeshRenderer)
 namespace EngineCore
@@ -12,7 +15,13 @@ namespace EngineCore
 	MeshRenderer::MeshRenderer(GameObject* go)
 	{
 		gameObject = go;
+		perObjectDataAllocation = GPUSceneManager::GetInstance()->GetSinglePerObjectData();
 	}
+
+    MeshRenderer::~MeshRenderer()
+    {
+		GPUSceneManager::GetInstance()->RemoveSinglePerObjectData(perObjectDataAllocation);
+    }
 
     void MeshRenderer::SetUpMaterialPropertyBlock()
     {
@@ -40,11 +49,22 @@ namespace EngineCore
 		return HasMaterialOverride() ? mInstanceMatHandler : mShardMatHandler;
 	}
 
+	
 
     void MeshRenderer::UpdateBounds(const AABB &localBounds, const Matrix4x4 &worldMatrix)
     {
 		worldBounds = localBounds;
 		worldBounds.Transform(worldMatrix);
 		needUpdateWorldBounds = false;
+    }
+
+    void MeshRenderer::SyncPerObjectDataIfDirty()
+    {
+		if(!IsDirty) return;
+		IsDirty = false;
+
+		PerObjectData perObjectData;
+		perObjectData.objectToWorld = gameObject->transform->GetWorldMatrix();
+		GPUSceneManager::GetInstance()->UpdateSinglePerObjectData(perObjectDataAllocation, static_cast<void*>(&perObjectData));
     }
 }
