@@ -75,7 +75,7 @@ namespace EngineCore
     {
         mPerFrameData.AmbientColor = Vector3(1.0f, 1.0f, 0.0f);
         RenderAPI::GetInstance()->SetGlobalValue<PerFrameData>((uint32_t)UniformBufferType::PerFrameData, 0, &mPerFrameData);
-        SetPerFrameData((UINT)RenderDataFrenquent::PerFrameData);
+        SetPerFrameData((UINT)RootSigSlot::PerFrameData);
     }
 
     void Renderer::FlushPerPassData(const RenderContext &context)
@@ -83,7 +83,7 @@ namespace EngineCore
         mPerPassData_Forward.ProjectionMatrix = context.camera->mProjectionMatrix;
         mPerPassData_Forward.ViewMatrix = context.camera->mViewMatrix;
         RenderAPI::GetInstance()->SetGlobalValue<PerPassData_Forward>((uint32_t)UniformBufferType::PerPassData_Foraward, 0, &mPerPassData_Forward);
-        SetPerPassData((UINT)RenderDataFrenquent::PerPassData);
+        SetPerPassData((UINT)RootSigSlot::PerPassData);
     }
 
     void Renderer::CreatePerFrameData()
@@ -240,7 +240,7 @@ namespace EngineCore
         SetViewPort(info.viewportStartPos, info.viewportEndPos);
         SetSissorRect(info.viewportStartPos, info.viewportEndPos);
         
-        SetPerPassData((UINT)info.mRenderDataFrenquent);
+        SetPerPassData((UINT)info.mRootSigSlot);
         for each(auto& record in info.drawRecordList)
         {
             // 根据mat + pass信息组织pippeline

@@ -19,15 +19,10 @@ namespace  EngineCore
         static void Create();
         virtual Shader* CompileShader(const string& path, Shader* shader) = 0;
 
-        virtual void CreateMaterialConstantBuffers(const Material* mat, uint32_t bufferSize) = 0;
         virtual void CreateMaterialSamplerSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
         virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
         virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
 
-        virtual void SetShaderVector(const Material* mat, const ShaderConstantInfo& variableInfo, const Vector3& value) = 0;
-        virtual void SetShaderFloat(const Material* mat, const ShaderConstantInfo& variableInfo, float value) = 0;
-        virtual void SetShaderVector(const Material* mat, const ShaderConstantInfo& variableInfo, const Vector2& value) = 0;
-        virtual void SetShaderMatrix4x4(const Material* mat, const ShaderConstantInfo& variableInfo, const Matrix4x4& value) = 0;
         virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, uint32_t texInstanceID) = 0;
         virtual void SetUpMesh(ModelData* data, bool isStatic = true) = 0;
         virtual void CreateFBO(FrameBufferObject* fbodesc) = 0;

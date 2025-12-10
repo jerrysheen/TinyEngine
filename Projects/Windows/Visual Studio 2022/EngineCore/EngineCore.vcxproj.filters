@@ -126,6 +126,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Core\PublicStruct.h">
       <Filter>Runtime\Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\CoreAssert.h">
+      <Filter>Runtime</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\EngineCore.h">
       <Filter>Runtime</Filter>
     </ClInclude>
@@ -201,10 +204,10 @@
     <ClInclude Include="..\..\..\..\Runtime\Graphics\Material.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Graphics\MaterialData.h">
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\MaterialInstance.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Graphics\MaterialPropertyBlock.h">
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\MaterialLayout.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\ModelData.h">
@@ -471,12 +474,6 @@
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\Material.cpp">
-      <Filter>Runtime\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Graphics\MaterialData.cpp">
-      <Filter>Runtime\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Graphics\MaterialPropertyBlock.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\ModelData.cpp">

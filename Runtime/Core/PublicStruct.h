@@ -64,14 +64,9 @@ namespace EngineCore
         ShaderStageType type;
         vector<ShaderBindingInfo > mTextureInfo;
         vector<ShaderBindingInfo > mSamplerInfo;
-        vector<ShaderBindingInfo > mBufferInfo;
         vector<ShaderBindingInfo > mUavInfo;
 
         ShaderReflectionInfo(){};
-        unordered_map<string, ShaderConstantInfo> mPerDrawConstantBuffferReflectionInfo;
-        unordered_map<string, ShaderConstantInfo> mPerMaterialConstantBuffferReflectionInfo;
-        uint32_t perDrawBufferSize = 0;
-        uint32_t perMaterialBufferSize = 0;
     };
 
     struct LightData
@@ -145,7 +140,7 @@ namespace EngineCore
         Vector2 viewportEndPos;
         
         vector<DrawRecord> drawRecordList;
-        RenderDataFrenquent mRenderDataFrenquent;
+        RootSigSlot mRootSigSlot;
         inline void Reset()
         {
             clearFlag = ClearFlag::None;

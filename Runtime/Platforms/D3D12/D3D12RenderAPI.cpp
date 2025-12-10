@@ -336,7 +336,6 @@ namespace EngineCore
 
     void D3D12RenderAPI::CreateRootSignatureByShaderReflection(Shader* shader)
     {
-        auto& cbvInfo = shader->mShaderReflectionInfo.mBufferInfo;
         auto& srvInfo = shader->mShaderReflectionInfo.mTextureInfo;
     
         vector<CD3DX12_ROOT_PARAMETER> slotRootParameter;
@@ -344,25 +343,19 @@ namespace EngineCore
         descriptorRanges.reserve(10);
     
         // 固定布局：直接创建 4 个 Root Parameters，不查反射
-        // 根据 RenderDataFrenquent 枚举硬编码布局
+        // 根据 RootSigSlot 枚举硬编码布局
         slotRootParameter.emplace_back();
-        slotRootParameter.back().InitAsConstantBufferView( 0, (UINT)RenderDataFrenquent::PerFrameData );
+        slotRootParameter.back().InitAsConstantBufferView( 0, (UINT)RootSigSlot::PerFrameData );
         slotRootParameter.emplace_back();
-        slotRootParameter.back().InitAsConstantBufferView( 0, (UINT)RenderDataFrenquent::PerPassData );
+        slotRootParameter.back().InitAsConstantBufferView( 0, (UINT)RootSigSlot::PerPassData );
+        
         slotRootParameter.emplace_back();
-        slotRootParameter.back().InitAsConstantBufferView( 0, (UINT)RenderDataFrenquent::PerMaterialData );
-        slotRootParameter.emplace_back();
-        slotRootParameter.back().InitAsConstantBufferView( 0, (UINT)RenderDataFrenquent::PerDrawData );
+        slotRootParameter.back().InitAsConstants(1, 0, (UINT)RootSigSlot::DrawIndiceConstant );
 
         slotRootParameter.emplace_back();
-        slotRootParameter.back().InitAsConstants(1, 1, (UINT)0);
-
-        // ⭐ 处理 UAV (Structured Buffer) - Root Param 4
-        // 采用和 CBV 类似的固定插槽策略，这里假设 UAV 使用 register(u0)
-        // 使用 Root UAV (InitAsUnorderedAccessView) 而不是 Descriptor Table，这样可以直接绑定 Buffer 的 GPU 虚拟地址
+        slotRootParameter.back().InitAsShaderResourceView(0, (UINT)RootSigSlot::AllObjectData); // register(u0, space0)
         slotRootParameter.emplace_back();
-        slotRootParameter.back().InitAsShaderResourceView(0, (UINT)RenderDataFrenquent::PerDrawData); // register(u0, space0)
-
+        slotRootParameter.back().InitAsShaderResourceView(0, (UINT)RootSigSlot::AllMaterialData);
 
         // ⭐ 处理 SRV (纹理) - Root Param 5+
         std::unordered_map<UINT, std::vector<ShaderBindingInfo>> srvBySpace;
@@ -404,6 +397,7 @@ namespace EngineCore
         );
     
         // 创建 Root Signature
+        // todo: 根据shader来判断创建 产生一个hash
         ComPtr<ID3D12RootSignature> tempRootSignature;
         CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(
             static_cast<UINT>(slotRootParameter.size()), 
@@ -470,9 +464,6 @@ namespace EngineCore
 
         // 从反射收集信息， 包括变量Offset，和插槽信息
 
-        auto& perDrawConstantInfoMap = shader->mShaderReflectionInfo.mPerDrawConstantBuffferReflectionInfo;
-        auto& perMatConstantInfoMap = shader->mShaderReflectionInfo.mPerMaterialConstantBuffferReflectionInfo;
-        ShaderConstantInfo tempVariable;
 
         std::cout << "录制binding info" << std::endl;
         for (UINT i = 0; i < desc.BoundResources; ++i) {
@@ -482,57 +473,6 @@ namespace EngineCore
             HRESULT hr;
             ID3D12ShaderReflectionConstantBuffer* cbReflection;
             switch (bindDesc.Type) {
-                case D3D_SIT_CBUFFER:
-                {
-                    cbReflection = m_reflection->GetConstantBufferByName(bindDesc.Name);
-                    D3D12_SHADER_BUFFER_DESC bufferDesc;
-                    hr = cbReflection->GetDesc(&bufferDesc);
-                
-                    // 只处理 PerDraw 和 PerMaterial 的 CB
-                    if (bindDesc.Space == (UINT)RenderDataFrenquent::PerDrawData)
-                    {
-                        shader->mShaderReflectionInfo.perDrawBufferSize = bufferDesc.Size;
-                        
-                        // 解析变量
-                        for (UINT j = 0; j < bufferDesc.Variables; ++j)
-                        {
-                            auto varReflection = cbReflection->GetVariableByIndex(j);
-                            D3D12_SHADER_VARIABLE_DESC varDesc;
-                            varReflection->GetDesc(&varDesc);
-                
-                            tempVariable.variableName = varDesc.Name;
-                            tempVariable.bufferIndex = 0;  // PerDraw 固定索引 0
-                            tempVariable.offset = varDesc.StartOffset;
-                            tempVariable.size = varDesc.Size;
-                            tempVariable.type = InferShaderVaribleTypeBySize((uint32_t)varDesc.Size);
-                
-                            perDrawConstantInfoMap.try_emplace(varDesc.Name, tempVariable);
-                        }
-                    }
-                    else if (bindDesc.Space == (UINT)RenderDataFrenquent::PerMaterialData)
-                    {
-                        shader->mShaderReflectionInfo.perMaterialBufferSize = bufferDesc.Size;
-                        
-                        // 解析变量
-                        for (UINT j = 0; j < bufferDesc.Variables; ++j)
-                        {
-                            auto varReflection = cbReflection->GetVariableByIndex(j);
-                            D3D12_SHADER_VARIABLE_DESC varDesc;
-                            varReflection->GetDesc(&varDesc);
-                
-                            tempVariable.variableName = varDesc.Name;
-                            tempVariable.bufferIndex = 0;  // PerMaterial 固定索引 0
-                            tempVariable.offset = varDesc.StartOffset;
-                            tempVariable.size = varDesc.Size;
-                            tempVariable.type = InferShaderVaribleTypeBySize((uint32_t)varDesc.Size);
-                
-                            perMatConstantInfoMap.try_emplace(varDesc.Name, tempVariable);
-                        }
-                    }
-                    
-                    break;
-                }
-
             case D3D_SIT_TEXTURE:
                 for (auto& x : ShaderReflectionInfo->mTextureInfo)
                 {
@@ -607,23 +547,6 @@ namespace EngineCore
         return true;
     }
 
-    void D3D12RenderAPI::CreateMaterialConstantBuffers(const Material* mat, uint32_t bufferSize)
-    {
-        uint32_t matID = mat->GetInstanceID();
-        if(m_DataMap.count(matID) <= 0) m_DataMap.try_emplace(matID, TD3D12MaterialData());
-        
-        auto iter = m_DataMap.find(matID);
-        TD3D12MaterialData data = iter->second;
-        data.mConstantBufferArray.clear();
-        
-        // 只创建一个 PerMaterialData 的 CB
-        if(bufferSize > 0)
-        {
-            data.mConstantBufferArray.push_back(CreateConstantBuffer(bufferSize));
-        }
-        
-        m_DataMap[matID] = data;
-    }
 
     void D3D12RenderAPI::CreateFBO(FrameBufferObject* fbodesc)
     {
@@ -882,7 +805,7 @@ namespace EngineCore
             case BufferMemoryType::Default:
                 heapType = D3D12_HEAP_TYPE_DEFAULT;
                 initialState = D3D12_RESOURCE_STATE_COMMON;
-                if(desc.usage == BufferUsage::StructuredBuffer || desc.usage == BufferUsage::ByteAddress)
+                if(desc.usage == BufferUsage::StructuredBuffer || desc.usage == BufferUsage::ByteAddressBuffer)
                 {
                     resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
                 }
@@ -988,52 +911,6 @@ namespace EngineCore
                 WaitForRenderFinish(mImediatelyFence);
             }
         }
-    }
-
-    void D3D12RenderAPI::SetShaderFloat(const Material *mat, const ShaderConstantInfo &variableInfo, float value)
-    {
-        uint32_t matID = mat->GetInstanceID();
-        if(m_DataMap.count(matID) <= 0)
-        {
-            cout << "SetShaderVector: matID not found" << endl;
-            return;
-        }
-        auto iter = m_DataMap.find(matID);
-        TD3D12MaterialData data = iter->second;
-        void* baseAddress = data.mConstantBufferArray[variableInfo.bufferIndex].mCpuAddress;
-        void* targetAddress = reinterpret_cast<char*>(baseAddress) + variableInfo.offset;
-        memcpy(targetAddress, &value, sizeof(float));
-    }
-
-    void D3D12RenderAPI::SetShaderVector(const Material *mat, const ShaderConstantInfo &variableInfo, const Vector3 &value)
-    {
-        uint32_t matID = mat->GetInstanceID();
-        if(m_DataMap.count(matID) <= 0)
-        {
-            cout << "SetShaderVector: matID not found" << endl;
-            return;
-        }
-        auto iter = m_DataMap.find(matID);
-        TD3D12MaterialData data = iter->second;
-        void* baseAddress = data.mConstantBufferArray[variableInfo.bufferIndex].mCpuAddress;
-        void* targetAddress = reinterpret_cast<char*>(baseAddress) + variableInfo.offset;
-        memcpy(targetAddress, &value, sizeof(Vector3));
-    }
-    
-    void D3D12RenderAPI::SetShaderMatrix4x4(const Material* mat, const ShaderConstantInfo& variableInfo, const Matrix4x4& value)
-    {
-        uint32_t matID = mat->GetInstanceID();
-        if(m_DataMap.count(matID) <= 0)
-        {
-            cout << "SetShaderVector: matID not found" << endl;
-            return;
-        }
-        auto iter = m_DataMap.find(matID);
-        TD3D12MaterialData data = iter->second;
-        void* baseAddress = data.mConstantBufferArray[variableInfo.bufferIndex].mCpuAddress;
-        void* targetAddress = reinterpret_cast<char*>(baseAddress) + variableInfo.offset;
-        memcpy(targetAddress, &value, sizeof(Matrix4x4));
-        
     }
 
     void D3D12RenderAPI::SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, uint32_t texInstanceID)
@@ -1265,30 +1142,13 @@ namespace EngineCore
         TD3D12MaterialData& matData = m_DataMap[payloadSetMaterial.matId];
         Shader* shader = payloadSetMaterial.shader;
         
-        // 固定插槽：直接使用 RenderDataFrenquent 枚举值作为 root parameter index
-        // === 3. 绑定 PerMaterialData (Root Param 2) ===
-        if (matData.mConstantBufferArray.size() > 0)
-        {
-            std::vector<TD3D12ConstantBuffer>& cbvSource = matData.mConstantBufferArray;
-    
-            if (cbvSource.size() > 0)
-            {
-                TD3D12ConstantBuffer& buffer = cbvSource[0];
-                uint64_t gpuAddr = buffer.mGPUAddress;
-
-                mCommandList->SetGraphicsRootConstantBufferView(
-                    (UINT)RenderDataFrenquent::PerMaterialData,
-                    gpuAddr
-                );
-            }
-        }
-             
         // todo： 重写buffer 绑定逻辑
         uint64_t gpuAddr = GPUSceneManager::GetInstance()->allObjectDataBuffer->GetBaseGPUAddress();
+        mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllObjectData, gpuAddr);
 
-        mCommandList->SetGraphicsRootShaderResourceView(
-            5,
-            gpuAddr);
+        gpuAddr = GPUSceneManager::GetInstance()->allMaterialDataBuffer->GetBaseGPUAddress();
+        mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllMaterialData, gpuAddr);
+        
         // === 5. 绑定纹理 (Root Param 5+) ===
         if (matData.mTextureBufferArray.size() > 0)
         {
@@ -1313,7 +1173,7 @@ namespace EngineCore
             }
             
             // ⭐ 纹理使用 Root Param 5（固定，因为 Slot 4 留给了 UAV）
-            mCommandList->SetGraphicsRootDescriptorTable(6, tableHandle.gpuHandle);
+            mCommandList->SetGraphicsRootDescriptorTable((UINT)RootSigSlot::Textures, tableHandle.gpuHandle);
         }
     }
 
@@ -1332,9 +1192,16 @@ namespace EngineCore
         // set pso and Root Signature:
         // 3. 设置root signature
         ComPtr<ID3D12RootSignature> rootSig = shaderRootSignatureMap[psoDesc.matRenderState.shaderInstanceID];
-        mCommandList->SetGraphicsRootSignature(rootSig.Get());
+        if(currentRootSignature != rootSig)
+        {
+            mCommandList->SetGraphicsRootSignature(rootSig.Get());
+        }
         ComPtr<ID3D12PipelineState> pso = GetOrCreatePSO(psoDesc);  // 添加这行
-        mCommandList->SetPipelineState(pso.Get()); 
+        if(currentPSO != pso)
+        {
+            mCommandList->SetPipelineState(pso.Get()); 
+
+        }
         
         if(pso != currentPSO)
         {
@@ -1346,7 +1213,7 @@ namespace EngineCore
                 TD3D12ConstantBuffer& buffer = mGlobalConstantBufferMap[perFrameBufferID];
                 uint64_t gpuAddr = buffer.mGPUAddress;
                 mCommandList->SetGraphicsRootConstantBufferView(
-                    (UINT)RenderDataFrenquent::PerFrameData,
+                    (UINT)RootSigSlot::PerFrameData,
                     gpuAddr
                 );
             }
@@ -1357,22 +1224,11 @@ namespace EngineCore
                 TD3D12ConstantBuffer& buffer = mGlobalConstantBufferMap[perPassBufferID];
                 uint64_t gpuAddr = buffer.mGPUAddress;
                 mCommandList->SetGraphicsRootConstantBufferView(
-                    (UINT)RenderDataFrenquent::PerPassData,
+                    (UINT)RootSigSlot::PerPassData,
                     gpuAddr
                 );
             }
-            // todo : PerPassData
-            // === 2. PerPassData (Root Param 1) - 暂时跳过 ===
-            // uint32_t perPassBufferID = currentPerPassBufferID;
-            // if (mGlobalConstantBufferMap.count(perPassBufferID) > 0)
-            // {
-            //     TD3D12ConstantBuffer& buffer = mGlobalConstantBufferMap[perPassBufferID];
-            //     uint64_t gpuAddr = buffer.mGPUAddress;
-            //     mCommandList->SetGraphicsRootConstantBufferView(
-            //         (UINT)RenderDataFrenquent::PerPassData,
-            //         gpuAddr
-            //     );
-            // }
+
         }
         
     }
@@ -1535,20 +1391,15 @@ namespace EngineCore
         D3D12DescManager::GetInstance()->ResetFrameAllocator();
     }
 
+    // todo: Obsolute
     void D3D12RenderAPI::RenderAPISetPerDrawData(Payload_SetPerDrawData setPerDrawData)
     {
-        uint64_t gpuAddr = mPerDrawAllocator->GetGPUBaseAddress() + setPerDrawData.perDrawOffset;
-
-        mCommandList->SetGraphicsRootConstantBufferView(
-            (UINT)RenderDataFrenquent::PerDrawData,
-            gpuAddr
-        );
     }
 
     void D3D12RenderAPI::RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd)
     {
         auto& vao = VAOMap[setDrawInstanceCmd.vaoID];
-        mCommandList->SetGraphicsRoot32BitConstants(4, 1, &setDrawInstanceCmd.perDrawOffset, 0);
+        mCommandList->SetGraphicsRoot32BitConstants((UINT)RootSigSlot::DrawIndiceConstant, 1, &setDrawInstanceCmd.perDrawOffset, 0);
         mCommandList->DrawIndexedInstanced(vao.indexBufferView.SizeInBytes / sizeof(int), 1, 0, 0, setDrawInstanceCmd.perDrawOffset);
         //ASSERT_MSG(false, "Not Implemented!");
     }

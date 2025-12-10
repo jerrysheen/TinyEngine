@@ -20,6 +20,7 @@ namespace EngineCore
 
     void GPUSceneManager::Create()
     {
+        if(sInstance != nullptr) return;
         sInstance = new GPUSceneManager();
     }
 
@@ -57,6 +58,21 @@ namespace EngineCore
         allObjectDataBuffer->UploadBuffer(bufferalloc, data, sizeof(PerObjectData));
     }
 
+    BufferAllocation GPUSceneManager::GetSinglePerMaterialData()
+    {
+        return allMaterialDataBuffer->Allocate(512);
+    }
+
+    void GPUSceneManager::RemoveSinglePerMaterialData(const BufferAllocation &bufferalloc)
+    {
+        allMaterialDataBuffer->Free(bufferalloc);
+    }
+
+    void GPUSceneManager::UpdateSinglePerMaterialData(const BufferAllocation &bufferalloc, void *data)
+    {
+        allMaterialDataBuffer->UploadBuffer(bufferalloc, data, 512);
+    }
+
     GPUSceneManager::GPUSceneManager()
     {
         BufferDesc desc;
@@ -66,5 +82,18 @@ namespace EngineCore
         desc.stride = sizeof(PerObjectData);
         desc.usage = BufferUsage::StructuredBuffer;
         allObjectDataBuffer = new PersistantBuffer(desc);
+
+        // 强烈建议使用 512
+        // 理由：
+        // 1. 容纳 32 个 float4 向量，足够应对 Uber Shader + 矩阵 + 几十个 TextureID。
+        // 2. 即使浪费了一半空间，1万个材质也只多占 2.5MB 显存，完全可忽略。
+        // 3. 512 是 256 (D3D12 ConstantBuffer 对齐) 的倍数，也是 16 (float4) 的倍数，对齐非常友好。
+
+        desc.debugName = L"AllMaterialBuffer";
+        desc.memoryType = BufferMemoryType::Default;
+        desc.size = 512 * 10000; // 预分配约 5MB
+        desc.stride = 512;       // PageSize
+        desc.usage = BufferUsage::ByteAddressBuffer;
+        allMaterialDataBuffer = new PersistantBuffer(desc);
     }
 }

@@ -59,8 +59,8 @@ namespace EngineCore
 
     struct TD3D12MaterialData
     {
-        /* data */
-        vector<TD3D12ConstantBuffer> mConstantBufferArray;
+        ///* data */
+        //vector<TD3D12ConstantBuffer> mConstantBufferArray;
         vector<TD3D12TextureHander> mTextureBufferArray;
         TD3D12MaterialData(){};
     };

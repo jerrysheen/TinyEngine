@@ -13,8 +13,9 @@ namespace EngineCore
             stride = (usage.stride + 255) & ~255;
             /* code */
             break;
+        case BufferUsage::ByteAddressBuffer:
         case BufferUsage::StructuredBuffer:
-            stride = (usage.stride + 16) & ~16;
+            stride = (usage.stride + 15) & ~15;
             break;
         default:
             stride = usage.stride;

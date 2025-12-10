@@ -2,10 +2,10 @@
 // #define PER_MATERIAL_CB(name, slot)   cbuffer name : register(b##slot, space1)
 // #define PER_DRAW_CB(name, slot) cbuffer name : register(b##slot, space2)
 
-cbuffer PerMaterialData : register(b0, space2)
-{
-    float _FlipY;
-}
+//cbuffer PerMaterialData : register(b0, space2)
+//{
+//    //float _FlipY;
+//}
 
 
 // BlitShader.hlsl
@@ -40,6 +40,7 @@ VertexOutput VSMain(VertexInput input)
 
 float4 PSMain(VertexOutput input) : SV_Target
 {
+    float _FlipY = 1.0f;
     float2 uv = input.TexCoord;
     if(_FlipY > 0.1) uv.y = 1.0 - uv.y; 
     return SrcTexture.Sample(LinearSampler, uv);

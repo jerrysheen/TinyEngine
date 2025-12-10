@@ -16,7 +16,7 @@ namespace EngineCore
         Vertex,
         Index,
         StructuredBuffer,
-        ByteAddress
+        ByteAddressBuffer
     };
 
     struct BufferDesc

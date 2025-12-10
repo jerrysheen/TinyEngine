@@ -25,7 +25,6 @@ namespace EngineCore
         blitShader = ResourceManager::GetInstance()->LoadAsset<Shader>("Shader/BlitShader.hlsl");
         
         blitMaterial = ResourceManager::GetInstance()->CreateResource<Material>(blitShader);
-        blitMaterial->SetFloat("_FlipY", 1.0f);
 
 
 

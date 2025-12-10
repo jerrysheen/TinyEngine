@@ -50,7 +50,7 @@ namespace EngineCore
         }
 
         inline const RenderPassInfo& GetRenderPassInfo(){return mRenderPassInfo;};
-        RenderDataFrenquent mRenderDataFrenquent;
+        RootSigSlot mRootSigSlot;
     protected:
         string name;
         RenderPassInfo mRenderPassInfo;

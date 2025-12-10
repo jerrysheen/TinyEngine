@@ -4,7 +4,6 @@
 #include "Resources/ResourceHandle.h"
 #include "Graphics/Material.h"
 #include "Serialization/BaseTypeSerialization.h"
-#include "Graphics/MaterialPropertyBlock.h"
 #include "GameObject/Transform.h"
 #include "Math/AABB.h"
 #include "Renderer/RenderStruct.h"
@@ -49,7 +48,6 @@ namespace EngineCore
         Material* GetOrCreateMatInstance();
         // 
         ResourceHandle<Material> GetMaterial();
-        inline MaterialPropertyBlock& GetMaterialPropertyBlock(){return mMaterialPropertyBlock;}
         inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
 
         inline void MarkWorldBoundsDirty(){ needUpdateWorldBounds = true;}
@@ -63,8 +61,6 @@ namespace EngineCore
         bool needUpdateWorldBounds = true;
         ResourceHandle<Material> mShardMatHandler;
         ResourceHandle<Material> mInstanceMatHandler;
-
-        MaterialPropertyBlock mMaterialPropertyBlock;
 
     };
 

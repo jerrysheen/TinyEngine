@@ -31,17 +31,12 @@ namespace EngineCore
 
         virtual Shader* CompileShader(const string& path, Shader* shader) override;
         bool CompileShaderStageAndGetReflection(const string& path, string entrypoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob);
-        virtual void CreateMaterialConstantBuffers(const Material* mat, uint32_t bufferSize) override;
         virtual void CreateMaterialSamplerSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
         virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
         virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
 
         inline TD3D12Fence* GetFrameFence() { return mFrameFence; };
         // todo: maybe可以清理成模板。
-        virtual void SetShaderFloat(const Material* mat, const ShaderConstantInfo& variableInfo, float value) override;
-        virtual void SetShaderVector(const Material* mat, const ShaderConstantInfo& variableInfo, const Vector3& value) override;
-        virtual void SetShaderVector(const Material* mat, const ShaderConstantInfo& variableInfo, const Vector2& value) override {};
-        virtual void SetShaderMatrix4x4(const Material* mat, const ShaderConstantInfo& variableInfo, const Matrix4x4& value) override;
         virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, uint32_t texInstanceID) override;
         virtual void SetUpMesh(ModelData* data, bool isStatic = true) override;
         virtual void CreateFBO(FrameBufferObject* fbodesc) override;
@@ -190,6 +185,7 @@ namespace EngineCore
         std::unique_ptr<D3D12PerDrawAllocator> mPerDrawAllocator;
 
         ComPtr<ID3D12PipelineState> currentPSO;
+        ComPtr<ID3D12RootSignature> currentRootSignature;
         UINT currentPerFrameBufferID;
         UINT currentPerPassBufferID;
     };

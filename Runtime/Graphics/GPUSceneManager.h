@@ -17,8 +17,13 @@ namespace EngineCore
         BufferAllocation GetSinglePerObjectData();
         void RemoveSinglePerObjectData(const BufferAllocation& bufferalloc);
         void UpdateSinglePerObjectData(const BufferAllocation& bufferalloc, void* data);
+        
+        BufferAllocation GetSinglePerMaterialData();
+        void RemoveSinglePerMaterialData(const BufferAllocation& bufferalloc);
+        void UpdateSinglePerMaterialData(const BufferAllocation& bufferalloc, void* data);
         GPUSceneManager();
         PersistantBuffer* allObjectDataBuffer;
+        PersistantBuffer* allMaterialDataBuffer;
     private:
         static GPUSceneManager* sInstance; 
     };

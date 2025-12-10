@@ -29,6 +29,7 @@ namespace EngineCore
         RenderAPI::Create();
         Renderer::Create();
         FrameBufferManager::Create();
+        GPUSceneManager::Create();
     }
 
     void RenderEngine::Update()
@@ -74,7 +75,7 @@ namespace EngineCore
         FrameBufferManager::Destroy();
         //RenderAPI::Destroy();
         WindowManager::Destroy();
-        
+        GPUSceneManager::GetInstance()->Destroy();
         // 最后销毁 RenderEngine 自己
         if (s_Instance)
         {

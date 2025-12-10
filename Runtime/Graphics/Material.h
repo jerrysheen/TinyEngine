@@ -1,6 +1,5 @@
 #pragma once
 #include "Math.h"
-#include "MaterialData.h"
 #include "Serialization/MetaData.h"
 #include "Shader.h"
 #include "Buffer.h"
@@ -11,7 +10,8 @@
 #include <variant>
 #include "Graphics/FrameBufferObject.h"
 #include "Graphics/Texture.h"
-#include <tuple>
+#include "Renderer/RenderStruct.h"
+#include "MaterialInstance.h"
 
 namespace EngineCore
 {
@@ -19,11 +19,10 @@ namespace EngineCore
     {
     public:
         bool isDirty = true;
-        MaterialData mMaterialdata;
-
-        // 真正持有的资源句柄
+        std::unique_ptr<MaterialInstance> matInstance;
+        unordered_map<string, Buffer2D*> textureData;
         ResourceHandle<Shader> mShader;
-        // 这个地方应该限定只有 Texture 和 FrameBufferObject能过来
+        // temp 后续改
         unordered_map<std::string, std::variant<ResourceHandle<Texture>, ResourceHandle<FrameBufferObject>>> mTexResourceMap;
 
 
@@ -38,12 +37,17 @@ namespace EngineCore
         void SetTexture(const string& name, uint64_t texInstanceID);
         void SetTexture(const string& name, ResourceHandle<Texture> handle);
         void SetTexture(const string& name, ResourceHandle<FrameBufferObject> handle);
-        void SetMatrix4x4(const string& name, const Matrix4x4& matrix4x4);
-        void SetFloat(const string& name, float value);
+
+        void SetValue(const string& name, void* data, uint32_t size) 
+        {
+            ASSERT(matInstance != nullptr);
+            matInstance->SetValue(name, data, size);
+        }
 
         inline MaterailRenderState GetMaterialRenderState() const { return mRenderState;};
         // todo  自己同步材质；
         MaterailRenderState mRenderState;
+        BufferAllocation materialAllocation;
     private:
         void LoadDependency(const std::unordered_map<std::string, MetaData>& dependentMap);
         void SetUpRenderState();

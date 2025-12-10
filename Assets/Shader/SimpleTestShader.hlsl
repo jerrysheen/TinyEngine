@@ -3,24 +3,38 @@
 #include "include/Core.hlsl"
 
 
- // 材质相关的数据，先把Pass相关也放在这里
-cbuffer PerMaterialData : register(b0, space2)
+
+struct PerMaterialData
 {
     float4 DiffuseColor;
     float4 SpecularColor;
     float Roughness;
     float Metallic;
     float2 TilingFactor;
-}
+};
 
-//// 每一个Drawcall都不同的数据
-//cbuffer PerDrawData : register(b0, space3)
-//{
-//    float4x4 WorldMatrix;
-//    //float4x4 VPMatrix;
-//};
+
 
 StructuredBuffer<PerObjectData> AllPerObjectData : register(t0, space3);
+ByteAddressBuffer AllPerMaterialData : register(t0, space4);
+
+PerMaterialData LoadPerMaterialData(uint index)
+{
+    PerMaterialData data;
+
+    uint4 diffuseColorRaw = AllPerMaterialData.Load4(index);
+    uint4 specularColorRaw = AllPerMaterialData.Load4(index + 16);
+    uint4 roughnessMetallicTilingRaw = AllPerMaterialData.Load4(index + 32);
+
+    data.DiffuseColor = asfloat(diffuseColorRaw);
+    data.SpecularColor = asfloat(specularColorRaw);
+    float4 temp = asfloat(roughnessMetallicTilingRaw);
+    data.Roughness = temp.x;
+    data.Metallic = temp.y;
+    data.TilingFactor = temp.zw;
+
+    return data;
+}
 
 
 // 纹理资源
@@ -76,15 +90,19 @@ VertexOutput VSMain(VertexInput input, uint instanceID : SV_InstanceID)
     // 传递纹理坐标和颜色
     //output.TexCoord = input.TexCoord * TilingFactor;
     output.TexCoord = input.TexCoord;
-    output.index = instanceID;
+    output.index = index;
     return output;
 }
 
 // 像素着色器
 float4 PSMain(VertexOutput input) : SV_Target
 {
-    half4 diffuseColor = half4(0.0f, 0.0f,0.0f,1.0f);
-    diffuseColor.xyz = DiffuseTexture.Sample(LinearSampler, input.TexCoord).xyz * AmbientColor + input.index /10000.0f;
+
+    // 变换到世界空间
+    PerObjectData data = AllPerObjectData[input.index];
+    PerMaterialData matData = LoadPerMaterialData(data.matIndex);
+    half4 diffuseColor = matData.DiffuseColor;
+    diffuseColor.xyz = DiffuseTexture.Sample(LinearSampler, input.TexCoord).xyz * diffuseColor.xyz ;
     return diffuseColor;
 
     // // 采样纹理

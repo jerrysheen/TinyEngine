@@ -26,9 +26,6 @@ namespace EngineCore
     void MeshRenderer::SetUpMaterialPropertyBlock()
     {
 		ASSERT(mShardMatHandler.IsValid());
-		Material* mat = mShardMatHandler.Get();
-		mMaterialPropertyBlock.Initialize(mat->mShader->mShaderReflectionInfo.mPerDrawConstantBuffferReflectionInfo,
-			mat->mShader->mShaderReflectionInfo.perDrawBufferSize);
     }
 
 
@@ -65,6 +62,10 @@ namespace EngineCore
 
 		PerObjectData perObjectData;
 		perObjectData.objectToWorld = gameObject->transform->GetWorldMatrix();
+		BufferAllocation& allocation = GetMaterial()->materialAllocation;
+		uint32_t matIndex = allocation.offset / allocation.size;
+		perObjectData.matIndex = matIndex;
 		GPUSceneManager::GetInstance()->UpdateSinglePerObjectData(perObjectDataAllocation, static_cast<void*>(&perObjectData));
+		
     }
 }

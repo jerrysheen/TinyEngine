@@ -29,15 +29,10 @@ namespace EngineCore
         Matrix4x4 ProjectionMatrix = Matrix4x4::Identity;
    };
 
-   struct PerObjectData
+   struct alignas(16) PerObjectData
    {
       Matrix4x4 objectToWorld;
-   };
-
-   struct DrawIndices
-   {
-       uint32_t objectIndex;
-       uint32_t materialIndex;
+      uint32_t matIndex;
    };
 
    struct PerPassData_Shadow

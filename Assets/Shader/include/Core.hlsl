@@ -1,11 +1,6 @@
 #ifndef CORE_HLSLI
 #define CORE_HLSLI
 
-cbuffer DrawIndices : register(b1, space0)
-{
-    uint objectIndex;
-
-}
 
 cbuffer PerFrameData : register(b0, space0)
 {
@@ -18,16 +13,25 @@ cbuffer PerFrameData : register(b0, space0)
     float Time;
 }
 
-struct PerObjectData
-{
-    float4x4 objectToWorld;
-};
-
 cbuffer PerPassData : register(b0, space1)
 {
     float3 CameraPosition;
     float4x4 ViewMatrix; 
     float4x4 ProjectionMatrix;
 }
+
+cbuffer DrawIndices : register(b0, space2)
+{
+    uint objectIndex;
+}
+
+
+struct PerObjectData
+{
+    float4x4 objectToWorld;
+    // 4byte
+    uint matIndex;
+    float3 padding;
+};
 
 #endif

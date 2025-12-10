@@ -2,12 +2,15 @@
 
 namespace EngineCore
 {
-    enum class RenderDataFrenquent : UINT
+    enum class RootSigSlot : UINT
     {
         PerFrameData = 0,
         PerPassData = 1,
-        PerMaterialData = 2,
-        PerDrawData = 3
+        DrawIndiceConstant = 2,
+        AllObjectData = 3,
+        AllMaterialData = 4, // SRV t1 (StructuredBuffer) - 替代原来的 PerMaterialData
+        Textures        = 5, // Descriptor Table (t2...)
+        Count
     };
 
     enum class ShaderVariableType
