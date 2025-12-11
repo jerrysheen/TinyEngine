@@ -10,7 +10,8 @@
 #include "D3D12PSOManager.h"
 #include "Graphics/FrameBufferObject.h"
 #include "Renderer/RenderUniforms.h"
-
+#include "Renderer/RenderStruct.h"
+#include "D3D12RootSignature.h"
 #include "Graphics/GPUSceneManager.h"
 #include "D3D12Buffer.h"
 
@@ -336,88 +337,7 @@ namespace EngineCore
 
     void D3D12RenderAPI::CreateRootSignatureByShaderReflection(Shader* shader)
     {
-        auto& srvInfo = shader->mShaderReflectionInfo.mTextureInfo;
-    
-        vector<CD3DX12_ROOT_PARAMETER> slotRootParameter;
-        vector<CD3DX12_DESCRIPTOR_RANGE> descriptorRanges;
-        descriptorRanges.reserve(10);
-    
-        // 固定布局：直接创建 4 个 Root Parameters，不查反射
-        // 根据 RootSigSlot 枚举硬编码布局
-        slotRootParameter.emplace_back();
-        slotRootParameter.back().InitAsConstantBufferView( 0, (UINT)RootSigSlot::PerFrameData );
-        slotRootParameter.emplace_back();
-        slotRootParameter.back().InitAsConstantBufferView( 0, (UINT)RootSigSlot::PerPassData );
-        
-        slotRootParameter.emplace_back();
-        slotRootParameter.back().InitAsConstants(1, 0, (UINT)RootSigSlot::DrawIndiceConstant );
-
-        slotRootParameter.emplace_back();
-        slotRootParameter.back().InitAsShaderResourceView(0, (UINT)RootSigSlot::AllObjectData); // register(u0, space0)
-        slotRootParameter.emplace_back();
-        slotRootParameter.back().InitAsShaderResourceView(0, (UINT)RootSigSlot::AllMaterialData);
-
-        // ⭐ 处理 SRV (纹理) - Root Param 5+
-        std::unordered_map<UINT, std::vector<ShaderBindingInfo>> srvBySpace;
-        for(auto& bindingInfo : srvInfo)
-        {
-            srvBySpace[bindingInfo.space].push_back(bindingInfo);
-        }
-    
-        for(auto& [space, srvList] : srvBySpace)
-        {
-            std::sort(srvList.begin(), srvList.end(), 
-                [](const ShaderBindingInfo& a, const ShaderBindingInfo& b) {
-                    return a.registerSlot < b.registerSlot;    
-            });
-    
-            UINT rootParamIndex = slotRootParameter.size();
-    
-            descriptorRanges.emplace_back();
-            descriptorRanges.back().Init(
-                D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                srvList.size(),
-                srvList[0].registerSlot,  // 使用实际的起始寄存器位置
-                space,
-                0
-            );
-    
-            slotRootParameter.emplace_back();
-            slotRootParameter.back().InitAsDescriptorTable(1, &descriptorRanges.back());
-            
-        }
-    
-        // Static Sampler
-        CD3DX12_STATIC_SAMPLER_DESC staticSampler(
-            0,
-            D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-            D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-            D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-            D3D12_TEXTURE_ADDRESS_MODE_WRAP
-        );
-    
-        // 创建 Root Signature
-        // todo: 根据shader来判断创建 产生一个hash
-        ComPtr<ID3D12RootSignature> tempRootSignature;
-        CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(
-            static_cast<UINT>(slotRootParameter.size()), 
-            slotRootParameter.data(),
-            1, &staticSampler,
-            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
-        );
-    
-        ComPtr<ID3DBlob> serializedRootSig = nullptr;
-        ComPtr<ID3DBlob> errorBlob = nullptr;
-    
-        ThrowIfFailed(D3D12SerializeRootSignature(
-            &rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1,
-            &serializedRootSig, &errorBlob));
-    
-        ThrowIfFailed(md3dDevice->CreateRootSignature(
-            0,
-            serializedRootSig->GetBufferPointer(),
-            serializedRootSig->GetBufferSize(),
-            IID_PPV_ARGS(&tempRootSignature)));
+        ComPtr<ID3D12RootSignature> tempRootSignature = D3D12RootSignature::GetOrCreateARootSig(md3dDevice, shader);
     
         if(shaderRootSignatureMap.count(shader->GetInstanceID()) == 0)
         {
@@ -451,7 +371,6 @@ namespace EngineCore
             return false;
         }
 
-
         ComPtr<ID3D12ShaderReflection>  m_reflection;
         D3DReflect(blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&m_reflection));
 
@@ -462,17 +381,59 @@ namespace EngineCore
         D3D12_SHADER_DESC desc;
         m_reflection->GetDesc(&desc);
 
-        // 从反射收集信息， 包括变量Offset，和插槽信息
+        // 辅助 Lambda：为了避免写重复的位运算代码
+        auto UpdateMask = [&](UINT space, UINT bindPoint, int offset) {
+            // 安全检查：防止 bindPoint 太大导致溢出
+            // 例如 SRV 给了 32 位，那么 bindPoint 必须 < 32
+            // 这里简单做个保护，实际项目可以加 Log
+            if (bindPoint >= 32) return;
+
+            uint64_t bit = 1ULL << (offset + bindPoint);
+
+            if (space == 0) {
+                ShaderReflectionInfo->mRootSigKey.Space0Mask |= bit;
+            }
+            else if (space == 1) {
+                ShaderReflectionInfo->mRootSigKey.Space1Mask |= bit;
+            }
+        };
 
 
-        std::cout << "录制binding info" << std::endl;
         for (UINT i = 0; i < desc.BoundResources; ++i) {
             D3D12_SHADER_INPUT_BIND_DESC bindDesc;
             m_reflection->GetResourceBindingDesc(i, &bindDesc);
-            int bufferSize = 0;
-            HRESULT hr;
-            ID3D12ShaderReflectionConstantBuffer* cbReflection;
+
+            // --- 新增：核心位运算逻辑 ---
+            // 根据类型直接计算 Mask
             switch (bindDesc.Type) {
+            case D3D_SIT_CBUFFER:
+                UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_CBV);
+                break;
+            case D3D_SIT_TEXTURE:
+                UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_SRV);
+                break;
+            case D3D_SIT_SAMPLER:
+                UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_SAMPLER);
+                break;
+            case D3D_SIT_STRUCTURED:
+            case D3D_SIT_UAV_RWTYPED:
+            case D3D_SIT_UAV_RWSTRUCTURED:
+                // ... 其他 UAV 类型 ...
+                UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_UAV);
+                break;
+            }
+
+            switch (bindDesc.Type) {
+            case D3D_SIT_CBUFFER:
+            {
+                for (auto& x : ShaderReflectionInfo->mConstantBufferInfo)
+                {
+                    if (x.resourceName == bindDesc.Name) break;
+                }
+                ShaderReflectionInfo->mConstantBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, 0, bindDesc.Space);
+
+                break;
+            }
             case D3D_SIT_TEXTURE:
                 for (auto& x : ShaderReflectionInfo->mTextureInfo)
                 {
@@ -494,28 +455,11 @@ namespace EngineCore
             case D3D_SIT_UAV_APPEND_STRUCTURED:
             case D3D_SIT_UAV_CONSUME_STRUCTURED:
             case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
+                for (auto& x : ShaderReflectionInfo->mUavInfo)
                 {
-                    bool alreadyExists = false;
-                    for (auto& x : ShaderReflectionInfo->mUavInfo)
-                    {
-                        if (x.resourceName == bindDesc.Name) 
-                        {
-                            alreadyExists = true;
-                            break;
-                        }
-                    }
-                    if (!alreadyExists)
-                    {
-                        // 记录 UAV 信息：名字、类型(UAV)、绑定点(register uX)、大小(0)、空间(space)
-                        ShaderReflectionInfo->mUavInfo.emplace_back(
-                            bindDesc.Name, 
-                            ShaderResourceType::UAV, 
-                            bindDesc.BindPoint, 
-                            0, 
-                            bindDesc.Space
-                        );
-                    }
+                    if (x.resourceName == bindDesc.Name) break;
                 }
+                ShaderReflectionInfo->mUavInfo.emplace_back(bindDesc.Name, ShaderResourceType::UAV, bindDesc.BindPoint, 0, bindDesc.Space);
                 break;
             default:
                 std::cout << " Not find any exites shader resource type " << std::endl;
@@ -989,7 +933,7 @@ namespace EngineCore
         ASSERT(vsBlobMap.count(psodesc.matRenderState.shaderInstanceID) > 0);
         pso.psBlob = psBlobMap[psodesc.matRenderState.shaderInstanceID];
         pso.vsBlob = vsBlobMap[psodesc.matRenderState.shaderInstanceID];
-        pso.rootSignature = shaderRootSignatureMap[psodesc.matRenderState.shaderInstanceID];
+        pso.rootSignature = D3D12RootSignature::GetOrCreateARootSig(psodesc.matRenderState.rootSignatureKey);
         ComPtr<ID3D12PipelineState> temp = D3D12PSOManager::GetInstance()->CreatePSO(pso);
         shaderPSOMap.try_emplace(psoHash, temp);
         return temp;
@@ -1072,6 +1016,11 @@ namespace EngineCore
         WaitForRenderFinish(mFrameFence);
         ThrowIfFailed(mDirectCmdListAlloc->Reset());
         ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), psoObj.Get()));
+
+        // 重置状态缓存，因为Reset后CommandList的状态被清空了
+        currentRootSignature = nullptr;
+        currentPSO = psoObj;
+
         ID3D12DescriptorHeap* heaps[] = {
             D3D12DescManager::GetInstance()->GetFrameCbvSrvUavHeap().Get(),
             // 如果用了采样器表，这里再加上 sampler heap
@@ -1180,33 +1129,16 @@ namespace EngineCore
     
     void D3D12RenderAPI::RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState)
     {
-        // 这个地方正确的操作应该是怎么样的？
-        // 这个地方其实就是传入一个ShaderID + passInfo，来得到一个渲染状态。
-        // 所以那么这个地方，需要的参数就是 渲染状态，这个状态有当前pass的，
-        // 有设置的， 比如blendmode这种， DepthCompare，
-        // 也有shader的，比如inputlayout，rootsignature，
-        // psoManager负责根据这个找到对应的， 如果没有就创建一个新的。
-        // 这个地方顺便想一下合理的快速找到对应的操作。
+        // rootsig 只要和 pso匹配的，pso切换 rootsig不一定要切换
+        // 这个payload里面记录了对应的rootsigKey，只需要判断和current的是否一致。
+        // 不一致就刷新， 没必要管pso是什么，状态已经提前算完了，pso创建的时候绑定的也是对应的rootSig.
         PSODesc& psoDesc = payloadSetRenderState.psoDesc;
        
-        // set pso and Root Signature:
-        // 3. 设置root signature
-        ComPtr<ID3D12RootSignature> rootSig = shaderRootSignatureMap[psoDesc.matRenderState.shaderInstanceID];
+        ComPtr<ID3D12RootSignature> rootSig = D3D12RootSignature::GetOrCreateARootSig(psoDesc.matRenderState.rootSignatureKey);
         if(currentRootSignature != rootSig)
         {
             mCommandList->SetGraphicsRootSignature(rootSig.Get());
-        }
-        ComPtr<ID3D12PipelineState> pso = GetOrCreatePSO(psoDesc);  // 添加这行
-        if(currentPSO != pso)
-        {
-            mCommandList->SetPipelineState(pso.Get()); 
-
-        }
-        
-        if(pso != currentPSO)
-        {
-            currentPSO = pso;
-            // === 1. 绑定 PerFrameData (Root Param 0) ===
+            // todo： 这个地方应该还是需要一个状态， 比如需要更新的全局通知？
             uint32_t perFrameBufferID = (uint32_t)UniformBufferType::PerFrameData;
             if (mGlobalConstantBufferMap.count(perFrameBufferID) > 0)
             {
@@ -1228,8 +1160,16 @@ namespace EngineCore
                     gpuAddr
                 );
             }
-
+            currentRootSignature = rootSig;
         }
+
+        ComPtr<ID3D12PipelineState> pso = GetOrCreatePSO(psoDesc);  // 添加这行
+        if(currentPSO != pso)
+        {
+            mCommandList->SetPipelineState(pso.Get()); 
+            currentPSO = pso;
+        }
+        
         
     }
 
@@ -1267,6 +1207,10 @@ namespace EngineCore
                           // Flush before changing any resources.
         WaitForRenderFinish(mFrameFence);
         ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
+
+        // 重置状态缓存
+        currentRootSignature = nullptr;
+        currentPSO = nullptr;
 
         // Release the previous resources we will be recreating.
         for (int i = 0; i < SwapChainBufferCount; ++i)

@@ -3,6 +3,7 @@
 #include "Math/Math.h"
 #include "Core/Object.h"
 #include "Renderer/RenderCommand.h"
+#include "Renderer/RenderStruct.h"
 //#include "Graphics/FrameBufferObject.h"
 #include "Resources/ResourceHandle.h"
 
@@ -58,15 +59,27 @@ namespace EngineCore
         {};
     };
 
+
     struct ShaderReflectionInfo
     {
+        RootSignatureKey mRootSigKey;
+
+
         // todo: 确定这个地方是用vector还是直接单个对象
         ShaderStageType type;
+        vector<ShaderBindingInfo > mConstantBufferInfo;
         vector<ShaderBindingInfo > mTextureInfo;
         vector<ShaderBindingInfo > mSamplerInfo;
         vector<ShaderBindingInfo > mUavInfo;
 
         ShaderReflectionInfo(){};
+
+
+        // 定义偏移量常量 (方便修改)
+        static const int BIT_OFFSET_CBV = 0;
+        static const int BIT_OFFSET_SRV = 16;
+        static const int BIT_OFFSET_UAV = 48;
+        static const int BIT_OFFSET_SAMPLER = 56;
     };
 
     struct LightData

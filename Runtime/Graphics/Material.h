@@ -10,7 +10,6 @@
 #include <variant>
 #include "Graphics/FrameBufferObject.h"
 #include "Graphics/Texture.h"
-#include "Renderer/RenderStruct.h"
 #include "MaterialInstance.h"
 
 namespace EngineCore

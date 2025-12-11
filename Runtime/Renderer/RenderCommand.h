@@ -3,6 +3,7 @@
 #include "Utils/HashCombine.h"
 #include "Core/PublicEnum.h"
 #include "Core/PublicStruct.h"
+#include "Renderer/RenderStruct.h"
 #include <tuple>
 
 namespace EngineCore
@@ -55,7 +56,7 @@ namespace EngineCore
     struct MaterailRenderState
     {
         uint32_t shaderInstanceID;
-
+        RootSignatureKey rootSignatureKey;
         // depth stencil state:
         bool enableDepthTest = true;
         bool enableDepthWrite = true;

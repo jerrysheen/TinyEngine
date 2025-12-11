@@ -4,6 +4,7 @@
 #include "Resources/ResourceManager.h"
 #include "Resources/Asset.h"
 #include "Graphics/GPUSceneManager.h"
+#include "Renderer/RenderStruct.h"
 
 namespace EngineCore
 {
@@ -152,6 +153,9 @@ namespace EngineCore
     void Material::SetUpRenderState()
     {
         mRenderState.shaderInstanceID = mShader.Get()->GetInstanceID();
+        mRenderState.rootSignatureKey = mShader.Get()->mShaderReflectionInfo.mRootSigKey;
+
+        //todo： 很多还没做
     }
 
     void Material::GetMaterialDataFromShaderReflection()

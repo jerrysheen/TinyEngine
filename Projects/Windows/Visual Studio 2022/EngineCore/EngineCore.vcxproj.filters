@@ -276,6 +276,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12RenderAPI.h">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12RootSignature.h">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12Struct.h">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClInclude>
@@ -531,6 +534,9 @@
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12RenderAPI.cpp">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12RootSignature.cpp">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\d3dUtil.cpp">

@@ -11,5 +11,4 @@ namespace EngineCore
         virtual void UploadBuffer(const BufferAllocation& alloc, void* data, uint32_t size) = 0;
         virtual IGPUBuffer* GetGPUBuffer() = 0;
     };
-
 }
