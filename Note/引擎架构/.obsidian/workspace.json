@@ -30,15 +30,15 @@
             "state": {
               "type": "canvas",
               "state": {
-                "file": "Head to GPU Scene.canvas",
+                "file": "12_13重构数据流.canvas",
                 "viewState": {
-                  "x": -194.69294658135826,
-                  "y": 556.4664434725862,
-                  "zoom": 0.03505650651061598
+                  "x": -396.17548004459843,
+                  "y": 682.5250710067392,
+                  "zoom": -0.3333333333333334
                 }
               },
               "icon": "lucide-layout-dashboard",
-              "title": "Head to GPU Scene"
+              "title": "12_13重构数据流"
             }
           }
         ],
@@ -190,10 +190,13 @@
       "bases:创建新数据库": false
     }
   },
-  "active": "1abe63298565dca8",
+  "active": "b37dfbe50f450bb4",
   "lastOpenFiles": [
-    "Material.h.md",
+    "Pasted image 20251213164812.png",
+    "未命名.md",
+    "12_13重构数据流.canvas",
     "Head to GPU Scene.canvas",
+    "Material.h.md",
     "Head to GPU Scene.md",
     "渲染管线第一版.canvas",
     "Picture/Pasted image 20251128144237.png",

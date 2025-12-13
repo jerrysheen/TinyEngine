@@ -45,6 +45,7 @@ namespace EngineCore
         
         
         vector<uint32_t> tempList;
+        if(sortItems.size() == 0) return;
         auto& items = renderContext.cameraVisibleItems[sortItems[0].itemIndex];
         RenderBatch currentBatch;
         currentBatch.instanceCount = 1;
@@ -144,17 +145,6 @@ namespace EngineCore
             cameraVisibleItems.begin(),
             cameraVisibleItems.end());
         cameraVisibleItems.clear();
-        //visibleItemPool.insert(
-        //    visibleItemPool.end(),
-        //    std::make_move_iterator(cameraVisibleItems.begin()),
-        //    std::make_move_iterator(cameraVisibleItems.end()));
-        //for(auto& i : shadowsVisibleItems)
-        //{
-        //    visibleItemPool.insert(
-        //        visibleItemPool.end(),
-        //        std::make_move_iterator(i.begin()),
-        //        std::make_move_iterator(i.end()));
-        //}
     }
 
 } // namespace EngineCore

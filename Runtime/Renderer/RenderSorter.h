@@ -34,9 +34,6 @@ namespace EngineCore
             int index = 0;
             for(auto* item : items)
             {
-                MeshRenderer* meshRenderer;
-                MeshFilter* meshFilter;
-                Transform* transform;
                 uint32_t meshID = item->meshFilter->mMeshHandle->GetAssetID();
                 uint32_t matID = item->meshRenderer->GetMaterial()->GetAssetID();
 

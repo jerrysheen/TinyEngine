@@ -28,6 +28,8 @@ namespace EngineCore
     void GPUSceneManager::Destroy()
     {
         delete allObjectDataBuffer;
+        delete allMaterialDataBuffer;
+        delete perFrameBatchBuffer;
     }
 
     void GPUSceneManager::Tick()

@@ -1,0 +1,8 @@
+{
+	"nodes":[
+		{"id":"7669ad013683e035","x":-979,"y":-374,"width":622,"height":934,"type":"text","text":"RenderContext\n里面的数据设计的很烂， 现在没有用的都可以干掉\n\nCulling\n直接索引指针 效率低\n\n总的来说感觉是数据的设计不够统一， 比如mat mesh bounds这些数据，最好都依次放置在一个有序队列里面，这样子所有的都去索引的时候，内存关联度会更高\n总结现在有用的数据， 有些散落在各种Material modeldata里面， 有些在COmponent里面， 有些则是直接存在buffer里面\n\nvoid Renderer::Render(const RenderContext& context\n\n这部分目前结构算清晰\n\n            FlushPerPassData(context);\n\n            pass->Configure(context);\n\n            pass->Filter(context);\n\n            pass->Execute(context);\n\n            Submit(pass->GetRenderPassInfo());\n           filter可以不用，。\n           \n            RenderContext::DrawRenderers\n还在索引mat 和mesh指针， 效率有点低\n\n\n"},
+		{"id":"c15067314794e41e","type":"text","text":"GPU端：\n1 有些接口废弃了， 可以直接干掉\n\n2 renderAPI类太大， 里面涵盖太多东西\n\n","x":-200,"y":-374,"width":622,"height":934},
+		{"id":"0aaeffb2b738248a","x":-757,"y":680,"width":400,"height":204,"type":"file","file":"Pasted image 20251213164812.png"}
+	],
+	"edges":[]
+}
