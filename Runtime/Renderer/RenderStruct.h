@@ -1,6 +1,5 @@
 #pragma once
 #include <iostream>
-
 namespace EngineCore
 {
     class IGPUBuffer;
@@ -20,6 +19,18 @@ namespace EngineCore
         uint32_t RegisterSpace;
     };
 
+    class Material;
+    class ModelData;
+    struct RenderBatch
+    {
+        BufferAllocation alloc;
+        
+        Material* mat;
+        ModelData* model;
+        uint32_t index;
+        uint32_t instanceCount;
+    };
+
     enum class RootSigSlot : UINT
     {
         DrawIndiceConstant = 0,
@@ -27,7 +38,8 @@ namespace EngineCore
         PerPassData = 2,
         AllObjectData = 3,
         AllMaterialData = 4, // SRV t1 (StructuredBuffer) - 替代原来的 PerMaterialData
-        Textures        = 5, // Descriptor Table (t2...)
+        PerDrawInstanceObjectsList = 5, // SRV t1 (StructuredBuffer) - 替代原来的 PerMaterialData
+        Textures        = 6, // Descriptor Table (t2...)
         Count
     };
 
@@ -40,6 +52,7 @@ namespace EngineCore
             case RootSigSlot::PerPassData : return {2, 0};
             case RootSigSlot::AllObjectData : return {0, 1};
             case RootSigSlot::AllMaterialData : return {1, 1};
+            case RootSigSlot::PerDrawInstanceObjectsList : return {2, 1};
             //case RootSigSlot::Textures           : return {0, 2};
             default: return {0, 0};
         }

@@ -24,7 +24,7 @@ namespace EngineCore
         virtual uint64_t GetBaseGPUAddress() const override { return m_PerSistantBuffer->GetGPUVirtualAddress(); } 
         virtual void UploadBuffer(const BufferAllocation& alloc, void* data, uint32_t size) override;
         virtual IGPUBuffer* GetGPUBuffer() override { return m_PerSistantBuffer; };
-
+        virtual void Reset() override;
     private: 
         std::queue<uint32_t> m_FreeIndices;
         IGPUBuffer* m_PerSistantBuffer = nullptr;

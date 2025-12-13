@@ -39,8 +39,7 @@ struct VertexOutput
 VertexOutput VSMain(VertexInput input, uint instanceID : SV_InstanceID)
 {
     VertexOutput output;
-    
-    int index = objectIndex + instanceID;
+    uint index = PerDrawInstanceList[objectIndex + instanceID];
     // 变换到世界空间
     PerObjectData data = AllPerObjectData[index];
 
@@ -67,6 +66,7 @@ float4 PSMain(VertexOutput input) : SV_Target
 {
 
     // 变换到世界空间
+    
     PerObjectData data = AllPerObjectData[input.index];
     PerMaterialData matData = LoadPerMaterialData(data.matIndex);
     half4 diffuseColor = matData.DiffuseColor;

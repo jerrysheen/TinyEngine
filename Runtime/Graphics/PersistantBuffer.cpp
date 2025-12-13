@@ -89,4 +89,11 @@ namespace EngineCore
         // Default Heap
         RenderAPI::GetInstance()->UploadBuffer(m_PerSistantBuffer, alloc.offset, data, size);
     }
+
+    void PersistantBuffer::Reset()
+    {
+        m_NextIndex = 0;
+        std::queue<uint32_t> empty;
+        std::swap(m_FreeIndices, empty);
+    }
 }

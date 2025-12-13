@@ -52,6 +52,10 @@ namespace EngineCore
             slotRootParameter.emplace_back();
             auto allMaterialBind = GetRootSigBinding(RootSigSlot::AllMaterialData);
             slotRootParameter.back().InitAsShaderResourceView(allMaterialBind.RegisterIndex, allMaterialBind.RegisterSpace);
+            
+            slotRootParameter.emplace_back();
+            auto perDrawInstanceList = GetRootSigBinding(RootSigSlot::PerDrawInstanceObjectsList);
+            slotRootParameter.back().InitAsShaderResourceView(perDrawInstanceList.RegisterIndex, perDrawInstanceList.RegisterSpace);
 
             // ⭐ 处理 SRV (纹理) - Root Param 5+
             std::unordered_map<UINT, std::vector<ShaderBindingInfo>> srvBySpace;

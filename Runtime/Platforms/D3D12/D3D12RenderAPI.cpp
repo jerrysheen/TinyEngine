@@ -824,7 +824,7 @@ namespace EngineCore
             if(desc.memoryType == BufferMemoryType::Upload)
             {
                 void* mappedData = bufferResource->Map();
-                memcpy(static_cast<char*>(mappedData) + offset * desc.stride, data, size);
+                memcpy(static_cast<char*>(mappedData) + offset, data, size);
             }
             else if(desc.memoryType == BufferMemoryType::Default)
             {
@@ -1098,6 +1098,9 @@ namespace EngineCore
         gpuAddr = GPUSceneManager::GetInstance()->allMaterialDataBuffer->GetBaseGPUAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllMaterialData, gpuAddr);
         
+        gpuAddr = GPUSceneManager::GetInstance()->perFrameBatchBuffer->GetBaseGPUAddress();
+        mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::PerDrawInstanceObjectsList, gpuAddr);
+        
         // === 5. 绑定纹理 (Root Param 5+) ===
         if (matData.mTextureBufferArray.size() > 0)
         {
@@ -1344,7 +1347,7 @@ namespace EngineCore
     {
         auto& vao = VAOMap[setDrawInstanceCmd.vaoID];
         mCommandList->SetGraphicsRoot32BitConstants((UINT)RootSigSlot::DrawIndiceConstant, 1, &setDrawInstanceCmd.perDrawOffset, 0);
-        mCommandList->DrawIndexedInstanced(vao.indexBufferView.SizeInBytes / sizeof(int), 1, 0, 0, setDrawInstanceCmd.perDrawOffset);
+        mCommandList->DrawIndexedInstanced(vao.indexBufferView.SizeInBytes / sizeof(int), setDrawInstanceCmd.count, 0, 0, setDrawInstanceCmd.perDrawOffset);
         //ASSERT_MSG(false, "Not Implemented!");
     }
 

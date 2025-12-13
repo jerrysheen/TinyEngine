@@ -30,12 +30,14 @@ namespace EngineCore
         static void DrawRenderers(const RenderContext& renderContext, 
                            const ContextDrawSettings& drawingSettings, 
                            const ContextFilterSettings& filteringSettings, 
-                           std::vector<DrawRecord>& outDrawRecords);
+                           std::vector<RenderBatch>& outDrawRecords);
         
         static void SortingContext(const RenderContext& renderContext, 
                            const ContextDrawSettings& drawingSettings, 
                            std::vector<VisibleItem*>& sortedItem);
         static void BatchContext(std::vector<VisibleItem*>& sortedItem);
+
+        static bool CanBatch(const RenderBatch& batch, const VisibleItem* item);
 
     private:
         void ReturnLightToPool();

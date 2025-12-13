@@ -1,6 +1,7 @@
 #include "PreCompiledHeader.h"
 #include "GPUSceneManager.h"
 #include "Graphics/PersistantBuffer.h"
+#include "Graphics/LinearAllocateBuffer.h"
 #include "Graphics/IGPUBuffer.h"
 #include "Renderer/RenderUniforms.h"
 #include "Renderer/RenderAPI.h"
@@ -41,6 +42,8 @@ namespace EngineCore
                 renderer->SyncPerObjectDataIfDirty();
             }
         }
+
+        perFrameBatchBuffer->Reset();
     }
 
     BufferAllocation GPUSceneManager::GetSinglePerObjectData()
@@ -73,6 +76,14 @@ namespace EngineCore
         allMaterialDataBuffer->UploadBuffer(bufferalloc, data, 512);
     }
 
+    BufferAllocation GPUSceneManager::SyncDataToPerFrameBatchBuffer(void *data, uint32_t size)
+    {
+        auto& allocation = perFrameBatchBuffer->Allocate(size);
+        perFrameBatchBuffer->UploadBuffer(allocation, data, allocation.size);
+        return allocation;
+    }
+
+
     GPUSceneManager::GPUSceneManager()
     {
         BufferDesc desc;
@@ -83,7 +94,7 @@ namespace EngineCore
         desc.usage = BufferUsage::StructuredBuffer;
         allObjectDataBuffer = new PersistantBuffer(desc);
 
-        // 强烈建议使用 512
+        // 强烈建议使用 512， 注意，这边都是Byte
         // 理由：
         // 1. 容纳 32 个 float4 向量，足够应对 Uber Shader + 矩阵 + 几十个 TextureID。
         // 2. 即使浪费了一半空间，1万个材质也只多占 2.5MB 显存，完全可忽略。
@@ -95,5 +106,14 @@ namespace EngineCore
         desc.stride = 512;       // PageSize
         desc.usage = BufferUsage::ByteAddressBuffer;
         allMaterialDataBuffer = new PersistantBuffer(desc);
+
+        desc.debugName = L"PerFrameBatchBuffer";
+        desc.memoryType = BufferMemoryType::Upload;
+        desc.size = sizeof(uint32_t) * 10000;
+        desc.stride = sizeof(uint32_t);
+        desc.usage = BufferUsage::StructuredBuffer;
+        perFrameBatchBuffer = new LinearAllocateBuffer(desc);
     }
+
+
 }

@@ -9,7 +9,13 @@ namespace EngineCore
     {
     public:
         D3D12Buffer(ComPtr<ID3D12Resource> resource, const BufferDesc& desc)
-            : m_Resource(resource), m_Desc(desc) {}
+            : m_Resource(resource), m_Desc(desc) 
+        {
+            if(desc.memoryType == BufferMemoryType::Upload)
+            {
+                Map();
+            }
+        }
 
         virtual ~D3D12Buffer()
         {

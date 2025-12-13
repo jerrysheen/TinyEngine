@@ -45,6 +45,7 @@ struct PerMaterialData
 
 StructuredBuffer<PerObjectData> AllPerObjectData : register(t0, space1);
 ByteAddressBuffer AllPerMaterialData : register(t1, space1);
+StructuredBuffer<uint> PerDrawInstanceList: register(t2, space1);
 
 PerMaterialData LoadPerMaterialData(uint index)
 {

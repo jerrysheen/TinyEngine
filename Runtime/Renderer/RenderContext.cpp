@@ -4,6 +4,7 @@
 #include "GameObject/MeshRenderer.h"
 #include "Core/Profiler.h"
 #include "RenderSorter.h"
+#include "Graphics/GPUSceneManager.h"
 
 namespace EngineCore
 {
@@ -30,7 +31,7 @@ namespace EngineCore
         return new LightData();
     }
 
-    void RenderContext::DrawRenderers(const RenderContext &renderContext, const ContextDrawSettings &drawingSettings, const ContextFilterSettings &filteringSettings, std::vector<DrawRecord> &outDrawRecords)
+    void RenderContext::DrawRenderers(const RenderContext &renderContext, const ContextDrawSettings &drawingSettings, const ContextFilterSettings &filteringSettings, std::vector<RenderBatch> & bactchList)
     {
         vector<SortItem> sortItems;
 
@@ -41,19 +42,51 @@ namespace EngineCore
         PROFILER_EVENT_BEGIN("DrawRenderers::SortingContext");
         std::sort(sortItems.begin(), sortItems.end(), [](SortItem& a, SortItem& b) { return a.sortKey < b.sortKey; });
         PROFILER_EVENT_END("DrawRenderers::SortingContext");
-
-        for(int i = 0; i < sortItems.size(); i++)
+        
+        
+        vector<uint32_t> tempList;
+        auto& items = renderContext.cameraVisibleItems[sortItems[0].itemIndex];
+        RenderBatch currentBatch;
+        currentBatch.instanceCount = 1;
+        currentBatch.model = items->meshFilter->mMeshHandle.Get();
+        currentBatch.mat = items->meshRenderer->GetMaterial().Get();
+        currentBatch.index = 0;
+        uint32_t objIndex = items->meshRenderer->perObjectDataAllocation.offset / items->meshRenderer->perObjectDataAllocation.size;
+        tempList.push_back(objIndex);
+        uint32_t globalIndex = 0;
+        for(int i = 1; i < sortItems.size(); i++)
         {
             auto& items = renderContext.cameraVisibleItems[sortItems[i].itemIndex];
-            // todo: 后续会换成不同的比如opaquepass独有的data
-            //auto& mpb = items->meshRenderer->GetMaterialPropertyBlock();
-            //mpb.SetValue("WorldMatrix", items->transform->GetWorldMatrix());
-            uint32_t objIndex = items->meshRenderer->perObjectDataAllocation.offset / items->meshRenderer->perObjectDataAllocation.size;
-            PerDrawHandle handle;
-            handle.offset = objIndex;
-            //memcpy(handle.destPtr, mpb.GetData(), mpb.GetSize());
-            outDrawRecords.emplace_back(items->meshRenderer->GetMaterial().Get(), items->meshFilter->mMeshHandle.Get(), handle, 1);
+            if(CanBatch(currentBatch, items))
+            {
+                currentBatch.instanceCount += 1;
+                objIndex = items->meshRenderer->perObjectDataAllocation.offset / items->meshRenderer->perObjectDataAllocation.size;
+                tempList.push_back(objIndex);
+                globalIndex += 1;
+            }
+            else
+            {
+                currentBatch.alloc =  GPUSceneManager::GetInstance()->SyncDataToPerFrameBatchBuffer(tempList.data(), tempList.size());
+                bactchList.push_back(currentBatch);
+                
+                tempList.clear();
+                currentBatch.instanceCount = 1;
+                currentBatch.model = items->meshFilter->mMeshHandle.Get();
+                currentBatch.mat = items->meshRenderer->GetMaterial().Get();
+                currentBatch.index = globalIndex;
+                uint32_t objIndex = items->meshRenderer->perObjectDataAllocation.offset / items->meshRenderer->perObjectDataAllocation.size;
+                tempList.push_back(objIndex);
+                globalIndex++;
+            }
         }
+        if (tempList.size() > 0) 
+        {
+            currentBatch.alloc = GPUSceneManager::GetInstance()->SyncDataToPerFrameBatchBuffer(tempList.data(), tempList.size());
+            bactchList.push_back(currentBatch);
+            tempList.clear();
+        }
+
+
     }
 
     void RenderContext::SortingContext(const RenderContext &renderContext, const ContextDrawSettings &drawingSettings, std::vector<VisibleItem*> &sortedItem)
@@ -87,6 +120,12 @@ namespace EngineCore
 
     void RenderContext::BatchContext(std::vector<VisibleItem *> &sortedItem)
     {
+    }
+
+    bool RenderContext::CanBatch(const RenderBatch& currentBatch, const VisibleItem* item)
+    {
+        return currentBatch.model->GetAssetID() == item->meshFilter->mMeshHandle->GetAssetID() &&
+            currentBatch.mat->GetAssetID() == item->meshRenderer->GetMaterial()->GetAssetID();
     }
 
     void RenderContext::ReturnLightToPool()

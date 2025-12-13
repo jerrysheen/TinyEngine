@@ -241,28 +241,33 @@ namespace EngineCore
         SetSissorRect(info.viewportStartPos, info.viewportEndPos);
         
         SetPerPassData((UINT)info.mRootSigSlot);
-        for each(auto& record in info.drawRecordList)
+        if (info.enableBatch == false) 
         {
-            // 根据mat + pass信息组织pippeline
-            SetRenderState(record.mat, info);
-            // copy gpu material data desc 
-            SetMaterialData(record.mat);
-            // bind mesh vertexbuffer and indexbuffer.
-            SetMeshData(record.model);
-
-/*            if(record.perDrawHandle.size > 0)
+            for each(auto& record in info.drawRecordList)
             {
-                SetPerDrawData(record.perDrawHandle);
-            }        */    
+                // 根据mat + pass信息组织pippeline
+                SetRenderState(record.mat, info);
+                // copy gpu material data desc 
+                SetMaterialData(record.mat);
+                // bind mesh vertexbuffer and indexbuffer.
+                SetMeshData(record.model);
 
-            //if(record.instanceCount > 1)
-            //{
-            DrawIndexedInstanced(record.model->GetInstanceID(), record.instanceCount, record.perDrawHandle);
-            //}
-            //else
-            //{
-            //    DrawIndexed(record.model->GetInstanceID(), 1);
-            //}
+                DrawIndexedInstanced(record.model->GetInstanceID(), record.instanceCount, record.perDrawHandle);
+            }
+        }
+        else 
+        {
+            for each(auto& record in info.renderBatchList)
+            {
+                // 根据mat + pass信息组织pippeline
+                SetRenderState(record.mat, info);
+                // copy gpu material data desc 
+                SetMaterialData(record.mat);
+                // bind mesh vertexbuffer and indexbuffer.
+                SetMeshData(record.model);
+
+                DrawIndexedInstanced(record.model->GetInstanceID(), record.instanceCount, PerDrawHandle{nullptr, record.index, 0});
+            }
         }
     }
 

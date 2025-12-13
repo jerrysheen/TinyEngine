@@ -152,7 +152,10 @@ namespace EngineCore
         Vector2 viewportStartPos;
         Vector2 viewportEndPos;
         
+        bool enableBatch = true;
+        // drawRecord支持单个绘制，比如后处理等，没有走复杂的逻辑，直接用drawRecord绘制。
         vector<DrawRecord> drawRecordList;
+        vector<RenderBatch> renderBatchList;
         RootSigSlot mRootSigSlot;
         inline void Reset()
         {
@@ -163,6 +166,7 @@ namespace EngineCore
             viewportStartPos = Vector2::Zero;
             viewportStartPos = Vector2::Zero;
             drawRecordList.clear();
+            renderBatchList.clear();
         };
     };
 

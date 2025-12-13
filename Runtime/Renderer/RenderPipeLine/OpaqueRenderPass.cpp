@@ -24,6 +24,7 @@ namespace EngineCore
     void EngineCore::OpaqueRenderPass::Configure(const RenderContext& context)
     {
         mRenderPassInfo.passName = "OpaqueRenderPass";
+        mRenderPassInfo.enableBatch = true;
         ResourceHandle<FrameBufferObject> colorAttachment = context.camera->colorAttachment;
         ResourceHandle<FrameBufferObject> depthAttachment = context.camera->depthAttachment;
         SetRenderTarget(colorAttachment, depthAttachment);
@@ -41,7 +42,7 @@ namespace EngineCore
         RenderContext::DrawRenderers(context,
                                         drawSettings,
                                         filterSettings,
-                                        mRenderPassInfo.drawRecordList);
+                                        mRenderPassInfo.renderBatchList);
     }
 
     void OpaqueRenderPass::Filter(const RenderContext &context)

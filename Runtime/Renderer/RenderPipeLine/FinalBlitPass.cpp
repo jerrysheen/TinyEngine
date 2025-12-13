@@ -19,6 +19,7 @@ namespace EngineCore
     void FinalBlitPass::Configure(const RenderContext& context)
     {
         mRenderPassInfo.passName = "FinalBlitPass";
+        mRenderPassInfo.enableBatch = false;
         SetRenderTarget(FrameBufferManager::GetInstance()->GetScreenBuffer(), ResourceHandle<FrameBufferObject>(0));
         SetClearFlag(ClearFlag::All, Vector3(0.0, 0.0, 0.0), 1.0f);
         #ifdef EDITOR
