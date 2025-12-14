@@ -50,15 +50,13 @@ namespace EngineCore
         ResourceHandle<Material> GetMaterial();
         inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
 
-        inline void MarkWorldBoundsDirty(){ needUpdateWorldBounds = true;}
-        inline bool ShouldUpdateWorldBounds(){ return needUpdateWorldBounds;}
         void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
         void SyncPerObjectDataIfDirty();
+        uint32_t lastSyncTransformVersion = 0;
         AABB worldBounds;
-        bool IsDirty = true;
         BufferAllocation perObjectDataAllocation;
+        uint32_t sceneRenderNodeIndex = UINT32_MAX;
     private:
-        bool needUpdateWorldBounds = true;
         ResourceHandle<Material> mShardMatHandler;
         ResourceHandle<Material> mInstanceMatHandler;
 

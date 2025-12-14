@@ -106,6 +106,8 @@ namespace EngineCore
         {
             childTransforms[i]->UpdateTransform();
         }
+
+        transformVersion++;
     }
 
 

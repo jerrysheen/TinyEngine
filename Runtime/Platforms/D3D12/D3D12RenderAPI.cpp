@@ -671,10 +671,6 @@ namespace EngineCore
     }
 
 
-    void D3D12RenderAPI::CreateMaterialSamplerSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos)
-    {
-    }
-
     // 初始化一次， 同步信息
     void D3D12RenderAPI::CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos)
     {

@@ -4,6 +4,7 @@
 #include "Renderer/RenderUniforms.h"
 #include "Graphics/PersistantBuffer.h"
 #include "Graphics/LinearAllocateBuffer.h"
+#include "Core/PublicStruct.h"
 
 namespace EngineCore
 {
@@ -29,7 +30,14 @@ namespace EngineCore
         PersistantBuffer* allObjectDataBuffer;
         PersistantBuffer* allMaterialDataBuffer;
         LinearAllocateBuffer* perFrameBatchBuffer;
+        std::vector<PerObjectCPUData> perObjectCPUBuffer;
+        
+        PerObjectCPUHandler ResgisterNewObject();
+        void DeleteSceneObject(PerObjectCPUHandler& handler);
+        
     private:
+        std::queue<int> m_FreePerObjectIndex;
+        int m_CurrentPerObjectIndex;
         static GPUSceneManager* sInstance; 
     };
 

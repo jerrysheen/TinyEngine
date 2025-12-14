@@ -31,7 +31,6 @@ namespace EngineCore
 
         virtual Shader* CompileShader(const string& path, Shader* shader) override;
         bool CompileShaderStageAndGetReflection(const string& path, string entrypoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob);
-        virtual void CreateMaterialSamplerSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
         virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
         virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
 

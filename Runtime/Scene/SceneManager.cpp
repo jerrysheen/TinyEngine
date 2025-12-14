@@ -11,51 +11,10 @@
 
 namespace EngineCore
 {
-    std::unique_ptr<SceneManager> SceneManager::s_Instance = nullptr;
+    SceneManager* SceneManager::s_Instance = nullptr;
     
     SceneManager::SceneManager()
     {
-        json j = EngineCore::JsonSerializer::ReadFromJson("/Scenes/PerformanceTestScene.meta");
-        //json j = EngineCore::JsonSerializer::ReadFromJson("/Scenes/SampleScene.meta");
-        Scene* scene = MetaFactory::CreateSceneFromMeta(j);
-        mCurrentScene = scene;
-
-        // todo: 应该能保存序列化 更多的meta， 包括场景中代码创建的， 只要是shader和texture是代码创建的， 应该就可以，而不是像现在这样。
-        quadMesh = ResourceManager::GetInstance()->CreateResource<ModelData>(Primitive::Quad);
-        blitShader = ResourceManager::GetInstance()->LoadAsset<Shader>("Shader/BlitShader.hlsl");
-        
-        blitMaterial = ResourceManager::GetInstance()->CreateResource<Material>(blitShader);
-
-
-
-        //auto* scene = AddNewScene("SampleScene");
-        //testTexture = ResourceManager::GetInstance()->LoadAsset<Texture>("Textures/viking_room.png");
-        //auto* cameraGO = scene->CreateGameObject("Camera");
-        //auto* cameraComponent = cameraGO->AddComponent<Camera>();
-        //scene->AddCamToStack(cameraComponent);
-        //Transform* transform = cameraGO->GetComponent<Transform>();
-        //transform->SetLocalPosition(Vector3{ 0.0f, 0.0f, -5.0f });
-        //transform->UpdateNow();
-        //cameraComponent->UpdateCameraMatrix();
-
-        //auto* testObject = scene->CreateGameObject("house");
-        //auto meshfilter = testObject->AddComponent<MeshFilter>();
-        //meshfilter->mMeshHandle = ResourceManager::GetInstance()->LoadAsset<ModelData>("Model/viking_room.obj");
-        //auto meshRender = testObject->AddComponent<MeshRenderer>();
-        //meshRender->mMatHandle = ResourceManager::GetInstance()->LoadAsset<Material>("Material/testMat.mat");
-        //transform = testObject->GetComponent<Transform>();
-        //transform->RotateX(90.0f);
-        //transform->RotateY(135.0f);
-        //transform->UpdateNow();
-        //testObject->AddComponent<CameraController>();
-        //testObject->GetComponent<CameraController>()->testVal = 100.0f;
-
-        //auto* childObj = scene->CreateGameObject("testChild");
-        //childObj->SetParent(testObject);
-        //
-        //// todo ： 矩阵数据上传应该在哪里？
-        //// 应该在permatdata更新的地方
-        //meshRender->mMatHandle.Get()->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());
     }
 
     SceneManager::~SceneManager()
@@ -66,7 +25,14 @@ namespace EngineCore
             delete value;
         }
         mSceneMap.clear();
+    }
 
+    void SceneManager::Destroy()
+    {
+        for (auto& [key, scene] : s_Instance->mSceneMap)
+        {
+            delete scene;
+        }
     }
 
     // scene的创建， 不应该这么玩， 应该是空场景， 或者是根据MetaData
@@ -120,10 +86,25 @@ namespace EngineCore
 
     void SceneManager::Create()
     {
-        SceneManager::s_Instance = std::make_unique<SceneManager>();
+        if (s_Instance) return;
+        s_Instance = new SceneManager();
+        s_Instance->Init();
     }
 
-    
+    void SceneManager::Init() 
+    {
+        json j = EngineCore::JsonSerializer::ReadFromJson("/Scenes/PerformanceTestScene.meta");
+        //json j = EngineCore::JsonSerializer::ReadFromJson("/Scenes/SampleScene.meta");
+        Scene* scene = MetaFactory::CreateSceneFromMeta(j);
+
+        // todo: 应该能保存序列化 更多的meta， 包括场景中代码创建的， 只要是shader和texture是代码创建的， 应该就可以，而不是像现在这样。
+        quadMesh = ResourceManager::GetInstance()->CreateResource<ModelData>(Primitive::Quad);
+        blitShader = ResourceManager::GetInstance()->LoadAsset<Shader>("Shader/BlitShader.hlsl");
+
+        blitMaterial = ResourceManager::GetInstance()->CreateResource<Material>(blitShader);
+
+    }
+
     GameObject *SceneManager::CreateGameObject(const std::string& name)
     {
         ASSERT(mCurrentScene != nullptr);

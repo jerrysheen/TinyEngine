@@ -9,42 +9,32 @@ namespace EngineCore
     class RenderContext
     {
     public:
-    // todo 指针释放
+        RenderContext()
+        {
+            visibleItems.resize(10000);
+        }
         Camera* camera;
         vector<LightData*> visibleLights;
-        vector<Matrix4x4> shadowMatrixs;
-        vector<VisibleItem*> cameraVisibleItems;
-        vector<vector<VisibleItem*>> shadowsVisibleItems;
-    
+        vector<RenderPacket> visibleItems;
+        int currentMaxIndex = 0;
+
         inline void Reset()
         {
             camera = nullptr;
-            ReturnLightToPool();
-            ReturnItemToPool();
-            shadowMatrixs.clear();
+            visibleLights.clear();
+            visibleItems.clear();
         }
 
-        VisibleItem* GetAvalileVisibleItem();
-        LightData* GetAvalibleLightData();
-
-        static void DrawRenderers(const RenderContext& renderContext, 
+        static void DrawRenderers(RenderContext& renderContext, 
                            const ContextDrawSettings& drawingSettings, 
                            const ContextFilterSettings& filteringSettings, 
                            std::vector<RenderBatch>& outDrawRecords);
         
-        static void SortingContext(const RenderContext& renderContext, 
-                           const ContextDrawSettings& drawingSettings, 
-                           std::vector<VisibleItem*>& sortedItem);
-        static void BatchContext(std::vector<VisibleItem*>& sortedItem);
+        static void BatchContext(std::vector<RenderPacket*>& sortedItem);
 
-        static bool CanBatch(const RenderBatch& batch, const VisibleItem* item);
+        static bool CanBatch(const RenderBatch& batch, const RenderPacket item);
 
     private:
-        void ReturnLightToPool();
-        void ReturnItemToPool();
-    private: 
-        vector<VisibleItem*> visibleItemPool;
-        vector<LightData*> lightDataPool;
 
     };
 } // namespace EngineCore

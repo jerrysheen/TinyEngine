@@ -29,13 +29,13 @@ namespace EngineCore
         #endif
 
     }
-    void FinalBlitPass::Execute(const RenderContext& context)
+    void FinalBlitPass::Execute(RenderContext& context)
     {
         mRootSigSlot = RootSigSlot::PerPassData;
         Material* mat = SceneManager::GetInstance()->blitMaterial.Get();
         mat->SetTexture("SrcTexture", context.camera->colorAttachment.Get()->GetInstanceID());
         ModelData* model = SceneManager::GetInstance()->quadMesh.Get();
-        mRenderPassInfo.drawRecordList.emplace_back(mat, model);
+        mRenderPassInfo.drawRecordList.emplace_back(mat, model->GetInstanceID());
     }
 
     void FinalBlitPass::Filter(const RenderContext& context)

@@ -33,7 +33,7 @@ namespace EngineCore
     }
     
     // maybe send a context here?
-    void EngineCore::OpaqueRenderPass::Execute(const RenderContext& context)
+    void EngineCore::OpaqueRenderPass::Execute(RenderContext& context)
     {
         // 往哪里添加这个执行结果？
         ContextFilterSettings filterSettings;

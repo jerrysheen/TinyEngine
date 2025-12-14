@@ -19,7 +19,6 @@ namespace  EngineCore
         static void Create();
         virtual Shader* CompileShader(const string& path, Shader* shader) = 0;
 
-        virtual void CreateMaterialSamplerSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
         virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
         virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
 

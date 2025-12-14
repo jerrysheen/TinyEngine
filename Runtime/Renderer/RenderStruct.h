@@ -26,7 +26,7 @@ namespace EngineCore
         BufferAllocation alloc;
         
         Material* mat;
-        ModelData* model;
+        uint32_t vaoID;
         uint32_t index;
         uint32_t instanceCount;
     };

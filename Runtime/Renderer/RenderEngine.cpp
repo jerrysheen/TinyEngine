@@ -44,17 +44,23 @@ namespace EngineCore
     void RenderEngine::Tick()
     {
         WaitForLastFrameFinished();
+        PROFILER_EVENT_BEGIN("MainThread::WaitForGpuFinished");
         RenderAPI::GetInstance()->WaitForGpuFinished();
+        PROFILER_EVENT_END("MainThread::WaitForGpuFinished");
 
+        PROFILER_EVENT_BEGIN("MainThread::GPUSceneManagerTick");
         GPUSceneManager::GetInstance()->Tick();
+        PROFILER_EVENT_END("MainThread::GPUSceneManagerTick");
         Renderer::GetInstance()->BeginFrame();
-        //auto& matList = ResourceManager::GetInstance()->mAllMaterialData;
-        //RenderAPI::GetInstance()->SyncMaterialToMatMegaBuffer(matList);
         renderContext.Reset();
 
         // todo： 这个地方culling逻辑是不是应该放到Update
         Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->mainCamera;
+        renderContext.camera = cam;
+        PROFILER_EVENT_BEGIN("MainThread::Culling::Run");
         Culling::Run(cam, renderContext);
+        PROFILER_EVENT_END("MainThread::Culling::Run");
+
 
         Renderer::GetInstance()->Render(renderContext);
        

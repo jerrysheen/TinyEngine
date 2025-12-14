@@ -43,7 +43,7 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(temp);   
     }
 
-    void Renderer::Render(const RenderContext& context)
+    void Renderer::Render(RenderContext& context)
     {
         PROFILER_ZONE("MainThread::Renderer::Render");
 
@@ -137,11 +137,11 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(temp);
     }
 
-    void Renderer::SetMeshData(const ModelData *modelData)
+    void Renderer::SetMeshData(uint32_t vaoID)
     {
         DrawCommand temp;
         temp.op = RenderOp::kSetVBIB;
-        temp.data.setVBIB.vaoId = modelData->GetInstanceID();
+        temp.data.setVBIB.vaoId = vaoID;
         mRenderBuffer.PushBlocking(temp);
     }
 
@@ -167,15 +167,6 @@ namespace EngineCore
         setSissorRect.y = viewportStartXY.y;
         setSissorRect.w = viewportEndXY.x;
         setSissorRect.h = viewportEndXY.y;
-        mRenderBuffer.PushBlocking(temp);
-    }
-
-    void Renderer::DrawIndexed(uint32_t vaoID, int count)
-    {
-        DrawCommand temp;
-        temp.op = RenderOp::kDrawIndexed;
-        temp.data.setDrawCmd.count = count;
-        temp.data.setDrawCmd.vaoID = vaoID;
         mRenderBuffer.PushBlocking(temp);
     }
 
@@ -250,9 +241,9 @@ namespace EngineCore
                 // copy gpu material data desc 
                 SetMaterialData(record.mat);
                 // bind mesh vertexbuffer and indexbuffer.
-                SetMeshData(record.model);
+                SetMeshData(record.vaoID);
 
-                DrawIndexedInstanced(record.model->GetInstanceID(), record.instanceCount, record.perDrawHandle);
+                DrawIndexedInstanced(record.vaoID, record.instanceCount, record.perDrawHandle);
             }
         }
         else 
@@ -264,9 +255,9 @@ namespace EngineCore
                 // copy gpu material data desc 
                 SetMaterialData(record.mat);
                 // bind mesh vertexbuffer and indexbuffer.
-                SetMeshData(record.model);
+                SetMeshData(record.vaoID);
 
-                DrawIndexedInstanced(record.model->GetInstanceID(), record.instanceCount, PerDrawHandle{nullptr, record.index, 0});
+                DrawIndexedInstanced(record.vaoID, record.instanceCount, PerDrawHandle{nullptr, record.index, 0});
             }
         }
     }
@@ -279,10 +270,6 @@ namespace EngineCore
         case RenderOp::kConfigureRT :
             RenderAPI::GetInstance()->RenderAPIConfigureRT(cmd.data.configureRT);
         break;
-        case RenderOp::kDrawIndexed :
-            PROFILER_COUNTER_ADD("RenderDrawCalls", 1);
-            RenderAPI::GetInstance()->RenderAPIDrawIndexed(cmd.data.setDrawCmd);
-        break;        
         case RenderOp::kSetMaterial :
             RenderAPI::GetInstance()->RenderAPISetMaterial(cmd.data.setMaterial);
         break;     

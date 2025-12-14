@@ -93,13 +93,14 @@ namespace EngineCore
     class MeshRenderer;
     class MeshFilter;
 
-    struct VisibleItem
+    struct RenderPacket
     {
         // 为了测试，先用直接塞数据的方式。
+        uint64_t sortingKey = 0;
         MeshRenderer* meshRenderer;
-        MeshFilter* meshFilter;
-        Transform* transform;
+        uint32_t vaoID;
         float distanToCamera = 0;
+        Vector3 worldPos;
     };
 
     struct PerDrawHandle
@@ -113,30 +114,16 @@ namespace EngineCore
     struct DrawRecord
     {
         Material* mat;
-        ModelData* model;
+        uint32_t vaoID;
 
         PerDrawHandle perDrawHandle;
         uint32_t instanceCount = 1;
 
-        DrawRecord(Material* mat, ModelData* data)
-            :mat(mat), model(data), perDrawHandle{0,0}, instanceCount(1) {}
-        DrawRecord(Material* mat, ModelData* data, const PerDrawHandle& handle, uint32_t instCount = 1)
-            :mat(mat), model(data), perDrawHandle(handle), instanceCount(instCount){}
+        DrawRecord(Material* mat, uint32_t vaoID)
+            :mat(mat), vaoID(vaoID), perDrawHandle{0,0}, instanceCount(1) {}
+        DrawRecord(Material* mat, uint32_t vaoID, const PerDrawHandle& handle, uint32_t instCount = 1)
+            :mat(mat), vaoID(vaoID), perDrawHandle(handle), instanceCount(instCount){}
     };
-    
-    //struct PerDrawData
-    //{
-    //    Matrix4x4 objectToWorldMatrix;
-    //    Matrix4x4 worldToViewMatrix;
-    //    Matrix4x4 viewToProjectionMatrix;
-
-    //    inline void Reset()
-    //    {
-    //        objectToWorldMatrix = Matrix4x4::Identity;
-    //        worldToViewMatrix = Matrix4x4::Identity;
-    //        viewToProjectionMatrix = Matrix4x4::Identity;
-    //    };
-    //};
 
     class FrameBufferObject;
     struct RenderPassInfo
@@ -189,6 +176,23 @@ namespace EngineCore
     struct ContextFilterSettings
     {
 
+    };
+
+    struct PerObjectCPUHandler
+    {
+        uint32_t perObejectIndex = UINT32_MAX;
+        inline bool isValid() const {return perObejectIndex != UINT32_MAX;}
+    };
+
+    struct PerObjectCPUData
+    {
+        AssetID meshID = {};
+        AssetID matID = {};
+        uint32_t layermask = 0;
+        Matrix4x4 worldMatrix = Matrix4x4::Identity;
+        AABB bounds;
+        BufferAllocation gpuAllocation;
+        bool active = false;
     };
 
 }

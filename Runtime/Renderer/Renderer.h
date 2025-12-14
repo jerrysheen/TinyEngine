@@ -32,7 +32,7 @@ namespace EngineCore
         static void Create();
 
         void BeginFrame();
-        void Render(const RenderContext& context);
+        void Render(RenderContext& context);
         void EndFrame();
 
         void DrawIndexed(uint32_t vaoID, int count);
@@ -49,7 +49,7 @@ namespace EngineCore
 
         void ConfigureRenderTarget(const RenderPassInfo& passInfo);
 
-        void SetMeshData(const ModelData* modelData);
+        void SetMeshData(uint32_t vaoID);
 
         void SetViewPort(const Vector2& viewportStartXY, const Vector2& viewportEndXY);
         // todo: complete this..

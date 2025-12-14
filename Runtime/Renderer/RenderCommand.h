@@ -17,7 +17,7 @@ namespace EngineCore
         kSetVBIB = 4,
         kSetViewPort = 5,
         kSetSissorRect = 6,
-        kDrawIndexed = 7,
+        //kDrawIndexed = 7,
         kSetMaterial = 8,
         kConfigureRT = 9,
         kWindowResize = 10,

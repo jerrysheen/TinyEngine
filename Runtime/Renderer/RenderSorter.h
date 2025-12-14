@@ -4,15 +4,10 @@
 #include <vector>
 #include "Core/PublicStruct.h"
 #include "RenderContext.h"
+#include "Math/Math.h"
 
 namespace EngineCore
 {
-    struct SortItem
-    {
-        uint64_t sortKey;
-        int itemIndex;
-        SortItem(uint64_t key, int index):sortKey(key), itemIndex(index){}
-    };
 
     inline uint16_t FloatToDepth(float depth, float nearPlane, float farPlane)
     {
@@ -20,25 +15,24 @@ namespace EngineCore
         normalized = std::max(0.0f, std::min(1.0f, normalized));
 
         return static_cast<uint16_t>(normalized * 65535.0f);
-    }
-    
+    }    
+
     class RendererSort
     {
     public:
-        static void BuildSortKeys(const RenderContext& context, const std::vector<VisibleItem*>& items,
-                                std::vector<SortItem>& outSortItems,
+        static void BuildSortKeys(const RenderContext& context, std::vector<RenderPacket>& items,
                                 SortingCriteria sortingCriteria)
         {
-            outSortItems.clear();
-            outSortItems.reserve(items.size());
-            int index = 0;
-            for(auto* item : items)
+            Vector3 camPos = context.camera->gameObject->transform->GetWorldPosition();
+            float nearPlane = context.camera->mNear;
+            float farPlane = context.camera->mFar;
+            for(auto& item : items)
             {
-                uint32_t meshID = item->meshFilter->mMeshHandle->GetAssetID();
-                uint32_t matID = item->meshRenderer->GetMaterial()->GetAssetID();
+                uint32_t meshID = item.vaoID;
+                uint32_t matID = item.meshRenderer->GetMaterial()->GetAssetID();
 
-                float distance = Vector3::Length(context.camera->gameObject->transform->GetWorldPosition() - item->transform->GetWorldPosition());
-                uint16_t distanceToID = FloatToDepth(distance, context.camera->mNear, context.camera->mFar);
+                float distance = Vector3::Length(camPos - item.worldPos);
+                uint16_t distanceToID = FloatToDepth(distance, nearPlane, farPlane);
                 switch(sortingCriteria)
                 {
                     case SortingCriteria::ComonOpaque:
@@ -53,8 +47,7 @@ namespace EngineCore
                 key |= (uint64_t)(matID & 0x0FFFFFFF) << 32; 
                 key |= (uint64_t)(meshID & 0xFFFF) << 16;
                 key |= (uint64_t)(distanceToID & 0xFFFF); 
-                outSortItems.push_back({key, index});
-                index++;
+                item.sortingKey = key;
             }
         }
     };

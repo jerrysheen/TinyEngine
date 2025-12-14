@@ -177,7 +177,7 @@
   - [ ] CPU占用率监控
 - [ ] 优化内存分配
   - [ ] 使用对象池避免频繁new/delete
-  - [ ] VisibleItem预分配
+  - [ ] RenderPacket预分配
 
 **预期效果**：
 - 1000+对象场景：剔除耗时减少50-70%
@@ -193,7 +193,7 @@
   - [ ] 方法：`GetSortKey()` - 生成64位排序键
   - [ ] 运算符：`operator<` 用于排序
 - [ ] 实现 `RenderBatchManager` 类
-  - [ ] 静态方法：`BuildBatches(visibleItems)` - 构建批次
+  - [ ] 静态方法：`BuildBatches(RenderPackets)` - 构建批次
   - [ ] 静态方法：`CanBatch(item1, item2)` - 判断是否可批处理
 - [ ] 批次构建算法
   - [ ] 按Shader > Material > Mesh排序

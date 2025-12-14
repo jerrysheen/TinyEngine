@@ -27,7 +27,10 @@ namespace EngineCore
       static void WorldMatrixDecompose(const Matrix4x4& matrix, Vector3& position, Quaternion& quaternion, Vector3& scale); 
       // 矩阵乘法运算符
       Matrix4x4 operator*(const Matrix4x4& other) const;
-      
+      inline Vector3 ExtractWorldPosition()
+      {
+          return Vector3{m03, m13, m23};
+      }
     public:
 		  float m00; float m01; float m02; float m03;
 		  float m10; float m11; float m12; float m13;

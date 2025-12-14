@@ -35,16 +35,18 @@ namespace EngineCore
     void GPUSceneManager::Tick()
     {
         // Sync PerObjectData:
-        auto allGO = SceneManager::GetInstance()->GetCurrentScene()->allObjList;
-        for (GameObject* go : allGO) 
+        Scene* mCurrentScene = SceneManager::GetInstance()->GetCurrentScene();
+        auto& renderSceneData = mCurrentScene->renderSceneData;
+        int currMaxIndex = mCurrentScene->m_CurrentSceneMaxRenderNode;
+        for(int i = 0; i < currMaxIndex; i++)
         {
-            MeshRenderer* renderer = go->GetComponent<MeshRenderer>();
-            if (renderer) 
+            if(renderSceneData.needUpdateList[i] == true)
             {
-                renderer->SyncPerObjectDataIfDirty();
+                // todo: 起一个ComputeShader做一次全部更新
+                renderSceneData.meshRendererList[i]->SyncPerObjectDataIfDirty();
+                renderSceneData.needUpdateList[i] = false;
             }
         }
-
         perFrameBatchBuffer->Reset();
     }
 
@@ -85,6 +87,27 @@ namespace EngineCore
         return allocation;
     }
 
+    PerObjectCPUHandler GPUSceneManager::ResgisterNewObject()
+    {
+        PerObjectCPUHandler handle;
+        if(!m_FreePerObjectIndex.empty())
+        {
+            handle.perObejectIndex = m_FreePerObjectIndex.front();
+            m_FreePerObjectIndex.pop();
+        }
+        handle.perObejectIndex = m_CurrentPerObjectIndex;
+        m_CurrentPerObjectIndex++;        
+        return handle;
+    }
+
+    void GPUSceneManager::DeleteSceneObject(PerObjectCPUHandler &handler)
+    {
+        ASSERT(handler.isValid());
+        PerObjectCPUData& data = perObjectCPUBuffer[handler.perObejectIndex];
+        data.active = false;
+        m_FreePerObjectIndex.push(handler.perObejectIndex);
+        handler.perObejectIndex = UINT32_MAX;
+    }
 
     GPUSceneManager::GPUSceneManager()
     {
@@ -115,6 +138,10 @@ namespace EngineCore
         desc.stride = sizeof(uint32_t);
         desc.usage = BufferUsage::StructuredBuffer;
         perFrameBatchBuffer = new LinearAllocateBuffer(desc);
+
+        perObjectCPUBuffer.reserve(10000);
+        std::queue<int> empty;
+        std::swap(m_FreePerObjectIndex, empty);
     }
 
 

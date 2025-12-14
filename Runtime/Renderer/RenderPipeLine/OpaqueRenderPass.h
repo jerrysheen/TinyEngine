@@ -17,7 +17,7 @@ namespace EngineCore
         // 配置rt等
         virtual void Configure(const RenderContext& context) override;
         // 执行具体的draw
-        virtual void Execute(const RenderContext& context) override;
+        virtual void Execute(RenderContext& context) override;
 
         virtual void Filter(const RenderContext& context) override;
 

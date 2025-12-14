@@ -7,7 +7,8 @@
 #include "Resources/ResourceManager.h"
 #include "Graphics/GPUSceneManager.h"
 #include "Renderer/RenderUniforms.h"
-
+#include "Scene/SceneManager.h"
+#include "Scene/Scene.h"
 
 REGISTER_SCRIPT(MeshRenderer)
 namespace EngineCore
@@ -16,18 +17,28 @@ namespace EngineCore
 	{
 		gameObject = go;
 		perObjectDataAllocation = GPUSceneManager::GetInstance()->GetSinglePerObjectData();
+		lastSyncTransformVersion = gameObject->transform->transformVersion;
+		Scene* currentScene = SceneManager::GetInstance()->GetCurrentScene();
+		if(currentScene != nullptr)
+		{
+			sceneRenderNodeIndex = currentScene->AddNewRenderNodeToCurrentScene(this);
+		}
 	}
 
     MeshRenderer::~MeshRenderer()
     {
 		GPUSceneManager::GetInstance()->RemoveSinglePerObjectData(perObjectDataAllocation);
-    }
+		Scene* currentScene = SceneManager::GetInstance()->GetCurrentScene();
+		if(currentScene != nullptr)
+		{
+			currentScene->DeleteRenderNodeFromCurrentScene(sceneRenderNodeIndex);
+		}
+	}
 
     void MeshRenderer::SetUpMaterialPropertyBlock()
     {
 		ASSERT(mShardMatHandler.IsValid());
     }
-
 
     Material* MeshRenderer::GetOrCreateMatInstance()
     {
@@ -46,26 +57,19 @@ namespace EngineCore
 		return HasMaterialOverride() ? mInstanceMatHandler : mShardMatHandler;
 	}
 
-	
-
     void MeshRenderer::UpdateBounds(const AABB &localBounds, const Matrix4x4 &worldMatrix)
     {
 		worldBounds = localBounds;
 		worldBounds.Transform(worldMatrix);
-		needUpdateWorldBounds = false;
     }
 
     void MeshRenderer::SyncPerObjectDataIfDirty()
     {
-		if(!IsDirty) return;
-		IsDirty = false;
-
 		PerObjectData perObjectData;
 		perObjectData.objectToWorld = gameObject->transform->GetWorldMatrix();
 		BufferAllocation& allocation = GetMaterial()->materialAllocation;
 		uint32_t matIndex = allocation.offset / allocation.size;
 		perObjectData.matIndex = matIndex;
 		GPUSceneManager::GetInstance()->UpdateSinglePerObjectData(perObjectDataAllocation, static_cast<void*>(&perObjectData));
-		
     }
 }

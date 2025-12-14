@@ -21,7 +21,8 @@ namespace EngineCore
         
         // first record drawInfo then sync data to RenderAPI, finally Submit to execute the
         // real Draw.
-        virtual void Execute(const RenderContext& context) = 0;
+        // todo :  这个地方需要修改， 因为现在里面需要增加sortingkey，所以没const，但是感觉有问题
+        virtual void Execute(RenderContext& context) = 0;
         
         // sent current Data to Renderer-> RenderPassInfo
         virtual void Submit() = 0;

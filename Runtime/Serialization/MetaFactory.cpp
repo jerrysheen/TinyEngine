@@ -31,6 +31,8 @@ namespace EngineCore
     Scene* MetaFactory::CreateSceneFromMeta(const json& source)
     {
         Scene* scene = new Scene();
+        // todo: 判断是否是主场景
+        SceneManager::GetInstance()->SetCurrentScene(scene);
         scene->name = source.at("Name").get<string>();
 
         // Create Component

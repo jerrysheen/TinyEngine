@@ -1,13 +1,53 @@
 #pragma once
+#include <queue>
+#include <vector>
 #include "Core/Object.h"
 #include "GameObject/GameObject.h"
 #include "GameObject/Camera.h"
 namespace EngineCore
 {
+    struct RenderSceneData
+    {
+        vector<bool> isDataValidList;
+        vector<bool> needUpdateList;
+        vector<MeshRenderer*> meshRendererList;
+        vector<uint32_t> vaoIDList;
+        vector<AABB> aabbList;
+        vector<Matrix4x4> objectToWorldMatrixList;
+        vector<uint32_t> layerList;
+        struct RenderSceneData() = default;
+        inline void SyncData(MeshRenderer* renderer, uint32_t index)
+        {
+            ASSERT(meshRendererList.size() > index);
+            meshRendererList[index] = renderer;
+            isDataValidList[index] = true;
+            needUpdateList[index] = true;
+            if (renderer && renderer->gameObject)
+            {
+                aabbList[index] = renderer->worldBounds;
+                objectToWorldMatrixList[index] = renderer->gameObject->transform->GetWorldMatrix();
+            }
+            auto* meshFilter = renderer->gameObject->GetComponent<MeshFilter>();
+            if(meshFilter != nullptr)
+            {
+                vaoIDList[index] = meshFilter->mMeshHandle.Get()->GetInstanceID();
+            }
+            else
+            {
+                vaoIDList[index] = UINT32_MAX;
+            }
+        }
+
+        inline void DeleteData(uint32_t index)
+        {
+            isDataValidList[index] = false;
+        }
+    };
+
     class Scene : Object
     {
     public:
-        Scene() = default;
+        Scene();
         ~Scene();
         Scene(const std::string& name):name(name){};
         void Open();
@@ -30,17 +70,24 @@ namespace EngineCore
         
         //todo: 先用vector写死，后面要用priorityqueue之类的
         std::vector<Camera*> cameraStack;
+
+        void RunLogicUpdate();
+        void RunTransformUpdate();
+        void RunRendererSync();
+
+        int AddNewRenderNodeToCurrentScene(MeshRenderer* renderer);
+        void DeleteRenderNodeFromCurrentScene(uint32_t index);
+        
     public:
+        std::queue<uint32_t> m_FreeSceneNode;
+        uint32_t m_CurrentSceneRenderNodeIndex = 0;
+        uint32_t m_CurrentSceneMaxRenderNode = 0;
         std::string name;
         std::vector<GameObject*> allObjList;
         std::vector<GameObject*> rootObjList;
         bool enabled = true;
         Camera* mainCamera = nullptr;
-
-        // todo: temp的， 后面要更改
-        void UpdatePerMaterialData();
+        RenderSceneData renderSceneData;
     private:
-        void UpdateGOWorldBounds();
-        void UpdateAllTransformsAndBounds();
     };    
 } // namespace EngineCore

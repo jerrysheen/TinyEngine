@@ -4,6 +4,7 @@
 #include "Vector4.h"
 #include "Matrix4x4.h"
 #include "Quaternion.h"
+#include "AABB.h"
 using EngineCore::Matrix4x4;
 using EngineCore::Vector3;
 using EngineCore::Vector2;

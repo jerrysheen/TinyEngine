@@ -40,7 +40,7 @@ namespace EngineCore
         inline const Matrix4x4& GetWorldMatrix()
         {
             UpdateIfDirty(); 
-             return mWorldMatrix;
+            return mWorldMatrix;
         }
         
         inline const Matrix4x4& GetLocalMatrix()
@@ -52,7 +52,7 @@ namespace EngineCore
         void UpdateIfDirty();
         void UpdateTransform();
         //inline void UpdateNow() { UpdateTransform(); };
-
+        uint32_t transformVersion = 1;
     public:
         bool isDirty = true;
         std::vector<Transform*> childTransforms;

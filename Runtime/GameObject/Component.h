@@ -16,7 +16,7 @@ namespace EngineCore
         
         GameObject* gameObject = nullptr;
         bool enabled = true;
-
+        
         // 每个类需要自己实现序列化和反序列化方法。
         virtual const char* GetScriptName() const = 0;
         virtual json SerializedFields() const { return json::object(); }

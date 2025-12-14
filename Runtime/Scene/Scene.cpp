@@ -7,6 +7,19 @@
 
 namespace EngineCore
 {
+    Scene::Scene()
+    {
+        std::queue<uint32_t> empty;
+        std::swap(empty, m_FreeSceneNode);
+        renderSceneData.isDataValidList.resize(10000, false);
+        renderSceneData.meshRendererList.resize(10000);
+        renderSceneData.vaoIDList.resize(10000, UINT32_MAX);
+        renderSceneData.aabbList.resize(10000);
+        renderSceneData.objectToWorldMatrixList.resize(10000);
+        renderSceneData.layerList.resize(10000);
+        renderSceneData.needUpdateList.resize(10000, false);
+    }
+
     Scene::~Scene()
     {
         // 先清空列表，防止渲染线程访问到野指针
@@ -20,8 +33,6 @@ namespace EngineCore
         allObjList.clear();
         mainCamera = nullptr;
 
-        // 析构的时候不应该去Remove，Remove应该是在外面
-        //SceneManager::GetInstance()->RemoveScene(name);
     }
 
     void Scene::Open()
@@ -40,32 +51,9 @@ namespace EngineCore
 
     void Scene::Update()
     {
-        for(auto* go : allObjList)
-        {
-            if(go != nullptr)
-            {
-                for(auto& script : go->scripts)
-                {
-                    script->Update();
-                }
-               //temp:
-                if (go->GetComponent<Camera>() != nullptr) 
-                {
-                    go->GetComponent<Camera>()->Update();
-                }
-            }
-
-        }
-
-        // Transform延迟更新
-
-        UpdateAllTransformsAndBounds();
-
-        //todo: temp: 更新材质信息，这部分应该在别的地方做：
-        UpdatePerMaterialData();
-
-        UpdateGOWorldBounds();
-        
+        RunLogicUpdate();
+        RunTransformUpdate();
+        RunRendererSync();
     }
 
     GameObject* Scene::FindGameObject(const std::string &name)
@@ -147,24 +135,25 @@ namespace EngineCore
         }
     }
 
-    void Scene::UpdateGOWorldBounds()
+    void Scene::RunLogicUpdate()
     {
-        for(auto& go : allObjList)
+        for(auto* go : allObjList)
         {
-            auto* meshFiler = go->GetComponent<MeshFilter>();
-            auto* meshRender = go->GetComponent<MeshRenderer>();
-            auto* transform = go->GetComponent<Transform>();
-            if(meshFiler && meshRender)
+            if(go != nullptr)
             {
-                if(meshRender->ShouldUpdateWorldBounds())
+                for(auto& script : go->scripts)
                 {
-                    meshRender->UpdateBounds(meshFiler->mMeshHandle.Get()->bounds, transform->GetWorldMatrix());
+                    script->Update();
+                }
+                if (go->GetComponent<Camera>() != nullptr) 
+                {
+                    go->GetComponent<Camera>()->Update();
                 }
             }
         }
     }
 
-    void Scene::UpdateAllTransformsAndBounds()
+    void Scene::RunTransformUpdate()
     {
         for(auto* go : allObjList)
         {
@@ -173,24 +162,68 @@ namespace EngineCore
                 if(go->transform->isDirty)
                 {
                     go->transform->UpdateTransform();
-                    auto* meshRenderer = go->GetComponent<MeshRenderer>();
-                    if(meshRenderer) meshRenderer->MarkWorldBoundsDirty();
                 }
             }
         }
     }
 
-    // todo ： 材质数据的更新放在渲染处
-    void Scene::UpdatePerMaterialData()
+    void Scene::RunRendererSync()
     {
-         for (auto& go : allObjList) 
-         {
-             auto* transform = go->GetComponent<Transform>();
-             auto* meshRenderer = go->GetComponent<MeshRenderer>();
+        for(auto* go : allObjList)
+        {
+            if(go != nullptr && go->enabled)
+            {
+                auto* meshRenderer = go->GetComponent<MeshRenderer>();
+                auto* meshFilter = go->GetComponent<MeshFilter>();
+                if(meshRenderer && meshFilter) 
+                {
+                    bool needSync = false;
+                    uint32_t transformVersion = meshRenderer->gameObject->transform->transformVersion;
+                    uint32_t lastSyncVersion = meshRenderer->lastSyncTransformVersion;
+                    
+                    // 1. Transform 发生变化，需要更新 Bounds 和 Matrix
+                    if(transformVersion != lastSyncVersion )
+                    {
+                        meshRenderer->UpdateBounds(meshFilter->mMeshHandle.Get()->bounds, meshRenderer->gameObject->transform->GetWorldMatrix());
+                        meshRenderer->lastSyncTransformVersion = transformVersion;
+                        needSync = true;
+                    } 
+                    
+                    int index = meshRenderer->sceneRenderNodeIndex;
+                    needSync = needSync || renderSceneData.vaoIDList[index] == UINT32_MAX;
 
-             if (transform && meshRenderer) 
-             {
-             }
-         }
+                    if(needSync)
+                    {
+                        renderSceneData.SyncData(meshRenderer, meshRenderer->sceneRenderNodeIndex);
+                    }
+                }
+            }
+        }
+
+    }
+
+    int Scene::AddNewRenderNodeToCurrentScene(MeshRenderer *renderer)
+    {
+        uint32_t index = 0;
+        if(!m_FreeSceneNode.empty())
+        {
+            index = m_FreeSceneNode.front();
+            m_FreeSceneNode.pop();
+        }
+        else
+        {
+            index = m_CurrentSceneRenderNodeIndex;
+            m_CurrentSceneRenderNodeIndex++;
+        }
+        renderSceneData.SyncData(renderer, index);
+        m_CurrentSceneMaxRenderNode++;
+        return index;
+    }
+
+    void Scene::DeleteRenderNodeFromCurrentScene(uint32_t index)
+    {
+        m_FreeSceneNode.push(index);
+        renderSceneData.DeleteData(index);
+        m_CurrentSceneMaxRenderNode--;
     }
 }

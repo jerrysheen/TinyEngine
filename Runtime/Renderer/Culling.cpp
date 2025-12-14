@@ -6,38 +6,36 @@
 #include "GameObject/Transform.h"
 #include "Scene/Scene.h"
 #include "Math/Frustum.h"
+#include "Core/PublicStruct.h"
 
 namespace EngineCore
 {
     void Culling::Run(Camera *cam, RenderContext &context)
     {
-        // 从场景得到visibalItem， 然后组装
-        // get some fake data....
-        context.Reset();
-        context.camera = cam;
         auto* scene = SceneManager::GetInstance()->GetCurrentScene();
-        // todo: 快速的剔除逻辑， boudns逻辑
-        for (auto* go : scene->allObjList)
+        auto& sceneRenderData = scene->renderSceneData;
+        int totalVisible = 0;
+        for(int i = 0; i < scene->m_CurrentSceneMaxRenderNode; i++)
         {
-            auto* matComponent = go->GetComponent<MeshRenderer>();
-            auto* modelComponent = go->GetComponent<MeshFilter>();
-            auto* transformComponet = go->GetComponent<Transform>();
-            if (matComponent != nullptr && modelComponent != nullptr) 
+            if(sceneRenderData.isDataValidList[i] &&
+                sceneRenderData.meshRendererList[i] &&
+                sceneRenderData.vaoIDList[i] != UINT32_MAX)
             {
-                if (cam->mFrustum.TestAABB(matComponent->worldBounds) != IntersectResult::Outside) {
-
-                    auto visibleItem = context.GetAvalileVisibleItem();
-
-                    visibleItem->meshRenderer = matComponent;
-                    visibleItem->meshFilter = modelComponent;
-                    visibleItem->transform = transformComponet;
-                    context.cameraVisibleItems.push_back(std::move(visibleItem));
+                if (cam->mFrustum.TestAABB(sceneRenderData.aabbList[i]) != IntersectResult::Outside) 
+                {
+                    RenderPacket packet;
+                    packet.meshRenderer = sceneRenderData.meshRendererList[i];
+                    packet.vaoID = sceneRenderData.vaoIDList[i];
+                    packet.worldPos = sceneRenderData.objectToWorldMatrixList[i].ExtractWorldPosition();
+                    context.visibleItems.push_back(std::move(packet));
+                    totalVisible++;
                 }
+
             }
         }
         // todo: Culling::Run
         PROFILER_COUNTER_ADD("SceneItems", scene->allObjList.size());
-        PROFILER_COUNTER_ADD("Visible Objects", context.cameraVisibleItems.size());
+        PROFILER_COUNTER_ADD("Visible Objects", totalVisible);
 
     }
 
