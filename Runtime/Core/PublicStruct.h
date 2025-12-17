@@ -100,7 +100,6 @@ namespace EngineCore
         MeshRenderer* meshRenderer;
         uint32_t vaoID;
         float distanToCamera = 0;
-        Vector3 worldPos;
     };
 
     struct PerDrawHandle

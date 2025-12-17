@@ -11,13 +11,11 @@ namespace EngineCore
     {
         std::queue<uint32_t> empty;
         std::swap(empty, m_FreeSceneNode);
-        renderSceneData.isDataValidList.resize(10000, false);
-        renderSceneData.meshRendererList.resize(10000);
-        renderSceneData.vaoIDList.resize(10000, UINT32_MAX);
-        renderSceneData.aabbList.resize(10000);
-        renderSceneData.objectToWorldMatrixList.resize(10000);
-        renderSceneData.layerList.resize(10000);
-        renderSceneData.needUpdateList.resize(10000, false);
+        renderSceneData.meshRendererList.reserve(10000);
+        renderSceneData.vaoIDList.reserve(10000);
+        renderSceneData.aabbList.reserve(10000);
+        renderSceneData.objectToWorldMatrixList.reserve(10000);
+        renderSceneData.layerList.reserve(10000);
     }
 
     Scene::~Scene()
@@ -51,9 +49,11 @@ namespace EngineCore
 
     void Scene::Update()
     {
+        renderSceneData.ClearDirtyList();
         RunLogicUpdate();
         RunTransformUpdate();
-        RunRendererSync();
+        RunRecordDirtyRenderNode();
+        renderSceneData.UpdateDirtyRenderNode();
     }
 
     GameObject* Scene::FindGameObject(const std::string &name)
@@ -167,39 +167,38 @@ namespace EngineCore
         }
     }
 
-    void Scene::RunRendererSync()
-    {
-        for(auto* go : allObjList)
-        {
-            if(go != nullptr && go->enabled)
-            {
-                auto* meshRenderer = go->GetComponent<MeshRenderer>();
-                auto* meshFilter = go->GetComponent<MeshFilter>();
-                if(meshRenderer && meshFilter) 
-                {
-                    bool needSync = false;
-                    uint32_t transformVersion = meshRenderer->gameObject->transform->transformVersion;
-                    uint32_t lastSyncVersion = meshRenderer->lastSyncTransformVersion;
-                    
-                    // 1. Transform 发生变化，需要更新 Bounds 和 Matrix
-                    if(transformVersion != lastSyncVersion )
-                    {
-                        meshRenderer->UpdateBounds(meshFilter->mMeshHandle.Get()->bounds, meshRenderer->gameObject->transform->GetWorldMatrix());
-                        meshRenderer->lastSyncTransformVersion = transformVersion;
-                        needSync = true;
-                    } 
-                    
-                    int index = meshRenderer->sceneRenderNodeIndex;
-                    needSync = needSync || renderSceneData.vaoIDList[index] == UINT32_MAX;
 
-                    if(needSync)
-                    {
-                        renderSceneData.SyncData(meshRenderer, meshRenderer->sceneRenderNodeIndex);
-                    }
+    void Scene::RunRecordDirtyRenderNode()
+    {
+        for(int i = 0; i < renderSceneData.meshRendererList.size(); i++)
+        {
+            auto* meshRenderer = renderSceneData.meshRendererList[i];
+            if(!meshRenderer) continue;
+            uint32_t currversion = meshRenderer->gameObject->transform->transformVersion;
+            if(meshRenderer->lastSyncTransformVersion != currversion)
+            {
+                auto* meshFilter = meshRenderer->gameObject->GetComponent<MeshFilter>();
+                if(!meshFilter) continue;
+                if(renderSceneData.vaoIDList[i] == UINT32_MAX)
+                {
+                    renderSceneData.vaoIDList[i] = meshFilter->mMeshHandle.Get()->GetInstanceID();
+                    renderSceneData.materialDirtyList.push_back(i);
                 }
+                meshRenderer->lastSyncTransformVersion = currversion;
+                meshRenderer->UpdateBounds(meshFilter->mMeshHandle.Get()->bounds, meshRenderer->gameObject->transform->GetWorldMatrix());
+                renderSceneData.transformDirtyList.push_back(i);
             }
         }
+    }
 
+    void Scene::MarkRenderSceneTransformDataDirty(uint32_t index)
+    {
+        renderSceneData.transformDirtyList.push_back(index);
+    }
+
+    void Scene::MarkRenderSceneMaterialDirty(uint32_t index)
+    {
+        renderSceneData.materialDirtyList.push_back(index);
     }
 
     int Scene::AddNewRenderNodeToCurrentScene(MeshRenderer *renderer)
@@ -212,11 +211,11 @@ namespace EngineCore
         }
         else
         {
+            renderSceneData.PushNewData();
             index = m_CurrentSceneRenderNodeIndex;
             m_CurrentSceneRenderNodeIndex++;
         }
         renderSceneData.SyncData(renderer, index);
-        m_CurrentSceneMaxRenderNode++;
         return index;
     }
 
@@ -224,6 +223,5 @@ namespace EngineCore
     {
         m_FreeSceneNode.push(index);
         renderSceneData.DeleteData(index);
-        m_CurrentSceneMaxRenderNode--;
     }
 }

@@ -8,39 +8,68 @@ namespace EngineCore
 {
     struct RenderSceneData
     {
-        vector<bool> isDataValidList;
-        vector<bool> needUpdateList;
         vector<MeshRenderer*> meshRendererList;
         vector<uint32_t> vaoIDList;
         vector<AABB> aabbList;
         vector<Matrix4x4> objectToWorldMatrixList;
         vector<uint32_t> layerList;
+
+        // 每帧重置
+        vector<uint32_t> transformDirtyList;
+        vector<uint32_t> materialDirtyList;
         struct RenderSceneData() = default;
         inline void SyncData(MeshRenderer* renderer, uint32_t index)
         {
-            ASSERT(meshRendererList.size() > index);
             meshRendererList[index] = renderer;
-            isDataValidList[index] = true;
-            needUpdateList[index] = true;
             if (renderer && renderer->gameObject)
             {
                 aabbList[index] = renderer->worldBounds;
                 objectToWorldMatrixList[index] = renderer->gameObject->transform->GetWorldMatrix();
-            }
-            auto* meshFilter = renderer->gameObject->GetComponent<MeshFilter>();
-            if(meshFilter != nullptr)
-            {
-                vaoIDList[index] = meshFilter->mMeshHandle.Get()->GetInstanceID();
-            }
-            else
-            {
-                vaoIDList[index] = UINT32_MAX;
+                auto* meshFilter = renderer->gameObject->GetComponent<MeshFilter>();
+                if(meshFilter != nullptr)
+                {
+                    vaoIDList[index] = meshFilter->mMeshHandle.Get()->GetInstanceID();
+                }
+                else
+                {
+                    vaoIDList[index] = UINT32_MAX;
+                }
             }
         }
 
+        inline void PushNewData() 
+        {
+            meshRendererList.emplace_back();
+            vaoIDList.emplace_back();
+            aabbList.emplace_back();
+            objectToWorldMatrixList.emplace_back();
+            layerList.emplace_back();
+        }
+
+
         inline void DeleteData(uint32_t index)
         {
-            isDataValidList[index] = false;
+            meshRendererList[index] = nullptr;
+            vaoIDList[index] = UINT32_MAX;
+        }
+
+        inline void ClearDirtyList()
+        {
+            materialDirtyList.clear();
+            transformDirtyList.clear();
+        }
+
+        inline void UpdateDirtyRenderNode()
+        {
+            for(uint32_t index : transformDirtyList)
+            {
+                // 直接访问安全，因为meshrenderer为空的不会加到这里。
+                auto* renderer = meshRendererList[index];
+                aabbList[index] = renderer->worldBounds;
+                objectToWorldMatrixList[index] = renderer->gameObject->transform->GetWorldMatrix();
+            }
+            // todo: 暂时没有这个逻辑， 比如material切换pso，切换vao这种
+            //materialDirtyList...
         }
     };
 
@@ -73,15 +102,17 @@ namespace EngineCore
 
         void RunLogicUpdate();
         void RunTransformUpdate();
-        void RunRendererSync();
+        void RunRecordDirtyRenderNode();
+
+        void MarkRenderSceneTransformDataDirty(uint32_t index);
+        void MarkRenderSceneMaterialDirty(uint32_t index);
 
         int AddNewRenderNodeToCurrentScene(MeshRenderer* renderer);
         void DeleteRenderNodeFromCurrentScene(uint32_t index);
         
     public:
+        int m_CurrentSceneRenderNodeIndex = 0;
         std::queue<uint32_t> m_FreeSceneNode;
-        uint32_t m_CurrentSceneRenderNodeIndex = 0;
-        uint32_t m_CurrentSceneMaxRenderNode = 0;
         std::string name;
         std::vector<GameObject*> allObjList;
         std::vector<GameObject*> rootObjList;

@@ -31,7 +31,7 @@ namespace EngineCore
                 uint32_t meshID = item.vaoID;
                 uint32_t matID = item.meshRenderer->GetMaterial()->GetAssetID();
 
-                float distance = Vector3::Length(camPos - item.worldPos);
+                float distance = item.distanToCamera;
                 uint16_t distanceToID = FloatToDepth(distance, nearPlane, farPlane);
                 switch(sortingCriteria)
                 {

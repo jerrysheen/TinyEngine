@@ -15,10 +15,10 @@ namespace EngineCore
         auto* scene = SceneManager::GetInstance()->GetCurrentScene();
         auto& sceneRenderData = scene->renderSceneData;
         int totalVisible = 0;
-        for(int i = 0; i < scene->m_CurrentSceneMaxRenderNode; i++)
+        Vector3 campos = cam->gameObject->transform->GetWorldPosition();
+        for(int i = 0; i < scene->renderSceneData.meshRendererList.size(); i++)
         {
-            if(sceneRenderData.isDataValidList[i] &&
-                sceneRenderData.meshRendererList[i] &&
+            if( sceneRenderData.meshRendererList[i] &&
                 sceneRenderData.vaoIDList[i] != UINT32_MAX)
             {
                 if (cam->mFrustum.TestAABB(sceneRenderData.aabbList[i]) != IntersectResult::Outside) 
@@ -26,7 +26,8 @@ namespace EngineCore
                     RenderPacket packet;
                     packet.meshRenderer = sceneRenderData.meshRendererList[i];
                     packet.vaoID = sceneRenderData.vaoIDList[i];
-                    packet.worldPos = sceneRenderData.objectToWorldMatrixList[i].ExtractWorldPosition();
+                    Vector3 pos = sceneRenderData.objectToWorldMatrixList[i].ExtractWorldPosition();
+                    packet.distanToCamera = Vector3::Distance(campos, pos);
                     context.visibleItems.push_back(std::move(packet));
                     totalVisible++;
                 }

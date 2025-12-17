@@ -1,8 +1,14 @@
 {
 	"nodes":[
-		{"id":"7669ad013683e035","x":-979,"y":-374,"width":622,"height":934,"type":"text","text":"RenderContext\n里面的数据设计的很烂， 现在没有用的都可以干掉\n\nCulling\n直接索引指针 效率低\n\n总的来说感觉是数据的设计不够统一， 比如mat mesh bounds这些数据，最好都依次放置在一个有序队列里面，这样子所有的都去索引的时候，内存关联度会更高\n总结现在有用的数据， 有些散落在各种Material modeldata里面， 有些在COmponent里面， 有些则是直接存在buffer里面\n\nvoid Renderer::Render(const RenderContext& context\n\n这部分目前结构算清晰\n\n            FlushPerPassData(context);\n\n            pass->Configure(context);\n\n            pass->Filter(context);\n\n            pass->Execute(context);\n\n            Submit(pass->GetRenderPassInfo());\n           filter可以不用，。\n           \n            RenderContext::DrawRenderers\n还在索引mat 和mesh指针， 效率有点低\n\n\n"},
-		{"id":"c15067314794e41e","type":"text","text":"GPU端：\n1 有些接口废弃了， 可以直接干掉\n\n2 renderAPI类太大， 里面涵盖太多东西\n\n","x":-200,"y":-374,"width":622,"height":934},
-		{"id":"0aaeffb2b738248a","x":-757,"y":680,"width":400,"height":204,"type":"file","file":"Pasted image 20251213164812.png"}
+		{"id":"2ebb1ae676f4bc83","type":"text","text":"逻辑世界：\n\n### Scene Update：\nTick\nRunLogicScript\nTransformUpdate\nRenderNodeUpdate\n\n\nSceneRenderNode:\nSOA结构：\nobjectToworld\nAABB\nmaterial....\n1. 未来这个结构应该要优化，数据统一放，比如材质大结构在这个地方是不是应该存对象不是指针，而每个物体指向它即可。\n2. 现在Node列表数量固定， 应该还是做一个扩容方式比较好，不然会稍微费一点。\n\n","x":-1360,"y":121,"width":400,"height":499},
+		{"id":"b281822d1e2500f6","type":"text","text":"同步到渲染端：\n\n### GPU Scemanager：\n\nTick\n\t更新脏物体，数据在SceneRenderNode中\n\t更新脏材质，这个还没做，现在是材质端更新，效率差。\n\n未来应该是两个Computeshader，一个更新大材质列表，一个更新大Objectdata列表\n\n\n","x":-920,"y":121,"width":253,"height":499},
+		{"id":"a44e8aefe77801a5","type":"text","text":"渲染管线：\n\n### ContextRenderer：\n\nTick\nCulling -> RenderPacket\n-> Sorting \n-> Batch\n\n-> Drawcall isue\n\n\n","x":-640,"y":121,"width":253,"height":499},
+		{"id":"c0f2636a6f38e89b","type":"text","text":"# GPU BUffer：\n有三个Buffer\nMaterialBuffer          ->  需要一个MatID\nObjectDataBuffer      ->  需要一个ObjectID\nInstanceDataBuffer    ->  存在Batch信息里面，CPUscene部分不用管\n\n--- \n渲染需要的数据：\n各种Buffer的Address  -> GPU Scene中存着\nSetRenderState -> 绑定PSO，需要 shaderID，材质ID，寻找shader blob + 对应的RootSig\nSetVBIB -> 绑定VBO IBO，需要 vaoID\nDrawIndexedInstance -> 需要InstanceBuffer address， + indexbuffer信息\n\n可以看到， 大部分信息都是存ID，完全可以去指针化。\n\n有一部分需要ResouceManager创建的，比如 VAO ，比如Shader compile，这部分需要做规整嘛？\n比如 VAO有没有必要生成在一个大buffer里面，未来GPUScene会用到吗\n\n\n\n\n","x":-1760,"y":1040,"width":600,"height":600},
+		{"id":"30192ee23759eda7","type":"text","text":"# CPU BUffer：\nSOA结构：\nvector AABB\nvector WorldMatrix\nvector MaterialID\nvector MaterialStateID\nvector Layer\nvecor VAOID\n\nvector MaterialData ?\nvector MaterialState?\n应该不需要Material真实数据吧？ 需要找个地方单独更新下材质变化之后通知GPU的功能， 现在的问题是这俩怎么处理，放在什么地方合理\n\nvector transfromDirty -> perframe Clear\nvector materialDirty   -> perframe Clear\n\n\n--- \n需要新增的渲染数据\n\tMaterialRenderState   -> 材质信息， 比如透明半透明，混合方式，stencil， ShaderID","x":-1093,"y":1040,"width":600,"height":600},
+		{"id":"db5d9e1a3eed5610","x":-1513,"y":740,"width":720,"height":170,"type":"text","text":"# 第二步， 同步GPU buffer 和CPU buffer\n这一步中，我们主要是将 CPU端的大Buffer和GPU端的大buffer做一些映射。\n主要的思路是，在CPU端一个Handler解决所有， 不再搞什么GPU Handle，CPU Handle，\n一个Allocator就定住在GPU和CPU上的位置。"}
 	],
-	"edges":[]
+	"edges":[
+		{"id":"3c478ec4633f434a","fromNode":"db5d9e1a3eed5610","fromSide":"bottom","toNode":"c0f2636a6f38e89b","toSide":"top"},
+		{"id":"17499f52e51645f9","fromNode":"db5d9e1a3eed5610","fromSide":"bottom","toNode":"30192ee23759eda7","toSide":"top"}
+	]
 }

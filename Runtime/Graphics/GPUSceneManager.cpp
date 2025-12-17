@@ -34,19 +34,14 @@ namespace EngineCore
 
     void GPUSceneManager::Tick()
     {
-        // Sync PerObjectData:
+        // 消化sceneRenderData中的dirty
         Scene* mCurrentScene = SceneManager::GetInstance()->GetCurrentScene();
         auto& renderSceneData = mCurrentScene->renderSceneData;
-        int currMaxIndex = mCurrentScene->m_CurrentSceneMaxRenderNode;
-        for(int i = 0; i < currMaxIndex; i++)
+        for (uint32_t renderNodeIndex : renderSceneData.transformDirtyList) 
         {
-            if(renderSceneData.needUpdateList[i] == true)
-            {
-                // todo: 起一个ComputeShader做一次全部更新
-                renderSceneData.meshRendererList[i]->SyncPerObjectDataIfDirty();
-                renderSceneData.needUpdateList[i] = false;
-            }
+            renderSceneData.meshRendererList[renderNodeIndex]->SyncPerObjectDataIfDirty();
         }
+        // todo ： material Dirty..
         perFrameBatchBuffer->Reset();
     }
 
@@ -94,6 +89,7 @@ namespace EngineCore
         {
             handle.perObejectIndex = m_FreePerObjectIndex.front();
             m_FreePerObjectIndex.pop();
+            return handle;
         }
         handle.perObejectIndex = m_CurrentPerObjectIndex;
         m_CurrentPerObjectIndex++;        
