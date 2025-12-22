@@ -59,6 +59,8 @@ namespace EngineCore
 
         void ProcessDrawCommand(const DrawCommand& cmd);
 
+        void CopyBufferRegion(const Payload_CopyBufferRegion& copyCmd);
+
         void RenderThreadMain() 
         {
             while (mRunning.load(std::memory_order_acquire) == true) 

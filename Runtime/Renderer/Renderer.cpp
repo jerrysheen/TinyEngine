@@ -201,7 +201,7 @@ namespace EngineCore
         temp.op = RenderOp::kDrawInstanced;
         temp.data.setDrawInstanceCmd.vaoID = vaoID;
         temp.data.setDrawInstanceCmd.count = count;
-        temp.data.setDrawInstanceCmd.perDrawOffset = perDrawHandle.offset;
+        temp.data.setDrawInstanceCmd.perDrawOffset = perDrawHandle.offset / sizeof(uint32_t);
         temp.data.setDrawInstanceCmd.perDrawStride = perDrawHandle.size / count;
         mRenderBuffer.PushBlocking(temp);
     }
@@ -222,7 +222,13 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(temp);
     }
 
-
+    void Renderer::CopyBufferRegion(const Payload_CopyBufferRegion &copyCmd)
+    {
+        DrawCommand temp;
+        temp.op = RenderOp::kCopyBufferRegion;
+        temp.data.copyBufferRegion = copyCmd;
+        mRenderBuffer.PushBlocking(temp);
+    }
 
     void Renderer::Submit(const RenderPassInfo &info)
     {
@@ -257,7 +263,7 @@ namespace EngineCore
                 // bind mesh vertexbuffer and indexbuffer.
                 SetMeshData(record.vaoID);
 
-                DrawIndexedInstanced(record.vaoID, record.instanceCount, PerDrawHandle{nullptr, record.index, 0});
+                DrawIndexedInstanced(record.vaoID, record.instanceCount, PerDrawHandle{nullptr, (uint32_t)record.alloc.offset, 0});
             }
         }
     }
@@ -272,7 +278,10 @@ namespace EngineCore
         break;
         case RenderOp::kSetMaterial :
             RenderAPI::GetInstance()->RenderAPISetMaterial(cmd.data.setMaterial);
-        break;     
+        break;
+        case RenderOp::kCopyBufferRegion :
+            RenderAPI::GetInstance()->RenderAPICopyRegion(cmd.data.copyBufferRegion);
+        break;
         case RenderOp::kSetRenderState :
             PROFILER_COUNTER_ADD("RenderBatches", 1);
             RenderAPI::GetInstance()->RenderAPISetRenderState(cmd.data.setRenderState);
@@ -311,5 +320,6 @@ namespace EngineCore
         }
 
     }
+
 
 }

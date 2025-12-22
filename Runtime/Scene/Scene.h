@@ -4,6 +4,8 @@
 #include "Core/Object.h"
 #include "GameObject/GameObject.h"
 #include "GameObject/Camera.h"
+#include "Renderer/RenderStruct.h"
+
 namespace EngineCore
 {
     struct RenderSceneData

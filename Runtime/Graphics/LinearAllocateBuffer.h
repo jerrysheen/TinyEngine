@@ -20,9 +20,8 @@ namespace EngineCore
         virtual void Reset() override;
 
     private:
-        uint32_t m_CurrIndex;
+        uint32_t m_CurrOffset;
         uint32_t m_MaxSize;
-        uint32_t m_Stride;
         IGPUBuffer* m_LinearGPUBuffer;
 
     };

@@ -31,7 +31,7 @@ namespace EngineCore
         currentBatch.mat = item.meshRenderer->GetMaterial().Get();
         currentBatch.index = 0;
         // todo : 回头这个东西应该也是CPU端映射的。
-        uint32_t objIndex = item.meshRenderer->perObjectDataAllocation.offset / item.meshRenderer->perObjectDataAllocation.size;
+        uint32_t objIndex = item.meshRenderer->sceneRenderNodeIndex;
         tempList.push_back(objIndex);
         uint32_t globalIndex = 0;
         for(int i = 1; i < visibleItems.size(); i++)
@@ -40,28 +40,28 @@ namespace EngineCore
             if(CanBatch(currentBatch, item))
             {
                 currentBatch.instanceCount += 1;
-                objIndex = item.meshRenderer->perObjectDataAllocation.offset / item.meshRenderer->perObjectDataAllocation.size;
+                objIndex = item.meshRenderer->sceneRenderNodeIndex;
                 tempList.push_back(objIndex);
                 globalIndex += 1;
             }
             else
             {
-                currentBatch.alloc =  GPUSceneManager::GetInstance()->SyncDataToPerFrameBatchBuffer(tempList.data(), tempList.size());
+                currentBatch.alloc =  GPUSceneManager::GetInstance()->SyncDataToPerFrameBatchBuffer(tempList.data(), tempList.size() * sizeof(uint32_t));
                 bactchList.push_back(currentBatch);
                 
                 tempList.clear();
                 currentBatch.instanceCount = 1;
-                currentBatch.vaoID = item.vaoID;;
+                currentBatch.vaoID = item.vaoID;
                 currentBatch.mat = item.meshRenderer->GetMaterial().Get();
                 currentBatch.index = globalIndex;
-                uint32_t objIndex = item.meshRenderer->perObjectDataAllocation.offset / item.meshRenderer->perObjectDataAllocation.size;
+                uint32_t objIndex = item.meshRenderer->sceneRenderNodeIndex;
                 tempList.push_back(objIndex);
                 globalIndex++;
             }
         }
         if (tempList.size() > 0) 
         {
-            currentBatch.alloc = GPUSceneManager::GetInstance()->SyncDataToPerFrameBatchBuffer(tempList.data(), tempList.size());
+            currentBatch.alloc = GPUSceneManager::GetInstance()->SyncDataToPerFrameBatchBuffer(tempList.data(), tempList.size() * sizeof(uint32_t));
             bactchList.push_back(currentBatch);
             tempList.clear();
         }

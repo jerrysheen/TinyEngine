@@ -1,5 +1,6 @@
 #pragma once
 #include "Graphics/Shader.h"
+#include "Graphics/ComputeShader.h"
 #include "Serialization/MetaData.h"
 #include "Core/PublicStruct.h"
 #include "Graphics/Material.h"
@@ -18,7 +19,8 @@ namespace  EngineCore
        
         static void Create();
         virtual Shader* CompileShader(const string& path, Shader* shader) = 0;
-
+        virtual ComputeShader* CompileComputeShader(const string& path, ComputeShader* csShader) = 0;
+        
         virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
         virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
 
@@ -54,7 +56,8 @@ namespace  EngineCore
         
         virtual IGPUBuffer* CreateBuffer(const BufferDesc& desc, void* data) = 0;
         virtual void UploadBuffer(IGPUBuffer* buffer, uint32_t offset, void* data, uint32_t size) = 0;
-        
+        virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) = 0;
+
         template<typename T>
         void SetGlobalValue(uint32_t bufferID, uint32_t offset, T* value)
         {

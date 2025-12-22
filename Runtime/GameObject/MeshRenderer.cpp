@@ -16,7 +16,6 @@ namespace EngineCore
 	MeshRenderer::MeshRenderer(GameObject* go)
 	{
 		gameObject = go;
-		perObjectDataAllocation = GPUSceneManager::GetInstance()->GetSinglePerObjectData();
 		lastSyncTransformVersion = gameObject->transform->transformVersion;
 		Scene* currentScene = SceneManager::GetInstance()->GetCurrentScene();
 		if(currentScene != nullptr)
@@ -27,7 +26,6 @@ namespace EngineCore
 
     MeshRenderer::~MeshRenderer()
     {
-		GPUSceneManager::GetInstance()->RemoveSinglePerObjectData(perObjectDataAllocation);
 		Scene* currentScene = SceneManager::GetInstance()->GetCurrentScene();
 		if(currentScene != nullptr)
 		{
@@ -63,13 +61,5 @@ namespace EngineCore
 		worldBounds.Transform(worldMatrix);
     }
 
-    void MeshRenderer::SyncPerObjectDataIfDirty()
-    {
-		PerObjectData perObjectData;
-		perObjectData.objectToWorld = gameObject->transform->GetWorldMatrix();
-		BufferAllocation& allocation = GetMaterial()->materialAllocation;
-		uint32_t matIndex = allocation.offset / allocation.size;
-		perObjectData.matIndex = matIndex;
-		GPUSceneManager::GetInstance()->UpdateSinglePerObjectData(perObjectDataAllocation, static_cast<void*>(&perObjectData));
-    }
+
 }

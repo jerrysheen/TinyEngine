@@ -1,0 +1,11 @@
+{
+	"nodes":[
+		{"id":"6e13681b8a914a89","x":-392,"y":-265,"width":332,"height":65,"type":"text","text":"接入各种资源Buffer： 我们已经有了"},
+		{"id":"00074d773b760873","type":"text","text":"CPU到GPU资源同步： 我们已经有了","x":-392,"y":-160,"width":332,"height":65},
+		{"id":"e072714260f7e522","type":"text","text":"创建Compute shader PSO：\n可以泛化成普通的，而不是专门给culling用的","x":-392,"y":-40,"width":332,"height":100},
+		{"id":"34e0990df1f68bba","type":"text","text":"创建Compute shader RootSig：\n先写死一个","x":-392,"y":100,"width":332,"height":80},
+		{"id":"244c1b7a0b9f3954","type":"text","text":"创建resource barriar， 可以泛化， ","x":-392,"y":220,"width":332,"height":80},
+		{"id":"b490e8f626337f90","x":-392,"y":340,"width":332,"height":140,"type":"text","text":"Dispatch相关的指令：\n需要绑定一个PSO + Rootsignature\n需要一个dispatch指令， 给xyz threadID\n需要一个barrair"}
+	],
+	"edges":[]
+}

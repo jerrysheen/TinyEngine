@@ -1,6 +1,7 @@
 #pragma once
 #include "Managers/Manager.h"
 #include "RenderContext.h"
+#include "Renderer/RenderPath/LagacyRenderPath.h"
 
 namespace EngineCore
 {
@@ -29,6 +30,7 @@ namespace EngineCore
     private:
         static std::unique_ptr<RenderEngine> s_Instance;
         static RenderContext renderContext;
+        static LagacyRenderPath lagacyRenderPath;
     };
     
 }

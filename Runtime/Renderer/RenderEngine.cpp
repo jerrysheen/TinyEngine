@@ -11,7 +11,7 @@
 #include "FrameBufferManager.h"
 #include "Scene/Scene.h"
 #include "Graphics/GPUSceneManager.h"
-
+#include "Renderer/RenderPath/LagacyRenderPath.h"
 // RenderEngine 类的设计逻辑：
 // 负责创建渲染相关的，比如窗口，渲染API， Renderer，
 // 负责拉起每一帧的渲染， Renderer的主线程数据组织， Culling的运行
@@ -21,6 +21,7 @@ namespace EngineCore
 {
     std::unique_ptr<RenderEngine> RenderEngine::s_Instance = nullptr;
     RenderContext RenderEngine::renderContext;
+    LagacyRenderPath RenderEngine::lagacyRenderPath;
 
     void RenderEngine::Create()
     {
@@ -48,27 +49,9 @@ namespace EngineCore
         RenderAPI::GetInstance()->WaitForGpuFinished();
         PROFILER_EVENT_END("MainThread::WaitForGpuFinished");
 
-        PROFILER_EVENT_BEGIN("MainThread::GPUSceneManagerTick");
-        GPUSceneManager::GetInstance()->Tick();
-        PROFILER_EVENT_END("MainThread::GPUSceneManagerTick");
-        Renderer::GetInstance()->BeginFrame();
-        renderContext.Reset();
 
-        // todo： 这个地方culling逻辑是不是应该放到Update
-        Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->mainCamera;
-        renderContext.camera = cam;
-        PROFILER_EVENT_BEGIN("MainThread::Culling::Run");
-        Culling::Run(cam, renderContext);
-        PROFILER_EVENT_END("MainThread::Culling::Run");
+        lagacyRenderPath.Execute(renderContext);
 
-
-        Renderer::GetInstance()->Render(renderContext);
-       
-        #ifdef EDITOR
-        Renderer::GetInstance()->OnDrawGUI();
-        #endif
-        
-        Renderer::GetInstance()->EndFrame();
 
         SignalMainThreadSubmited();
 

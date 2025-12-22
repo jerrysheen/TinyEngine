@@ -11,6 +11,7 @@
 #include "Renderer/RenderAPI.h"
 #include "d3dUtil.h"
 #include "Graphics/Shader.h"
+#include "Graphics/ComputeShader.h"
 #include "PreCompiledHeader.h"
 #include "D3D12Struct.h"
 #include "Core/PublicStruct.h"
@@ -30,6 +31,7 @@ namespace EngineCore
         ~D3D12RenderAPI(){};
 
         virtual Shader* CompileShader(const string& path, Shader* shader) override;
+        virtual ComputeShader* CompileComputeShader(const string& path, ComputeShader* csShader) override;
         bool CompileShaderStageAndGetReflection(const string& path, string entrypoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob);
         virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
         virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
@@ -57,6 +59,7 @@ namespace EngineCore
         virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) override;
         virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) override;
         virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) override;
+        virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) override;
         
         TD3D12DescriptorHandle GetTextureSrvHanle(uint32_t textureID);
         TD3D12FrameBuffer* GetFrameBuffer(uint32_t bufferID, bool isBackBuffer = false);

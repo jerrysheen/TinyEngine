@@ -5,6 +5,7 @@
 #include "Core/PublicStruct.h"
 #include "Renderer/RenderStruct.h"
 #include <tuple>
+#include <vector>
 
 namespace EngineCore
 {
@@ -26,6 +27,8 @@ namespace EngineCore
         kDrawInstanced = 13,
         kSetPerFrameData = 14,
         kSetPerPassData = 15,
+        kCopyBufferRegion = 16,
+        kDispatchComputeShader = 17,
     };
 
     enum class DepthComparisonFunc : uint8_t
@@ -134,6 +137,21 @@ namespace EngineCore
         UINT perPassBufferID;
     };
 
+    struct alignas(16) CopyOp
+    {
+        uint32_t srcOffset;
+        uint32_t dstOffset;
+        uint32_t size;
+    };
+
+    struct Payload_CopyBufferRegion
+    {
+        IGPUBuffer* srcUploadBuffer;
+        IGPUBuffer* destDefaultBuffer;
+        CopyOp* copyList;
+        uint32_t count;
+    };
+    
 
     // 绑定渲染材质，
     class Shader;
@@ -196,6 +214,14 @@ namespace EngineCore
         uint32_t perDrawStride;
     };
 
+    struct Payload_DispatchComputeShader
+    {
+        uint32_t vaoID;
+        int count;
+        uint32_t perDrawOffset;
+        uint32_t perDrawStride;
+    };
+
     union CommandData 
     {
         Payload_BeginFrame beginFrame;
@@ -213,6 +239,8 @@ namespace EngineCore
         Payload_DrawInstancedCommand setDrawInstanceCmd;
         Payload_SetPerFrameData setPerFrameData;
         Payload_SetPerPassData setPerPassData;
+        Payload_CopyBufferRegion copyBufferRegion;
+        Payload_DispatchComputeShader dispatchComputeShader;
         CommandData() {};
     };
 

@@ -7,6 +7,9 @@
 #include "Renderer/RenderAPI.h"
 #include "Scene/SceneManager.h"
 #include "Scene/Scene.h"
+#include "Renderer/RenderCommand.h"
+#include "Renderer/Renderer.h"
+#include "Graphics/ComputeShader.h"
 
 namespace EngineCore
 {
@@ -30,34 +33,70 @@ namespace EngineCore
         delete allObjectDataBuffer;
         delete allMaterialDataBuffer;
         delete perFrameBatchBuffer;
+        delete allAABBBuffer;
+        delete allInstanceDataBuffer;
+        delete perFramelinearMemoryAllocator;
     }
 
     void GPUSceneManager::Tick()
     {
+        perFrameBatchBuffer->Reset();
+        perFramelinearMemoryAllocator->Reset();
         // 消化sceneRenderData中的dirty
         Scene* mCurrentScene = SceneManager::GetInstance()->GetCurrentScene();
         auto& renderSceneData = mCurrentScene->renderSceneData;
-        for (uint32_t renderNodeIndex : renderSceneData.transformDirtyList) 
-        {
-            renderSceneData.meshRendererList[renderNodeIndex]->SyncPerObjectDataIfDirty();
+        vector<CopyOp> copyList;
+        vector<AABB> aabbList;
+        vector<PerObjectData> perObjectList;
+        int count = renderSceneData.transformDirtyList.size();
+        if (count == 0) return;
+        CopyOp* data = perFramelinearMemoryAllocator->allocArray<CopyOp>(count);
+        CopyOp* currPtr = data;
+
+        uint32_t AABBbufferSize = count * sizeof(AABB);
+        auto& AABBAllocation = perFrameBatchBuffer->Allocate(AABBbufferSize);
+        for (int i = 0; i < renderSceneData.transformDirtyList.size(); i++) 
+        {   
+            uint32_t nodeIndex = renderSceneData.transformDirtyList[i];
+            currPtr->srcOffset = AABBAllocation.offset + i * sizeof(AABB);
+            currPtr->dstOffset = nodeIndex * sizeof(AABB);
+            currPtr->size = sizeof(AABB);
+            currPtr++;
+            aabbList.push_back(renderSceneData.aabbList[nodeIndex]);
         }
-        // todo ： material Dirty..
-        perFrameBatchBuffer->Reset();
-    }
+        perFrameBatchBuffer->UploadBuffer(AABBAllocation, aabbList.data(), AABBbufferSize);
 
-    BufferAllocation GPUSceneManager::GetSinglePerObjectData()
-    {
-        return allObjectDataBuffer->Allocate(sizeof(PerObjectData));
-    }
+        Payload_CopyBufferRegion copyRegionCmd;
+        copyRegionCmd.srcUploadBuffer = perFrameBatchBuffer->GetGPUBuffer();
+        copyRegionCmd.destDefaultBuffer = allAABBBuffer->GetGPUBuffer();
+        copyRegionCmd.copyList = data;
+        copyRegionCmd.count = count;
+        Renderer::GetInstance()->CopyBufferRegion(copyRegionCmd);
 
-    void GPUSceneManager::RemoveSinglePerObjectData(const BufferAllocation &bufferalloc)
-    {
-        allObjectDataBuffer->Free(bufferalloc);
-    }
 
-    void GPUSceneManager::UpdateSinglePerObjectData(const BufferAllocation &bufferalloc, void *data)
-    {
-        allObjectDataBuffer->UploadBuffer(bufferalloc, data, sizeof(PerObjectData));
+        uint32_t PerObjectbufferSize = count * sizeof(PerObjectData);
+        auto& PerObjectAllocation = perFrameBatchBuffer->Allocate(PerObjectbufferSize);
+        data = perFramelinearMemoryAllocator->allocArray<CopyOp>(count);
+        currPtr = data;
+        for (int i = 0; i < renderSceneData.transformDirtyList.size(); i++)
+        {
+            uint32_t nodeIndex = renderSceneData.transformDirtyList[i];
+            currPtr->srcOffset = PerObjectAllocation.offset + i * sizeof(PerObjectData);
+            currPtr->dstOffset = nodeIndex * sizeof(PerObjectData);
+            currPtr->size = sizeof(PerObjectData);
+            currPtr++;
+            perObjectList.emplace_back(renderSceneData.objectToWorldMatrixList[nodeIndex]
+                , renderSceneData.meshRendererList[nodeIndex]->GetMaterial()->materialAllocation.offset);
+        }
+        perFrameBatchBuffer->UploadBuffer(PerObjectAllocation, perObjectList.data(), PerObjectbufferSize);
+
+        copyRegionCmd;
+        copyRegionCmd.srcUploadBuffer = perFrameBatchBuffer->GetGPUBuffer();
+        copyRegionCmd.destDefaultBuffer = allObjectDataBuffer->GetGPUBuffer();
+        copyRegionCmd.copyList = data;
+        copyRegionCmd.count = count;
+        Renderer::GetInstance()->CopyBufferRegion(copyRegionCmd);
+
     }
 
     BufferAllocation GPUSceneManager::GetSinglePerMaterialData()
@@ -130,14 +169,34 @@ namespace EngineCore
 
         desc.debugName = L"PerFrameBatchBuffer";
         desc.memoryType = BufferMemoryType::Upload;
-        desc.size = sizeof(uint32_t) * 10000;
-        desc.stride = sizeof(uint32_t);
-        desc.usage = BufferUsage::StructuredBuffer;
+        desc.size = 1024 * 1024 * 4;
+        desc.stride = 1;
+        desc.usage = BufferUsage::ByteAddressBuffer;
         perFrameBatchBuffer = new LinearAllocateBuffer(desc);
 
         perObjectCPUBuffer.reserve(10000);
         std::queue<int> empty;
         std::swap(m_FreePerObjectIndex, empty);
+
+        desc.debugName = L"AABBBufferDataBuffer";
+        desc.memoryType = BufferMemoryType::Default;
+        desc.size = sizeof(AABB) * 10000;
+        desc.stride = sizeof(AABB);
+        desc.usage = BufferUsage::StructuredBuffer;
+        allAABBBuffer = new PersistantBuffer(desc);
+
+        desc.debugName = L"InstanceDataBuffer";
+        desc.memoryType = BufferMemoryType::Upload;
+        desc.size = 4 * 10000; 
+        desc.stride = 4;       
+        desc.usage = BufferUsage::ByteAddressBuffer;
+        allInstanceDataBuffer = new PersistantBuffer(desc);
+
+        perFramelinearMemoryAllocator = new LinearAllocator(4 * 1024 * 1024);
+    
+        // 创建Compute Shader
+        ResourceHandle<ComputeShader> shader = ResourceManager::GetInstance()->CreateResource<ComputeShader>("Assets/Shader/GPUCulling.hlsl");
+    
     }
 
 

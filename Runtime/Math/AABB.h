@@ -1,17 +1,18 @@
 #pragma once
 #include "Vector3.h"
+#include "Vector2.h"
 #include <iostream>
 #include <algorithm>  // for std::min, std::max
 #include "Matrix4x4.h"
 
 namespace EngineCore
 {
-    struct AABB
+    struct alignas(16) AABB 
     {
     public:
         Vector3 minValue{FLT_MAX, FLT_MAX, FLT_MAX};
         Vector3 maxValue{-FLT_MAX, -FLT_MAX, -FLT_MAX};
-
+        Vector2 padding;
         AABB() = default;
         AABB(const Vector3& minPoint, const Vector3& maxPoint)
             : minValue(minPoint), maxValue(maxPoint) {}

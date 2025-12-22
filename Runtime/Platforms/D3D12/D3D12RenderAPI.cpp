@@ -315,7 +315,6 @@ namespace EngineCore
 
     Shader* D3D12RenderAPI::CompileShader(const string& path, Shader* shader)
     {
-
         shader->name = path;
         Microsoft::WRL::ComPtr<ID3DBlob> vsBlob;
         if (!CompileShaderStageAndGetReflection(path, "VSMain", "vs_5_1", shader, ShaderStageType::VERTEX_STAGE, vsBlob))
@@ -333,6 +332,107 @@ namespace EngineCore
         // 创建PSO
         CreateRootSignatureByShaderReflection(shader);
         return shader;
+    }
+
+    ComputeShader *D3D12RenderAPI::CompileComputeShader(const string &path, ComputeShader *csShader)
+    {
+
+        // 编译
+        ComPtr<ID3DBlob> computeShaderBlob;
+        ComPtr<ID3DBlob> errorBlob;
+        std::wstring filename(path.begin(), path.end());
+        HRESULT hr = D3DCompileFromFile(
+            filename.c_str(),
+            nullptr,                // Defines
+            D3D_COMPILE_STANDARD_FILE_INCLUDE, // Include handler
+            "main",                 // 入口函数
+            "cs_5_0",               // Target Profile
+            D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, // Flags (Debug用)
+            0,
+            &computeShaderBlob,
+            &errorBlob
+        );
+        if (FAILED(hr)) {
+            if (errorBlob) {
+                OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+            }
+            return nullptr;
+        }
+        
+
+        ComPtr<ID3D12ShaderReflection> pReflector;
+    
+        // 1. 从编译好的 Shader Blob 创建反射接口
+        hr = D3DReflect(
+            computeShaderBlob->GetBufferPointer(),
+            computeShaderBlob->GetBufferSize(),
+            IID_PPV_ARGS(&pReflector)
+        );
+    
+        if (FAILED(hr)) return nullptr;
+    
+        // 2. 获取 Shader 的整体描述
+        D3D12_SHADER_DESC shaderDesc;
+        pReflector->GetDesc(&shaderDesc);
+        
+        // shaderDesc.BoundResources 是资源的数量
+        printf("Resource Count: %d\n", shaderDesc.BoundResources);
+        ShaderReflectionInfo* shaderReflectionInfo = &csShader->mShaderReflectionInfo;
+
+        // 3. 遍历所有绑定的资源 (CBV, SRV, UAV)
+        for (UINT i = 0; i < shaderDesc.BoundResources; ++i)
+        {
+            D3D12_SHADER_INPUT_BIND_DESC bindDesc;
+            pReflector->GetResourceBindingDesc(i, &bindDesc);
+    
+            printf("Name: %s\n", bindDesc.Name); // HLSL 里的变量名，如 "g_Output"
+            printf("Type: %d\n", bindDesc.Type); // 如 D3D_SIT_UAV_RWTYPED
+            printf("BindPoint: %d\n", bindDesc.BindPoint); // 对应的寄存器号，如 u0 中的 0
+            printf("Space: %d\n", bindDesc.Space); // register(u0, space1) 中的 1
+            switch (bindDesc.Type) {
+                case D3D_SIT_CBUFFER:
+                {
+                    for (auto& x : shaderReflectionInfo->mConstantBufferInfo)
+                    {
+                        if (x.resourceName == bindDesc.Name) break;
+                    }
+                    shaderReflectionInfo->mConstantBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, 0, bindDesc.Space);
+    
+                    break;
+                }
+                case D3D_SIT_TEXTURE:
+                    for (auto& x : shaderReflectionInfo->mTextureInfo)
+                    {
+                        if (x.resourceName == bindDesc.Name) break;
+                    }
+                    shaderReflectionInfo->mTextureInfo.emplace_back(bindDesc.Name, ShaderResourceType::TEXTURE, bindDesc.BindPoint, 0, bindDesc.Space);
+                    break;
+                case D3D_SIT_SAMPLER:
+                    for (auto& x : shaderReflectionInfo->mSamplerInfo)
+                    {
+                        if (x.resourceName == bindDesc.Name) break;
+                    }
+                    shaderReflectionInfo->mSamplerInfo.emplace_back(bindDesc.Name, ShaderResourceType::SAMPLER, bindDesc.BindPoint, 0, bindDesc.Space);
+                    break;
+                case D3D_SIT_STRUCTURED:
+                case D3D_SIT_UAV_RWTYPED:
+                case D3D_SIT_UAV_RWSTRUCTURED:
+                case D3D_SIT_UAV_RWBYTEADDRESS:
+                case D3D_SIT_UAV_APPEND_STRUCTURED:
+                case D3D_SIT_UAV_CONSUME_STRUCTURED:
+                case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
+                    for (auto& x : shaderReflectionInfo->mUavInfo)
+                    {
+                        if (x.resourceName == bindDesc.Name) break;
+                    }
+                    shaderReflectionInfo->mUavInfo.emplace_back(bindDesc.Name, ShaderResourceType::UAV, bindDesc.BindPoint, 0, bindDesc.Space);
+                    break;
+                default:
+                    std::cout << " Not find any exites shader resource type " << std::endl;
+                    break;
+                }
+        }
+        return nullptr;
     }
 
     void D3D12RenderAPI::CreateRootSignatureByShaderReflection(Shader* shader)
@@ -376,7 +476,7 @@ namespace EngineCore
 
         ASSERT(m_reflection != nullptr);
         
-        ShaderReflectionInfo* ShaderReflectionInfo = &shader->mShaderReflectionInfo;
+        ShaderReflectionInfo* shaderReflectionInfo = &shader->mShaderReflectionInfo;
 
         D3D12_SHADER_DESC desc;
         m_reflection->GetDesc(&desc);
@@ -391,10 +491,10 @@ namespace EngineCore
             uint64_t bit = 1ULL << (offset + bindPoint);
 
             if (space == 0) {
-                ShaderReflectionInfo->mRootSigKey.Space0Mask |= bit;
+                shaderReflectionInfo->mRootSigKey.Space0Mask |= bit;
             }
             else if (space == 1) {
-                ShaderReflectionInfo->mRootSigKey.Space1Mask |= bit;
+                shaderReflectionInfo->mRootSigKey.Space1Mask |= bit;
             }
         };
 
@@ -426,27 +526,27 @@ namespace EngineCore
             switch (bindDesc.Type) {
             case D3D_SIT_CBUFFER:
             {
-                for (auto& x : ShaderReflectionInfo->mConstantBufferInfo)
+                for (auto& x : shaderReflectionInfo->mConstantBufferInfo)
                 {
                     if (x.resourceName == bindDesc.Name) break;
                 }
-                ShaderReflectionInfo->mConstantBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, 0, bindDesc.Space);
+                shaderReflectionInfo->mConstantBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, 0, bindDesc.Space);
 
                 break;
             }
             case D3D_SIT_TEXTURE:
-                for (auto& x : ShaderReflectionInfo->mTextureInfo)
+                for (auto& x : shaderReflectionInfo->mTextureInfo)
                 {
                     if (x.resourceName == bindDesc.Name) break;
                 }
-                ShaderReflectionInfo->mTextureInfo.emplace_back(bindDesc.Name, ShaderResourceType::TEXTURE, bindDesc.BindPoint, 0, bindDesc.Space);
+                shaderReflectionInfo->mTextureInfo.emplace_back(bindDesc.Name, ShaderResourceType::TEXTURE, bindDesc.BindPoint, 0, bindDesc.Space);
                 break;
             case D3D_SIT_SAMPLER:
-                for (auto& x : ShaderReflectionInfo->mSamplerInfo)
+                for (auto& x : shaderReflectionInfo->mSamplerInfo)
                 {
                     if (x.resourceName == bindDesc.Name) break;
                 }
-                ShaderReflectionInfo->mSamplerInfo.emplace_back(bindDesc.Name, ShaderResourceType::SAMPLER, bindDesc.BindPoint, 0, bindDesc.Space);
+                shaderReflectionInfo->mSamplerInfo.emplace_back(bindDesc.Name, ShaderResourceType::SAMPLER, bindDesc.BindPoint, 0, bindDesc.Space);
                 break;
             case D3D_SIT_STRUCTURED:
             case D3D_SIT_UAV_RWTYPED:
@@ -455,11 +555,11 @@ namespace EngineCore
             case D3D_SIT_UAV_APPEND_STRUCTURED:
             case D3D_SIT_UAV_CONSUME_STRUCTURED:
             case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
-                for (auto& x : ShaderReflectionInfo->mUavInfo)
+                for (auto& x : shaderReflectionInfo->mUavInfo)
                 {
                     if (x.resourceName == bindDesc.Name) break;
                 }
-                ShaderReflectionInfo->mUavInfo.emplace_back(bindDesc.Name, ShaderResourceType::UAV, bindDesc.BindPoint, 0, bindDesc.Space);
+                shaderReflectionInfo->mUavInfo.emplace_back(bindDesc.Name, ShaderResourceType::UAV, bindDesc.BindPoint, 0, bindDesc.Space);
                 break;
             default:
                 std::cout << " Not find any exites shader resource type " << std::endl;
@@ -694,7 +794,6 @@ namespace EngineCore
     {
 
     }
-
     
 
     void D3D12RenderAPI::ImmediatelyExecute(std::function<void(ComPtr<ID3D12GraphicsCommandList> cmdList)>&& function)
@@ -1357,4 +1456,39 @@ namespace EngineCore
         currentPerFrameBufferID = setPerFrameData.perFrameBufferID;
     }
 
+    void D3D12RenderAPI::RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion)
+    {
+        ASSERT(copyBufferRegion.count > 0);
+        ID3D12Resource* destHandle = static_cast<ID3D12Resource*>(copyBufferRegion.destDefaultBuffer->GetNativeHandle());
+        ID3D12Resource* srcHandle = static_cast<ID3D12Resource*>(copyBufferRegion.srcUploadBuffer->GetNativeHandle());
+        auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            destHandle,
+            D3D12_RESOURCE_STATE_COMMON,    
+            D3D12_RESOURCE_STATE_COPY_DEST  
+        );
+        mCommandList->ResourceBarrier(1, &barrier);
+        uint32_t count = copyBufferRegion.count;
+        CopyOp* op = copyBufferRegion.copyList;
+        for (int i = 0; i < count; i++)
+        {
+            mCommandList->CopyBufferRegion(
+                destHandle,                      // pDstBuffer
+                (UINT64)op->dstOffset,     // DstOffset (注意转为UINT64防止溢出)
+                srcHandle,                       // pSrcBuffer
+                (UINT64)op->srcOffset,     // SrcOffset (紧凑排列的源数据)
+                op->size                   // NumBytes
+            );
+            op++;
+        }
+
+        barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            destHandle,
+            D3D12_RESOURCE_STATE_COPY_DEST,  
+            D3D12_RESOURCE_STATE_COMMON   
+        );
+        mCommandList->ResourceBarrier(1, &barrier);
+
+    }
+
 } // namespace EngineCore
+

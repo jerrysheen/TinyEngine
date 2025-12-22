@@ -1,5 +1,8 @@
 #pragma once
 #include <iostream>
+#include "Math/AABB.h"
+#include "Math/Vector2.h"
+
 namespace EngineCore
 {
     class IGPUBuffer;
@@ -84,4 +87,17 @@ namespace EngineCore
             return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
         }
     };
+
+    struct GPUCullingDesc
+    {
+        // frustum cb
+        void* cullingParamsCB;
+        // aabb structuredBuffer;
+        void* aabbBufferSRV;
+        // instandeData uav
+        void* instanceDataUav;
+        // indirectArgsUAV uav
+        void* indirectArgsUAV;
+    };
+
 }

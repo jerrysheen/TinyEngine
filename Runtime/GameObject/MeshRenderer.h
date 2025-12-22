@@ -51,10 +51,8 @@ namespace EngineCore
         inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
 
         void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
-        void SyncPerObjectDataIfDirty();
         uint32_t lastSyncTransformVersion = 0;
         AABB worldBounds;
-        BufferAllocation perObjectDataAllocation;
         uint32_t sceneRenderNodeIndex = UINT32_MAX;
     private:
         ResourceHandle<Material> mShardMatHandler;

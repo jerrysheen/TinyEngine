@@ -16,6 +16,9 @@
     <Filter Include="Runtime\Core">
       <UniqueIdentifier>{416F811B-2DD2-10C0-D657-4976C299DC42}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Runtime\Core\Allocator">
+      <UniqueIdentifier>{D13FE6C0-BD39-0F13-A6A6-A523923F757F}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Runtime\Core\Concurrency">
       <UniqueIdentifier>{1BC54711-07EA-9691-3035-7C211CB995AF}</UniqueIdentifier>
     </Filter>
@@ -51,6 +54,9 @@
     </Filter>
     <Filter Include="Runtime\Renderer">
       <UniqueIdentifier>{0FDB209E-FBD3-3FF0-2406-2575105E1FFC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runtime\Renderer\RenderPath">
+      <UniqueIdentifier>{EB7BA3DF-5789-D1C5-E06F-CDB04C7C9D7C}</UniqueIdentifier>
     </Filter>
     <Filter Include="Runtime\Renderer\RenderPipeLine">
       <UniqueIdentifier>{74EDF719-E0D0-065A-E9D3-34965536CDAA}</UniqueIdentifier>
@@ -104,6 +110,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\Editor\Panel\EditorProjectPanel.h">
       <Filter>Editor\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Core\Allocator\LinearAllocator.h">
+      <Filter>Runtime\Core\Allocator</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Core\Concurrency\CpuEvent.h">
       <Filter>Runtime\Core\Concurrency</Filter>
@@ -187,6 +196,9 @@
       <Filter>Runtime\GameObject</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\Buffer.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\ComputeShader.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\FrameBufferObject.h">
@@ -317,6 +329,15 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderEngine.h">
       <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderPath\GPUSceneRenderPath.h">
+      <Filter>Runtime\Renderer\RenderPath</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderPath\IRenderPath.h">
+      <Filter>Runtime\Renderer\RenderPath</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderPath\LagacyRenderPath.h">
+      <Filter>Runtime\Renderer\RenderPath</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\FinalBlitPass.h">
       <Filter>Runtime\Renderer\RenderPipeLine</Filter>
@@ -475,6 +496,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\GameObject\Transform.cpp">
       <Filter>Runtime\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\ComputeShader.cpp">
+      <Filter>Runtime\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\GPUSceneManager.cpp">
       <Filter>Runtime\Graphics</Filter>

@@ -6,9 +6,8 @@ namespace EngineCore
 {
     LinearAllocateBuffer::LinearAllocateBuffer(const BufferDesc &usage)
     {
-        m_CurrIndex = 0;
+        m_CurrOffset = 0;
         m_MaxSize = (usage.size + 255) & ~255;
-        m_Stride = usage.stride;
         m_LinearGPUBuffer = RenderAPI::GetInstance()->CreateBuffer(usage, nullptr);
     }
 
@@ -29,23 +28,22 @@ namespace EngineCore
 
     void LinearAllocateBuffer::Reset()
     {
-        m_CurrIndex = 0;
+        m_CurrOffset = 0;
     }
 
     BufferAllocation LinearAllocateBuffer::Allocate(uint32_t size)
     {
-        ASSERT(m_CurrIndex * m_Stride + size < m_MaxSize);
-        uint32_t count = size;
-
+        uint32_t alignedSize = (size + 3) & ~3; 
+        ASSERT(m_CurrOffset + alignedSize < m_MaxSize);
         BufferAllocation alloc;
         alloc.buffer = m_LinearGPUBuffer;
-        alloc.offset = m_CurrIndex * m_Stride;
-        alloc.size = count * m_Stride;
+        alloc.offset = m_CurrOffset;
+        alloc.size = alignedSize;
         alloc.gpuAddress = m_LinearGPUBuffer->GetGPUVirtualAddress() + alloc.offset;
         alloc.isValid = true;
         alloc.cpuAddress = nullptr;
 
-        m_CurrIndex += count;
+        m_CurrOffset += alignedSize;
         return alloc;
     }
 

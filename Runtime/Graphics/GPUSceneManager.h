@@ -5,6 +5,7 @@
 #include "Graphics/PersistantBuffer.h"
 #include "Graphics/LinearAllocateBuffer.h"
 #include "Core/PublicStruct.h"
+#include "Core/Allocator/LinearAllocator.h"
 
 namespace EngineCore
 {
@@ -17,9 +18,6 @@ namespace EngineCore
         static void Create();
         void Tick();
         void Destroy();
-        BufferAllocation GetSinglePerObjectData();
-        void RemoveSinglePerObjectData(const BufferAllocation& bufferalloc);
-        void UpdateSinglePerObjectData(const BufferAllocation& bufferalloc, void* data);
         
         BufferAllocation GetSinglePerMaterialData();
         void RemoveSinglePerMaterialData(const BufferAllocation& bufferalloc);
@@ -27,14 +25,18 @@ namespace EngineCore
         
         BufferAllocation SyncDataToPerFrameBatchBuffer(void *data, uint32_t size);
 
+        PerObjectCPUHandler ResgisterNewObject();
+        void DeleteSceneObject(PerObjectCPUHandler& handler);
+
+
         PersistantBuffer* allObjectDataBuffer;
         PersistantBuffer* allMaterialDataBuffer;
         LinearAllocateBuffer* perFrameBatchBuffer;
         std::vector<PerObjectCPUData> perObjectCPUBuffer;
-        
-        PerObjectCPUHandler ResgisterNewObject();
-        void DeleteSceneObject(PerObjectCPUHandler& handler);
-        
+        PersistantBuffer* allAABBBuffer;
+        PersistantBuffer* allInstanceDataBuffer;
+
+        LinearAllocator* perFramelinearMemoryAllocator;
     private:
         std::queue<int> m_FreePerObjectIndex;
         int m_CurrentPerObjectIndex;
