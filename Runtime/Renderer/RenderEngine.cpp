@@ -22,7 +22,7 @@ namespace EngineCore
     std::unique_ptr<RenderEngine> RenderEngine::s_Instance = nullptr;
     RenderContext RenderEngine::renderContext;
     LagacyRenderPath RenderEngine::lagacyRenderPath;
-
+    GPUSceneRenderPath RenderEngine::gpuSceneRenderPath;
     void RenderEngine::Create()
     {
         s_Instance = std::make_unique<RenderEngine>();
@@ -50,8 +50,8 @@ namespace EngineCore
         PROFILER_EVENT_END("MainThread::WaitForGpuFinished");
 
 
-        lagacyRenderPath.Execute(renderContext);
-
+        //lagacyRenderPath.Execute(renderContext);
+        gpuSceneRenderPath.Execute(renderContext);
 
         SignalMainThreadSubmited();
 

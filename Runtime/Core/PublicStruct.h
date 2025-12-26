@@ -64,7 +64,6 @@ namespace EngineCore
     {
         RootSignatureKey mRootSigKey;
 
-
         // todo: 确定这个地方是用vector还是直接单个对象
         ShaderStageType type;
         vector<ShaderBindingInfo > mConstantBufferInfo;

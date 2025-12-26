@@ -30,9 +30,8 @@ namespace EngineCore
         D3D12RenderAPI();
         ~D3D12RenderAPI(){};
 
-        virtual Shader* CompileShader(const string& path, Shader* shader) override;
-        virtual ComputeShader* CompileComputeShader(const string& path, ComputeShader* csShader) override;
-        bool CompileShaderStageAndGetReflection(const string& path, string entrypoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob);
+        virtual void CompileShader(const string& path, Shader* shader) override;
+        virtual void CompileComputeShader(const string& path, ComputeShader* csShader) override;
         virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
         virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
 
@@ -60,6 +59,7 @@ namespace EngineCore
         virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) override;
         virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) override;
         virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) override;
+        virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
         
         TD3D12DescriptorHandle GetTextureSrvHanle(uint32_t textureID);
         TD3D12FrameBuffer* GetFrameBuffer(uint32_t bufferID, bool isBackBuffer = false);
@@ -129,12 +129,10 @@ namespace EngineCore
         void InitSwapChain();
         void InitRenderTarget();
         void InitPerDrawLargeBuffer();
-        void CreateRootSignatureByShaderReflection(Shader* shader);
 
         int GetNextVAOIndex();
         TD3D12VAO& GetAvaliableModelDesc();
 
-        ComPtr<ID3D12PipelineState> GetOrCreatePSO(PSODesc& psodesc);
 
         Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
         Microsoft::WRL::ComPtr<IDXGIFactory4> mdxgiFactory;
@@ -175,10 +173,7 @@ namespace EngineCore
         unordered_map<uint32_t, TD3D12MaterialData> m_DataMap;
         vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
         unordered_map<uint32_t, TD3D12TextureBuffer> m_TextureBufferMap;
-        unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> vsBlobMap;
-        unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> psBlobMap;
-        unordered_map<uint32_t, ComPtr<ID3D12RootSignature>> shaderRootSignatureMap;
-        unordered_map<uint32_t, ComPtr<ID3D12PipelineState>> shaderPSOMap;
+
         unordered_map<uint32_t, TD3D12VAO> VAOMap;
 
         unordered_map<uint32_t, TD3D12ConstantBuffer> mGlobalConstantBufferMap;

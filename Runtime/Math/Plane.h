@@ -3,7 +3,7 @@
 
 namespace EngineCore
 {
-    struct Plane
+    struct alignas(16) Plane
     {
         // Ax + By + Cz + D = 0 ;
         // normal = (A, B, C) / sqrt(a*a + b*b + c*c);

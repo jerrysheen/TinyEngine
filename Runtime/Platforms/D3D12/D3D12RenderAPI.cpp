@@ -7,13 +7,14 @@
 #include "D3D12DescManager.h"
 #include "d3dx12.h"  // 确保包含D3D12辅助类
 #include "Renderer/FrameBufferManager.h"
-#include "D3D12PSOManager.h"
+#include "D3D12PSO.h"
 #include "Graphics/FrameBufferObject.h"
 #include "Renderer/RenderUniforms.h"
 #include "Renderer/RenderStruct.h"
 #include "D3D12RootSignature.h"
 #include "Graphics/GPUSceneManager.h"
 #include "D3D12Buffer.h"
+#include "D3D12ShaderUtils.h"
 
 namespace EngineCore
 {
@@ -28,7 +29,6 @@ namespace EngineCore
         m_DataMap = unordered_map<uint32_t, TD3D12MaterialData>();
 
         D3D12DescManager::Create(md3dDevice);
-        D3D12PSOManager::Create(md3dDevice);
 
         InitPerDrawLargeBuffer();
     }
@@ -313,282 +313,16 @@ namespace EngineCore
 		}
 	}
 
-    Shader* D3D12RenderAPI::CompileShader(const string& path, Shader* shader)
+    void D3D12RenderAPI::CompileShader(const string& path, Shader* shader)
     {
-        shader->name = path;
-        Microsoft::WRL::ComPtr<ID3DBlob> vsBlob;
-        if (!CompileShaderStageAndGetReflection(path, "VSMain", "vs_5_1", shader, ShaderStageType::VERTEX_STAGE, vsBlob))
-        {
-            cout << "Shader Stage Vertex Compile fail" << endl;
-        }
-        vsBlobMap.try_emplace(shader->GetInstanceID(), vsBlob);
-        Microsoft::WRL::ComPtr<ID3DBlob> psBlob;
-        if (!CompileShaderStageAndGetReflection(path, "PSMain", "ps_5_1", shader, ShaderStageType::FRAGMENT_STAGE, psBlob))
-        {
-            cout << "Shader Stage Pixel Shader Compile fail" << endl;
-        }
-        psBlobMap.try_emplace(shader->GetInstanceID(), psBlob);
-
-        // 创建PSO
-        CreateRootSignatureByShaderReflection(shader);
-        return shader;
+        D3D12ShaderUtils::CompileShaderAndGetReflection(path, shader);
+        D3D12RootSignature::GetOrCreateARootSig(md3dDevice, shader);
     }
 
-    ComputeShader *D3D12RenderAPI::CompileComputeShader(const string &path, ComputeShader *csShader)
+    void D3D12RenderAPI::CompileComputeShader(const string &path, ComputeShader *csShader)
     {
-
-        // 编译
-        ComPtr<ID3DBlob> computeShaderBlob;
-        ComPtr<ID3DBlob> errorBlob;
-        std::wstring filename(path.begin(), path.end());
-        HRESULT hr = D3DCompileFromFile(
-            filename.c_str(),
-            nullptr,                // Defines
-            D3D_COMPILE_STANDARD_FILE_INCLUDE, // Include handler
-            "main",                 // 入口函数
-            "cs_5_0",               // Target Profile
-            D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, // Flags (Debug用)
-            0,
-            &computeShaderBlob,
-            &errorBlob
-        );
-        if (FAILED(hr)) {
-            if (errorBlob) {
-                OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-            }
-            return nullptr;
-        }
-        
-
-        ComPtr<ID3D12ShaderReflection> pReflector;
-    
-        // 1. 从编译好的 Shader Blob 创建反射接口
-        hr = D3DReflect(
-            computeShaderBlob->GetBufferPointer(),
-            computeShaderBlob->GetBufferSize(),
-            IID_PPV_ARGS(&pReflector)
-        );
-    
-        if (FAILED(hr)) return nullptr;
-    
-        // 2. 获取 Shader 的整体描述
-        D3D12_SHADER_DESC shaderDesc;
-        pReflector->GetDesc(&shaderDesc);
-        
-        // shaderDesc.BoundResources 是资源的数量
-        printf("Resource Count: %d\n", shaderDesc.BoundResources);
-        ShaderReflectionInfo* shaderReflectionInfo = &csShader->mShaderReflectionInfo;
-
-        // 3. 遍历所有绑定的资源 (CBV, SRV, UAV)
-        for (UINT i = 0; i < shaderDesc.BoundResources; ++i)
-        {
-            D3D12_SHADER_INPUT_BIND_DESC bindDesc;
-            pReflector->GetResourceBindingDesc(i, &bindDesc);
-    
-            printf("Name: %s\n", bindDesc.Name); // HLSL 里的变量名，如 "g_Output"
-            printf("Type: %d\n", bindDesc.Type); // 如 D3D_SIT_UAV_RWTYPED
-            printf("BindPoint: %d\n", bindDesc.BindPoint); // 对应的寄存器号，如 u0 中的 0
-            printf("Space: %d\n", bindDesc.Space); // register(u0, space1) 中的 1
-            switch (bindDesc.Type) {
-                case D3D_SIT_CBUFFER:
-                {
-                    for (auto& x : shaderReflectionInfo->mConstantBufferInfo)
-                    {
-                        if (x.resourceName == bindDesc.Name) break;
-                    }
-                    shaderReflectionInfo->mConstantBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, 0, bindDesc.Space);
-    
-                    break;
-                }
-                case D3D_SIT_TEXTURE:
-                    for (auto& x : shaderReflectionInfo->mTextureInfo)
-                    {
-                        if (x.resourceName == bindDesc.Name) break;
-                    }
-                    shaderReflectionInfo->mTextureInfo.emplace_back(bindDesc.Name, ShaderResourceType::TEXTURE, bindDesc.BindPoint, 0, bindDesc.Space);
-                    break;
-                case D3D_SIT_SAMPLER:
-                    for (auto& x : shaderReflectionInfo->mSamplerInfo)
-                    {
-                        if (x.resourceName == bindDesc.Name) break;
-                    }
-                    shaderReflectionInfo->mSamplerInfo.emplace_back(bindDesc.Name, ShaderResourceType::SAMPLER, bindDesc.BindPoint, 0, bindDesc.Space);
-                    break;
-                case D3D_SIT_STRUCTURED:
-                case D3D_SIT_UAV_RWTYPED:
-                case D3D_SIT_UAV_RWSTRUCTURED:
-                case D3D_SIT_UAV_RWBYTEADDRESS:
-                case D3D_SIT_UAV_APPEND_STRUCTURED:
-                case D3D_SIT_UAV_CONSUME_STRUCTURED:
-                case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
-                    for (auto& x : shaderReflectionInfo->mUavInfo)
-                    {
-                        if (x.resourceName == bindDesc.Name) break;
-                    }
-                    shaderReflectionInfo->mUavInfo.emplace_back(bindDesc.Name, ShaderResourceType::UAV, bindDesc.BindPoint, 0, bindDesc.Space);
-                    break;
-                default:
-                    std::cout << " Not find any exites shader resource type " << std::endl;
-                    break;
-                }
-        }
-        return nullptr;
-    }
-
-    void D3D12RenderAPI::CreateRootSignatureByShaderReflection(Shader* shader)
-    {
-        ComPtr<ID3D12RootSignature> tempRootSignature = D3D12RootSignature::GetOrCreateARootSig(md3dDevice, shader);
-    
-        if(shaderRootSignatureMap.count(shader->GetInstanceID()) == 0)
-        {
-            shaderRootSignatureMap.try_emplace(shader->GetInstanceID(), tempRootSignature);
-        }
-    }
-    
-    bool D3D12RenderAPI::CompileShaderStageAndGetReflection(const string& path, string entryPoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob)
-    {
-        ComPtr<ID3DBlob> errorBlob;
-        UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-        std::wstring filename(path.begin(), path.end());
-
-        HRESULT hr = D3DCompileFromFile(
-            filename.c_str(),
-            nullptr,
-            D3D_COMPILE_STANDARD_FILE_INCLUDE,
-            entryPoint.c_str(),
-            target.c_str(),
-            compileFlags,
-            0,
-            &blob,
-            &errorBlob
-        );
-
-        if (FAILED(hr)) {
-            if (errorBlob)
-            {
-                std::cout << "Compilation Error:\n" << (char*)errorBlob->GetBufferPointer() << std::endl;
-            }
-            return false;
-        }
-
-        ComPtr<ID3D12ShaderReflection>  m_reflection;
-        D3DReflect(blob->GetBufferPointer(), blob->GetBufferSize(), IID_PPV_ARGS(&m_reflection));
-
-        ASSERT(m_reflection != nullptr);
-        
-        ShaderReflectionInfo* shaderReflectionInfo = &shader->mShaderReflectionInfo;
-
-        D3D12_SHADER_DESC desc;
-        m_reflection->GetDesc(&desc);
-
-        // 辅助 Lambda：为了避免写重复的位运算代码
-        auto UpdateMask = [&](UINT space, UINT bindPoint, int offset) {
-            // 安全检查：防止 bindPoint 太大导致溢出
-            // 例如 SRV 给了 32 位，那么 bindPoint 必须 < 32
-            // 这里简单做个保护，实际项目可以加 Log
-            if (bindPoint >= 32) return;
-
-            uint64_t bit = 1ULL << (offset + bindPoint);
-
-            if (space == 0) {
-                shaderReflectionInfo->mRootSigKey.Space0Mask |= bit;
-            }
-            else if (space == 1) {
-                shaderReflectionInfo->mRootSigKey.Space1Mask |= bit;
-            }
-        };
-
-
-        for (UINT i = 0; i < desc.BoundResources; ++i) {
-            D3D12_SHADER_INPUT_BIND_DESC bindDesc;
-            m_reflection->GetResourceBindingDesc(i, &bindDesc);
-
-            // --- 新增：核心位运算逻辑 ---
-            // 根据类型直接计算 Mask
-            switch (bindDesc.Type) {
-            case D3D_SIT_CBUFFER:
-                UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_CBV);
-                break;
-            case D3D_SIT_TEXTURE:
-                UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_SRV);
-                break;
-            case D3D_SIT_SAMPLER:
-                UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_SAMPLER);
-                break;
-            case D3D_SIT_STRUCTURED:
-            case D3D_SIT_UAV_RWTYPED:
-            case D3D_SIT_UAV_RWSTRUCTURED:
-                // ... 其他 UAV 类型 ...
-                UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_UAV);
-                break;
-            }
-
-            switch (bindDesc.Type) {
-            case D3D_SIT_CBUFFER:
-            {
-                for (auto& x : shaderReflectionInfo->mConstantBufferInfo)
-                {
-                    if (x.resourceName == bindDesc.Name) break;
-                }
-                shaderReflectionInfo->mConstantBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, 0, bindDesc.Space);
-
-                break;
-            }
-            case D3D_SIT_TEXTURE:
-                for (auto& x : shaderReflectionInfo->mTextureInfo)
-                {
-                    if (x.resourceName == bindDesc.Name) break;
-                }
-                shaderReflectionInfo->mTextureInfo.emplace_back(bindDesc.Name, ShaderResourceType::TEXTURE, bindDesc.BindPoint, 0, bindDesc.Space);
-                break;
-            case D3D_SIT_SAMPLER:
-                for (auto& x : shaderReflectionInfo->mSamplerInfo)
-                {
-                    if (x.resourceName == bindDesc.Name) break;
-                }
-                shaderReflectionInfo->mSamplerInfo.emplace_back(bindDesc.Name, ShaderResourceType::SAMPLER, bindDesc.BindPoint, 0, bindDesc.Space);
-                break;
-            case D3D_SIT_STRUCTURED:
-            case D3D_SIT_UAV_RWTYPED:
-            case D3D_SIT_UAV_RWSTRUCTURED:
-            case D3D_SIT_UAV_RWBYTEADDRESS:
-            case D3D_SIT_UAV_APPEND_STRUCTURED:
-            case D3D_SIT_UAV_CONSUME_STRUCTURED:
-            case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
-                for (auto& x : shaderReflectionInfo->mUavInfo)
-                {
-                    if (x.resourceName == bindDesc.Name) break;
-                }
-                shaderReflectionInfo->mUavInfo.emplace_back(bindDesc.Name, ShaderResourceType::UAV, bindDesc.BindPoint, 0, bindDesc.Space);
-                break;
-            default:
-                std::cout << " Not find any exites shader resource type " << std::endl;
-                break;
-            }
-        }
-        
-        if (type == ShaderStageType::VERTEX_STAGE) 
-        {
-            std::cout << "\n=== Input Layout ===\n";
-            for (UINT i = 0; i < desc.InputParameters; ++i) {
-                D3D12_SIGNATURE_PARAMETER_DESC paramDesc;
-                m_reflection->GetInputParameterDesc(i, &paramDesc);
-                if (strcmp(paramDesc.SemanticName, "POSITION") == 0) 
-                {
-                    shader->mShaderInputLayout.emplace_back(VertexAttribute::POSITION);
-                }
-                else if (strcmp(paramDesc.SemanticName, "NORMAL") == 0) 
-                {
-                    shader->mShaderInputLayout.emplace_back(VertexAttribute::NORMAL);
-                }
-                else if (strcmp(paramDesc.SemanticName, "TEXCOORD") == 0) 
-                {
-                    // 目前先比较 TexCoord一个， 没有涉及index
-                    shader->mShaderInputLayout.emplace_back(VertexAttribute::UV0);
-                }
-            }
-        }
-        return true;
+        D3D12ShaderUtils::CompileComputeShaderAndGetReflection(path, csShader);
+        D3D12RootSignature::GetOrCreateAComputeShaderRootSig(md3dDevice, csShader);
     }
 
 
@@ -1009,31 +743,6 @@ namespace EngineCore
         return handle;
     }
 
-    ComPtr<ID3D12PipelineState> D3D12RenderAPI::GetOrCreatePSO(PSODesc& psodesc)
-    {
-        uint32_t psoHash = psodesc.GetHash();
-        if(shaderPSOMap.count(psoHash) > 0)
-        {
-            return shaderPSOMap[psoHash];
-        }
-        TD3D12PSO pso;
-        pso.desc = psodesc;
-        pso.inputLayout =         
-        {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-            { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        };
-        ASSERT(psBlobMap.count(psodesc.matRenderState.shaderInstanceID) > 0);
-        ASSERT(vsBlobMap.count(psodesc.matRenderState.shaderInstanceID) > 0);
-        pso.psBlob = psBlobMap[psodesc.matRenderState.shaderInstanceID];
-        pso.vsBlob = vsBlobMap[psodesc.matRenderState.shaderInstanceID];
-        pso.rootSignature = D3D12RootSignature::GetOrCreateARootSig(psodesc.matRenderState.rootSignatureKey);
-        ComPtr<ID3D12PipelineState> temp = D3D12PSOManager::GetInstance()->CreatePSO(pso);
-        shaderPSOMap.try_emplace(psoHash, temp);
-        return temp;
-    }
-
     TD3D12FrameBuffer* D3D12RenderAPI::GetFrameBuffer(uint32_t bufferID, bool isBackBuffer)
     {
         if (bufferID == 0) return nullptr;
@@ -1261,13 +970,12 @@ namespace EngineCore
             currentRootSignature = rootSig;
         }
 
-        ComPtr<ID3D12PipelineState> pso = GetOrCreatePSO(psoDesc);  // 添加这行
+        ComPtr<ID3D12PipelineState> pso = D3D12PSO::GetOrCreatePSO(md3dDevice, psoDesc);  // 添加这行
         if(currentPSO != pso)
         {
             mCommandList->SetPipelineState(pso.Get()); 
             currentPSO = pso;
         }
-        
         
     }
 
@@ -1287,14 +995,14 @@ namespace EngineCore
 
     void D3D12RenderAPI::RenderAPISetViewPort(Payload_SetViewPort payloadSetViewport)
     {
-            // Set the viewport and scissor rect.  This needs to be reset whenever the command list is reset.
-            mScreenViewport.TopLeftX = payloadSetViewport.x;
-            mScreenViewport.TopLeftY = payloadSetViewport.y;
-            mScreenViewport.Width = payloadSetViewport.w;
-            mScreenViewport.Height = payloadSetViewport.h;
-            mScreenViewport.MinDepth = 0.0f;
-            mScreenViewport.MaxDepth = 1.0f;
-            mCommandList->RSSetViewports(1, &mScreenViewport);
+        // Set the viewport and scissor rect.  This needs to be reset whenever the command list is reset.
+        mScreenViewport.TopLeftX = payloadSetViewport.x;
+        mScreenViewport.TopLeftY = payloadSetViewport.y;
+        mScreenViewport.Width = payloadSetViewport.w;
+        mScreenViewport.Height = payloadSetViewport.h;
+        mScreenViewport.MinDepth = 0.0f;
+        mScreenViewport.MaxDepth = 1.0f;
+        mCommandList->RSSetViewports(1, &mScreenViewport);
     }
 
 
@@ -1488,6 +1196,60 @@ namespace EngineCore
         );
         mCommandList->ResourceBarrier(1, &barrier);
 
+    }
+
+    void D3D12RenderAPI::RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader)
+    {
+        ComputeShader* csShader = dispatchComputeShader.csShader;
+        // 1. set PSO
+        ComPtr<ID3D12RootSignature> rootSig = D3D12RootSignature::GetOrCreateAComputeShaderRootSig(md3dDevice, csShader);
+        if(currentRootSignature != rootSig)
+        {
+            mCommandList->SetComputeRootSignature(rootSig.Get());
+            currentRootSignature = rootSig;
+        }
+
+        PSODesc psoDesc = {};
+        psoDesc.matRenderState.rootSignatureKey = csShader->mShaderReflectionInfo.mRootSigKey;
+        psoDesc.matRenderState.shaderInstanceID = csShader->GetInstanceID();
+        ComPtr<ID3D12PipelineState> pso = D3D12PSO::GetOrCreateComputeShaderPSO(md3dDevice, psoDesc);  // 添加这行
+        if(currentPSO != pso)
+        {
+            mCommandList->SetPipelineState(pso.Get()); 
+            currentPSO = pso;
+        }
+        // 2. bind rootSign
+        std::vector<ShaderBindingInfo> cbvs = csShader->mShaderReflectionInfo.mConstantBufferInfo;
+        std::vector<ShaderBindingInfo> srvs = csShader->mShaderReflectionInfo.mTextureInfo;
+        std::vector<ShaderBindingInfo> uavs = csShader->mShaderReflectionInfo.mUavInfo;
+        std::vector<ShaderBindingInfo> samplersInfo = csShader->mShaderReflectionInfo.mSamplerInfo;
+        int rootParamIndex = 0;
+        for (const auto& cbv : cbvs)
+        {
+            D3D12Buffer* buffer = static_cast<D3D12Buffer*>(csShader->GetBufferResource(cbv.resourceName));
+            mCommandList->SetComputeRootConstantBufferView(rootParamIndex++, buffer->GetGPUVirtualAddress());
+        }
+
+        // Note: Root SRV only supports buffers (e.g., StructuredBuffer/ByteAddressBuffer), not textures.
+        // This matches current engine's ComputeShader::SetBuffer(name, gpuVA) usage.
+        for (const auto& srv : srvs)
+        {
+            D3D12Buffer* buffer = static_cast<D3D12Buffer*>(csShader->GetBufferResource(srv.resourceName));
+            mCommandList->SetComputeRootShaderResourceView(rootParamIndex++, buffer->GetGPUVirtualAddress());
+        }
+
+        for (const auto& uav : uavs)
+        {
+            D3D12Buffer* buffer = static_cast<D3D12Buffer*>(csShader->GetBufferResource(uav.resourceName));
+            mCommandList->SetComputeRootUnorderedAccessView(rootParamIndex++, buffer->GetGPUVirtualAddress());  
+        }
+        
+        // 3. dispatch
+        mCommandList->Dispatch(
+            dispatchComputeShader.groupX,
+            dispatchComputeShader.groupY,
+            dispatchComputeShader.groupZ
+        );
     }
 
 } // namespace EngineCore

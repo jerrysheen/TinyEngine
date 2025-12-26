@@ -282,7 +282,7 @@
     <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12DescManager.h">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PSOManager.h">
+    <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PSO.h">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PerDrawAllocator.h">
@@ -292,6 +292,9 @@
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12RootSignature.h">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12ShaderUtils.h">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12Struct.h">
@@ -557,7 +560,7 @@
     <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12DescManager.cpp">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PSOManager.cpp">
+    <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PSO.cpp">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PerDrawAllocator.cpp">
@@ -567,6 +570,9 @@
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12RootSignature.cpp">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12ShaderUtils.cpp">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\d3dUtil.cpp">

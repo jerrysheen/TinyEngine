@@ -33,8 +33,8 @@ StructuredBuffer<AABB> g_InputAABBs : register(t0);
 
 // 输出：可见物体的索引列表 (UAV)
 // 我们将可见的 Instance ID 存入这个 AppendBuffer
-// 在 D3D12 C++ 端，你需要为这个 Buffer 关联一个 Counter Resource
-AppendStructuredBuffer<uint> g_VisibleInstanceIndices : register(u0);
+RWStructuredBuffer<uint> g_VisibleInstanceIndices : register(u0);
+RWByteAddressBuffer g_CounterBuffer : register(u1); // 手动传入一个计数器 buffer
 
 // ==========================================
 // 辅助函数：AABB vs Frustum 测试
@@ -78,8 +78,8 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     uint instanceIndex = dtid.x;
 
     // 1. 越界检查
-    if (instanceIndex >= g_TotalInstanceCount)
-        return;
+    //if (instanceIndex >= g_TotalInstanceCount)
+    //    return;
 
     // 2. 读取当前实例的 AABB
     AABB box = g_InputAABBs[instanceIndex];
@@ -89,6 +89,10 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     {
         // 4. 如果可见，将索引追加到输出列表
         // AppendStructuredBuffer 会自动处理原子计数
-        g_VisibleInstanceIndices.Append(instanceIndex);
+        //g_VisibleInstanceIndices.Append(instanceIndex);
     }
+    uint writeIndex;
+    g_CounterBuffer.InterlockedAdd(0, 1, writeIndex); 
+
+    g_VisibleInstanceIndices[writeIndex] = 1;
 }

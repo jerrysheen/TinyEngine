@@ -2,6 +2,7 @@
 #include "Managers/Manager.h"
 #include "RenderContext.h"
 #include "Renderer/RenderPath/LagacyRenderPath.h"
+#include "Renderer/RenderPath/GPUSceneRenderPath.h"
 
 namespace EngineCore
 {
@@ -31,6 +32,7 @@ namespace EngineCore
         static std::unique_ptr<RenderEngine> s_Instance;
         static RenderContext renderContext;
         static LagacyRenderPath lagacyRenderPath;
+        static GPUSceneRenderPath gpuSceneRenderPath;
     };
     
 }

@@ -240,7 +240,7 @@ for (auto& [space, cbList] : cbvBySpace)
 
 ### ✅ 步骤 4：Root Signature 和 PSO 的绑定（无需修改）
 
-**当前逻辑已经正确**（`D3D12PSOManager.cpp` 第28行）：
+**当前逻辑已经正确**（`D3D12PSO.cpp` 第28行）：
 
 ```cpp
 psoDesc.pRootSignature = pso.rootSignature.Get();  // ✅ 已有

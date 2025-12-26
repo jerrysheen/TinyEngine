@@ -61,6 +61,8 @@ namespace EngineCore
 
         void CopyBufferRegion(const Payload_CopyBufferRegion& copyCmd);
 
+        void DispatchComputeShader(const Payload_DispatchComputeShader& dispatchCmd);
+        
         void RenderThreadMain() 
         {
             while (mRunning.load(std::memory_order_acquire) == true) 

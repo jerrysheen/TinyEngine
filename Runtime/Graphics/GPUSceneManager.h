@@ -6,6 +6,8 @@
 #include "Graphics/LinearAllocateBuffer.h"
 #include "Core/PublicStruct.h"
 #include "Core/Allocator/LinearAllocator.h"
+#include "Graphics/ComputeShader.h"
+#include "Resources/ResourceHandle.h"
 
 namespace EngineCore
 {
@@ -28,15 +30,17 @@ namespace EngineCore
         PerObjectCPUHandler ResgisterNewObject();
         void DeleteSceneObject(PerObjectCPUHandler& handler);
 
+        std::vector<PerObjectCPUData> perObjectCPUBuffer;
 
         PersistantBuffer* allObjectDataBuffer;
         PersistantBuffer* allMaterialDataBuffer;
         LinearAllocateBuffer* perFrameBatchBuffer;
-        std::vector<PerObjectCPUData> perObjectCPUBuffer;
         PersistantBuffer* allAABBBuffer;
         PersistantBuffer* allInstanceDataBuffer;
 
         LinearAllocator* perFramelinearMemoryAllocator;
+
+        ResourceHandle<ComputeShader> GPUCullingShaderHandler;
     private:
         std::queue<int> m_FreePerObjectIndex;
         int m_CurrentPerObjectIndex;

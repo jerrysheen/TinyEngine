@@ -7,6 +7,7 @@ namespace EngineCore
     std::unique_ptr<RenderAPI> RenderAPI::s_Instance = nullptr;
     void RenderAPI::Create()
     {
+        if (s_Instance) return;
         s_Instance = std::make_unique<D3D12RenderAPI>();
     }
 

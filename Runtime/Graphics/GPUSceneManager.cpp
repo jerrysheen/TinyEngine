@@ -9,7 +9,6 @@
 #include "Scene/Scene.h"
 #include "Renderer/RenderCommand.h"
 #include "Renderer/Renderer.h"
-#include "Graphics/ComputeShader.h"
 
 namespace EngineCore
 {
@@ -195,8 +194,8 @@ namespace EngineCore
         perFramelinearMemoryAllocator = new LinearAllocator(4 * 1024 * 1024);
     
         // 创建Compute Shader
-        ResourceHandle<ComputeShader> shader = ResourceManager::GetInstance()->CreateResource<ComputeShader>("Assets/Shader/GPUCulling.hlsl");
-    
+        string path = PathSettings::ResolveAssetPath("Shader/GPUCulling.hlsl");
+        GPUCullingShaderHandler = ResourceManager::GetInstance()->CreateResource<ComputeShader>(path);
     }
 
 

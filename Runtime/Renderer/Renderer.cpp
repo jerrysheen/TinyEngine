@@ -230,6 +230,14 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(temp);
     }
 
+    void Renderer::DispatchComputeShader(const Payload_DispatchComputeShader &dispatchCmd)
+    {
+        DrawCommand cmd;
+        cmd.data.dispatchComputeShader = dispatchCmd;
+        cmd.op = RenderOp::kDispatchComputeShader;
+        mRenderBuffer.PushBlocking(cmd);
+    }
+
     void Renderer::Submit(const RenderPassInfo &info)
     {
         // todo： 后面挪到别的地方， 先做Batch的部分：
@@ -314,6 +322,9 @@ namespace EngineCore
             break;
         case RenderOp::kIssueEditorGUIDraw:
             hasDrawGUI = true;
+            break;
+        case RenderOp::kDispatchComputeShader:
+            RenderAPI::GetInstance()->RenderAPIDispatchComputeShader(cmd.data.dispatchComputeShader);
             break;
         default:
             break;

@@ -8,6 +8,8 @@
 #include "Graphics/Texture.h"
 #include "Renderer/RenderCommand.h"
 #include "Graphics/IGPUBuffer.h"
+#include "Renderer/RenderPipeline/RenderPass.h"
+
 
 namespace  EngineCore
 {
@@ -18,8 +20,8 @@ namespace  EngineCore
         static bool IsInitialized(){return s_Instance != nullptr;};
        
         static void Create();
-        virtual Shader* CompileShader(const string& path, Shader* shader) = 0;
-        virtual ComputeShader* CompileComputeShader(const string& path, ComputeShader* csShader) = 0;
+        virtual void  CompileShader(const string& path, Shader* shader) = 0;
+        virtual void  CompileComputeShader(const string& path, ComputeShader* csShader) = 0;
         
         virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
         virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
@@ -57,6 +59,7 @@ namespace  EngineCore
         virtual IGPUBuffer* CreateBuffer(const BufferDesc& desc, void* data) = 0;
         virtual void UploadBuffer(IGPUBuffer* buffer, uint32_t offset, void* data, uint32_t size) = 0;
         virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) = 0;
+        virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) = 0;
 
         template<typename T>
         void SetGlobalValue(uint32_t bufferID, uint32_t offset, T* value)

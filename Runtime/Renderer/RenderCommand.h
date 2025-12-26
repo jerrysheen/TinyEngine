@@ -58,7 +58,7 @@ namespace EngineCore
     // 和材质相关，关联材质后可以做合批操作。
     struct MaterailRenderState
     {
-        uint32_t shaderInstanceID;
+        uint32_t shaderInstanceID = 0;
         RootSignatureKey rootSignatureKey;
         // depth stencil state:
         bool enableDepthTest = true;
@@ -67,16 +67,16 @@ namespace EngineCore
 
         // blend mode
         bool enableBlend = false;
-        BlendState srcBlend;
-        BlendState destBlend;
+        BlendState srcBlend = (BlendState)0;
+        BlendState destBlend = (BlendState)0;
     };
 
     struct PSODesc
     {
         MaterailRenderState matRenderState;
 
-        TextureFormat colorAttachment;
-        TextureFormat depthAttachment;
+        TextureFormat colorAttachment = TextureFormat::EMPTY;
+        TextureFormat depthAttachment = TextureFormat::EMPTY;
         uint32_t GetHash()
         {
             if(hashID != 0) return hashID;
@@ -214,12 +214,13 @@ namespace EngineCore
         uint32_t perDrawStride;
     };
 
+    class ComputeShader;
     struct Payload_DispatchComputeShader
     {
-        uint32_t vaoID;
-        int count;
-        uint32_t perDrawOffset;
-        uint32_t perDrawStride;
+        ComputeShader* csShader;
+        uint32_t groupX;
+        uint32_t groupY;
+        uint32_t groupZ;
     };
 
     union CommandData 

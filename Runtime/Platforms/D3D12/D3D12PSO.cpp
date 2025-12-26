@@ -1,27 +1,14 @@
 #include "PreCompiledHeader.h"
-#include "D3D12PSOManager.h"
+#include "D3D12PSO.h"
 #include "D3D12Struct.h"
+#include "Renderer/RenderCommand.h"
+#include "D3D12ShaderUtils.h"
+#include "D3D12RootSignature.h"
 
 namespace EngineCore
 {
-    D3D12PSOManager* D3D12PSOManager::sInstance = nullptr;
-
-    D3D12PSOManager::D3D12PSOManager(Microsoft::WRL::ComPtr<ID3D12Device> d3dDevice)
-    :md3dDevice(d3dDevice)
-    {
-    }
-
-    void D3D12PSOManager::Create(Microsoft::WRL::ComPtr<ID3D12Device> d3dDevice)
-    {
-        sInstance = new D3D12PSOManager(d3dDevice);
-    }
-
-    void D3D12PSOManager::Delete()
-    {
-        delete sInstance;
-    }
-
-    ComPtr<ID3D12PipelineState> D3D12PSOManager::CreatePSO(const TD3D12PSO &pso)
+    unordered_map<uint32_t, ComPtr<ID3D12PipelineState>> D3D12PSO::shaderPSOMap;
+    ComPtr<ID3D12PipelineState> D3D12PSO::CreatePSO(Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice, const TD3D12PSO& pso)
     {
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
 
@@ -56,7 +43,57 @@ namespace EngineCore
         return d3d12Pso;
     }
 
-    D3D12_DEPTH_STENCIL_DESC D3D12PSOManager::GetDepthStencilDesc(const MaterailRenderState &matRenderState)
+    ComPtr<ID3D12PipelineState> D3D12PSO::GetOrCreatePSO(Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice, PSODesc &psodesc)
+    {
+        uint32_t psoHash = psodesc.GetHash();
+        if(shaderPSOMap.count(psoHash) > 0)
+        {
+            return shaderPSOMap[psoHash];
+        }
+        TD3D12PSO pso;
+        pso.desc = psodesc;
+        pso.inputLayout =         
+        {
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        };
+        pso.psBlob = D3D12ShaderUtils::GetPSBlob(psodesc.matRenderState.shaderInstanceID);
+        pso.vsBlob = D3D12ShaderUtils::GetVSBlob(psodesc.matRenderState.shaderInstanceID);
+        pso.rootSignature = D3D12RootSignature::GetOrCreateARootSig(psodesc.matRenderState.rootSignatureKey);
+        ComPtr<ID3D12PipelineState> temp = CreatePSO(md3dDevice, pso);
+        shaderPSOMap.try_emplace(psoHash, temp);
+        return temp;
+    }
+
+    ComPtr<ID3D12PipelineState> D3D12PSO::GetOrCreateComputeShaderPSO(Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice, PSODesc& psodesc)
+    {
+        uint32_t psoHash = psodesc.GetHash();
+        if(shaderPSOMap.count(psoHash) > 0)
+        {
+            return shaderPSOMap[psoHash];
+        }
+
+        ComPtr<ID3D12RootSignature> rootSig =
+        D3D12RootSignature::GetOrCreateARootSig(psodesc.matRenderState.rootSignatureKey);
+        ComPtr<ID3DBlob> csBlob =
+            D3D12ShaderUtils::GetCSBlob(psodesc.matRenderState.shaderInstanceID);
+
+        // 3) 组 Compute PSO 描述
+        D3D12_COMPUTE_PIPELINE_STATE_DESC desc = {};
+        desc.pRootSignature = rootSig.Get();
+        desc.CS = { csBlob->GetBufferPointer(), csBlob->GetBufferSize() };
+        desc.NodeMask = 0;
+        desc.CachedPSO = { nullptr, 0 };
+        desc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+        ComPtr<ID3D12PipelineState> pso;
+        ThrowIfFailed(md3dDevice->CreateComputePipelineState(&desc, IID_PPV_ARGS(&pso)));
+    
+        shaderPSOMap.emplace(psoHash, pso);
+        return pso;
+    }
+
+    D3D12_DEPTH_STENCIL_DESC D3D12PSO::GetDepthStencilDesc(const MaterailRenderState &matRenderState)
     {
         D3D12_DEPTH_STENCIL_DESC desc = {};
         
@@ -76,7 +113,7 @@ namespace EngineCore
         return desc;
     }
 
-    D3D12_BLEND_DESC D3D12PSOManager::GetBlendDesc(const MaterailRenderState &matRenderState)
+    D3D12_BLEND_DESC D3D12PSO::GetBlendDesc(const MaterailRenderState &matRenderState)
     {
         D3D12_BLEND_DESC blendDesc = {};
         blendDesc.AlphaToCoverageEnable = FALSE;
@@ -99,7 +136,7 @@ namespace EngineCore
         return blendDesc;
     }
 
-    D3D12_RASTERIZER_DESC D3D12PSOManager::GetRasterizerDesc(const MaterailRenderState &matRenderState)
+    D3D12_RASTERIZER_DESC D3D12PSO::GetRasterizerDesc(const MaterailRenderState &matRenderState)
     {
         D3D12_RASTERIZER_DESC rastDesc = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
         // 根据需要设置裁剪模式等
