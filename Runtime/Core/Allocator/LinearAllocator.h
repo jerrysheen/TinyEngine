@@ -23,12 +23,14 @@ namespace EngineCore
         {
             // 补齐空位， 下一个位置从当前struct align倍数开始，避免出错
             size_t alignedOffset = (currentOffset + align - 1) & ~(align - 1);
-            if(alignedOffset + size > buffer.size())
-            {
-                size_t newSize = buffer.size() * 2;
-                while (alignedOffset + size > newSize) newSize *= 2;
-                buffer.resize(newSize);
-            }
+            ASSERT(alignedOffset + size <= buffer.size());
+            // 这个地方错的， buffer.resize 会导致前面分配的失效。
+            // if(alignedOffset + size > buffer.size())
+            // {
+            //     size_t newSize = buffer.size() * 2;
+            //     while (alignedOffset + size > newSize) newSize *= 2;
+            //     buffer.resize(newSize);
+            // }
 
             void* ptr = buffer.data() + alignedOffset;
             currentOffset = alignedOffset + size;

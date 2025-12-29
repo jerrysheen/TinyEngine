@@ -22,7 +22,7 @@
 #include <cmath> 
 #include <algorithm>
 #include "Core/Profiler.h"
-
+#include <queue>
 using std::unordered_map;
 using std::string;
 using std::vector;

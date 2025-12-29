@@ -2,6 +2,8 @@
 #include <iostream>
 #include "Math/AABB.h"
 #include "Math/Vector2.h"
+#include "Math/Frustum.h"
+
 
 namespace EngineCore
 {
@@ -100,4 +102,23 @@ namespace EngineCore
         void* indirectArgsUAV;
     };
 
+    struct alignas(16) GPUCullingParam 
+    {
+        Frustum frustum;
+        uint32_t totalItem;
+    };
+
+    struct DrawIndirectArgs
+    {
+        uint32_t indexCount = 0; // 比如这个Mesh有300个索引
+        uint32_t instanceCount = 0;                 // 【重置为0】等待GPU计数
+        uint32_t firstIndex = 0;
+        uint32_t vertexOffset = 0;
+        uint32_t firstInstance = 0;     
+    };
+
+    struct RenderProxy
+    {
+        uint32_t batchID;
+    };
 }

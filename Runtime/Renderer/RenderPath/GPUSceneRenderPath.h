@@ -3,7 +3,7 @@
 #include "Graphics/GPUSceneManager.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/RenderCommand.h"
-#include "Graphics/PersistantBuffer.h"
+#include "Graphics/GPUBufferAllocator.h"
 #include "Graphics/IGPUBuffer.h"
 #include "Math/Frustum.h"
 
@@ -23,30 +23,44 @@ namespace EngineCore
                 desc.debugName = L"VisibilityBuffer";
                 desc.memoryType = BufferMemoryType::Default;
                 desc.size = 4 * 10000;
-                desc.stride = 1;
+                desc.stride = 4 * 10000;
                 desc.usage = BufferUsage::ByteAddressBuffer;
-                visibilityBuffer = new PersistantBuffer(desc);
+                visibilityBuffer = new GPUBufferAllocator(desc);
+                visiblityAlloc = visibilityBuffer->Allocate(4 * 10000);
 
                 desc.debugName = L"VisibilityCounter";
                 desc.memoryType = BufferMemoryType::Default;
                 desc.size = 256;
                 desc.stride = 256;
                 desc.usage = BufferUsage::ByteAddressBuffer;
-                visibilityCounterBuffer = new PersistantBuffer(desc);
-                visiblityAlloc = visibilityCounterBuffer->Allocate(256);
+                visibilityCounterBuffer = new GPUBufferAllocator(desc);
+                visiblityCounterAlloc = visibilityCounterBuffer->Allocate(256);
 
                 desc.debugName = L"CullingParamBuffer";
                 desc.memoryType = BufferMemoryType::Upload;
-                desc.size = sizeof(Frustum);
-                desc.stride = 1;
+                desc.size = sizeof(GPUCullingParam);
+                desc.stride = sizeof(GPUCullingParam);
                 desc.usage = BufferUsage::ConstantBuffer;
-                cullingParamBuffer = new PersistantBuffer(desc);
+                cullingParamBuffer = new GPUBufferAllocator(desc);
+                cullingParamAlloc = cullingParamBuffer->Allocate(sizeof(Frustum));
+
+                
             }
 
             Renderer::GetInstance()->BeginFrame();
             vector<uint8_t> data;
             data.resize(4, 0);
-            visibilityCounterBuffer->UploadBuffer(visiblityAlloc, data.data(), data.size());
+            visibilityCounterBuffer->UploadBuffer(visiblityCounterAlloc, data.data(), data.size());
+            data.resize(4 * 10000, 0);
+            visibilityBuffer->UploadBuffer(visiblityAlloc, data.data(), data.size());
+
+            Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->mainCamera;
+            int gameObjectCount = SceneManager::GetInstance()->GetCurrentScene()->allObjList.size();
+
+            GPUCullingParam cullingParam;
+            cullingParam.frustum = cam->mFrustum;
+            cullingParam.totalItem = gameObjectCount;
+            cullingParamBuffer->UploadBuffer(cullingParamAlloc, &cullingParam, sizeof(GPUCullingParam));
 
             PROFILER_EVENT_BEGIN("MainThread::GPUSceneManagerTick");
             GPUSceneManager::GetInstance()->Tick();
@@ -55,14 +69,16 @@ namespace EngineCore
             context.Reset();
 
             ComputeShader* csShader = GPUSceneManager::GetInstance()->GPUCullingShaderHandler.Get();
-            //csShader->SetBuffer("g_InputAABBs", GPUSceneManager::GetInstance()->allAABBBuffer->GetGPUBuffer());
+            csShader->SetBuffer("g_InputPerObjectDatas", GPUSceneManager::GetInstance()->allObjectDataBuffer->GetGPUBuffer());
+            csShader->SetBuffer("g_RenderProxies", GPUSceneManager::GetInstance()->renderProxyBuffer->GetGPUBuffer());
             csShader->SetBuffer("g_VisibleInstanceIndices", visibilityBuffer->GetGPUBuffer());
             csShader->SetBuffer("g_CounterBuffer", visibilityCounterBuffer->GetGPUBuffer());
-            //csShader->SetBuffer("CullingParams", cullingParamBuffer->GetGPUBuffer());
+            csShader->SetBuffer("CullingParams", cullingParamBuffer->GetGPUBuffer());
 
+            
             Payload_DispatchComputeShader payload;
             payload.csShader = GPUSceneManager::GetInstance()->GPUCullingShaderHandler.Get();
-            payload.groupX = 1;
+            payload.groupX = gameObjectCount / 64 + 1;
             payload.groupY = 1;
             payload.groupZ = 1;
             Renderer::GetInstance()->DispatchComputeShader(payload);
@@ -76,10 +92,12 @@ namespace EngineCore
         }
 
         bool hasSetUpBuffer = false;
-        PersistantBuffer* visibilityBuffer;
         BufferAllocation visiblityAlloc;
-        PersistantBuffer* visibilityCounterBuffer;
-        PersistantBuffer* cullingParamBuffer;
+        GPUBufferAllocator* visibilityBuffer;
+        BufferAllocation visiblityCounterAlloc;
+        GPUBufferAllocator* visibilityCounterBuffer;
+        BufferAllocation cullingParamAlloc;
+        GPUBufferAllocator* cullingParamBuffer;
 
     };
 }

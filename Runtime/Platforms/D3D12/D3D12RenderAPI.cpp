@@ -578,7 +578,7 @@ namespace EngineCore
             case BufferMemoryType::Default:
                 heapType = D3D12_HEAP_TYPE_DEFAULT;
                 initialState = D3D12_RESOURCE_STATE_COMMON;
-                if(desc.usage == BufferUsage::StructuredBuffer || desc.usage == BufferUsage::ByteAddressBuffer)
+                if(desc.usage == BufferUsage::StructuredBuffer || desc.usage == BufferUsage::ByteAddressBuffer || desc.usage == BufferUsage::IndirectArgument)
                 {
                     resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
                 }
@@ -1114,10 +1114,13 @@ namespace EngineCore
         // todo 切换backbuffer
         // 最后一定是backbuffer的格式切换。 中间过程中涉及到 RT-> ShaderResource，就直接根据资源判断
         {
-            mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(
-                mBackBuffer[mCurrBackBuffer].resource.Get(),
-                D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
-            mBackBuffer[mCurrBackBuffer].state = D3D12_RESOURCE_STATE_PRESENT;
+            if (mBackBuffer[mCurrBackBuffer].state != D3D12_RESOURCE_STATE_PRESENT)
+            {
+                mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(
+                    mBackBuffer[mCurrBackBuffer].resource.Get(),
+                    mBackBuffer[mCurrBackBuffer].state, D3D12_RESOURCE_STATE_PRESENT));
+                mBackBuffer[mCurrBackBuffer].state = D3D12_RESOURCE_STATE_PRESENT;
+            }
         }
 
         // Done recording commands.

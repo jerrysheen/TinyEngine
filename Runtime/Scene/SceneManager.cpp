@@ -35,6 +35,14 @@ namespace EngineCore
         }
     }
 
+    void SceneManager::EndFrame()
+    {
+        if (s_Instance->mCurrentScene != nullptr)
+        {
+            s_Instance->mCurrentScene->EndFrame();
+        }
+    }
+
     // scene的创建， 不应该这么玩， 应该是空场景， 或者是根据MetaData
     inline Scene* SceneManager::AddNewScene(const std::string& name)
     {

@@ -39,7 +39,7 @@ namespace EngineCore {
         uint32_t Padding0 = 0;
         
         // 总大小目前是 64 字节。
-        // 如果你的 PersistantBuffer Stride 是 512，这里后面全是浪费的，
+        // 如果你的 GPUFixedBlockAllocator Stride 是 512，这里后面全是浪费的，
         // 但没关系，我们先跑通流程。
     };
 }
@@ -52,7 +52,7 @@ namespace EngineCore {
 // 伪代码
 void MaterialInstance::SyncToGPU()
 {
-    // m_Alloc 是从 PersistantBuffer 分配出来的
+    // m_Alloc 是从 GPUFixedBlockAllocator 分配出来的
     if(m_IsDirty && m_Alloc.isValid)
     {
         // 直接把结构体 memcpy 上去，没有任何序列化开销
@@ -115,7 +115,7 @@ StandardMaterialData LoadMaterial(uint baseAddress)
 ```
 
 ### 总结
-这样你就跳过了复杂的 Layout 解析系统，先用 **C++ Struct <-> HLSL Load** 的硬绑定方式验证你的 `PersistantBuffer` 和 `RawBuffer` 读取机制是否工作正常。
+这样你就跳过了复杂的 Layout 解析系统，先用 **C++ Struct <-> HLSL Load** 的硬绑定方式验证你的 `GPUFixedBlockAllocator` 和 `RawBuffer` 读取机制是否工作正常。
 
 只要你能看到改变 C++ 的 `Roughness` 值，屏幕上的材质高光跟着变，这一仗就算打赢了。后面再加纹理 ID 和自动布局就很容易了。
 
@@ -293,6 +293,6 @@ PBR_Standard_Data Load_PBR_Standard(uint baseAddr) {
 3.  **运行期**：
     *   `MaterialInstance` 内部维护一个 `vector<byte> m_Blob`。
     *   当上层调用 `SetProperty` 时，查询 Layout 拿到 offset，直接改写 `m_Blob`。
-    *   渲染前，直接把 `m_Blob` **memcpy** 到你的 `PersistantBuffer` 里。
+    *   渲染前，直接把 `m_Blob` **memcpy** 到你的 `GPUFixedBlockAllocator` 里。
 
 这样你的引擎就打通了：**JSON 定义 -> C++ 布局计算 -> HLSL 代码生成 -> 二进制数据上传** 的全自动流水线。这才是现代引擎（如 UE5, Unity HDRP）的做法。

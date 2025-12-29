@@ -69,6 +69,20 @@ namespace EngineCore
         bool enableBlend = false;
         BlendState srcBlend = (BlendState)0;
         BlendState destBlend = (BlendState)0;
+        uint32_t hashID = 0;
+        uint32_t GetHash()
+        {
+            if(hashID != 0) return hashID;
+            hashID = 0;
+            HashCombine(hashID, shaderInstanceID);
+            HashCombine(hashID, static_cast<uint32_t>(enableDepthTest));
+            HashCombine(hashID, static_cast<uint32_t>(enableDepthWrite));
+            HashCombine(hashID, static_cast<uint32_t>(depthComparisonFunc));
+            HashCombine(hashID, static_cast<uint32_t>(enableBlend));
+            HashCombine(hashID, static_cast<uint32_t>(srcBlend));
+            HashCombine(hashID, static_cast<uint32_t>(destBlend));
+            return hashID;
+        }
     };
 
     struct PSODesc

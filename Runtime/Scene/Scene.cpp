@@ -49,11 +49,15 @@ namespace EngineCore
 
     void Scene::Update()
     {
-        renderSceneData.ClearDirtyList();
         RunLogicUpdate();
         RunTransformUpdate();
         RunRecordDirtyRenderNode();
         renderSceneData.UpdateDirtyRenderNode();
+    }
+
+    void Scene::EndFrame()
+    {
+        renderSceneData.ClearDirtyList();
     }
 
     GameObject* Scene::FindGameObject(const std::string &name)
@@ -182,24 +186,24 @@ namespace EngineCore
                 if(renderSceneData.vaoIDList[i] == UINT32_MAX)
                 {
                     renderSceneData.vaoIDList[i] = meshFilter->mMeshHandle.Get()->GetInstanceID();
-                    renderSceneData.materialDirtyList.push_back(i);
                 }
                 meshRenderer->lastSyncTransformVersion = currversion;
                 meshRenderer->UpdateBounds(meshFilter->mMeshHandle.Get()->bounds, meshRenderer->gameObject->transform->GetWorldMatrix());
                 renderSceneData.transformDirtyList.push_back(i);
             }
+
         }
     }
 
-    void Scene::MarkRenderSceneTransformDataDirty(uint32_t index)
-    {
-        renderSceneData.transformDirtyList.push_back(index);
-    }
+    // void Scene::MarkRenderSceneTransformDataDirty(uint32_t index)
+    // {
+    //     renderSceneData.transformDirtyList.push_back(index);
+    // }
 
-    void Scene::MarkRenderSceneMaterialDirty(uint32_t index)
-    {
-        renderSceneData.materialDirtyList.push_back(index);
-    }
+    // void Scene::MarkRenderSceneMaterialDirty(uint32_t index)
+    // {
+    //     renderSceneData.materialDirtyList.push_back(index);
+    // }
 
     int Scene::AddNewRenderNodeToCurrentScene(MeshRenderer *renderer)
     {
@@ -216,12 +220,17 @@ namespace EngineCore
             m_CurrentSceneRenderNodeIndex++;
         }
         renderSceneData.SyncData(renderer, index);
+        renderSceneData.materialDirtyList.push_back(index);
         return index;
     }
+
+
 
     void Scene::DeleteRenderNodeFromCurrentScene(uint32_t index)
     {
         m_FreeSceneNode.push(index);
         renderSceneData.DeleteData(index);
+        renderSceneData.materialDirtyList.push_back(index);
+
     }
 }

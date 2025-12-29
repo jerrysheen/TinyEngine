@@ -23,6 +23,7 @@ namespace EngineCore
     private:
         void Update();
         void Render();
+        void EndFrame();
         void Shutdown();
     };
 

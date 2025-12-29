@@ -28,6 +28,8 @@ namespace EngineCore
             Update();
 
             Render();
+
+            EndFrame();
         }
 
         // 明确的关闭流程（顺序很重要！）
@@ -71,6 +73,11 @@ namespace EngineCore
     {
         PROFILER_ZONE("MainThread::RenderTick");
         RenderEngine::GetInstance()->Tick();
+    }
+
+    void Game::EndFrame()
+    {
+        SceneManager::GetInstance()->EndFrame();
     }
 
 }

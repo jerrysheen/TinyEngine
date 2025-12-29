@@ -31,9 +31,12 @@ namespace EngineCore
 
    struct alignas(16) PerObjectData
    {
-      Matrix4x4 objectToWorld;
-      uint32_t matIndex;
-      uint32_t padding[3]; // 显式填充 12 字节，确保 C++ (80字节) 与 HLSL 布局严格一致
+      AABB bounds = {};
+      Matrix4x4 objectToWorld = Matrix4x4::Identity;
+      uint32_t matIndex = 0;
+      uint32_t renderProxyStartIndex = 0;
+      uint32_t renderProxyCount = 0;
+      uint32_t padding[1]; // 显式填充 12 字节，确保 C++ (80字节) 与 HLSL 布局严格一致
       PerObjectData() = default;
       PerObjectData(const Matrix4x4& objectToWorld, uint32_t matID) : objectToWorld(objectToWorld),
           matIndex(matID) {}

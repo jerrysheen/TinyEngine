@@ -27,10 +27,8 @@ namespace EngineCore
             };
         }
         
-        virtual void DeserializedFields(const json& data) override {
-            data.at("MatHandle").get_to(mShardMatHandler);
-            SetUpMaterialPropertyBlock();
-        }
+        virtual void DeserializedFields(const json& data) override;
+        
         void SetUpMaterialPropertyBlock();
 
         inline Material* GetSharedMaterial()
@@ -54,6 +52,9 @@ namespace EngineCore
         uint32_t lastSyncTransformVersion = 0;
         AABB worldBounds;
         uint32_t sceneRenderNodeIndex = UINT32_MAX;
+        bool materialDirty = true;
+        
+        uint32_t renderLayer = 1;
     private:
         ResourceHandle<Material> mShardMatHandler;
         ResourceHandle<Material> mInstanceMatHandler;

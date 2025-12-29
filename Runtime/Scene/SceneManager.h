@@ -28,6 +28,7 @@ namespace EngineCore
         static void Update();
         static void Create();
         static void Destroy();
+        static void EndFrame();
         void Init();
     public:
         inline static SceneManager* GetInstance() 

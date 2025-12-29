@@ -14,7 +14,7 @@ namespace EngineCore
     public:
         MeshFilter() = default;
         MeshFilter(GameObject* gamObject);
-        virtual ~MeshFilter() override {};
+        virtual ~MeshFilter() override;
         static ComponentType GetStaticType() { return ComponentType::MeshFilter; };
         virtual ComponentType GetType() const override{ return ComponentType::MeshFilter; };
     public:
@@ -27,9 +27,14 @@ namespace EngineCore
             };
         }
         
-        virtual void DeserializedFields(const json& data) override {
-            data.at("MeshHandle").get_to(mMeshHandle);
+        virtual void DeserializedFields(const json& data) override;
+
+        uint32_t GetHash()
+        {
+            return mMeshHandle->GetInstanceID();
         }
+    private:
+        uint32_t hash;
     };
 
 }

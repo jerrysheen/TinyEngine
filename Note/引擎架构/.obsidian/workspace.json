@@ -30,15 +30,15 @@
             "state": {
               "type": "canvas",
               "state": {
-                "file": "12_17GPU Scene大致流程， 和实现方案.canvas",
+                "file": "12_27 GPUScene 前半段更新.canvas",
                 "viewState": {
-                  "x": -493.092093396955,
-                  "y": -426.1252885052723,
-                  "zoom": -0.09462312925702865
+                  "x": -269.9999694824219,
+                  "y": 615.0000228881836,
+                  "zoom": 0
                 }
               },
               "icon": "lucide-layout-dashboard",
-              "title": "12_17GPU Scene大致流程， 和实现方案"
+              "title": "12_27 GPUScene 前半段更新"
             }
           }
         ],
@@ -192,10 +192,11 @@
   },
   "active": "b37dfbe50f450bb4",
   "lastOpenFiles": [
-    "ComputeShader接入梳理.canvas",
-    "未命名.md",
-    "ComputeShader接入梳理：.md",
     "12_17GPU Scene大致流程， 和实现方案.canvas",
+    "未命名.md",
+    "12_27 GPUScene 前半段更新.canvas",
+    "ComputeShader接入梳理.canvas",
+    "ComputeShader接入梳理：.md",
     "Pasted image 20251217230600.png",
     "12_13重构数据流.canvas",
     "Pasted image 20251213164812.png",

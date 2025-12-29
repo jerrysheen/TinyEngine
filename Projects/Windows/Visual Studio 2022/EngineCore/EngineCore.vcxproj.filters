@@ -204,6 +204,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Graphics\FrameBufferObject.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\GPUBufferAllocator.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\GPUSceneManager.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
@@ -211,9 +214,6 @@
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\IGPUBufferAllocator.h">
-      <Filter>Runtime\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Graphics\LinearAllocateBuffer.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\Material.h">
@@ -229,9 +229,6 @@
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\ModelUtils.h">
-      <Filter>Runtime\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Graphics\PersistantBuffer.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\Shader.h">
@@ -311,6 +308,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\PreCompiledHeader.h">
       <Filter>Runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\BatchManager.h">
+      <Filter>Runtime\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\Culling.h">
       <Filter>Runtime\Renderer</Filter>
@@ -503,10 +503,10 @@
     <ClCompile Include="..\..\..\..\Runtime\Graphics\ComputeShader.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Graphics\GPUSceneManager.cpp">
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\GPUBufferAllocator.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Graphics\LinearAllocateBuffer.cpp">
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\GPUSceneManager.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\Material.cpp">
@@ -516,9 +516,6 @@
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\ModelUtils.cpp">
-      <Filter>Runtime\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Graphics\PersistantBuffer.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\Shader.cpp">
@@ -583,6 +580,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\PreCompiledHeader.cpp">
       <Filter>Runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\BatchManager.cpp">
+      <Filter>Runtime\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\Culling.cpp">
       <Filter>Runtime\Renderer</Filter>

@@ -2,8 +2,7 @@
 #include "Graphics/IGPUBuffer.h"
 #include "Math/Matrix4x4.h"
 #include "Renderer/RenderUniforms.h"
-#include "Graphics/PersistantBuffer.h"
-#include "Graphics/LinearAllocateBuffer.h"
+#include "Graphics/GPUBufferAllocator.h"
 #include "Core/PublicStruct.h"
 #include "Core/Allocator/LinearAllocator.h"
 #include "Graphics/ComputeShader.h"
@@ -24,26 +23,30 @@ namespace EngineCore
         BufferAllocation GetSinglePerMaterialData();
         void RemoveSinglePerMaterialData(const BufferAllocation& bufferalloc);
         void UpdateSinglePerMaterialData(const BufferAllocation& bufferalloc, void* data);
-        
+
+        void TryFreeRenderProxyBlock(const PerObjectData &perObjectData);
+        void TryCreateRenderProxyBlock(const PerObjectData &perObjectData);
         BufferAllocation SyncDataToPerFrameBatchBuffer(void *data, uint32_t size);
 
-        PerObjectCPUHandler ResgisterNewObject();
-        void DeleteSceneObject(PerObjectCPUHandler& handler);
+        //PerObjectCPUHandler ResgisterNewObject();
+        //void DeleteSceneObject(PerObjectCPUHandler& handler);
 
-        std::vector<PerObjectCPUData> perObjectCPUBuffer;
-
-        PersistantBuffer* allObjectDataBuffer;
-        PersistantBuffer* allMaterialDataBuffer;
-        LinearAllocateBuffer* perFrameBatchBuffer;
-        PersistantBuffer* allAABBBuffer;
-        PersistantBuffer* allInstanceDataBuffer;
-
+        std::vector<PerObjectData> perObjectCPUBuffer;
         LinearAllocator* perFramelinearMemoryAllocator;
+
+        GPUBufferAllocator* allObjectDataBuffer;
+        GPUBufferAllocator* allMaterialDataBuffer;
+        GPUBufferAllocator* perFrameBatchBuffer;
+        //GPUBufferAllocator* allAABBBuffer;
+        GPUBufferAllocator* allInstanceDataBuffer;
+        GPUBufferAllocator* renderProxyBuffer;
+        vector<PerObjectData> cpuPerObjectDataList;
+        vector<uint32_t> dirtyPerObjectDataIndexList;
 
         ResourceHandle<ComputeShader> GPUCullingShaderHandler;
     private:
         std::queue<int> m_FreePerObjectIndex;
-        int m_CurrentPerObjectIndex;
+        //int m_CurrentPerObjectIndex;
         static GPUSceneManager* sInstance; 
     };
 

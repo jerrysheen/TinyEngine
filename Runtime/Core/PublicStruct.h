@@ -10,7 +10,6 @@
 
 namespace EngineCore
 {
-
     // 用来描述model Input 或者 shader reflection input
     // todos: shader inputlayout 部分的控制， 目前只是简单把值塞过来
     struct InputLayout
@@ -182,15 +181,25 @@ namespace EngineCore
         inline bool isValid() const {return perObejectIndex != UINT32_MAX;}
     };
 
-    struct PerObjectCPUData
+    //struct PerObjectCPUData
+    //{
+    //    AssetID meshID = {};
+    //    AssetID matID = {};
+    //    uint32_t layermask = 0;
+    //    Matrix4x4 worldMatrix = Matrix4x4::Identity;
+    //    AABB bounds;
+    //    BufferAllocation gpuAllocation;
+    //    bool active = false;
+    //};
+
+    struct IndirectDrawCallArgs
     {
-        AssetID meshID = {};
-        AssetID matID = {};
-        uint32_t layermask = 0;
-        Matrix4x4 worldMatrix = Matrix4x4::Identity;
-        AABB bounds;
-        BufferAllocation gpuAllocation;
-        bool active = false;
+        uint32_t IndexCountPerInstance;
+        uint32_t InstanceCount;
+        uint32_t StartIndexLocation;
+        int32_t  BaseVertexLocation;
+        uint32_t StartInstanceLocation;
     };
+
 
 }

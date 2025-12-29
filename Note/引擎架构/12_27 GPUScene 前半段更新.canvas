@@ -1,0 +1,9 @@
+{
+	"nodes":[
+		{"id":"c9e36cb3575f8ad4","x":-412,"y":-264,"width":612,"height":364,"type":"text","text":"# GPU Culling：\n遍历，所有GameObject，判断它AABB是否visible\n如果visible，那么就加入到IndirectDrawArgs里面，\n\tindirectDrawArgs其实就是个结构体，描述当前绘制，用什么mesh，绘制几个，从Buffer的什么位置开始绘制。\n为此，我们需要提前告诉GPU， 每个Batch的信息，以及考虑到一个GameObject可能会包含多个渲染实体（比如又要绘制shadow又要绘制opaque），我们会为每个GameObject + 一层中间层renderProxy\n\n现在GPU Culling的大致逻辑变成，扫描所有GameObject，\n如果可见，找到对应的所有RenderProxy，取出里面的所有Batch信息， 将对应的Batch的DrawArgs修改了。\n当然，除了上面的buffer， 我还需要准备一个能存放所有RenderProxy大小的instanceDataBUffer，里面记录了每个Batch下，需要绘制哪些物体"},
+		{"id":"f4ba038857e8e9ae","x":-820,"y":220,"width":680,"height":300,"type":"text","text":"# BatchManager， RenderProxyGenerator\n我们还需要一个Linear continue allocator\n大致就是说，每一次我们创建GameObeject， 就根据它的材质属性，在BatchManager里面更新Batch信息， 不管是新创建还是已经有的。都做更新\n然后根据这个材质分配一个连续的RenderProxy段， 并且将材质注册到GPUScene的perObjecData里面去。\n运行时候， 还要从这个BatchManager里面来判断当前有的batch，以及offset，更新这一帧的BatchInfo，给GPUScene用。 "}
+	],
+	"edges":[
+		{"id":"9513bb3af3e741f4","fromNode":"c9e36cb3575f8ad4","fromSide":"bottom","toNode":"f4ba038857e8e9ae","toSide":"top"}
+	]
+}

@@ -53,6 +53,8 @@ namespace EngineCore
         {
             meshRendererList[index] = nullptr;
             vaoIDList[index] = UINT32_MAX;
+
+            // 后续删除RenderProxy
         }
 
         inline void ClearDirtyList()
@@ -84,6 +86,7 @@ namespace EngineCore
         void Open();
         void Close(){};
         void Update();
+        void EndFrame();
         GameObject* FindGameObject(const std::string& name);
         GameObject* CreateGameObject(const std::string& name);
         void Scene::DestroyGameObject(const std::string& name);
@@ -106,9 +109,9 @@ namespace EngineCore
         void RunTransformUpdate();
         void RunRecordDirtyRenderNode();
 
-        void MarkRenderSceneTransformDataDirty(uint32_t index);
-        void MarkRenderSceneMaterialDirty(uint32_t index);
 
+        // todo:
+        // 材质更新的时候， 也需要去调用这个逻辑，比如changeRenderNodeInfo之类的，
         int AddNewRenderNodeToCurrentScene(MeshRenderer* renderer);
         void DeleteRenderNodeFromCurrentScene(uint32_t index);
         

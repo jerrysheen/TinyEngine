@@ -1,7 +1,6 @@
 #include "PreCompiledHeader.h"
 #include "GPUSceneManager.h"
-#include "Graphics/PersistantBuffer.h"
-#include "Graphics/LinearAllocateBuffer.h"
+#include "Graphics/GPUBufferAllocator.h"
 #include "Graphics/IGPUBuffer.h"
 #include "Renderer/RenderUniforms.h"
 #include "Renderer/RenderAPI.h"
@@ -9,6 +8,7 @@
 #include "Scene/Scene.h"
 #include "Renderer/RenderCommand.h"
 #include "Renderer/Renderer.h"
+#include "Renderer/BatchManager.h"
 
 namespace EngineCore
 {
@@ -32,7 +32,6 @@ namespace EngineCore
         delete allObjectDataBuffer;
         delete allMaterialDataBuffer;
         delete perFrameBatchBuffer;
-        delete allAABBBuffer;
         delete allInstanceDataBuffer;
         delete perFramelinearMemoryAllocator;
     }
@@ -41,61 +40,103 @@ namespace EngineCore
     {
         perFrameBatchBuffer->Reset();
         perFramelinearMemoryAllocator->Reset();
+        dirtyPerObjectDataIndexList.clear();
         // 消化sceneRenderData中的dirty
         Scene* mCurrentScene = SceneManager::GetInstance()->GetCurrentScene();
         auto& renderSceneData = mCurrentScene->renderSceneData;
         vector<CopyOp> copyList;
-        vector<AABB> aabbList;
         vector<PerObjectData> perObjectList;
-        int count = renderSceneData.transformDirtyList.size();
-        if (count == 0) return;
-        CopyOp* data = perFramelinearMemoryAllocator->allocArray<CopyOp>(count);
-        CopyOp* currPtr = data;
 
-        uint32_t AABBbufferSize = count * sizeof(AABB);
-        auto& AABBAllocation = perFrameBatchBuffer->Allocate(AABBbufferSize);
-        for (int i = 0; i < renderSceneData.transformDirtyList.size(); i++) 
+        vector<DrawIndirectArgs> drawIndirectArgsList = BatchManager::GetInstance()->GetBatchInfo();
+        
+        BatchManager* batchManager = BatchManager::GetInstance();
+        // 更新脏MeshRenderer的RenderProxy
+        // todo:
+        for(int i = 0; i < renderSceneData.materialDirtyList.size(); i++)
         {   
-            uint32_t nodeIndex = renderSceneData.transformDirtyList[i];
-            currPtr->srcOffset = AABBAllocation.offset + i * sizeof(AABB);
-            currPtr->dstOffset = nodeIndex * sizeof(AABB);
-            currPtr->size = sizeof(AABB);
-            currPtr++;
-            aabbList.push_back(renderSceneData.aabbList[nodeIndex]);
+            uint32_t index = renderSceneData.materialDirtyList[i];
+            uint32_t vaoID = renderSceneData.vaoIDList[i];
+            if(vaoID == UINT32_MAX) return;
+            if (renderSceneData.meshRendererList[index] == nullptr)
+            {
+                // delete: 只处理RenderProxy相关信息。
+                PerObjectData& data = perObjectCPUBuffer[index];
+                data.matIndex = 0;
+                TryFreeRenderProxyBlock(data);
+                data.renderProxyCount = 0;
+                data.renderProxyStartIndex = 0;
+            }
+            else
+            {
+                // todo: 假设Proxy换了呢？ 就比如这个材质换成了另一个材质了？
+                // 这个事情似乎可以交给BatchManager去做，这里就访问就ok
+                PerObjectData& data = perObjectCPUBuffer[index];
+                data.matIndex = renderSceneData.meshRendererList[index]->GetMaterial()->materialAllocation.offset;
+                vector<RenderProxy> proxyList = batchManager->GetAvaliableRenderProxyList(renderSceneData.meshRendererList[index], renderSceneData.vaoIDList[index]);
+                BufferAllocation allocation = renderProxyBuffer->Allocate(proxyList.size() * sizeof(RenderProxy));
+                renderProxyBuffer->UploadBuffer(allocation, proxyList.data(), proxyList.size() * sizeof(RenderProxy));
+                data.renderProxyStartIndex = allocation.offset;
+                data.renderProxyCount = proxyList.size();
+            }
+            dirtyPerObjectDataIndexList.push_back(index);
         }
-        perFrameBatchBuffer->UploadBuffer(AABBAllocation, aabbList.data(), AABBbufferSize);
 
-        Payload_CopyBufferRegion copyRegionCmd;
-        copyRegionCmd.srcUploadBuffer = perFrameBatchBuffer->GetGPUBuffer();
-        copyRegionCmd.destDefaultBuffer = allAABBBuffer->GetGPUBuffer();
-        copyRegionCmd.copyList = data;
-        copyRegionCmd.count = count;
-        Renderer::GetInstance()->CopyBufferRegion(copyRegionCmd);
+        for(int i = 0; i < renderSceneData.transformDirtyList.size(); i++)
+        {   
+            uint32_t index = renderSceneData.transformDirtyList[i];
+            uint32_t vaoID = renderSceneData.vaoIDList[i];
+            if(vaoID == UINT32_MAX) return;
+            bool find = false;
+            for(auto indexInList : dirtyPerObjectDataIndexList)
+            {
+                if(indexInList == index)
+                {
+                    find = true;
+                }
+            }
+            if(find == false) dirtyPerObjectDataIndexList.push_back(index);
+        }
 
-
+        // 获取需要更新的PerObjectData，传到GPU
+        int count = dirtyPerObjectDataIndexList.size();
         uint32_t PerObjectbufferSize = count * sizeof(PerObjectData);
         auto& PerObjectAllocation = perFrameBatchBuffer->Allocate(PerObjectbufferSize);
-        data = perFramelinearMemoryAllocator->allocArray<CopyOp>(count);
-        currPtr = data;
-        for (int i = 0; i < renderSceneData.transformDirtyList.size(); i++)
+        vector<PerObjectData> tempCPUUploadData;
+        CopyOp* data = perFramelinearMemoryAllocator->allocArray<CopyOp>(count);
+        CopyOp* currPtr = data;
+        for(int i = 0; i < dirtyPerObjectDataIndexList.size(); i++)
         {
-            uint32_t nodeIndex = renderSceneData.transformDirtyList[i];
+            int index = dirtyPerObjectDataIndexList[i];
+            if(renderSceneData.meshRendererList[i] == nullptr)
+            {
+                // delete:
+                PerObjectData& data = perObjectCPUBuffer[index];
+                data.bounds = AABB{};
+                data.objectToWorld = Matrix4x4::Identity;
+            }
+            else
+            {
+                PerObjectData& data = perObjectCPUBuffer[index];
+                data.bounds = renderSceneData.aabbList[index];
+                data.objectToWorld = renderSceneData.objectToWorldMatrixList[index];
+            }
+
+            uint32_t nodeIndex = index;
             currPtr->srcOffset = PerObjectAllocation.offset + i * sizeof(PerObjectData);
             currPtr->dstOffset = nodeIndex * sizeof(PerObjectData);
             currPtr->size = sizeof(PerObjectData);
             currPtr++;
-            perObjectList.emplace_back(renderSceneData.objectToWorldMatrixList[nodeIndex]
-                , renderSceneData.meshRendererList[nodeIndex]->GetMaterial()->materialAllocation.offset);
+            tempCPUUploadData.push_back(perObjectCPUBuffer[index]);
         }
-        perFrameBatchBuffer->UploadBuffer(PerObjectAllocation, perObjectList.data(), PerObjectbufferSize);
 
-        copyRegionCmd;
+        if (count == 0) return;
+        perFrameBatchBuffer->UploadBuffer(PerObjectAllocation, tempCPUUploadData.data(), PerObjectbufferSize);
+        Payload_CopyBufferRegion copyRegionCmd;
         copyRegionCmd.srcUploadBuffer = perFrameBatchBuffer->GetGPUBuffer();
         copyRegionCmd.destDefaultBuffer = allObjectDataBuffer->GetGPUBuffer();
         copyRegionCmd.copyList = data;
         copyRegionCmd.count = count;
         Renderer::GetInstance()->CopyBufferRegion(copyRegionCmd);
-
     }
 
     BufferAllocation GPUSceneManager::GetSinglePerMaterialData()
@@ -113,6 +154,21 @@ namespace EngineCore
         allMaterialDataBuffer->UploadBuffer(bufferalloc, data, 512);
     }
 
+    void GPUSceneManager::TryFreeRenderProxyBlock(const PerObjectData &perObjectData)
+    {
+        if(perObjectData.renderProxyCount == 0) return;
+        BufferAllocation allocation;
+        allocation.offset = perObjectData.renderProxyStartIndex * sizeof(RenderProxy);
+        allocation.size = perObjectData.renderProxyCount * sizeof(RenderProxy);
+        renderProxyBuffer->Free(allocation);
+    }
+
+    void GPUSceneManager::TryCreateRenderProxyBlock(const PerObjectData &perObjectData)
+    {
+        
+        //BufferAllocation alloc = renderProxyBuffer->Allocate()
+    }
+
     BufferAllocation GPUSceneManager::SyncDataToPerFrameBatchBuffer(void *data, uint32_t size)
     {
         auto& allocation = perFrameBatchBuffer->Allocate(size);
@@ -120,28 +176,28 @@ namespace EngineCore
         return allocation;
     }
 
-    PerObjectCPUHandler GPUSceneManager::ResgisterNewObject()
-    {
-        PerObjectCPUHandler handle;
-        if(!m_FreePerObjectIndex.empty())
-        {
-            handle.perObejectIndex = m_FreePerObjectIndex.front();
-            m_FreePerObjectIndex.pop();
-            return handle;
-        }
-        handle.perObejectIndex = m_CurrentPerObjectIndex;
-        m_CurrentPerObjectIndex++;        
-        return handle;
-    }
+    //PerObjectCPUHandler GPUSceneManager::ResgisterNewObject()
+    //{
+    //    PerObjectCPUHandler handle;
+    //    if(!m_FreePerObjectIndex.empty())
+    //    {
+    //        handle.perObejectIndex = m_FreePerObjectIndex.front();
+    //        m_FreePerObjectIndex.pop();
+    //        return handle;
+    //    }
+    //    handle.perObejectIndex = m_CurrentPerObjectIndex;
+    //    m_CurrentPerObjectIndex++;        
+    //    return handle;
+    //}
 
-    void GPUSceneManager::DeleteSceneObject(PerObjectCPUHandler &handler)
-    {
-        ASSERT(handler.isValid());
-        PerObjectCPUData& data = perObjectCPUBuffer[handler.perObejectIndex];
-        data.active = false;
-        m_FreePerObjectIndex.push(handler.perObejectIndex);
-        handler.perObejectIndex = UINT32_MAX;
-    }
+    //void GPUSceneManager::DeleteSceneObject(PerObjectCPUHandler &handler)
+    //{
+    //    ASSERT(handler.isValid());
+    //    PerObjectCPUData& data = perObjectCPUBuffer[handler.perObejectIndex];
+    //    data.active = false;
+    //    m_FreePerObjectIndex.push(handler.perObejectIndex);
+    //    handler.perObejectIndex = UINT32_MAX;
+    //}
 
     GPUSceneManager::GPUSceneManager()
     {
@@ -151,7 +207,7 @@ namespace EngineCore
         desc.size = sizeof(PerObjectData) * 10000;
         desc.stride = sizeof(PerObjectData);
         desc.usage = BufferUsage::StructuredBuffer;
-        allObjectDataBuffer = new PersistantBuffer(desc);
+        allObjectDataBuffer = new GPUBufferAllocator(desc);
 
         // 强烈建议使用 512， 注意，这边都是Byte
         // 理由：
@@ -164,38 +220,40 @@ namespace EngineCore
         desc.size = 512 * 10000; // 预分配约 5MB
         desc.stride = 512;       // PageSize
         desc.usage = BufferUsage::ByteAddressBuffer;
-        allMaterialDataBuffer = new PersistantBuffer(desc);
+        allMaterialDataBuffer = new GPUBufferAllocator(desc);
 
         desc.debugName = L"PerFrameBatchBuffer";
         desc.memoryType = BufferMemoryType::Upload;
         desc.size = 1024 * 1024 * 4;
         desc.stride = 1;
         desc.usage = BufferUsage::ByteAddressBuffer;
-        perFrameBatchBuffer = new LinearAllocateBuffer(desc);
+        perFrameBatchBuffer = new GPUBufferAllocator(desc);
 
-        perObjectCPUBuffer.reserve(10000);
+        perObjectCPUBuffer.resize(10000);
         std::queue<int> empty;
         std::swap(m_FreePerObjectIndex, empty);
-
-        desc.debugName = L"AABBBufferDataBuffer";
-        desc.memoryType = BufferMemoryType::Default;
-        desc.size = sizeof(AABB) * 10000;
-        desc.stride = sizeof(AABB);
-        desc.usage = BufferUsage::StructuredBuffer;
-        allAABBBuffer = new PersistantBuffer(desc);
 
         desc.debugName = L"InstanceDataBuffer";
         desc.memoryType = BufferMemoryType::Upload;
         desc.size = 4 * 10000; 
         desc.stride = 4;       
         desc.usage = BufferUsage::ByteAddressBuffer;
-        allInstanceDataBuffer = new PersistantBuffer(desc);
+        allInstanceDataBuffer = new GPUBufferAllocator(desc);
 
         perFramelinearMemoryAllocator = new LinearAllocator(4 * 1024 * 1024);
     
         // 创建Compute Shader
         string path = PathSettings::ResolveAssetPath("Shader/GPUCulling.hlsl");
         GPUCullingShaderHandler = ResourceManager::GetInstance()->CreateResource<ComputeShader>(path);
+    
+        // 创建RenderProxy
+        desc.debugName = L"RenderProxyBuffer";
+        desc.memoryType = BufferMemoryType::Default;
+        desc.size = 10000 * sizeof(RenderProxy);
+        desc.usage = BufferUsage::StructuredBuffer;
+        renderProxyBuffer = new GPUBufferAllocator(desc);
+
+        cpuPerObjectDataList.resize(10000);
     }
 
 

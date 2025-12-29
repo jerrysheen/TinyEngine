@@ -3,12 +3,27 @@
 // 结构定义
 // ==========================================
 
-// 1. AABB 包围盒定义 (对应 C++ 结构体)
+// // 1. AABB 包围盒定义 (对应 C++ 结构体)
 struct AABB
 {
     float3 Min; // AABB 最小点
     float3 Max; // AABB 最大点
     float2 Padding;
+};
+
+struct PerObjectData
+{
+    AABB aabb;
+    float4x4 objectToWorld;
+    uint matIndex;
+    uint renderProxyStartIndex;
+    uint renderProxyCount;
+    uint padding; // 显式填充 12 字节，确保 C++ (72字节) 与 HLSL 布局严格一致
+};
+
+struct RenderProxy
+{
+    uint batchID;
 };
 
 // 2. 常量缓冲：视锥体平面和物体总数
@@ -29,7 +44,9 @@ cbuffer CullingParams : register(b0)
 // ==========================================
 
 // 输入：所有物体的 AABB 数据 (SRV)
-StructuredBuffer<AABB> g_InputAABBs : register(t0);
+//StructuredBuffer<AABB> g_InputAABBs : register(t0);
+StructuredBuffer<PerObjectData> g_InputPerObjectDatas : register(t0);
+StructuredBuffer<RenderProxy> g_RenderProxies : register(t1);
 
 // 输出：可见物体的索引列表 (UAV)
 // 我们将可见的 Instance ID 存入这个 AppendBuffer
@@ -43,6 +60,7 @@ RWByteAddressBuffer g_CounterBuffer : register(u1); // 手动传入一个计数�
 bool IsVisible(AABB box)
 {
     // 遍历 6 个视锥体平面
+    [loop]
     for (int i = 0; i < 6; ++i)
     {
         float4 plane = g_FrustumPlanes[i];
@@ -78,21 +96,21 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     uint instanceIndex = dtid.x;
 
     // 1. 越界检查
-    //if (instanceIndex >= g_TotalInstanceCount)
-    //    return;
+    if (instanceIndex >= g_TotalInstanceCount)
+        return;
 
     // 2. 读取当前实例的 AABB
-    AABB box = g_InputAABBs[instanceIndex];
-
+    AABB box = g_InputPerObjectDatas[instanceIndex].aabb;
+    uint proxyOffset = g_InputPerObjectDatas[instanceIndex].renderProxyStartIndex;
+    uint writeIndex;
+    g_CounterBuffer.InterlockedAdd(0, 1, writeIndex); 
     // 3. 执行剔除测试
     if (IsVisible(box))
     {
         // 4. 如果可见，将索引追加到输出列表
         // AppendStructuredBuffer 会自动处理原子计数
         //g_VisibleInstanceIndices.Append(instanceIndex);
+        g_VisibleInstanceIndices[writeIndex] = g_RenderProxies[proxyOffset].batchID;
     }
-    uint writeIndex;
-    g_CounterBuffer.InterlockedAdd(0, 1, writeIndex); 
 
-    g_VisibleInstanceIndices[writeIndex] = 1;
 }
