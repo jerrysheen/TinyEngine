@@ -6,13 +6,22 @@
 #include "Graphics/GPUBufferAllocator.h"
 #include "Graphics/IGPUBuffer.h"
 #include "Math/Frustum.h"
+#include "Renderer/BatchManager.h"
+
 
 namespace EngineCore
 {
     class GPUSceneRenderPath : public IRenderPath
     {
     public:
-        virtual ~GPUSceneRenderPath() override {};
+        virtual ~GPUSceneRenderPath() override 
+        {
+            delete visibilityBuffer;
+            delete visibilityCounterBuffer;
+            delete cullingParamBuffer;
+            delete indirectDrawArgsBuffer;
+        };
+
         virtual void Execute(RenderContext& context) override
         {
             if (!hasSetUpBuffer) 
@@ -43,9 +52,19 @@ namespace EngineCore
                 desc.usage = BufferUsage::ConstantBuffer;
                 cullingParamBuffer = new GPUBufferAllocator(desc);
                 cullingParamAlloc = cullingParamBuffer->Allocate(sizeof(Frustum));
-
                 
+                
+                desc.debugName = L"IndirectDrawArgsBuffer";
+                desc.memoryType = BufferMemoryType::Default;
+                desc.size = sizeof(DrawIndirectArgs) * 100;
+                desc.stride = sizeof(DrawIndirectArgs);
+                desc.usage = BufferUsage::StructuredBuffer;
+                indirectDrawArgsBuffer = new GPUBufferAllocator(desc);
+                indirectDrawArgsAlloc = indirectDrawArgsBuffer->Allocate(sizeof(DrawIndirectArgs) * 100);
             }
+
+            //todo:
+            // 这个地方要把ResourceState切换一下
 
             Renderer::GetInstance()->BeginFrame();
             vector<uint8_t> data;
@@ -66,6 +85,10 @@ namespace EngineCore
             GPUSceneManager::GetInstance()->Tick();
             PROFILER_EVENT_END("MainThread::GPUSceneManagerTick");
 
+            // Get Current BatchInfo:
+            vector<DrawIndirectArgs> batchInfo = BatchManager::GetInstance()->GetBatchInfo();
+            indirectDrawArgsBuffer->UploadBuffer(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
+
             context.Reset();
 
             ComputeShader* csShader = GPUSceneManager::GetInstance()->GPUCullingShaderHandler.Get();
@@ -74,6 +97,7 @@ namespace EngineCore
             csShader->SetBuffer("g_VisibleInstanceIndices", visibilityBuffer->GetGPUBuffer());
             csShader->SetBuffer("g_CounterBuffer", visibilityCounterBuffer->GetGPUBuffer());
             csShader->SetBuffer("CullingParams", cullingParamBuffer->GetGPUBuffer());
+            csShader->SetBuffer("g_IndirectDrawCallArgs", indirectDrawArgsBuffer->GetGPUBuffer());
 
             
             Payload_DispatchComputeShader payload;
@@ -83,6 +107,13 @@ namespace EngineCore
             payload.groupZ = 1;
             Renderer::GetInstance()->DispatchComputeShader(payload);
             // 先把shader跑起来， 渲染到RT上， 后续blit啥的接入后面再说
+
+            // 这个地方简单跑个绑定测试？
+                        // 这个地方简单跑个绑定测试？
+            RenderAPI::GetInstance()->SetResourceState();
+            Renderer::GetInstance()->DrawIndirect();            // 这个地方简单跑个绑定测试？
+            RenderAPI::GetInstance()->SetResourceState();
+            Renderer::GetInstance()->DrawIndirect();
 
 #ifdef EDITOR
             Renderer::GetInstance()->OnDrawGUI();
@@ -98,6 +129,8 @@ namespace EngineCore
         GPUBufferAllocator* visibilityCounterBuffer;
         BufferAllocation cullingParamAlloc;
         GPUBufferAllocator* cullingParamBuffer;
+        BufferAllocation indirectDrawArgsAlloc;
+        GPUBufferAllocator* indirectDrawArgsBuffer;
 
     };
 }

@@ -98,7 +98,7 @@ namespace EngineCore
             argsParam.indexInDrawIndirectList = drawIndirectArgsList.size() - 1;
             globalOffset += value;
         }   
-        return vector<DrawIndirectArgs>();
+        return drawIndirectArgsList;
     }
 
     void BatchManager::TryAddBatches(MeshRenderer *meshRenderer, MeshFilter *meshFilter)

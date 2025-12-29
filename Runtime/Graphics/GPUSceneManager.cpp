@@ -75,7 +75,10 @@ namespace EngineCore
                 vector<RenderProxy> proxyList = batchManager->GetAvaliableRenderProxyList(renderSceneData.meshRendererList[index], renderSceneData.vaoIDList[index]);
                 BufferAllocation allocation = renderProxyBuffer->Allocate(proxyList.size() * sizeof(RenderProxy));
                 renderProxyBuffer->UploadBuffer(allocation, proxyList.data(), proxyList.size() * sizeof(RenderProxy));
-                data.renderProxyStartIndex = allocation.offset;
+                // NOTE:
+                // BufferAllocation::offset is in BYTES, but HLSL StructuredBuffer indexing is in ELEMENTS.
+                // Store element index here so GPU side can use it directly as `g_RenderProxies[renderProxyStartIndex]`.
+                data.renderProxyStartIndex = static_cast<uint32_t>(allocation.offset / sizeof(RenderProxy));
                 data.renderProxyCount = proxyList.size();
             }
             dirtyPerObjectDataIndexList.push_back(index);
