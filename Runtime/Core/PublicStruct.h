@@ -192,14 +192,6 @@ namespace EngineCore
     //    bool active = false;
     //};
 
-    struct IndirectDrawCallArgs
-    {
-        uint32_t IndexCountPerInstance;
-        uint32_t InstanceCount;
-        uint32_t StartIndexLocation;
-        int32_t  BaseVertexLocation;
-        uint32_t StartInstanceLocation;
-    };
 
 
 }

@@ -39,6 +39,15 @@ cbuffer CullingParams : register(b0)
     uint g_TotalInstanceCount; 
 };
 
+struct IndirectDrawCallArgs
+{
+    uint IndexCountPerInstance;
+    uint InstanceCount;
+    uint StartIndexLocation;
+    uint BaseVertexLocation;
+    uint StartInstanceLocation;
+};
+
 // ==========================================
 // 资源绑定
 // ==========================================
@@ -52,6 +61,7 @@ StructuredBuffer<RenderProxy> g_RenderProxies : register(t1);
 // 我们将可见的 Instance ID 存入这个 AppendBuffer
 RWStructuredBuffer<uint> g_VisibleInstanceIndices : register(u0);
 RWByteAddressBuffer g_CounterBuffer : register(u1); // 手动传入一个计数器 buffer
+RWStructuredBuffer<IndirectDrawCallArgs> g_IndirectDrawCallArgs : register(u2); // 手动传入一个计数器 buffer
 
 // ==========================================
 // 辅助函数：AABB vs Frustum 测试
@@ -102,15 +112,23 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     // 2. 读取当前实例的 AABB
     AABB box = g_InputPerObjectDatas[instanceIndex].aabb;
     uint proxyOffset = g_InputPerObjectDatas[instanceIndex].renderProxyStartIndex;
-    uint writeIndex;
-    g_CounterBuffer.InterlockedAdd(0, 1, writeIndex); 
+    uint batchID = g_RenderProxies[proxyOffset].batchID;
+
     // 3. 执行剔除测试
     if (IsVisible(box))
     {
+        uint writeIndex;
+        g_CounterBuffer.InterlockedAdd(0, 1, writeIndex); 
+        uint instanceCount;
+        InterlockedAdd(g_IndirectDrawCallArgs[batchID].InstanceCount, 1, instanceCount);
+        // 执行后：InstanceCount 原子 +1；instanceCount 是加之前的值
+
+        uint indexStart = g_IndirectDrawCallArgs[batchID].StartInstanceLocation;
+        uint currentIndex = indexStart + instanceCount;
         // 4. 如果可见，将索引追加到输出列表
         // AppendStructuredBuffer 会自动处理原子计数
         //g_VisibleInstanceIndices.Append(instanceIndex);
-        g_VisibleInstanceIndices[writeIndex] = g_RenderProxies[proxyOffset].batchID;
+        g_VisibleInstanceIndices[currentIndex] = instanceIndex;
     }
 
 }
