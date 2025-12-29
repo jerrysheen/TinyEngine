@@ -109,11 +109,7 @@ namespace EngineCore
             // 先把shader跑起来， 渲染到RT上， 后续blit啥的接入后面再说
 
             // 这个地方简单跑个绑定测试？
-                        // 这个地方简单跑个绑定测试？
-            RenderAPI::GetInstance()->SetResourceState();
-            Renderer::GetInstance()->DrawIndirect();            // 这个地方简单跑个绑定测试？
-            RenderAPI::GetInstance()->SetResourceState();
-            Renderer::GetInstance()->DrawIndirect();
+
 
 #ifdef EDITOR
             Renderer::GetInstance()->OnDrawGUI();
