@@ -4,6 +4,7 @@
 #include "Graphics/FrameBufferObject.h"
 #include "Renderer/RenderPipeline/OpaqueRenderPass.h"
 #include "Renderer/RenderPipeline/FinalBlitPass.h"
+#include "Renderer/RenderPipeline/GPUSceneRenderPass.h"
 #include "GameObject/GameObject.h"
 #include "Transform.h"
 #include "Serialization/ComponentFactory.h"
@@ -19,7 +20,7 @@ namespace EngineCore
     {
         gameObject = go;
         // fake one.
-        mRenderPassAsset.renderPasses.push_back(new OpaqueRenderPass());
+        mRenderPassAsset.renderPasses.push_back(new GPUSceneRenderPass());
         mRenderPassAsset.renderPasses.push_back(new FinalBlitPass());
 
         FrameBufferDesc colorAttachmentDesc;

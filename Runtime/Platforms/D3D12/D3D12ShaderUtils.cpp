@@ -189,7 +189,7 @@ namespace EngineCore
              nullptr,                // Defines
              D3D_COMPILE_STANDARD_FILE_INCLUDE, // Include handler
              "CSMain",                 // 入口函数
-             "cs_5_0",               // Target Profile
+             "cs_5_1",               // Target Profile
              D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, // Flags (Debug用)
              0,
              &computeShaderBlob,

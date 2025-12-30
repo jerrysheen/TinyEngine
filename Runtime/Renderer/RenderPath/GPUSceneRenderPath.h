@@ -17,7 +17,6 @@ namespace EngineCore
         virtual ~GPUSceneRenderPath() override 
         {
             delete visibilityBuffer;
-            delete visibilityCounterBuffer;
             delete cullingParamBuffer;
             delete indirectDrawArgsBuffer;
         };
@@ -36,14 +35,6 @@ namespace EngineCore
                 desc.usage = BufferUsage::ByteAddressBuffer;
                 visibilityBuffer = new GPUBufferAllocator(desc);
                 visiblityAlloc = visibilityBuffer->Allocate(4 * 10000);
-
-                desc.debugName = L"VisibilityCounter";
-                desc.memoryType = BufferMemoryType::Default;
-                desc.size = 256;
-                desc.stride = 256;
-                desc.usage = BufferUsage::ByteAddressBuffer;
-                visibilityCounterBuffer = new GPUBufferAllocator(desc);
-                visiblityCounterAlloc = visibilityCounterBuffer->Allocate(256);
 
                 desc.debugName = L"CullingParamBuffer";
                 desc.memoryType = BufferMemoryType::Upload;
@@ -65,11 +56,12 @@ namespace EngineCore
 
             //todo:
             // 这个地方要把ResourceState切换一下
-
             Renderer::GetInstance()->BeginFrame();
+
+            Renderer::GetInstance()->SetBufferState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
+            Renderer::GetInstance()->SetBufferState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
+
             vector<uint8_t> data;
-            data.resize(4, 0);
-            visibilityCounterBuffer->UploadBuffer(visiblityCounterAlloc, data.data(), data.size());
             data.resize(4 * 10000, 0);
             visibilityBuffer->UploadBuffer(visiblityAlloc, data.data(), data.size());
 
@@ -89,13 +81,10 @@ namespace EngineCore
             vector<DrawIndirectArgs> batchInfo = BatchManager::GetInstance()->GetBatchInfo();
             indirectDrawArgsBuffer->UploadBuffer(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
 
-            context.Reset();
-
             ComputeShader* csShader = GPUSceneManager::GetInstance()->GPUCullingShaderHandler.Get();
             csShader->SetBuffer("g_InputPerObjectDatas", GPUSceneManager::GetInstance()->allObjectDataBuffer->GetGPUBuffer());
             csShader->SetBuffer("g_RenderProxies", GPUSceneManager::GetInstance()->renderProxyBuffer->GetGPUBuffer());
             csShader->SetBuffer("g_VisibleInstanceIndices", visibilityBuffer->GetGPUBuffer());
-            csShader->SetBuffer("g_CounterBuffer", visibilityCounterBuffer->GetGPUBuffer());
             csShader->SetBuffer("CullingParams", cullingParamBuffer->GetGPUBuffer());
             csShader->SetBuffer("g_IndirectDrawCallArgs", indirectDrawArgsBuffer->GetGPUBuffer());
 
@@ -109,8 +98,12 @@ namespace EngineCore
             // 先把shader跑起来， 渲染到RT上， 后续blit啥的接入后面再说
 
             // 这个地方简单跑个绑定测试？
+            Renderer::GetInstance()->SetBufferState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_SHADER_RESOURCE);
+            Renderer::GetInstance()->SetBufferState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_INDIRECT_ARGUMENT);
 
-
+            context.Reset();
+            context.camera = cam;
+            Renderer::GetInstance()->Render(context);
 #ifdef EDITOR
             Renderer::GetInstance()->OnDrawGUI();
 #endif
@@ -121,8 +114,6 @@ namespace EngineCore
         bool hasSetUpBuffer = false;
         BufferAllocation visiblityAlloc;
         GPUBufferAllocator* visibilityBuffer;
-        BufferAllocation visiblityCounterAlloc;
-        GPUBufferAllocator* visibilityCounterBuffer;
         BufferAllocation cullingParamAlloc;
         GPUBufferAllocator* cullingParamBuffer;
         BufferAllocation indirectDrawArgsAlloc;

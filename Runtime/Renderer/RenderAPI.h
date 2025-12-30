@@ -48,6 +48,7 @@ namespace  EngineCore
         virtual void RenderAPIPresentFrame() = 0;
         virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) = 0;
         virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) = 0;
+        virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) = 0;
         
         virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) = 0;
         virtual void CreateGlobalTexHandler(uint32_t texID) = 0;
@@ -60,6 +61,7 @@ namespace  EngineCore
         virtual void UploadBuffer(IGPUBuffer* buffer, uint32_t offset, void* data, uint32_t size) = 0;
         virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) = 0;
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) = 0;
+        virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) = 0;
 
         template<typename T>
         void SetGlobalValue(uint32_t bufferID, uint32_t offset, T* value)

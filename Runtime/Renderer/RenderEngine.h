@@ -28,11 +28,11 @@ namespace EngineCore
         ~RenderEngine(){};
         static void WaitForLastFrameFinished();
         static void SignalMainThreadSubmited();
+        static GPUSceneRenderPath gpuSceneRenderPath;
     private:
         static std::unique_ptr<RenderEngine> s_Instance;
         static RenderContext renderContext;
         static LagacyRenderPath lagacyRenderPath;
-        static GPUSceneRenderPath gpuSceneRenderPath;
     };
     
 }

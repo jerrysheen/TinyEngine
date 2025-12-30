@@ -3,7 +3,7 @@
 
 cbuffer DrawIndices : register(b0, space0)
 {
-    uint objectIndex;
+    uint g_InstanceBaseOffset;
 }
 
 cbuffer PerFrameData : register(b1, space0)
@@ -24,15 +24,24 @@ cbuffer PerPassData : register(b2, space0)
     float4x4 ProjectionMatrix;
 }
 
+// // 1. AABB 包围盒定义 (对应 C++ 结构体)
+struct AABB
+{
+    float3 Min; // AABB 最小点
+    float3 Max; // AABB 最大点
+    float2 Padding;
+};
+
 
 struct PerObjectData
 {
+    AABB aabb;
     float4x4 objectToWorld;
-    // 4byte
     uint matIndex;
-    float3 padding;
+    uint renderProxyStartIndex;
+    uint renderProxyCount;
+    uint padding; // 显式填充 12 字节，确保 C++ (72字节) 与 HLSL 布局严格一致
 };
-
 
 struct PerMaterialData
 {
@@ -43,9 +52,9 @@ struct PerMaterialData
     float2 TilingFactor;
 };
 
-StructuredBuffer<PerObjectData> AllPerObjectData : register(t0, space1);
+StructuredBuffer<PerObjectData> g_InputPerObjectDatas : register(t0, space1);
 ByteAddressBuffer AllPerMaterialData : register(t1, space1);
-StructuredBuffer<uint> PerDrawInstanceList: register(t2, space1);
+StructuredBuffer<uint> g_VisibleInstanceIndices: register(t2, space1);
 
 PerMaterialData LoadPerMaterialData(uint index)
 {

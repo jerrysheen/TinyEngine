@@ -137,6 +137,7 @@ namespace EngineCore
         Vector2 viewportEndPos;
         
         bool enableBatch = true;
+        bool enableIndirectDrawCall = false;
         // drawRecord支持单个绘制，比如后处理等，没有走复杂的逻辑，直接用drawRecord绘制。
         vector<DrawRecord> drawRecordList;
         vector<RenderBatch> renderBatchList;

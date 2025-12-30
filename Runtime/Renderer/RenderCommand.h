@@ -6,6 +6,8 @@
 #include "Renderer/RenderStruct.h"
 #include <tuple>
 #include <vector>
+#include "Graphics/IGPUBuffer.h"
+
 
 namespace EngineCore
 {
@@ -29,6 +31,8 @@ namespace EngineCore
         kSetPerPassData = 15,
         kCopyBufferRegion = 16,
         kDispatchComputeShader = 17,
+        kSetBufferResourceState = 18,
+        kDrawIndirect = 19,
     };
 
     enum class DepthComparisonFunc : uint8_t
@@ -237,6 +241,19 @@ namespace EngineCore
         uint32_t groupZ;
     };
 
+    struct Payload_SetBufferResourceState
+    {
+        IGPUBuffer* buffer;
+        BufferResourceState state;
+    };
+
+    struct Payload_DrawIndirect
+    {
+        IGPUBuffer* indirectArgsBuffer;
+        uint32_t startIndex;
+        uint32_t count;
+    };
+
     union CommandData 
     {
         Payload_BeginFrame beginFrame;
@@ -256,6 +273,8 @@ namespace EngineCore
         Payload_SetPerPassData setPerPassData;
         Payload_CopyBufferRegion copyBufferRegion;
         Payload_DispatchComputeShader dispatchComputeShader;
+        Payload_SetBufferResourceState setBufferResourceState;
+        Payload_DrawIndirect setDrawIndirect;
         CommandData() {};
     };
 

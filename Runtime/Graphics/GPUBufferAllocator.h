@@ -34,6 +34,7 @@ namespace EngineCore
         virtual IGPUBuffer* GetGPUBuffer() override;
 
     private:
+
         IGPUBuffer* m_Buffer = nullptr;
         uint64_t m_MaxSize = 0;
         uint64_t m_CurrOffset = 0; // Tracks the end of the used contiguous space

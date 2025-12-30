@@ -21,8 +21,16 @@ namespace EngineCore
         }
 
         DrawIndirectParam() = default;
-        
     };
+
+    struct DrawIndirectContext
+    {
+        Material* material;
+        uint32_t vaoID;
+        DrawIndirectContext() = default;
+        DrawIndirectContext(Material* mat, uint32_t vaoID): material(mat), vaoID(vaoID){}
+    };
+
     class MeshRenderer;
     class BatchManager
     {
@@ -41,8 +49,9 @@ namespace EngineCore
 
         void TryAddBatchCount(MeshFilter* meshFilter);
         void TryDecreaseBatchCount(MeshFilter* meshFilter);
-        std::unordered_map<uint64_t, int> BatchMap;
-        std::unordered_map<uint64_t, DrawIndirectParam> drawIndirectParamMap;
+        static std::unordered_map<uint64_t, int> BatchMap;
+        static std::unordered_map<uint64_t, DrawIndirectParam> drawIndirectParamMap;
+        static std::unordered_map<uint64_t, DrawIndirectContext> drawIndirectContextMap;
 
         std::vector<RenderProxy> GetAvaliableRenderProxyList(MeshRenderer* meshRenderer, uint32_t vaoID); 
         static uint64_t GetBatchHash(MeshRenderer* meshRenderer, MeshFilter* meshFilter, uint32_t layer); 

@@ -3,24 +3,6 @@
 // 结构定义
 // ==========================================
 
-// // 1. AABB 包围盒定义 (对应 C++ 结构体)
-struct AABB
-{
-    float3 Min; // AABB 最小点
-    float3 Max; // AABB 最大点
-    float2 Padding;
-};
-
-struct PerObjectData
-{
-    AABB aabb;
-    float4x4 objectToWorld;
-    uint matIndex;
-    uint renderProxyStartIndex;
-    uint renderProxyCount;
-    uint padding; // 显式填充 12 字节，确保 C++ (72字节) 与 HLSL 布局严格一致
-};
-
 struct RenderProxy
 {
     uint batchID;
@@ -41,11 +23,31 @@ cbuffer CullingParams : register(b0)
 
 struct IndirectDrawCallArgs
 {
+    uint offsetInInstanceDataBuffer;  // 用来告诉GPU当前起始位置， 在GPU端作为一个Root Constant绑定 
     uint IndexCountPerInstance;
     uint InstanceCount;
     uint StartIndexLocation;
     uint BaseVertexLocation;
     uint StartInstanceLocation;
+};
+
+// // 1. AABB 包围盒定义 (对应 C++ 结构体)
+struct AABB
+{
+    float3 Min; // AABB 最小点
+    float3 Max; // AABB 最大点
+    float2 Padding;
+};
+
+
+struct PerObjectData
+{
+    AABB aabb;
+    float4x4 objectToWorld;
+    uint matIndex;
+    uint renderProxyStartIndex;
+    uint renderProxyCount;
+    uint padding; // 显式填充 12 字节，确保 C++ (72字节) 与 HLSL 布局严格一致
 };
 
 // ==========================================
@@ -60,8 +62,7 @@ StructuredBuffer<RenderProxy> g_RenderProxies : register(t1);
 // 输出：可见物体的索引列表 (UAV)
 // 我们将可见的 Instance ID 存入这个 AppendBuffer
 RWStructuredBuffer<uint> g_VisibleInstanceIndices : register(u0);
-RWByteAddressBuffer g_CounterBuffer : register(u1); // 手动传入一个计数器 buffer
-RWStructuredBuffer<IndirectDrawCallArgs> g_IndirectDrawCallArgs : register(u2); // 手动传入一个计数器 buffer
+RWStructuredBuffer<IndirectDrawCallArgs> g_IndirectDrawCallArgs : register(u1); // 手动传入一个计数器 buffer
 
 // ==========================================
 // 辅助函数：AABB vs Frustum 测试
@@ -117,8 +118,6 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     // 3. 执行剔除测试
     if (IsVisible(box))
     {
-        uint writeIndex;
-        g_CounterBuffer.InterlockedAdd(0, 1, writeIndex); 
         uint instanceCount;
         InterlockedAdd(g_IndirectDrawCallArgs[batchID].InstanceCount, 1, instanceCount);
         // 执行后：InstanceCount 原子 +1；instanceCount 是加之前的值

@@ -6,7 +6,9 @@
 namespace EngineCore
 {
     BatchManager* BatchManager::s_Instance = nullptr;
-
+    std::unordered_map<uint64_t, int> BatchManager::BatchMap;
+    std::unordered_map<uint64_t, DrawIndirectContext> BatchManager::drawIndirectContextMap;
+    std::unordered_map<uint64_t, DrawIndirectParam> BatchManager::drawIndirectParamMap;
     void BatchManager::TryAddBatchCount(MeshRenderer *meshRenderer)
     {
         MeshFilter* meshFilter = meshRenderer->gameObject->GetComponent<MeshFilter>();
@@ -68,6 +70,11 @@ namespace EngineCore
         uint32_t meshKey = vaoID;
         batchKey |= matKey;
         batchKey |= (static_cast<uint64_t>(meshKey) << 32);
+
+        if(drawIndirectContextMap.count(batchKey) == 0)
+        {
+            drawIndirectContextMap[batchKey] = {meshRenderer->GetMaterial().Get(), vaoID};
+        }
         return batchKey; 
     }
 
@@ -79,6 +86,11 @@ namespace EngineCore
         uint32_t meshKey = vaoID;
         batchKey |= matKey;
         batchKey |= (static_cast<uint64_t>(meshKey) << 32);
+        
+        if(drawIndirectContextMap.count(batchKey) == 0)
+        {
+            drawIndirectContextMap[batchKey] = {meshRenderer->GetMaterial().Get(), vaoID};
+        }
         return batchKey; 
     }
 
@@ -86,15 +98,25 @@ namespace EngineCore
     {
         vector<DrawIndirectArgs> drawIndirectArgsList;
         int globalOffset = 0;
-        for(auto& [key, value] : BatchMap)
+    
+        // 【修改建议】: 将 unordered_map 转为 vector 并排序，确保遍历顺序稳定
+        // BatchMap 的 key 是 hash (uint64_t)，排序后顺序是固定的
+        std::vector<std::pair<uint64_t, int>> sortedBatches(BatchMap.begin(), BatchMap.end());
+        std::sort(sortedBatches.begin(), sortedBatches.end());
+    
+        // 使用排序后的列表进行遍历
+        for(auto& [key, value] : sortedBatches)
         {
             if(value <= 0) continue;
             DrawIndirectArgs args;
             ASSERT(drawIndirectParamMap.count(key) > 0);
             DrawIndirectParam& argsParam = drawIndirectParamMap[key];
             args.indexCount = argsParam.indexCount;
-            args.firstInstance = globalOffset;
+            args.firstInstance = globalOffset; // 这个依旧需要设置， 不然GPU Culling会错。
+            args.offsetInInstanceDataBuffer = globalOffset;
             drawIndirectArgsList.push_back(args);
+            
+            // 更新 BatchID
             argsParam.indexInDrawIndirectList = drawIndirectArgsList.size() - 1;
             globalOffset += value;
         }   

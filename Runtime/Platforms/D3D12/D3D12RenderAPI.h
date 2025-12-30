@@ -60,7 +60,9 @@ namespace EngineCore
         virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) override;
         virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) override;
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
-        
+        virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
+        virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) override;
+
         TD3D12DescriptorHandle GetTextureSrvHanle(uint32_t textureID);
         TD3D12FrameBuffer* GetFrameBuffer(uint32_t bufferID, bool isBackBuffer = false);
         
@@ -119,7 +121,7 @@ namespace EngineCore
         
         virtual IGPUBuffer* CreateBuffer(const BufferDesc& desc, void* data) override;
         virtual void UploadBuffer(IGPUBuffer* bufferResource, uint32_t offset, void* data, uint32_t size) override;
-
+        static D3D12_RESOURCE_STATES GetResourceState(BufferResourceState state);
     private:
 
         bool InitDirect3D();
@@ -173,7 +175,7 @@ namespace EngineCore
         unordered_map<uint32_t, TD3D12MaterialData> m_DataMap;
         vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
         unordered_map<uint32_t, TD3D12TextureBuffer> m_TextureBufferMap;
-
+        ComPtr<ID3D12CommandSignature> mCommandSignature;
         unordered_map<uint32_t, TD3D12VAO> VAOMap;
 
         unordered_map<uint32_t, TD3D12ConstantBuffer> mGlobalConstantBufferMap;

@@ -39,9 +39,9 @@ struct VertexOutput
 VertexOutput VSMain(VertexInput input, uint instanceID : SV_InstanceID)
 {
     VertexOutput output;
-    uint index = PerDrawInstanceList[objectIndex + instanceID];
-    // 变换到世界空间
-    PerObjectData data = AllPerObjectData[index];
+    // // 变换到世界空间
+    uint index = g_VisibleInstanceIndices[instanceID + g_InstanceBaseOffset];
+    PerObjectData data = g_InputPerObjectDatas[index];
 
     float4 worldPos = mul(float4(input.Position, 1.0f), data.objectToWorld);
     output.WorldPos = worldPos.xyz;
@@ -66,8 +66,7 @@ float4 PSMain(VertexOutput input) : SV_Target
 {
 
     // 变换到世界空间
-    
-    PerObjectData data = AllPerObjectData[input.index];
+    PerObjectData data = g_InputPerObjectDatas[input.index];
     PerMaterialData matData = LoadPerMaterialData(data.matIndex);
     half4 diffuseColor = matData.DiffuseColor;
     diffuseColor.xyz = DiffuseTexture.Sample(LinearSampler, input.TexCoord).xyz * diffuseColor.xyz ;

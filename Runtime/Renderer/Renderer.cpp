@@ -4,7 +4,8 @@
 #include "Core/PublicEnum.h"
 #include "Graphics/FrameBufferObject.h"
 #include "Core/Concurrency/CpuEvent.h"
-
+#include "Graphics/GPUBufferAllocator.h"
+#include "Renderer/RenderEngine.h"
 namespace EngineCore
 {
     std::unique_ptr<Renderer> Renderer::s_Instance = nullptr;
@@ -238,6 +239,25 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(cmd);
     }
 
+    void Renderer::SetBufferState(IGPUBuffer *buffer, BufferResourceState state)
+    {
+        Payload_SetBufferResourceState payload;
+        payload.buffer = buffer;
+        payload.state = state;
+        DrawCommand cmd;
+        cmd.data.setBufferResourceState = payload;
+        cmd.op = RenderOp::kSetBufferResourceState;
+        mRenderBuffer.PushBlocking(cmd);
+    }
+
+    void Renderer::DrawIndirect(Payload_DrawIndirect payload)
+    {
+        DrawCommand cmd;
+        cmd.data.setDrawIndirect = payload;
+        cmd.op = RenderOp::kDrawIndirect;
+        mRenderBuffer.PushBlocking(cmd);
+    }
+
     void Renderer::Submit(const RenderPassInfo &info)
     {
         // todo： 后面挪到别的地方， 先做Batch的部分：
@@ -262,17 +282,44 @@ namespace EngineCore
         }
         else 
         {
-            for each(auto& record in info.renderBatchList)
+            if (!info.enableIndirectDrawCall) 
             {
-                // 根据mat + pass信息组织pippeline
-                SetRenderState(record.mat, info);
-                // copy gpu material data desc 
-                SetMaterialData(record.mat);
-                // bind mesh vertexbuffer and indexbuffer.
-                SetMeshData(record.vaoID);
+                for each(auto& record in info.renderBatchList)
+                {
+                    // 根据mat + pass信息组织pippeline
+                    SetRenderState(record.mat, info);
+                    // copy gpu material data desc 
+                    SetMaterialData(record.mat);
+                    // bind mesh vertexbuffer and indexbuffer.
+                    SetMeshData(record.vaoID);
 
-                DrawIndexedInstanced(record.vaoID, record.instanceCount, PerDrawHandle{nullptr, (uint32_t)record.alloc.offset, 0});
+                    DrawIndexedInstanced(record.vaoID, record.instanceCount, PerDrawHandle{ nullptr, (uint32_t)record.alloc.offset, 0 });
+                }
             }
+            else 
+            {
+                for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
+                {
+                    int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
+                    Material* mat = renderContext.material;
+                    uint32_t vaoID = renderContext.vaoID;
+                    // 根据mat + pass信息组织pippeline
+                    SetRenderState(mat, info);
+                    // copy gpu material data desc 
+                    SetMaterialData(mat);
+                    // bind mesh vertexbuffer and indexbuffer.
+                    SetMeshData(vaoID);
+                    Payload_DrawIndirect indirectPayload;
+                    // temp:
+                    GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
+                    ASSERT(indirectDrawArgsBuffer != nullptr);
+                    indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
+                    indirectPayload.count = 1;
+                    indirectPayload.startIndex = batchID;
+                    Renderer::GetInstance()->DrawIndirect(indirectPayload);
+                }
+            }
+
         }
     }
 
@@ -325,6 +372,12 @@ namespace EngineCore
             break;
         case RenderOp::kDispatchComputeShader:
             RenderAPI::GetInstance()->RenderAPIDispatchComputeShader(cmd.data.dispatchComputeShader);
+            break;
+        case RenderOp::kSetBufferResourceState:
+            RenderAPI::GetInstance()->RenderAPISetBufferResourceState(cmd.data.setBufferResourceState);
+            break;
+        case RenderOp::kDrawIndirect:
+            RenderAPI::GetInstance()->RenderAPIExecuteIndirect(cmd.data.setDrawIndirect);
             break;
         default:
             break;

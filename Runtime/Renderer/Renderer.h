@@ -63,6 +63,10 @@ namespace EngineCore
 
         void DispatchComputeShader(const Payload_DispatchComputeShader& dispatchCmd);
         
+        void SetBufferState(IGPUBuffer* buffer, BufferResourceState state);
+        
+        void DrawIndirect(Payload_DrawIndirect payload);
+        
         void RenderThreadMain() 
         {
             while (mRunning.load(std::memory_order_acquire) == true) 

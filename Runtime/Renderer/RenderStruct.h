@@ -110,7 +110,8 @@ namespace EngineCore
 
     struct DrawIndirectArgs
     {
-        uint32_t indexCount = 0; // 比如这个Mesh有300个索引
+        uint32_t offsetInInstanceDataBuffer;  // 用来告诉GPU当前起始位置， 在GPU端作为一个Root Constant绑定 
+        uint32_t indexCount = 0;             // 比如这个Mesh有300个索引
         uint32_t instanceCount = 0;                 // 【重置为0】等待GPU计数
         uint32_t firstIndex = 0;
         uint32_t vertexOffset = 0;

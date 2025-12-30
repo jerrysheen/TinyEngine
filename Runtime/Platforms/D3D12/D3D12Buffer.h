@@ -8,12 +8,28 @@ namespace EngineCore
     class D3D12Buffer : public IGPUBuffer
     {
     public:
-        D3D12Buffer(ComPtr<ID3D12Resource> resource, const BufferDesc& desc)
+        D3D12Buffer(ComPtr<ID3D12Resource> resource, const BufferDesc& desc, D3D12_RESOURCE_STATES initialState)
             : m_Resource(resource), m_Desc(desc) 
         {
             if(desc.memoryType == BufferMemoryType::Upload)
             {
                 Map();
+            }
+
+            switch(initialState)
+            {
+                case D3D12_RESOURCE_STATE_COMMON:
+                m_ResourceState = BufferResourceState::STATE_COMMON;
+                break;
+                case D3D12_RESOURCE_STATE_GENERIC_READ:
+                m_ResourceState = BufferResourceState::STATE_GENERIC_READ;
+                break;
+                case D3D12_RESOURCE_STATE_COPY_DEST:
+                m_ResourceState = BufferResourceState::STATE_COPY_DEST;
+                break;
+                default:
+                    ASSERT("Wrong InitialState");
+                break;
             }
         }
 
@@ -50,6 +66,7 @@ namespace EngineCore
     
         virtual void SetName(const wchar_t* name) override {m_Resource->SetName(name);}
 
+        BufferResourceState m_ResourceState;
     private:
         ComPtr<ID3D12Resource> m_Resource;
         BufferDesc m_Desc;

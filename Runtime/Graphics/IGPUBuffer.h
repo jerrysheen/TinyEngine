@@ -20,6 +20,17 @@ namespace EngineCore
         IndirectArgument
     };
 
+    enum class BufferResourceState 
+    {
+        STATE_COMMON,
+        STATE_UNORDERED_ACCESS, // UAV (RWStructuredBuffer, etc)
+        STATE_SHADER_RESOURCE,  // SRV (StructuredBuffer, Texture, etc)
+        STATE_INDIRECT_ARGUMENT, // Indirect Draw Args
+        STATE_COPY_DEST,        // Copy Destination
+        STATE_COPY_SOURCE,      // Copy Source
+        STATE_GENERIC_READ      // Generic Read (Vertex, Index, Constant, etc)
+    };
+
     struct BufferDesc
     {
         uint64_t size = 0;
@@ -44,5 +55,8 @@ namespace EngineCore
         virtual void UnMap() = 0;
 
         virtual void SetName(const wchar_t* name) = 0;
+        // Helper to track current state if needed, but for now we might pass it explicitly in barriers
+        //virtual void SetResourceState(BufferResourceState state) = 0;
+        //virtual BufferResourceState GetResourceState() const = 0;
     };
 };
