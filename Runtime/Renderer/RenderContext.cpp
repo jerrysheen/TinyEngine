@@ -46,7 +46,8 @@ namespace EngineCore
             }
             else
             {
-                currentBatch.alloc =  GPUSceneManager::GetInstance()->SyncDataToPerFrameBatchBuffer(tempList.data(), tempList.size() * sizeof(uint32_t));
+                // 改成直接在visibilitybuffer里给当前的数据?
+                currentBatch.alloc =  GPUSceneManager::GetInstance()->LagacyRenderPathUploadBatch(tempList.data(), tempList.size() * sizeof(uint32_t));
                 bactchList.push_back(currentBatch);
                 
                 tempList.clear();
@@ -61,7 +62,7 @@ namespace EngineCore
         }
         if (tempList.size() > 0) 
         {
-            currentBatch.alloc = GPUSceneManager::GetInstance()->SyncDataToPerFrameBatchBuffer(tempList.data(), tempList.size() * sizeof(uint32_t));
+            currentBatch.alloc = GPUSceneManager::GetInstance()->LagacyRenderPathUploadBatch(tempList.data(), tempList.size() * sizeof(uint32_t));
             bactchList.push_back(currentBatch);
             tempList.clear();
         }

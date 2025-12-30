@@ -26,7 +26,7 @@ namespace EngineCore
 
         void TryFreeRenderProxyBlock(uint32_t index);
         void TryCreateRenderProxyBlock(uint32_t index);
-        BufferAllocation SyncDataToPerFrameBatchBuffer(void *data, uint32_t size);
+        BufferAllocation LagacyRenderPathUploadBatch(void *data, uint32_t size);
 
         void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
         void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);

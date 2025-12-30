@@ -55,6 +55,7 @@ namespace EngineCore
         vector<uint8_t> empty;
         empty.resize(4 * 10000, 0);
         visibilityBuffer->UploadBuffer(visiblityAlloc, empty.data(), empty.size());
+        visibilityBuffer->Reset();
     }
 
     BufferAllocation GPUSceneManager::GetSinglePerMaterialData()
@@ -87,10 +88,10 @@ namespace EngineCore
         //BufferAllocation alloc = renderProxyBuffer->Allocate()
     }
 
-    BufferAllocation GPUSceneManager::SyncDataToPerFrameBatchBuffer(void *data, uint32_t size)
+    BufferAllocation GPUSceneManager::LagacyRenderPathUploadBatch(void *data, uint32_t size)
     {
-        auto& allocation = perFrameBatchBuffer->Allocate(size);
-        perFrameBatchBuffer->UploadBuffer(allocation, data, allocation.size);
+        auto& allocation = visibilityBuffer->Allocate(size);
+        visibilityBuffer->UploadBuffer(allocation, data, allocation.size);
         return allocation;
     }
 
