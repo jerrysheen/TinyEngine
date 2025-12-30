@@ -23,6 +23,7 @@
 #include <algorithm>
 #include "Core/Profiler.h"
 #include <queue>
+#include <set>
 using std::unordered_map;
 using std::string;
 using std::vector;

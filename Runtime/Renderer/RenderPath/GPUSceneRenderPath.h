@@ -72,7 +72,7 @@ namespace EngineCore
 
             ComputeShader* csShader = GPUSceneManager::GetInstance()->GPUCullingShaderHandler.Get();
             csShader->SetBuffer("g_InputAABBs", GPUSceneManager::GetInstance()->allAABBBuffer->GetGPUBuffer());
-            csShader->SetBuffer("g_InputRenderInfo", GPUSceneManager::GetInstance()->allObjectRenderInfoBuffer->GetGPUBuffer());
+            csShader->SetBuffer("g_InputPerObjectDatas", GPUSceneManager::GetInstance()->allObjectDataBuffer->GetGPUBuffer());
             csShader->SetBuffer("g_RenderProxies", GPUSceneManager::GetInstance()->renderProxyBuffer->GetGPUBuffer());
             csShader->SetBuffer("g_VisibleInstanceIndices", GPUSceneManager::GetInstance()->visibilityBuffer->GetGPUBuffer());
             csShader->SetBuffer("CullingParams", cullingParamBuffer->GetGPUBuffer());

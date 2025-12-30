@@ -36,16 +36,12 @@ struct AABB
 struct PerObjectData
 {
     float4x4 objectToWorld;
-};
-
-
-struct PerObjectRenderInfo
-{
     uint matIndex;
     uint renderProxyStartIndex;
     uint renderProxyCount;
-    uint padding; // 显式填充 12 字节，确保 C++ (72字节) 与 HLSL 布局严格一致
+    uint padding; 
 };
+
 
 struct PerMaterialData
 {

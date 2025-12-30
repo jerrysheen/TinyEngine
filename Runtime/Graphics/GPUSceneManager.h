@@ -29,9 +29,9 @@ namespace EngineCore
         BufferAllocation SyncDataToPerFrameBatchBuffer(void *data, uint32_t size);
 
         void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
-        void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList);
+        void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);
 
-        vector<PerObjectRenderInfoData> PerObjectRenderInfoDataBuffer;
+        vector<PerObjectData> perObjectDataBuffer;
 
         LinearAllocator* perFramelinearMemoryAllocator;
 
@@ -41,8 +41,6 @@ namespace EngineCore
         GPUBufferAllocator* allAABBBuffer;
         GPUBufferAllocator* renderProxyBuffer;
 
-        GPUBufferAllocator* allObjectRenderInfoBuffer;
-        BufferAllocation allObjectRenderInfoBufferAllocation;
 
         BufferAllocation visiblityAlloc;
         GPUBufferAllocator* visibilityBuffer;
