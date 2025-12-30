@@ -23,7 +23,6 @@ cbuffer CullingParams : register(b0)
 
 struct IndirectDrawCallArgs
 {
-    uint offsetInInstanceDataBuffer;  // 用来告诉GPU当前起始位置， 在GPU端作为一个Root Constant绑定 
     uint IndexCountPerInstance;
     uint InstanceCount;
     uint StartIndexLocation;

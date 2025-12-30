@@ -252,6 +252,7 @@ namespace EngineCore
         IGPUBuffer* indirectArgsBuffer;
         uint32_t startIndex;
         uint32_t count;
+        uint32_t startIndexInInstanceDataBuffer;
     };
 
     union CommandData 

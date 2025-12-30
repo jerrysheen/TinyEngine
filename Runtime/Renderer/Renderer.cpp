@@ -301,6 +301,7 @@ namespace EngineCore
                 for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
                 {
                     int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
+                    int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
                     Material* mat = renderContext.material;
                     uint32_t vaoID = renderContext.vaoID;
                     // 根据mat + pass信息组织pippeline
@@ -316,6 +317,7 @@ namespace EngineCore
                     indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
                     indirectPayload.count = 1;
                     indirectPayload.startIndex = batchID;
+                    indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
                     Renderer::GetInstance()->DrawIndirect(indirectPayload);
                 }
             }

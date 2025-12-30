@@ -34,6 +34,7 @@ namespace EngineCore
         delete perFrameBatchBuffer;
         delete allInstanceDataBuffer;
         delete perFramelinearMemoryAllocator;
+        delete visibilityBuffer;
     }
 
     void GPUSceneManager::Tick()
@@ -140,6 +141,11 @@ namespace EngineCore
         copyRegionCmd.copyList = data;
         copyRegionCmd.count = count;
         Renderer::GetInstance()->CopyBufferRegion(copyRegionCmd);
+
+        // 重置visibilityBuffer
+        vector<uint8_t> empty;
+        empty.resize(4 * 10000, 0);
+        visibilityBuffer->UploadBuffer(visiblityAlloc, empty.data(), empty.size());
     }
 
     BufferAllocation GPUSceneManager::GetSinglePerMaterialData()
@@ -255,6 +261,14 @@ namespace EngineCore
         desc.size = 10000 * sizeof(RenderProxy);
         desc.usage = BufferUsage::StructuredBuffer;
         renderProxyBuffer = new GPUBufferAllocator(desc);
+
+        desc.debugName = L"VisibilityBuffer";
+        desc.memoryType = BufferMemoryType::Default;
+        desc.size = 4 * 10000;
+        desc.stride = 4 * 10000;
+        desc.usage = BufferUsage::ByteAddressBuffer;
+        visibilityBuffer = new GPUBufferAllocator(desc);
+        visiblityAlloc = visibilityBuffer->Allocate(4 * 10000);
 
         cpuPerObjectDataList.resize(10000);
     }

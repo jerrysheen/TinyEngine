@@ -16,7 +16,6 @@ namespace EngineCore
     public:
         virtual ~GPUSceneRenderPath() override 
         {
-            delete visibilityBuffer;
             delete cullingParamBuffer;
             delete indirectDrawArgsBuffer;
         };
@@ -28,13 +27,6 @@ namespace EngineCore
                 hasSetUpBuffer = true;
 
                 BufferDesc desc;
-                desc.debugName = L"VisibilityBuffer";
-                desc.memoryType = BufferMemoryType::Default;
-                desc.size = 4 * 10000;
-                desc.stride = 4 * 10000;
-                desc.usage = BufferUsage::ByteAddressBuffer;
-                visibilityBuffer = new GPUBufferAllocator(desc);
-                visiblityAlloc = visibilityBuffer->Allocate(4 * 10000);
 
                 desc.debugName = L"CullingParamBuffer";
                 desc.memoryType = BufferMemoryType::Upload;
@@ -57,13 +49,10 @@ namespace EngineCore
             //todo:
             // 这个地方要把ResourceState切换一下
             Renderer::GetInstance()->BeginFrame();
-
+            auto* visibilityBuffer = GPUSceneManager::GetInstance()->visibilityBuffer;
             Renderer::GetInstance()->SetBufferState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
             Renderer::GetInstance()->SetBufferState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
 
-            vector<uint8_t> data;
-            data.resize(4 * 10000, 0);
-            visibilityBuffer->UploadBuffer(visiblityAlloc, data.data(), data.size());
 
             Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->mainCamera;
             int gameObjectCount = SceneManager::GetInstance()->GetCurrentScene()->allObjList.size();
@@ -84,7 +73,7 @@ namespace EngineCore
             ComputeShader* csShader = GPUSceneManager::GetInstance()->GPUCullingShaderHandler.Get();
             csShader->SetBuffer("g_InputPerObjectDatas", GPUSceneManager::GetInstance()->allObjectDataBuffer->GetGPUBuffer());
             csShader->SetBuffer("g_RenderProxies", GPUSceneManager::GetInstance()->renderProxyBuffer->GetGPUBuffer());
-            csShader->SetBuffer("g_VisibleInstanceIndices", visibilityBuffer->GetGPUBuffer());
+            csShader->SetBuffer("g_VisibleInstanceIndices", GPUSceneManager::GetInstance()->visibilityBuffer->GetGPUBuffer());
             csShader->SetBuffer("CullingParams", cullingParamBuffer->GetGPUBuffer());
             csShader->SetBuffer("g_IndirectDrawCallArgs", indirectDrawArgsBuffer->GetGPUBuffer());
 
@@ -112,8 +101,6 @@ namespace EngineCore
         }
 
         bool hasSetUpBuffer = false;
-        BufferAllocation visiblityAlloc;
-        GPUBufferAllocator* visibilityBuffer;
         BufferAllocation cullingParamAlloc;
         GPUBufferAllocator* cullingParamBuffer;
         BufferAllocation indirectDrawArgsAlloc;

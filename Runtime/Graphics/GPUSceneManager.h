@@ -43,6 +43,9 @@ namespace EngineCore
         vector<PerObjectData> cpuPerObjectDataList;
         vector<uint32_t> dirtyPerObjectDataIndexList;
 
+        BufferAllocation visiblityAlloc;
+        GPUBufferAllocator* visibilityBuffer;
+        
         ResourceHandle<ComputeShader> GPUCullingShaderHandler;
     private:
         std::queue<int> m_FreePerObjectIndex;

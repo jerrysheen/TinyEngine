@@ -252,112 +252,18 @@ namespace EngineCore
         // calling Reset.
         mImediatelyCommandList->Close();
 
-        // todo： 这个地方是一个临时的方案， 主要是为了绑定IndirectDrawcall而临时设置的
-
-        // 1. 定义参数：只定义 Slot 0 为 Root Constant
-        // 必须与 CommandSignature 中的 argumentDescs[0].Constant.RootParameterIndex=0应
-         // ==========================================================================================
-        // 修改：构建与渲染管线一致的 Root Signature 布局 (Slots 0-5 + Static Sampler)
-        // ==========================================================================================
-        
-        // 1. 定义参数：需匹配 RenderStruct.h 和 D3D12RootSignature.cpp 中的定义
-        CD3DX12_ROOT_PARAMETER rootParameters[7];
-
-        // Slot 0: DrawIndiceConstant (b0, space0)
-        auto indiceBind = GetRootSigBinding(RootSigSlot::DrawIndiceConstant);
-        rootParameters[0].InitAsConstants(1, indiceBind.RegisterIndex, indiceBind.RegisterSpace);
-
-        // Slot 1: PerFrameData (b1, space0)
-        auto frameBind = GetRootSigBinding(RootSigSlot::PerFrameData);
-        rootParameters[1].InitAsConstantBufferView(frameBind.RegisterIndex, frameBind.RegisterSpace);
-
-        // Slot 2: PerPassData (b2, space0)
-        auto passBind = GetRootSigBinding(RootSigSlot::PerPassData);
-        rootParameters[2].InitAsConstantBufferView(passBind.RegisterIndex, passBind.RegisterSpace);
-
-        // Slot 3: AllObjectData (t0, space1)
-        auto allObjectBind = GetRootSigBinding(RootSigSlot::AllObjectData);
-        rootParameters[3].InitAsShaderResourceView(allObjectBind.RegisterIndex, allObjectBind.RegisterSpace);
-
-        // Slot 4: AllMaterialData (t1, space1)
-        auto allMaterialBind = GetRootSigBinding(RootSigSlot::AllMaterialData);
-        rootParameters[4].InitAsShaderResourceView(allMaterialBind.RegisterIndex, allMaterialBind.RegisterSpace);
-
-        // Slot 5: PerDrawInstanceObjectsList (t2, space1)
-        auto perDrawInstBind = GetRootSigBinding(RootSigSlot::PerDrawInstanceObjectsList);
-        rootParameters[5].InitAsShaderResourceView(perDrawInstBind.RegisterIndex, perDrawInstBind.RegisterSpace);
-        
-        vector<CD3DX12_DESCRIPTOR_RANGE> descriptorRanges;
-        descriptorRanges.emplace_back();
-        descriptorRanges.back().Init(
-            D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-            1,
-            0,  // 使用实际的起始寄存器位置
-            0,
-            0
-        );
-        rootParameters[6].InitAsDescriptorTable(1, &descriptorRanges.back());
-
-        // 静态采样器 (必须与 D3D12RootSignature.cpp 保持一致)
-        CD3DX12_STATIC_SAMPLER_DESC staticSampler(
-            0,
-            D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-            D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-            D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-            D3D12_TEXTURE_ADDRESS_MODE_WRAP
-        );
-
-        // 2. 描述 Root Signature
-        CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(
-            _countof(rootParameters),
-            rootParameters,
-            1, &staticSampler, // 添加静态采样器
-            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
-        );
-
-        // 3. 序列化 (使用 D3D_ROOT_SIGNATURE_VERSION_1 以匹配你的代码风格)
-        ComPtr<ID3DBlob> serializedRootSig = nullptr;
-        ComPtr<ID3DBlob> errorBlob = nullptr;
-
-        HRESULT hr = D3D12SerializeRootSignature(
-            &rootSigDesc,
-            D3D_ROOT_SIGNATURE_VERSION_1,
-            &serializedRootSig,
-            &errorBlob
-        );
-
-        if (FAILED(hr))
-        {
-            if (errorBlob) OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-            throw std::runtime_error("Serialize Indirect Proto RootSig failed");
-        }
-
-        // 4. 创建并返回
-        ThrowIfFailed(md3dDevice->CreateRootSignature(
-            0,
-            serializedRootSig->GetBufferPointer(),
-            serializedRootSig->GetBufferSize(),
-            IID_PPV_ARGS(&rootSignature)
-        ));
-
-        // SetName 方便在 PIX/RenderDoc 调试
-        rootSignature->SetName(L"Indirect_Prototype_RootSig");
-
 
         // 创建IndirectDrawArgs的commandSignature，并不是RootSignature，只是用来描述
         // DrawIndirectArgs
-        D3D12_INDIRECT_ARGUMENT_DESC argumentDescs[2] = {};
-        argumentDescs[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT;
-        argumentDescs[0].Constant.RootParameterIndex = 0; // 对应 RootSigSlot::DrawIndiceConstant
-        argumentDescs[0].Constant.DestOffsetIn32BitValues = 0;
-        argumentDescs[0].Constant.Num32BitValuesToSet = 1; // 只设1个int (就是那个400)
+        D3D12_INDIRECT_ARGUMENT_DESC argumentDescs = {};
 
-        argumentDescs[1].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
+        argumentDescs.Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
         D3D12_COMMAND_SIGNATURE_DESC commandSignatureDesc = {};
-        commandSignatureDesc.pArgumentDescs = argumentDescs;
-        commandSignatureDesc.NumArgumentDescs = _countof(argumentDescs);
+        commandSignatureDesc.pArgumentDescs = &argumentDescs;
+        commandSignatureDesc.NumArgumentDescs = 1;
         commandSignatureDesc.ByteStride = sizeof(DrawIndirectArgs);
-        ThrowIfFailed(md3dDevice->CreateCommandSignature(&commandSignatureDesc, rootSignature.Get(), IID_PPV_ARGS(&mCommandSignature)));
+        ThrowIfFailed(md3dDevice->CreateCommandSignature(&commandSignatureDesc, nullptr, IID_PPV_ARGS(&mCommandSignature)));
+    
     }
     
     void D3D12RenderAPI::InitSwapChain()
@@ -1034,7 +940,7 @@ namespace EngineCore
         gpuAddr = GPUSceneManager::GetInstance()->allMaterialDataBuffer->GetBaseGPUAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllMaterialData, gpuAddr);
         
-        gpuAddr = RenderEngine::GetInstance()->gpuSceneRenderPath.visibilityBuffer->GetBaseGPUAddress();
+        gpuAddr = GPUSceneManager::GetInstance()->visibilityBuffer->GetBaseGPUAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::PerDrawInstanceObjectsList, gpuAddr);
         
         // === 5. 绑定纹理 (Root Param 5+) ===
@@ -1402,6 +1308,7 @@ namespace EngineCore
     {
         D3D12Buffer* argsBuffer = static_cast<D3D12Buffer*>(drawIndirect.indirectArgsBuffer);
         uint32_t stride = sizeof(DrawIndirectArgs);
+        mCommandList->SetGraphicsRoot32BitConstants((UINT)RootSigSlot::DrawIndiceConstant, 1, &drawIndirect.startIndexInInstanceDataBuffer, 0);
         mCommandList->ExecuteIndirect(
             mCommandSignature.Get(),
             drawIndirect.count,   // 绘制几个

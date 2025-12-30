@@ -113,10 +113,10 @@ namespace EngineCore
             DrawIndirectParam& argsParam = drawIndirectParamMap[key];
             args.indexCount = argsParam.indexCount;
             args.firstInstance = globalOffset; // 这个依旧需要设置， 不然GPU Culling会错。
-            args.offsetInInstanceDataBuffer = globalOffset;
             drawIndirectArgsList.push_back(args);
             
             // 更新 BatchID
+            argsParam.startIndexInInstanceDataList = globalOffset;
             argsParam.indexInDrawIndirectList = drawIndirectArgsList.size() - 1;
             globalOffset += value;
         }   

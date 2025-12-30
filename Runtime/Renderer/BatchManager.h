@@ -11,11 +11,11 @@ namespace EngineCore
     struct DrawIndirectParam
     {
         uint32_t indexCount = 0; // 比如这个Mesh有300个索引
-        uint32_t firstIndex = 0;
+        uint32_t startIndexInInstanceDataList = 0;
         uint32_t vertexOffset = 0;
         uint32_t indexInDrawIndirectList = 0;
         DrawIndirectParam(uint32_t indexCount, uint32_t firstIndex, uint32_t vertexOffset)
-            : indexCount(indexCount), firstIndex(firstIndex), vertexOffset(vertexOffset)
+            : indexCount(indexCount), startIndexInInstanceDataList(firstIndex), vertexOffset(vertexOffset)
         {
 
         }
