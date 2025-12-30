@@ -31,15 +31,19 @@ namespace EngineCore
 
    struct alignas(16) PerObjectData
    {
-      AABB bounds = {};
       Matrix4x4 objectToWorld = Matrix4x4::Identity;
-      uint32_t matIndex = 0;
-      uint32_t renderProxyStartIndex = 0;
-      uint32_t renderProxyCount = 0;
-      uint32_t padding[1]; // 显式填充 12 字节，确保 C++ (80字节) 与 HLSL 布局严格一致
       PerObjectData() = default;
-      PerObjectData(const Matrix4x4& objectToWorld, uint32_t matID) : objectToWorld(objectToWorld),
-          matIndex(matID) {}
+      PerObjectData(const Matrix4x4& objectToWorld) : objectToWorld(objectToWorld)
+        {}
+   };
+
+   // 每个物体一个，GPUScene才会用到
+   struct alignas(16) PerObjectRenderInfoData
+   {
+       uint32_t matIndex = 0;
+       uint32_t renderProxyStartIndex = 0;
+       uint32_t renderProxyCount = 0;
+       uint32_t padding[1]; // 显式填充 8 字节，确保 C++ (80字节) 与 HLSL 布局严格一致
    };
 
    struct PerPassData_Shadow

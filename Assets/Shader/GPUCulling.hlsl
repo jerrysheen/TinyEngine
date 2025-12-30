@@ -39,10 +39,8 @@ struct AABB
 };
 
 
-struct PerObjectData
+struct PerObjectRenderInfo
 {
-    AABB aabb;
-    float4x4 objectToWorld;
     uint matIndex;
     uint renderProxyStartIndex;
     uint renderProxyCount;
@@ -55,8 +53,9 @@ struct PerObjectData
 
 // 输入：所有物体的 AABB 数据 (SRV)
 //StructuredBuffer<AABB> g_InputAABBs : register(t0);
-StructuredBuffer<PerObjectData> g_InputPerObjectDatas : register(t0);
+StructuredBuffer<AABB> g_InputAABBs : register(t0);
 StructuredBuffer<RenderProxy> g_RenderProxies : register(t1);
+StructuredBuffer<PerObjectRenderInfo> g_InputRenderInfo : register(t2);
 
 // 输出：可见物体的索引列表 (UAV)
 // 我们将可见的 Instance ID 存入这个 AppendBuffer
@@ -110,8 +109,8 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
         return;
 
     // 2. 读取当前实例的 AABB
-    AABB box = g_InputPerObjectDatas[instanceIndex].aabb;
-    uint proxyOffset = g_InputPerObjectDatas[instanceIndex].renderProxyStartIndex;
+    AABB box = g_InputAABBs[instanceIndex];
+    uint proxyOffset = g_InputRenderInfo[instanceIndex].renderProxyStartIndex;
     uint batchID = g_RenderProxies[proxyOffset].batchID;
 
     // 3. 执行剔除测试

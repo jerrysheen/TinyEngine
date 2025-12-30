@@ -12,7 +12,7 @@ namespace EngineCore
     public:
         Vector3 minValue{FLT_MAX, FLT_MAX, FLT_MAX};
         Vector3 maxValue{-FLT_MAX, -FLT_MAX, -FLT_MAX};
-        Vector2 padding;
+        Vector2 padding{0, 0};
         AABB() = default;
         AABB(const Vector3& minPoint, const Vector3& maxPoint)
             : minValue(minPoint), maxValue(maxPoint) {}

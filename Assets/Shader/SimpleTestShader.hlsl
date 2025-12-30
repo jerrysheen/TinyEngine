@@ -67,7 +67,7 @@ float4 PSMain(VertexOutput input) : SV_Target
 
     // 变换到世界空间
     PerObjectData data = g_InputPerObjectDatas[input.index];
-    PerMaterialData matData = LoadPerMaterialData(data.matIndex);
+    PerMaterialData matData = LoadPerMaterialData(0);
     half4 diffuseColor = matData.DiffuseColor;
     diffuseColor.xyz = DiffuseTexture.Sample(LinearSampler, input.TexCoord).xyz * diffuseColor.xyz ;
     return diffuseColor;

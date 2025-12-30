@@ -35,8 +35,12 @@ struct AABB
 
 struct PerObjectData
 {
-    AABB aabb;
     float4x4 objectToWorld;
+};
+
+
+struct PerObjectRenderInfo
+{
     uint matIndex;
     uint renderProxyStartIndex;
     uint renderProxyCount;

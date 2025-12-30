@@ -24,32 +24,31 @@ namespace EngineCore
         void RemoveSinglePerMaterialData(const BufferAllocation& bufferalloc);
         void UpdateSinglePerMaterialData(const BufferAllocation& bufferalloc, void* data);
 
-        void TryFreeRenderProxyBlock(const PerObjectData &perObjectData);
-        void TryCreateRenderProxyBlock(const PerObjectData &perObjectData);
+        void TryFreeRenderProxyBlock(uint32_t index);
+        void TryCreateRenderProxyBlock(uint32_t index);
         BufferAllocation SyncDataToPerFrameBatchBuffer(void *data, uint32_t size);
 
-        //PerObjectCPUHandler ResgisterNewObject();
-        //void DeleteSceneObject(PerObjectCPUHandler& handler);
+        void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
+        void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList);
 
-        std::vector<PerObjectData> perObjectCPUBuffer;
+        vector<PerObjectRenderInfoData> PerObjectRenderInfoDataBuffer;
+
         LinearAllocator* perFramelinearMemoryAllocator;
 
-        GPUBufferAllocator* allObjectDataBuffer;
         GPUBufferAllocator* allMaterialDataBuffer;
+        GPUBufferAllocator* allObjectDataBuffer;
         GPUBufferAllocator* perFrameBatchBuffer;
-        //GPUBufferAllocator* allAABBBuffer;
-        GPUBufferAllocator* allInstanceDataBuffer;
+        GPUBufferAllocator* allAABBBuffer;
         GPUBufferAllocator* renderProxyBuffer;
-        vector<PerObjectData> cpuPerObjectDataList;
-        vector<uint32_t> dirtyPerObjectDataIndexList;
+
+        GPUBufferAllocator* allObjectRenderInfoBuffer;
+        BufferAllocation allObjectRenderInfoBufferAllocation;
 
         BufferAllocation visiblityAlloc;
         GPUBufferAllocator* visibilityBuffer;
         
         ResourceHandle<ComputeShader> GPUCullingShaderHandler;
     private:
-        std::queue<int> m_FreePerObjectIndex;
-        //int m_CurrentPerObjectIndex;
         static GPUSceneManager* sInstance; 
     };
 
