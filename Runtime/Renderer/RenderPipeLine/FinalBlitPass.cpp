@@ -5,6 +5,8 @@
 #include "Scene/SceneManager.h"
 #include "Managers/WindowManager.h"
 #include "Core/PublicEnum.h"
+#include "Renderer/BatchManager.h"
+#include "Renderer/RenderEngine.h"
 
 #ifdef EDITOR
 #include "EditorSettings.h"
@@ -36,6 +38,20 @@ namespace EngineCore
         mat->SetTexture("SrcTexture", context.camera->colorAttachment.Get()->GetInstanceID());
         ModelData* model = SceneManager::GetInstance()->quadMesh.Get();
         mRenderPassInfo.drawRecordList.emplace_back(mat, model->GetInstanceID());
+        // todo： 后面挪到别的地方， 先做Batch的部分：
+        Renderer::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
+        Renderer::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
+        Renderer::GetInstance()->SetSissorRect(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
+        
+        Renderer::GetInstance()->SetPerPassData((UINT)mRenderPassInfo.mRootSigSlot);
+        
+        // 根据mat + pass信息组织pippeline
+        Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
+        // copy gpu material data desc 
+        Renderer::GetInstance()->SetMaterialData(mat);
+        // bind mesh vertexbuffer and indexbuffer.
+        Renderer::GetInstance()->SetMeshData(model->GetInstanceID());
+        Renderer::GetInstance()->DrawIndexedInstanced(model->GetInstanceID(), 1, PerDrawHandle{0,0});
     }
 
     void FinalBlitPass::Filter(const RenderContext& context)

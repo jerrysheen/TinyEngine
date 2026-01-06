@@ -55,8 +55,6 @@ namespace EngineCore
         // todo: complete this..
         void SetSissorRect(const Vector2& viewportStartXY, const Vector2& viewportEndXY);
 
-        void Submit(const RenderPassInfo& info);
-
         void ProcessDrawCommand(const DrawCommand& cmd);
 
         void CopyBufferRegion(const Payload_CopyBufferRegion& copyCmd);

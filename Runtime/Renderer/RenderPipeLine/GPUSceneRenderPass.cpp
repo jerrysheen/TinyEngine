@@ -8,7 +8,8 @@
 #include "Core/PublicStruct.h"
 #include "Renderer/Renderer.h"
 #include "Core/PublicEnum.h"
-
+#include "Renderer/BatchManager.h"
+#include "Renderer/RenderEngine.h"
 namespace EngineCore
 {
     GPUSceneRenderPass::GPUSceneRenderPass()
@@ -36,6 +37,34 @@ namespace EngineCore
     // maybe send a context here?
     void EngineCore::GPUSceneRenderPass::Execute(RenderContext& context)
     {
+        Renderer::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
+        Renderer::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
+        Renderer::GetInstance()->SetSissorRect(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
+
+        Renderer::GetInstance()->SetPerPassData((UINT)mRenderPassInfo.mRootSigSlot);
+
+        for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
+        {
+            int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
+            int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
+            Material* mat = renderContext.material;
+            uint32_t vaoID = renderContext.vaoID;
+            // 根据mat + pass信息组织pippeline
+            Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
+            // copy gpu material data desc 
+            Renderer::GetInstance()->SetMaterialData(mat);
+            // bind mesh vertexbuffer and indexbuffer.
+            Renderer::GetInstance()->SetMeshData(vaoID);
+            Payload_DrawIndirect indirectPayload;
+            // temp:
+            GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
+            ASSERT(indirectDrawArgsBuffer != nullptr);
+            indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
+            indirectPayload.count = 1;
+            indirectPayload.startIndex = batchID;
+            indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
+            Renderer::GetInstance()->DrawIndirect(indirectPayload);
+        }
     }
 
     void GPUSceneRenderPass::Filter(const RenderContext &context)
