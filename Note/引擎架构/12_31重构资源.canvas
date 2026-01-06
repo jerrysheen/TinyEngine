@@ -1,0 +1,16 @@
+{
+	"nodes":[
+		{"id":"235142002b3a3910","x":-670,"y":31,"width":290,"height":129,"type":"text","text":"Texture2D\n"},
+		{"id":"8f266463f7ecc4b7","x":-705,"y":280,"width":360,"height":129,"type":"text","text":"FrameBuffer\nColorAttachment Texture2D\nDepthAttachment Texture2D"},
+		{"id":"8cd4cafd95cbcbc9","type":"text","text":"Mesh:\nIndexBuffer\nVertexBuffer\n","x":-255,"y":35,"width":290,"height":129},
+		{"id":"c981dbff274ead5f","type":"text","text":"IGPUView*\nuav srv\nrtv","x":-90,"y":-440,"width":250,"height":170},
+		{"id":"529c41e208392b87","x":-470,"y":-490,"width":250,"height":220,"type":"text","text":"IGPUResource*\n长宽高、 资源状态、资源用途、IGPUBuffer基本的类型"}
+	],
+	"edges":[
+		{"id":"c73a05f85dfe4a0d","fromNode":"235142002b3a3910","fromSide":"top","toNode":"529c41e208392b87","toSide":"bottom"},
+		{"id":"64b97ca11ccf7e5e","fromNode":"235142002b3a3910","fromSide":"top","toNode":"c981dbff274ead5f","toSide":"bottom"},
+		{"id":"dda9dece37622f71","fromNode":"8f266463f7ecc4b7","fromSide":"top","toNode":"235142002b3a3910","toSide":"bottom"},
+		{"id":"9fe99c537b08d3c8","fromNode":"8cd4cafd95cbcbc9","fromSide":"top","toNode":"529c41e208392b87","toSide":"bottom"},
+		{"id":"74f2146a05c9cd7b","fromNode":"8cd4cafd95cbcbc9","fromSide":"top","toNode":"c981dbff274ead5f","toSide":"bottom"}
+	]
+}

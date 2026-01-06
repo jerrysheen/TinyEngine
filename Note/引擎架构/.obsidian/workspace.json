@@ -30,15 +30,15 @@
             "state": {
               "type": "canvas",
               "state": {
-                "file": "12_27 GPUScene 前半段更新.canvas",
+                "file": "12_31重构资源.canvas",
                 "viewState": {
-                  "x": -269.9999694824219,
-                  "y": 615.0000228881836,
-                  "zoom": 0
+                  "x": -75.33319091796875,
+                  "y": -63.333343505859375,
+                  "zoom": -0.3333333333333333
                 }
               },
               "icon": "lucide-layout-dashboard",
-              "title": "12_27 GPUScene 前半段更新"
+              "title": "12_31重构资源"
             }
           }
         ],
@@ -192,9 +192,10 @@
   },
   "active": "b37dfbe50f450bb4",
   "lastOpenFiles": [
-    "12_17GPU Scene大致流程， 和实现方案.canvas",
     "未命名.md",
+    "12_31重构资源.canvas",
     "12_27 GPUScene 前半段更新.canvas",
+    "12_17GPU Scene大致流程， 和实现方案.canvas",
     "ComputeShader接入梳理.canvas",
     "ComputeShader接入梳理：.md",
     "Pasted image 20251217230600.png",
@@ -211,7 +212,6 @@
     "Picture/Pasted image 20251128103006.png",
     "渲染流程.canvas",
     "资源初始化.canvas",
-    "渲染API调度.canvas",
     "RenderAPI.h.md"
   ]
 }
