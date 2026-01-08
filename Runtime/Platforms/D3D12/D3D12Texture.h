@@ -5,17 +5,20 @@
 
 namespace EngineCore
 {
-    class D3D12Buffer : public IGPUBuffer
+    // 只是一个资源的壳，IGPUTexture的实现，持有指针
+    class D3D12Texture : public IGPUTexture
     {
     public:
-        D3D12Buffer(ComPtr<ID3D12Resource> resource, const BufferDesc& desc, D3D12_RESOURCE_STATES initialState)
+        D3D12Texture() = default;
+
+        D3D12Texture(const TextureDesc& desc) 
+            : m_Desc(desc)
+        {
+        }
+
+        D3D12Texture(ComPtr<ID3D12Resource> resource, const TextureDesc& desc, D3D12_RESOURCE_STATES initialState)
             : m_Resource(resource), m_Desc(desc) 
         {
-            if(desc.memoryType == BufferMemoryType::Upload)
-            {
-                Map();
-            }
-
             switch(initialState)
             {
                 case D3D12_RESOURCE_STATE_COMMON:
@@ -33,42 +36,22 @@ namespace EngineCore
             }
         }
 
-        virtual ~D3D12Buffer()
+        virtual ~D3D12Texture()
         {
-            if(m_Desc.memoryType != BufferMemoryType::Default) UnMap();
         }
 
-        virtual const BufferDesc& GetDesc() const override {return m_Desc;};
+        virtual const TextureDesc& GetDesc() const override {return m_Desc;};
         virtual void* GetNativeHandle() const override {return m_Resource.Get();}
 
-    
+
         virtual uint64_t GetGPUVirtualAddress() const override
         {
             return m_Resource->GetGPUVirtualAddress();
         }
-    
-        virtual void* Map() override
-        {
-            if(!m_MappedData){
-                m_Resource->Map(0, nullptr, &m_MappedData);
-            }
-            return m_MappedData;
-        }
 
-        virtual void UnMap() override
-        {
-            if(m_MappedData)
-            {
-                m_Resource->Unmap(0, nullptr);
-                m_MappedData = nullptr;
-            }
-        }
-    
         virtual void SetName(const wchar_t* name) override {m_Resource->SetName(name);}
-
-    private:
+    public:
         ComPtr<ID3D12Resource> m_Resource;
-        BufferDesc m_Desc;
-        void* m_MappedData = nullptr;
+        TextureDesc m_Desc;
     };
 }

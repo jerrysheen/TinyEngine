@@ -45,7 +45,7 @@ namespace EngineCore
         
         void SetRenderState(const Material* mat, const RenderPassInfo &passinfo);
 
-        void SetMaterialData(const Material* mat);
+        void SetMaterialData(Material* mat);
 
         void ConfigureRenderTarget(const RenderPassInfo& passInfo);
 
@@ -61,7 +61,7 @@ namespace EngineCore
 
         void DispatchComputeShader(const Payload_DispatchComputeShader& dispatchCmd);
         
-        void SetBufferState(IGPUBuffer* buffer, BufferResourceState state);
+        void SetResourceState(IGPUResource* resource, BufferResourceState state);
         
         void DrawIndirect(Payload_DrawIndirect payload);
         

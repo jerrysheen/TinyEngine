@@ -1,7 +1,7 @@
 #include "PreCompiledHeader.h"
 #include "GPUSceneManager.h"
 #include "Graphics/GPUBufferAllocator.h"
-#include "Graphics/IGPUBuffer.h"
+#include "Graphics/IGPUResource.h"
 #include "Renderer/RenderUniforms.h"
 #include "Renderer/RenderAPI.h"
 #include "Scene/SceneManager.h"

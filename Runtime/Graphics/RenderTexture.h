@@ -1,17 +1,14 @@
 #pragma once
 #include "Graphics/IGPUResource.h"
-#include "Resources/Resource.h"
 
 namespace EngineCore
 {
-    class Texture : public Resource
+    class RenderTexture
     {
     public:
-        Texture() = default;
-        Texture(const string& textureID);
+        RenderTexture() = default;
+        RenderTexture(TextureDesc textureDesc);
 
-        Texture(MetaData* textureMetaData);
-        //inline const string GetName() const { return mTextureName; };
 
         inline int GetWidth() { return textureDesc.width; };
         inline int GetHeight() { return textureDesc.height; };

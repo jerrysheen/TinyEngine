@@ -1,7 +1,5 @@
 #include "PreCompiledHeader.h"
 #include "Camera.h"
-#include "Renderer/FrameBufferManager.h"
-#include "Graphics/FrameBufferObject.h"
 #include "Renderer/RenderPipeline/OpaqueRenderPass.h"
 #include "Renderer/RenderPipeline/FinalBlitPass.h"
 #include "Renderer/RenderPipeline/GPUSceneRenderPass.h"
@@ -9,7 +7,7 @@
 #include "Transform.h"
 #include "Serialization/ComponentFactory.h"
 #include "Math/Frustum.h"
-
+#include "Graphics/IGPUResource.h"
 
 REGISTER_SCRIPT(Camera)
 
@@ -24,21 +22,24 @@ namespace EngineCore
         //mRenderPassAsset.renderPasses.push_back(new OpaqueRenderPass());
         mRenderPassAsset.renderPasses.push_back(new FinalBlitPass());
 
-        FrameBufferDesc colorAttachmentDesc;
+        TextureDesc colorAttachmentDesc;
         colorAttachmentDesc.name = "CameraColorAttachment";
         colorAttachmentDesc.dimension = TextureDimension::TEXTURE2D;
         colorAttachmentDesc.width = 800;
         colorAttachmentDesc.height = 600;
         colorAttachmentDesc.format = TextureFormat::R8G8B8A8;
-        colorAttachment = FrameBufferManager::GetInstance()->CreateFBO(colorAttachmentDesc);
+        colorAttachmentDesc.texUsage = TextureUsage::RenderTarget;
+        colorAttachment = new RenderTexture(colorAttachmentDesc);
 
-        FrameBufferDesc depthAttachmentDesc;
-        depthAttachmentDesc.name = "CameraColorAttachment";
+        TextureDesc depthAttachmentDesc;
+        depthAttachmentDesc.name = "CameraDepthAttachment";
         depthAttachmentDesc.dimension = TextureDimension::TEXTURE2D;
         depthAttachmentDesc.width = 800;
         depthAttachmentDesc.height = 600;
         depthAttachmentDesc.format = TextureFormat::D24S8;
-        depthAttachment = FrameBufferManager::GetInstance()->CreateFBO(depthAttachmentDesc);
+        depthAttachmentDesc.texUsage = TextureUsage::DepthStencil;
+        depthAttachment = new RenderTexture(depthAttachmentDesc);
+        
         //todo： 全局材质更新
         
         //mPerspectiveMatrix =  Matrix4x4(0.52, 0, -0.37, 0,

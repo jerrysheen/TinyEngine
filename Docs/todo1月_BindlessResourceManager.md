@@ -1,3 +1,31 @@
+【】 考虑 keyword 来实现bindless和传统的模式
+
+// ShaderCommon.hlsl
+
+#ifdef BINDLESS_ENABLED
+    // Bindless 模式：资源是全局堆的一个索引
+    #define TEXTURE2D(Name) uint Name##Index
+    #define SAMPLE_TEXTURE2D(Name, Sampler, UV) ResourceDescriptorHeap[NonUniformResourceIndex(Name##Index)].Sample(Sampler, UV)
+#else
+    // 传统模式：资源是绑定的 Slot
+    #define TEXTURE2D(Name) Texture2D Name
+    #define SAMPLE_TEXTURE2D(Name, Sampler, UV) Name.Sample(Sampler, UV)
+#endif
+
+// 用户材质代码 UserMaterial.hlsl
+cbuffer MaterialData : register(b0)
+{
+    float4 Color;
+    TEXTURE2D(AlbedoMap); // 宏展开：Bindless下是uint，传统下是Texture2D
+};
+
+float4 main(VSOutput input) : SV_Target
+{
+    return SAMPLE_TEXTURE2D(AlbedoMap, LinearSampler, input.uv) * Color;
+}
+
+
+
 # 1月开发计划：Bindless 资源管理与统一架构
 
 ## 核心目标

@@ -2,7 +2,7 @@
 #include "d3dUtil.h"
 #include "D3D12Struct.h"
 #include "PreCompiledHeader.h"
-
+#include "Graphics/IGPUResource.h"
 
 namespace EngineCore
 {
@@ -13,15 +13,15 @@ namespace EngineCore
         ~D3D12DescAllocator(){};
         inline D3D12_DESCRIPTOR_HEAP_TYPE GetHeapType(){ return mHeapType;};
 
-        TD3D12DescriptorHandle CreateDescriptor(const D3D12_SAMPLER_DESC& desc){};
-		TD3D12DescriptorHandle CreateDescriptor(const D3D12_CONSTANT_BUFFER_VIEW_DESC& desc);
-		TD3D12DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc);
-		TD3D12DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc);
-		TD3D12DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc);
-        TD3D12DescriptorHandle GetNextAvaliableDesc();
+        DescriptorHandle CreateDescriptor(const D3D12_SAMPLER_DESC& desc){};
+		DescriptorHandle CreateDescriptor(const D3D12_CONSTANT_BUFFER_VIEW_DESC& desc);
+		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc);
+		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc);
+		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc);
+        DescriptorHandle GetNextAvaliableDesc();
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mHeap;
         void Reset();
-        TD3D12DescriptorHandle GetFrameAllocator(int count);
+        DescriptorHandle GetFrameAllocator(int count);
 
     private:
         D3D12_DESCRIPTOR_HEAP_TYPE mHeapType;

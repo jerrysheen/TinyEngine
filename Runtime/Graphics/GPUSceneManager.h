@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/IGPUBuffer.h"
+#include "Graphics/IGPUResource.h"
 #include "Math/Matrix4x4.h"
 #include "Renderer/RenderUniforms.h"
 #include "Graphics/GPUBufferAllocator.h"

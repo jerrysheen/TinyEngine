@@ -2,7 +2,6 @@
 #include "Renderer.h"
 #include "RenderAPI.h"
 #include "Core/PublicEnum.h"
-#include "Graphics/FrameBufferObject.h"
 #include "Core/Concurrency/CpuEvent.h"
 #include "Graphics/GPUBufferAllocator.h"
 #include "Renderer/RenderEngine.h"
@@ -104,19 +103,19 @@ namespace EngineCore
         temp.op = RenderOp::kSetRenderState;
         PSODesc pso;
         
-        pso.colorAttachment = passinfo.colorAttachment.IsValid() ? TextureFormat::R8G8B8A8 : TextureFormat::EMPTY;
-        pso.depthAttachment = passinfo.depthAttachment.IsValid() ? TextureFormat::D24S8 : TextureFormat::EMPTY;
+        pso.colorAttachment = passinfo.colorAttachment ? TextureFormat::R8G8B8A8 : TextureFormat::EMPTY;
+        pso.depthAttachment = passinfo.depthAttachment ? TextureFormat::D24S8 : TextureFormat::EMPTY;
         pso.matRenderState = mat->GetMaterialRenderState();
         temp.data.setRenderState.psoDesc = pso;
         
         mRenderBuffer.PushBlocking(temp);
     }
 
-    void Renderer::SetMaterialData(const Material* mat)
+    void Renderer::SetMaterialData(Material* mat)
     {
         DrawCommand temp;
         temp.op = RenderOp::kSetMaterial;
-        temp.data.setMaterial.matId = mat->GetInstanceID();
+        temp.data.setMaterial.mat = mat;
         temp.data.setMaterial.shader = mat->mShader.Get();
         mRenderBuffer.PushBlocking(temp);
     }
@@ -127,9 +126,8 @@ namespace EngineCore
         temp.op = RenderOp::kConfigureRT;
         Payload_ConfigureRT& configureRT = temp.data.configureRT;
         // todo :  string name -> id name;
-        configureRT.colorAttachment = info.colorAttachment.IsValid() ? info.colorAttachment.Get()->GetInstanceID() : 0;
-        configureRT.depthAttachment = info.depthAttachment.IsValid() ? info.depthAttachment.Get()->GetInstanceID() : 0;
-        configureRT.isBackBuffer = info.colorAttachment.IsValid() && info.colorAttachment.Get()->mTextureName == "BackBuffer";
+        configureRT.colorAttachment = info.colorAttachment ? info.colorAttachment->textureBuffer : nullptr;
+        configureRT.depthAttachment = info.depthAttachment ? info.depthAttachment->textureBuffer : nullptr;
         // todo : 对齐两部分指令
         ClearValue value = {Vector3(info.clearColorValue.x, info.clearColorValue.y, info.clearColorValue.z),
             info.clearDepthValue, info.clearFlag};
@@ -238,10 +236,10 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(cmd);
     }
 
-    void Renderer::SetBufferState(IGPUBuffer *buffer, BufferResourceState state)
+    void Renderer::SetResourceState(IGPUResource* resource, BufferResourceState state)
     {
         Payload_SetBufferResourceState payload;
-        payload.buffer = buffer;
+        payload.resource = resource;
         payload.state = state;
         DrawCommand cmd;
         cmd.data.setBufferResourceState = payload;
@@ -257,72 +255,6 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(cmd);
     }
 
-    //void Renderer::Submit(const RenderPassInfo &info)
-    //{
-    //    // todo： 后面挪到别的地方， 先做Batch的部分：
-    //    ConfigureRenderTarget(info);
-    //    SetViewPort(info.viewportStartPos, info.viewportEndPos);
-    //    SetSissorRect(info.viewportStartPos, info.viewportEndPos);
-    //    
-    //    SetPerPassData((UINT)info.mRootSigSlot);
-    //    if (info.enableBatch == false) 
-    //    {
-    //        for each(auto& record in info.drawRecordList)
-    //        {
-    //            // 根据mat + pass信息组织pippeline
-    //            SetRenderState(record.mat, info);
-    //            // copy gpu material data desc 
-    //            SetMaterialData(record.mat);
-    //            // bind mesh vertexbuffer and indexbuffer.
-    //            SetMeshData(record.vaoID);
-
-    //            DrawIndexedInstanced(record.vaoID, record.instanceCount, record.perDrawHandle);
-    //        }
-    //    }
-    //    else 
-    //    {
-    //        if (!info.enableIndirectDrawCall) 
-    //        {
-    //            for each(auto& record in info.renderBatchList)
-    //            {
-    //                // 根据mat + pass信息组织pippeline
-    //                SetRenderState(record.mat, info);
-    //                // copy gpu material data desc 
-    //                SetMaterialData(record.mat);
-    //                // bind mesh vertexbuffer and indexbuffer.
-    //                SetMeshData(record.vaoID);
-
-    //                DrawIndexedInstanced(record.vaoID, record.instanceCount, PerDrawHandle{ nullptr, (uint32_t)record.alloc.offset, 0 });
-    //            }
-    //        }
-    //        else 
-    //        {
-    //            for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
-    //            {
-    //                int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
-    //                int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
-    //                Material* mat = renderContext.material;
-    //                uint32_t vaoID = renderContext.vaoID;
-    //                // 根据mat + pass信息组织pippeline
-    //                SetRenderState(mat, info);
-    //                // copy gpu material data desc 
-    //                SetMaterialData(mat);
-    //                // bind mesh vertexbuffer and indexbuffer.
-    //                SetMeshData(vaoID);
-    //                Payload_DrawIndirect indirectPayload;
-    //                // temp:
-    //                GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
-    //                ASSERT(indirectDrawArgsBuffer != nullptr);
-    //                indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
-    //                indirectPayload.count = 1;
-    //                indirectPayload.startIndex = batchID;
-    //                indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
-    //                Renderer::GetInstance()->DrawIndirect(indirectPayload);
-    //            }
-    //        }
-
-    //    }
-    //}
 
     // 渲染线程消费指令
     void Renderer::ProcessDrawCommand(const DrawCommand &cmd)

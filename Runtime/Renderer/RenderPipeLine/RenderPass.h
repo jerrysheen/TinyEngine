@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/PublicStruct.h"
 #include "Renderer/RenderContext.h"
+#include "Graphics/RenderTexture.h"
 
 namespace EngineCore
 {
@@ -31,7 +32,7 @@ namespace EngineCore
 
 
         // ignore null ptr since RenderAPI level will handle this problem
-        inline void SetRenderTarget(ResourceHandle<FrameBufferObject> colorAttachment, ResourceHandle<FrameBufferObject> depthAttachment)
+        inline void SetRenderTarget(RenderTexture* colorAttachment, RenderTexture* depthAttachment)
         {
             mRenderPassInfo.colorAttachment = colorAttachment;
             mRenderPassInfo.depthAttachment = depthAttachment;

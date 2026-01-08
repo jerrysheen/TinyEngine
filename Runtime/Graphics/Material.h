@@ -2,13 +2,11 @@
 #include "Math.h"
 #include "Serialization/MetaData.h"
 #include "Shader.h"
-#include "Buffer.h"
 #include "Core/Object.h"
 #include "Core/PublicStruct.h"
 #include "Renderer/RenderCommand.h"
 #include "Resources/ResourceHandle.h"
 #include <variant>
-#include "Graphics/FrameBufferObject.h"
 #include "Graphics/Texture.h"
 #include "MaterialInstance.h"
 
@@ -19,23 +17,18 @@ namespace EngineCore
     public:
         bool isDirty = true;
         std::unique_ptr<MaterialInstance> matInstance;
-        unordered_map<string, Buffer2D*> textureData;
         ResourceHandle<Shader> mShader;
-        // temp 后续改
-        unordered_map<std::string, std::variant<ResourceHandle<Texture>, ResourceHandle<FrameBufferObject>>> mTexResourceMap;
+        unordered_map<string, IGPUTexture*> textureData;
+        unordered_map<std::string, ResourceHandle<Texture>> textureHandleMap;
 
 
         Material() = default;
         Material(MetaData* metaData);
         Material(ResourceHandle<Shader> shader);
         Material(const Material& other);
-        void SetUpGPUResources();
         void UploadDataToGpu();
         ~Material();
 
-        void SetTexture(const string& name, uint64_t texInstanceID);
-        void SetTexture(const string& name, ResourceHandle<Texture> handle);
-        void SetTexture(const string& name, ResourceHandle<FrameBufferObject> handle);
 
         void SetValue(const string& name, void* data, uint32_t size) 
         {
@@ -43,13 +36,34 @@ namespace EngineCore
             matInstance->SetValue(name, data, size);
         }
 
+        // 通用设置材质texture的接口
+        void SetTexture(const string& name, IGPUTexture* texture)
+        {
+            ASSERT(textureData.count(name) > 0);
+            if(textureHandleMap.count(name))
+            {
+                textureHandleMap.erase(name);
+            }
+            textureData[name] = texture;
+        }
+
+        // 运行时关联一个临时资源，建立一个引用， 防止资源因为0引用被销毁
+        void SetTexture(const string& name, ResourceHandle<Texture> texture)
+        {
+            ASSERT(textureData.count(name) > 0);
+            textureHandleMap[name] = texture;
+            if(texture.IsValid())
+            {
+                textureData[name] = texture.Get()->textureBuffer;
+            }
+        }
+
         inline MaterailRenderState GetMaterialRenderState() const { return mRenderState;};
-        // todo  自己同步材质；
         MaterailRenderState mRenderState;
         BufferAllocation materialAllocation;
     private:
         void LoadDependency(const std::unordered_map<std::string, MetaData>& dependentMap);
         void SetUpRenderState();
-        void GetMaterialDataFromShaderReflection();
+        void GetTextureInfoFromShaderReflection();
     };
 }

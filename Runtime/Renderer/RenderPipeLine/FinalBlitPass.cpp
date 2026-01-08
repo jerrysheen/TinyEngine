@@ -1,6 +1,5 @@
 #include "PreCompiledHeader.h"
 #include "FinalBlitPass.h"
-#include "Renderer/FrameBufferManager.h"
 #include "Renderer/Renderer.h"
 #include "Scene/SceneManager.h"
 #include "Managers/WindowManager.h"
@@ -22,7 +21,7 @@ namespace EngineCore
     {
         mRenderPassInfo.passName = "FinalBlitPass";
         mRenderPassInfo.enableBatch = false;
-        SetRenderTarget(FrameBufferManager::GetInstance()->GetScreenBuffer(), ResourceHandle<FrameBufferObject>(0));
+        SetRenderTarget(RenderAPI::GetInstance()->GetCurrentBackBuffer(), nullptr);
         SetClearFlag(ClearFlag::All, Vector3(0.0, 0.0, 0.0), 1.0f);
         #ifdef EDITOR
             SetViewPort(EngineEditor::EditorSettings::GetGameViewPanelStartPos(), EngineEditor::EditorSettings::GetGameViewPanelEndPos());
@@ -34,9 +33,9 @@ namespace EngineCore
     void FinalBlitPass::Execute(RenderContext& context)
     {
         mRootSigSlot = RootSigSlot::PerPassData;
-        Material* mat = SceneManager::GetInstance()->blitMaterial.Get();
-        mat->SetTexture("SrcTexture", context.camera->colorAttachment.Get()->GetInstanceID());
-        ModelData* model = SceneManager::GetInstance()->quadMesh.Get();
+        Material* mat = SceneManager::GetInstance()->blitMaterial;
+        mat->SetTexture("SrcTexture", context.camera->colorAttachment->textureBuffer);
+        ModelData* model = SceneManager::GetInstance()->quadMesh;
         mRenderPassInfo.drawRecordList.emplace_back(mat, model->GetInstanceID());
         // todo： 后面挪到别的地方， 先做Batch的部分：
         Renderer::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
@@ -49,6 +48,9 @@ namespace EngineCore
         Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
         // copy gpu material data desc 
         Renderer::GetInstance()->SetMaterialData(mat);
+        //Texture* tex = context.camera->colorAttachment.Get();
+        //Renderer::GetInstance()->SetResourceState(tex, BufferResourceState::STATE_SHADER_RESOURCE);
+        //Renderer::GetInstance()->BindTexture(tex, 0, 0);
         // bind mesh vertexbuffer and indexbuffer.
         Renderer::GetInstance()->SetMeshData(model->GetInstanceID());
         Renderer::GetInstance()->DrawIndexedInstanced(model->GetInstanceID(), 1, PerDrawHandle{0,0});

@@ -37,22 +37,22 @@ namespace EngineCore
         }
     }
 
-    TD3D12DescriptorHandle D3D12DescManager::CreateDescriptor(const D3D12_CONSTANT_BUFFER_VIEW_DESC& desc)
+    DescriptorHandle D3D12DescManager::CreateDescriptor(const D3D12_CONSTANT_BUFFER_VIEW_DESC& desc)
     {
         return mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].CreateDescriptor(desc);
     }
 
-    TD3D12DescriptorHandle D3D12DescManager::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc)
+    DescriptorHandle D3D12DescManager::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc)
     {
         return mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV].CreateDescriptor(resource, desc);
     }
 
-    TD3D12DescriptorHandle D3D12DescManager::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc) 
+    DescriptorHandle D3D12DescManager::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc) 
     {
         return mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].CreateDescriptor(resource, desc);
     }
 
-    TD3D12DescriptorHandle D3D12DescManager::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc)
+    DescriptorHandle D3D12DescManager::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc)
     {
         return mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_DSV].CreateDescriptor(resource, desc);
     }
@@ -65,12 +65,12 @@ namespace EngineCore
         }        
     }
 
-    TD3D12DescriptorHandle D3D12DescManager::GetFrameCbvSrvUavAllocator(int count)
+    DescriptorHandle D3D12DescManager::GetFrameCbvSrvUavAllocator(int count)
     {
         return mFrameAllocators[0].GetFrameAllocator(count);
     }
 
-    TD3D12DescriptorHandle D3D12DescManager::GetFrameSamplerAllocator(int count)
+    DescriptorHandle D3D12DescManager::GetFrameSamplerAllocator(int count)
     {
         return mFrameAllocators[1].GetFrameAllocator(count);
     }

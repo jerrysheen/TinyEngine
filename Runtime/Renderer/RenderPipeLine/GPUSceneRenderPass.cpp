@@ -4,12 +4,13 @@
 // temp include
 #include "Platforms/D3D12/D3D12RenderAPI.h"
 #include "Renderer/RenderAPI.h"
-#include "Renderer/FrameBufferManager.h"
 #include "Core/PublicStruct.h"
 #include "Renderer/Renderer.h"
 #include "Core/PublicEnum.h"
 #include "Renderer/BatchManager.h"
 #include "Renderer/RenderEngine.h"
+#include "Graphics/RenderTexture.h"
+
 namespace EngineCore
 {
     GPUSceneRenderPass::GPUSceneRenderPass()
@@ -27,10 +28,10 @@ namespace EngineCore
         mRenderPassInfo.passName = "GPUSceneRenderPass";
         mRenderPassInfo.enableBatch = true;
         mRenderPassInfo.enableIndirectDrawCall = true;
-        ResourceHandle<FrameBufferObject> colorAttachment = context.camera->colorAttachment;
-        ResourceHandle<FrameBufferObject> depthAttachment = context.camera->depthAttachment;
+        RenderTexture* colorAttachment = context.camera->colorAttachment;
+        RenderTexture* depthAttachment = context.camera->depthAttachment;
         SetRenderTarget(colorAttachment, depthAttachment);
-        SetViewPort(Vector2(0,0), Vector2(colorAttachment->mWidth, colorAttachment->mHeight));
+        SetViewPort(Vector2(0,0), Vector2(colorAttachment->GetWidth(), colorAttachment->GetHeight()));
         SetClearFlag(ClearFlag::All, Vector3(0.0, 0.0, 0.0), 1.0f);
     }
     

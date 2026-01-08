@@ -5,6 +5,7 @@
 #include "Resources/Asset.h"
 #include "Core/PublicEnum.h"
 #include "Math/Math.h"
+#include "Graphics/IGPUResource.h"
 
 namespace EngineCore
 {

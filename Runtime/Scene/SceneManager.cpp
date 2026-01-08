@@ -106,10 +106,10 @@ namespace EngineCore
         Scene* scene = MetaFactory::CreateSceneFromMeta(j);
 
         // todo: 应该能保存序列化 更多的meta， 包括场景中代码创建的， 只要是shader和texture是代码创建的， 应该就可以，而不是像现在这样。
-        quadMesh = ResourceManager::GetInstance()->CreateResource<ModelData>(Primitive::Quad);
+        quadMesh = new ModelData(Primitive::Quad);
         blitShader = ResourceManager::GetInstance()->LoadAsset<Shader>("Shader/BlitShader.hlsl");
+        blitMaterial = new Material(blitShader);
 
-        blitMaterial = ResourceManager::GetInstance()->CreateResource<Material>(blitShader);
 
     }
 

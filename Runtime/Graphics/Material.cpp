@@ -13,25 +13,16 @@ namespace EngineCore
         mAssetType = AssetType::Material;
 
         MaterialMetaData* matMetaData = static_cast<MaterialMetaData*>(metaData);
-        // 加载引用
-        for (const auto& [key, value] : matMetaData->textureData)
-        {
-            textureData[key] = value;
-        }
         auto& dependenciesMap = metaData->dependentMap;
         LoadDependency(dependenciesMap);
 
         ASSERT(mShader.IsValid());
         SetUpRenderState();
-
-        SetUpGPUResources();
-
+        GetTextureInfoFromShaderReflection();
         MaterialLayout layout = MaterialLayout::GetDefaultPBRLayout();
-        Vector4 color = {1,1,1,0};
         matInstance = std::make_unique<MaterialInstance>(layout);
-        SetValue("DiffuseColor", &color, sizeof(Vector4));
+        SetUpRenderState();
         materialAllocation = GPUSceneManager::GetInstance()->GetSinglePerMaterialData();
-
         UploadDataToGpu();
 
     }
@@ -39,90 +30,35 @@ namespace EngineCore
     Material::Material(ResourceHandle<Shader> shader)
         : mShader(shader)
     {
+        mAssetType = AssetType::Material;
+
+        GetTextureInfoFromShaderReflection();
         MaterialLayout layout = MaterialLayout::GetDefaultPBRLayout();
         matInstance = std::make_unique<MaterialInstance>(layout);
 
         SetUpRenderState();
-        SetUpGPUResources();
         materialAllocation = GPUSceneManager::GetInstance()->GetSinglePerMaterialData();
         UploadDataToGpu();
     }
 
     Material::Material(const Material &other)
         : mShader(other.mShader),
-        mTexResourceMap(other.mTexResourceMap), mRenderState(other.mRenderState)
+        mRenderState(other.mRenderState)
     {
         mAssetType = AssetType::Material;
-        // 创建GPU资源,并且进行同步.
-        SetUpGPUResources();
+
+        GetTextureInfoFromShaderReflection();
+        MaterialLayout layout = other.matInstance->GetLayout();
+        matInstance = std::make_unique<MaterialInstance>(layout);
+        SetUpRenderState();
         materialAllocation = GPUSceneManager::GetInstance()->GetSinglePerMaterialData();
+        UploadDataToGpu();
     }
 
     Material::~Material()
     {
         
     }
-
-    void Material::SetTexture(const string& slotName, ResourceHandle<Texture> handle)
-    {
-        //cpu, 更新data数据，
-        ASSERT(handle.IsValid());
-        textureData[slotName] = handle.Get();
-        int slotIndex = -1;
-        for (auto& textureInfo : mShader.Get()->mShaderReflectionInfo.mTextureInfo)
-        {
-            if (textureInfo.resourceName == slotName) 
-            {
-                slotIndex = textureInfo.registerSlot;
-            }
-        }
-        ASSERT_MSG(slotIndex != -1, "Can't find this Texture");
-        //ASSERT(mTexResourceMap.count(slotName) > 0);
-        // 保存新的，释放原来的
-        mTexResourceMap[slotName] = handle;
-        //gpu
-        RenderAPI::GetInstance()->SetShaderTexture(this, slotName ,slotIndex, handle.Get()->GetInstanceID());
-    }
-    
-    void Material::SetTexture(const string& slotName, ResourceHandle<FrameBufferObject> handle)
-    {
-        //cpu, 更新data数据，
-        ASSERT(handle.IsValid());
-        
-        textureData[slotName] = handle.Get();
-        int slotIndex = -1;
-        for (auto& textureInfo : mShader.Get()->mShaderReflectionInfo.mTextureInfo)
-        {
-            if (textureInfo.resourceName == slotName) 
-            {
-                slotIndex = textureInfo.registerSlot;
-            }
-        }
-        ASSERT_MSG(slotIndex != -1, "Can't find this Texture");
-        ASSERT(mTexResourceMap.count(slotName) > 0);
-        // 保存新的，释放原来的
-        mTexResourceMap[slotName] = handle;
-        //gpu
-        RenderAPI::GetInstance()->SetShaderTexture(this, slotName ,slotIndex, handle.Get()->GetInstanceID());
-    }
-
-     // todo：资源的统一管理， Material只会持有一个textureID，后续的信息都去ResouceManager的Texture中去找。
-     void Material::SetTexture(const string& slotName, uint64_t texInstanceID)
-     {
-         //cpu, 更新data数据，
-         int slotIndex = -1;
-         for (auto& textureInfo : mShader.Get()->mShaderReflectionInfo.mTextureInfo)
-         {
-             if (textureInfo.resourceName == slotName)
-             {
-                 slotIndex = textureInfo.registerSlot;
-             }
-         }
-         ASSERT_MSG(slotIndex != -1, "Can't find this Texture");
-         //gpu
-         RenderAPI::GetInstance()->SetShaderTexture(this, slotName, slotIndex, texInstanceID);
-     }
-
 
     // 1. 加载ResouceHandle资源
     // 2. 同步具体的资源到textureData中.
@@ -138,12 +74,7 @@ namespace EngineCore
                 break;
             case AssetType::Texture2D:
                 tex = ResourceManager::GetInstance()->LoadAsset<Texture>(metaData.path);
-                mTexResourceMap.try_emplace(name, tex);
-                // 这个地方从meta加载进来, 一定是一对一,所以不考虑重复怎么处理.
-                if(textureData.count(name) > 0)
-                {
-                    textureData[name] = tex.Get();
-                }
+                textureHandleMap[name] = tex;
             default:
                 break;
             }
@@ -158,7 +89,7 @@ namespace EngineCore
         //todo： 很多还没做
     }
 
-    void Material::GetMaterialDataFromShaderReflection()
+    void Material::GetTextureInfoFromShaderReflection()
     {
         // 新增：根据 Shader 反射信息初始化 MaterialData
         ASSERT(mShader.IsValid());
@@ -166,15 +97,20 @@ namespace EngineCore
         // 初始化纹理槽位（从 mTextureInfo 中获取）
         for (const auto& texInfo : mShader.Get()->mShaderReflectionInfo.mTextureInfo)
         {
-            textureData[texInfo.resourceName] = nullptr;  // 初始化为空
+            // 如果有，说明是在LoadDependency的时候就加载进来了
+            if (textureHandleMap.count(texInfo.resourceName) > 0) 
+            {
+                textureData[texInfo.resourceName] = textureHandleMap[texInfo.resourceName].Get()->textureBuffer;
+            }
+            else 
+            {
+                textureData[texInfo.resourceName] = nullptr;  // 初始化为空
+            }
         }
     }
 
     // 根据Shader信息，创建GPU buffer，进行数据映射。
-    void Material::SetUpGPUResources()
-    {  
-        RenderAPI::GetInstance()->CreateMaterialTextureSlots(this, mShader.Get()->mShaderReflectionInfo.mTextureInfo);
-    }
+
     
     
     void Material::UploadDataToGpu()
@@ -185,15 +121,6 @@ namespace EngineCore
                 ->UploadBuffer(materialAllocation, matInstance->GetData(), matInstance->GetSize());
         }
         
-
-        // todo: 这个地方设计思路有点问题，但是先不管了
-        for(const auto& [name, texptr] : textureData)
-        {
-           if(texptr != nullptr)
-           {
-               SetTexture(name, texptr->GetInstanceID());
-           }
-        }
     }
 
 

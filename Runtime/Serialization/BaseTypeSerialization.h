@@ -6,6 +6,8 @@
 #include "Graphics/Texture.h"
 #include "Resources/ResourceHandle.h"
 #include "Resources/ResourceManager.h"
+#include "Graphics/IGPUResource.h"
+
 namespace EngineCore
 {
     // // Vector3

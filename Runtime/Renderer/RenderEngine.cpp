@@ -8,7 +8,6 @@
 #include "Platforms/D3D12/D3D12RenderAPI.h"
 #include "Scene/SceneManager.h"
 #include "Culling.h"
-#include "FrameBufferManager.h"
 #include "Scene/Scene.h"
 #include "Graphics/GPUSceneManager.h"
 #include "Renderer/RenderPath/LagacyRenderPath.h"
@@ -29,7 +28,6 @@ namespace EngineCore
         WindowManager::Create();
         RenderAPI::Create();
         Renderer::Create();
-        FrameBufferManager::Create();
         GPUSceneManager::Create();
     }
 
@@ -61,7 +59,6 @@ namespace EngineCore
     {
         // Renderer 的析构函数会自动停止渲染线程
         Renderer::Destroy();
-        FrameBufferManager::Destroy();
         //RenderAPI::Destroy();
         WindowManager::Destroy();
         GPUSceneManager::GetInstance()->Destroy();

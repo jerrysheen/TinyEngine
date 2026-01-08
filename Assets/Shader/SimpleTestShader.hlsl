@@ -69,7 +69,9 @@ float4 PSMain(VertexOutput input) : SV_Target
     PerObjectData data = g_InputPerObjectDatas[input.index];
     PerMaterialData matData = LoadPerMaterialData(data.matIndex);
     half4 diffuseColor = matData.DiffuseColor;
+    // todo: 材质属性还没设置
     diffuseColor.xyz = DiffuseTexture.Sample(LinearSampler, input.TexCoord).xyz * diffuseColor.xyz ;
+    diffuseColor.xyz = DiffuseTexture.Sample(LinearSampler, input.TexCoord).xyz;
     return diffuseColor;
 
     // // 采样纹理

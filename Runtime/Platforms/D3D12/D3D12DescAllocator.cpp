@@ -63,17 +63,17 @@ namespace EngineCore
         }
     }
 
-    TD3D12DescriptorHandle D3D12DescAllocator::CreateDescriptor(const D3D12_CONSTANT_BUFFER_VIEW_DESC& desc)
+    DescriptorHandle D3D12DescAllocator::CreateDescriptor(const D3D12_CONSTANT_BUFFER_VIEW_DESC& desc)
     {
         auto handle = GetNextAvaliableDesc();
-        handle.heapType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        //handle.heapType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
         auto mD3D12Device = static_cast<D3D12RenderAPI*>(RenderAPI::GetInstance())->md3dDevice;
 
 		// 创建CBV
 		CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
 		descriptorHandle.Offset(handle.descriptorIdx, mDescriptorSize);
 		mD3D12Device->CreateConstantBufferView(&desc, descriptorHandle);
-        handle.cpuHandle = descriptorHandle;
+        handle.cpuHandle = descriptorHandle.ptr;
         // update 时候绑定，用GPU Handle
         // 不用有GPU地址， 因为这个堆运行时会拷贝到另外一个堆，这个堆只能CPU可见。
         //CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(mHeap->GetGPUDescriptorHandleForHeapStart());
@@ -82,48 +82,46 @@ namespace EngineCore
         return handle;
     }
    
-    TD3D12DescriptorHandle D3D12DescAllocator::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc)
+    DescriptorHandle D3D12DescAllocator::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc)
     {
         auto handle = GetNextAvaliableDesc();
-        handle.heapType = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+        //handle.heapType = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
         auto mD3D12Device = static_cast<D3D12RenderAPI*>(RenderAPI::GetInstance())->md3dDevice;
 
         // 创建RTV
 		CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
 		descriptorHandle.Offset(handle.descriptorIdx, mDescriptorSize);
 		mD3D12Device->CreateRenderTargetView(resource.Get(), nullptr, descriptorHandle);
-        handle.cpuHandle = descriptorHandle;
+        handle.cpuHandle = descriptorHandle.ptr;
 
         return handle;
     }
 
 
-    TD3D12DescriptorHandle D3D12DescAllocator::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc)
+    DescriptorHandle D3D12DescAllocator::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc)
     {
         auto handle = GetNextAvaliableDesc();
-        handle.heapType = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
         auto mD3D12Device = static_cast<D3D12RenderAPI*>(RenderAPI::GetInstance())->md3dDevice;
 
 		// 创建DSV
 		CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
 		descriptorHandle.Offset(handle.descriptorIdx, mDescriptorSize);
 		mD3D12Device->CreateDepthStencilView(resource.Get(), nullptr, descriptorHandle);
-        handle.cpuHandle = descriptorHandle;
+        handle.cpuHandle = descriptorHandle.ptr;
 
         return handle;
     }
 
-    TD3D12DescriptorHandle D3D12DescAllocator::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc)
+    DescriptorHandle D3D12DescAllocator::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc)
     {
         auto handle = GetNextAvaliableDesc();
-        handle.heapType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
         auto mD3D12Device = static_cast<D3D12RenderAPI*>(RenderAPI::GetInstance())->md3dDevice;
 
         // 创建CBV
         CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
         descriptorHandle.Offset(handle.descriptorIdx, mDescriptorSize);
         mD3D12Device->CreateShaderResourceView(resource.Get(), &desc, descriptorHandle);
-        handle.cpuHandle = descriptorHandle;
+        handle.cpuHandle = descriptorHandle.ptr;
         // update 时候绑定，用GPU Handle
         // 不用有GPU地址， 因为这个堆运行时会拷贝到另外一个堆，这个堆只能CPU可见。
         //CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(mHeap->GetGPUDescriptorHandleForHeapStart());
@@ -132,9 +130,9 @@ namespace EngineCore
         return handle;
     }
 
-    TD3D12DescriptorHandle D3D12DescAllocator::GetNextAvaliableDesc()
+    DescriptorHandle D3D12DescAllocator::GetNextAvaliableDesc()
     {
-        TD3D12DescriptorHandle handle;
+        DescriptorHandle handle;
         for(int i = 0; i < isInUse.size(); i++)
         {
             if(!isInUse[i])
@@ -157,17 +155,17 @@ namespace EngineCore
     }
 
     // FrameAllocator 每帧重置，所以直接按照顺序取就ok。
-    TD3D12DescriptorHandle D3D12DescAllocator::GetFrameAllocator(int count)
+    DescriptorHandle D3D12DescAllocator::GetFrameAllocator(int count)
     {
         ASSERT_MSG(currentOffset + count < maxCount, "false");
         //直接给handle，然后更新offSet;
-        TD3D12DescriptorHandle handle;
+        DescriptorHandle handle;
         handle.descriptorIdx = currentOffset;
         D3D12_CPU_DESCRIPTOR_HANDLE cpuStart = mHeap->GetCPUDescriptorHandleForHeapStart();
         D3D12_GPU_DESCRIPTOR_HANDLE gpuStart = mHeap->GetGPUDescriptorHandleForHeapStart();
         
-        handle.cpuHandle.ptr = cpuStart.ptr + currentOffset * mDescriptorSize;
-        handle.gpuHandle.ptr = gpuStart.ptr + currentOffset * mDescriptorSize;
+        handle.cpuHandle = cpuStart.ptr + currentOffset * mDescriptorSize;
+        handle.gpuHandle = gpuStart.ptr + currentOffset * mDescriptorSize;
         currentOffset += count;
 
         return handle;

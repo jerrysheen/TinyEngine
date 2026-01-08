@@ -5,6 +5,7 @@
 #include "Settings/ProjectSettings.h"
 #include "MetaData.h"
 #include "AssetSerialization.h" 
+#include "Graphics/IGPUResource.h"
 
 namespace EngineCore
 {

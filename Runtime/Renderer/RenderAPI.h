@@ -7,7 +7,7 @@
 #include "Graphics/ModelData.h"
 #include "Graphics/Texture.h"
 #include "Renderer/RenderCommand.h"
-#include "Graphics/IGPUBuffer.h"
+#include "Graphics/IGPUResource.h"
 #include "Renderer/RenderPipeline/RenderPass.h"
 
 
@@ -26,11 +26,11 @@ namespace  EngineCore
         virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
         virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
 
-        virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, uint32_t texInstanceID) = 0;
+        //virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, uint32_t texInstanceID) = 0;
         virtual void SetUpMesh(ModelData* data, bool isStatic = true) = 0;
-        virtual void CreateFBO(FrameBufferObject* fbodesc) = 0;
-        virtual void CreateTextureBuffer(unsigned char* data, Texture* tbdesc) = 0;
-
+        virtual IGPUTexture* CreateTextureBuffer(unsigned char* data, const TextureDesc& textureDesc) = 0;
+        virtual IGPUTexture* CreateRenderTexture(const TextureDesc& textureDesc) = 0;
+        
         //virtual void GetOrCreatePSO(const Material& mat, const RenderPassInfo &passinfo) = 0;
         inline void AddRenderPassInfo(const RenderPassInfo& renderPassInfo){ mRenderPassInfoList.push_back(renderPassInfo); };
         inline void ClearRenderPassInfo(){ mRenderPassInfoList.clear(); };
@@ -51,8 +51,6 @@ namespace  EngineCore
         virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) = 0;
         
         virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) = 0;
-        virtual void CreateGlobalTexHandler(uint32_t texID) = 0;
-        virtual PerDrawHandle AllocatePerDrawData(uint32_t size) = 0;
         
         virtual void RenderAPISetPerDrawData(Payload_SetPerDrawData setPerDrawData) = 0;
         virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) = 0;
@@ -62,7 +60,7 @@ namespace  EngineCore
         virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) = 0;
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) = 0;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) = 0;
-
+        virtual RenderTexture* GetCurrentBackBuffer() = 0;
         template<typename T>
         void SetGlobalValue(uint32_t bufferID, uint32_t offset, T* value)
         {

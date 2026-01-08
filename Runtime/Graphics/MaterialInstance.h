@@ -1,7 +1,7 @@
 #pragma once
 #include "MaterialLayout.h"
 #include "iostream"
-#include "IGPUBuffer.h"
+#include "IGPUResource.h"
 
 namespace EngineCore
 {
@@ -22,8 +22,9 @@ namespace EngineCore
 
         void* GetData(){return m_DataBlob.data();}
         uint32_t GetSize(){return m_Layout.GetSize();}
-
+        inline MaterialLayout GetLayout(){return m_Layout;};
     private:
+        unordered_map<std::string, IGPUTexture*> textureMap;
         MaterialLayout m_Layout;
         std::vector<uint8_t> m_DataBlob;
         bool m_Dirty = true;

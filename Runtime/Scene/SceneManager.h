@@ -45,10 +45,9 @@ namespace EngineCore
 
         // todo： 这部分数据也要找地方存， maybe一个Global的渲染处
 
-        ResourceHandle<Material> blitMaterial;
-        ResourceHandle<ModelData> quadMesh;
+        Material* blitMaterial;
+        ModelData* quadMesh;
         ResourceHandle<Shader> blitShader;
-        //
         ResourceHandle<Texture> testTexture;
 
         inline Scene* GetCurrentScene() 

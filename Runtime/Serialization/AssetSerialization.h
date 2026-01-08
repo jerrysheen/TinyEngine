@@ -2,6 +2,7 @@
 #include "json.hpp"
 #include "BaseTypeSerialization.h"
 #include "Serialization/MetaData.h"
+#include "Graphics/IGPUResource.h"
 
 
 namespace EngineCore

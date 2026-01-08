@@ -4,7 +4,7 @@
 #include "Renderer/Renderer.h"
 #include "Renderer/RenderCommand.h"
 #include "Graphics/GPUBufferAllocator.h"
-#include "Graphics/IGPUBuffer.h"
+#include "Graphics/IGPUResource.h"
 #include "Math/Frustum.h"
 #include "Renderer/BatchManager.h"
 
@@ -50,8 +50,8 @@ namespace EngineCore
             // 这个地方要把ResourceState切换一下
             Renderer::GetInstance()->BeginFrame();
             auto* visibilityBuffer = GPUSceneManager::GetInstance()->visibilityBuffer;
-            Renderer::GetInstance()->SetBufferState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
-            Renderer::GetInstance()->SetBufferState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
+            Renderer::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
+            Renderer::GetInstance()->SetResourceState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
 
 
             Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->mainCamera;
@@ -88,8 +88,8 @@ namespace EngineCore
             // 先把shader跑起来， 渲染到RT上， 后续blit啥的接入后面再说
 
             // 这个地方简单跑个绑定测试？
-            Renderer::GetInstance()->SetBufferState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_SHADER_RESOURCE);
-            Renderer::GetInstance()->SetBufferState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_INDIRECT_ARGUMENT);
+            Renderer::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_SHADER_RESOURCE);
+            Renderer::GetInstance()->SetResourceState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_INDIRECT_ARGUMENT);
 
             context.Reset();
             context.camera = cam;

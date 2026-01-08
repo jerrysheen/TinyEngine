@@ -18,8 +18,8 @@
 #include "Graphics/Texture.h"
 #include "Core/InstanceID.h"
 #include "Core/PublicEnum.h"
-#include "D3D12PerDrawAllocator.h"
-#include "Graphics/IGPUBuffer.h"
+#include "Graphics/IGPUResource.h"
+#include "D3D12Texture.h"
 
 namespace EngineCore
 {
@@ -37,10 +37,10 @@ namespace EngineCore
 
         inline TD3D12Fence* GetFrameFence() { return mFrameFence; };
         // todo: maybe可以清理成模板。
-        virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, uint32_t texInstanceID) override;
+        //virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, uint32_t texInstanceID) override;
         virtual void SetUpMesh(ModelData* data, bool isStatic = true) override;
-        virtual void CreateFBO(FrameBufferObject* fbodesc) override;
-        virtual void CreateTextureBuffer(unsigned char* data, Texture* tbdesc) override;
+        virtual IGPUTexture* CreateTextureBuffer(unsigned char* data, const TextureDesc& textureDesc) override;
+        virtual IGPUTexture* CreateRenderTexture(const TextureDesc& textureDesc) override;
         
         // 渲染线程调用接口
         virtual void RenderAPIBeginFrame() override;
@@ -63,15 +63,11 @@ namespace EngineCore
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
         virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) override;
 
-        TD3D12DescriptorHandle GetTextureSrvHanle(uint32_t textureID);
-        TD3D12FrameBuffer* GetFrameBuffer(uint32_t bufferID, bool isBackBuffer = false);
         
         virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) override;
-        virtual void CreateGlobalTexHandler(uint32_t texID) override;
-
+        virtual RenderTexture* GetCurrentBackBuffer() override;
 
         virtual void SetGlobalDataImpl(uint32_t bufferID, uint32_t offset, uint32_t size, const void* value) override;
-        virtual PerDrawHandle AllocatePerDrawData(uint32_t size) override;
 
         TD3D12ConstantBuffer CreateConstantBuffer(uint32_t size);
 
@@ -83,11 +79,13 @@ namespace EngineCore
         DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
         UINT mCurrBackBuffer = 0;
         static const int SwapChainBufferCount = 3;
-        //Microsoft::WRL::ComPtr<ID3D12Resource> mSwapChainBuffer[SwapChainBufferCount];
         Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
-        TD3D12FrameBuffer mBackBuffer[SwapChainBufferCount];
-        //UINT64 mCurrentFence = 0;
-        //Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
+        // 给底层使用的具体资源
+        D3D12Texture mBackBuffer[SwapChainBufferCount];
+        // 一个壳，上层用，IGPUTexture = mBackBuffer
+        RenderTexture mBackBufferProxyRenderTexture;
+        D3D12Texture mBackBufferProxy;
+        
         TD3D12Fence* mFrameFence;
         TD3D12Fence* mImediatelyFence;
 
@@ -106,7 +104,7 @@ namespace EngineCore
 
         ID3D12Resource* D3D12RenderAPI::CurrentBackBuffer()const
         {
-            return mBackBuffer[mCurrBackBuffer].resource.Get();
+            return mBackBuffer[mCurrBackBuffer].m_Resource.Get();
         }
 
         void SignalFence(TD3D12Fence* mFence);
@@ -130,13 +128,12 @@ namespace EngineCore
         void InitCommandObject();
         void InitSwapChain();
         void InitRenderTarget();
-        void InitPerDrawLargeBuffer();
 
         int GetNextVAOIndex();
         TD3D12VAO& GetAvaliableModelDesc();
 
 
-        Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
+        Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
         Microsoft::WRL::ComPtr<IDXGIFactory4> mdxgiFactory;
         
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDsvHeap;
@@ -172,16 +169,13 @@ namespace EngineCore
         int mClientWidth = 1280;
         int mClientHeight = 720;
 
-        unordered_map<uint32_t, TD3D12MaterialData> m_DataMap;
+        //unordered_map<uint32_t, TD3D12MaterialData> m_DataMap;
         vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
-        unordered_map<uint32_t, TD3D12TextureBuffer> m_TextureBufferMap;
         ComPtr<ID3D12CommandSignature> mCommandSignature;
         unordered_map<uint32_t, TD3D12VAO> VAOMap;
 
         unordered_map<uint32_t, TD3D12ConstantBuffer> mGlobalConstantBufferMap;
-        unordered_map<uint32_t, TD3D12TextureHander> mGlobalTexHandlerMap;
 
-        std::unique_ptr<D3D12PerDrawAllocator> mPerDrawAllocator;
 
         ComPtr<ID3D12PipelineState> currentPSO;
         ComPtr<ID3D12RootSignature> currentRootSignature;

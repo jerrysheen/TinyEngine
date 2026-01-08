@@ -195,13 +195,7 @@
     <ClInclude Include="..\..\..\..\Runtime\GameObject\Transform.h">
       <Filter>Runtime\GameObject</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Graphics\Buffer.h">
-      <Filter>Runtime\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\ComputeShader.h">
-      <Filter>Runtime\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Graphics\FrameBufferObject.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\GPUBufferAllocator.h">
@@ -210,10 +204,13 @@
     <ClInclude Include="..\..\..\..\Runtime\Graphics\GPUSceneManager.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Graphics\IGPUBuffer.h">
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\GPUTexture.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\IGPUBufferAllocator.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\IGPUResource.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\Material.h">
@@ -229,6 +226,9 @@
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\ModelUtils.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\RenderTexture.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\Shader.h">
@@ -282,9 +282,6 @@
     <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PSO.h">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PerDrawAllocator.h">
-      <Filter>Runtime\Platforms\D3D12</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12RenderAPI.h">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClInclude>
@@ -295,6 +292,9 @@
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12Struct.h">
+      <Filter>Runtime\Platforms\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12Texture.h">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Platforms\D3D12\d3dUtil.h">
@@ -313,9 +313,6 @@
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\Culling.h">
-      <Filter>Runtime\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Renderer\FrameBufferManager.h">
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\PerDrawAllocator.h">
@@ -521,6 +518,9 @@
     <ClCompile Include="..\..\..\..\Runtime\Graphics\ModelUtils.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\RenderTexture.cpp">
+      <Filter>Runtime\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\Shader.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
@@ -563,9 +563,6 @@
     <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PSO.cpp">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12PerDrawAllocator.cpp">
-      <Filter>Runtime\Platforms\D3D12</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Platforms\D3D12\D3D12RenderAPI.cpp">
       <Filter>Runtime\Platforms\D3D12</Filter>
     </ClCompile>
@@ -588,9 +585,6 @@
       <Filter>Runtime\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\Culling.cpp">
-      <Filter>Runtime\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Renderer\FrameBufferManager.cpp">
       <Filter>Runtime\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderAPI.cpp">

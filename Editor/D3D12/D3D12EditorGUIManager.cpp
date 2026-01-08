@@ -89,7 +89,7 @@ namespace EngineEditor
 		commandAllocators[renderAPI->mCurrBackBuffer]->Reset();
 		commandList->Reset(commandAllocators[renderAPI->mCurrBackBuffer].Get(), NULL);
 
-        auto currentBackBuffer = renderAPI->mBackBuffer[renderAPI->mCurrBackBuffer].resource;
+        auto currentBackBuffer = renderAPI->mBackBuffer[renderAPI->mCurrBackBuffer].m_Resource;
 		auto toRenderTarget = CD3DX12_RESOURCE_BARRIER::Transition(currentBackBuffer.Get(),
 			D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		commandList->ResourceBarrier(1, &toRenderTarget);

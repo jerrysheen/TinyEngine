@@ -4,7 +4,7 @@
 #include "Core/PublicStruct.h"
 #include "CoreAssert.h"
 #include <unordered_map>
-#include "Graphics/IGPUBuffer.h"
+#include "Graphics/IGPUResource.h"
 
 namespace EngineCore
 {

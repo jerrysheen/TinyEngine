@@ -6,7 +6,7 @@
 #include "Renderer/RenderStruct.h"
 #include <tuple>
 #include <vector>
-#include "Graphics/IGPUBuffer.h"
+#include "Graphics/IGPUResource.h"
 
 
 namespace EngineCore
@@ -175,15 +175,14 @@ namespace EngineCore
     class Shader;
     struct Payload_SetMaterial 
     {
-        uint32_t matId;
+        Material* mat;
         Shader* shader;
     };
     
     struct Payload_ConfigureRT
     {
-        uint32_t colorAttachment = 0;
-        uint32_t depthAttachment = 0;
-        bool isBackBuffer;
+        IGPUTexture* colorAttachment = 0;
+        IGPUTexture* depthAttachment = 0;
         ClearValue clearValue;
     };
 
@@ -243,7 +242,7 @@ namespace EngineCore
 
     struct Payload_SetBufferResourceState
     {
-        IGPUBuffer* buffer;
+        IGPUResource* resource;
         BufferResourceState state;
     };
 

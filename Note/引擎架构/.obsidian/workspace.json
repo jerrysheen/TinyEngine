@@ -28,17 +28,10 @@
             "id": "b37dfbe50f450bb4",
             "type": "leaf",
             "state": {
-              "type": "canvas",
-              "state": {
-                "file": "12_31重构资源.canvas",
-                "viewState": {
-                  "x": 1124.867044901334,
-                  "y": 232.73483334725523,
-                  "zoom": -0.3333333333333334
-                }
-              },
-              "icon": "lucide-layout-dashboard",
-              "title": "12_31重构资源"
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "关系图谱"
             }
           }
         ],
@@ -192,8 +185,8 @@
   },
   "active": "b37dfbe50f450bb4",
   "lastOpenFiles": [
-    "未命名.md",
     "12_31重构资源.canvas",
+    "未命名.md",
     "12_27 GPUScene 前半段更新.canvas",
     "12_17GPU Scene大致流程， 和实现方案.canvas",
     "ComputeShader接入梳理.canvas",

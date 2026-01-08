@@ -4,9 +4,8 @@
 #include "Core/Object.h"
 #include "Renderer/RenderCommand.h"
 #include "Renderer/RenderStruct.h"
-//#include "Graphics/FrameBufferObject.h"
 #include "Resources/ResourceHandle.h"
-
+#include "Graphics/RenderTexture.h"
 
 namespace EngineCore
 {
@@ -122,12 +121,11 @@ namespace EngineCore
             :mat(mat), vaoID(vaoID), perDrawHandle(handle), instanceCount(instCount){}
     };
 
-    class FrameBufferObject;
     struct RenderPassInfo
     {
         std::string passName;
-        ResourceHandle<FrameBufferObject> colorAttachment;
-        ResourceHandle<FrameBufferObject> depthAttachment;
+        RenderTexture* colorAttachment;
+        RenderTexture* depthAttachment;
         ClearFlag clearFlag;
         Vector3 clearColorValue;
         float clearDepthValue;

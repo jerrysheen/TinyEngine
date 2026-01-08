@@ -4,6 +4,7 @@
 #include "Component.h"
 #include "Serialization/BaseTypeSerialization.h"
 #include "Math/Frustum.h"
+#include "Graphics/RenderTexture.h"
 
 namespace EngineCore
 {
@@ -30,8 +31,8 @@ namespace EngineCore
     public:
         RenderPassAsset mRenderPassAsset;
         // 这两个只是描述符， 没必要用指针
-        ResourceHandle<FrameBufferObject> depthAttachment;
-        ResourceHandle<FrameBufferObject> colorAttachment;
+        RenderTexture* depthAttachment;
+        RenderTexture* colorAttachment;
         void UpdateCameraMatrix();
 
 
