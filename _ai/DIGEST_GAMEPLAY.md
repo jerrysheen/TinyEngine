@@ -1,114 +1,81 @@
 # Architecture Digest: GAMEPLAY
 > Auto-generated. Focus: Runtime/GameObject, Runtime/Scene, Runtime/Scripts, Runtime/Managers, Window, Input, Camera, Transform, Component, MonoBehaviour
 
+## Project Intent
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+
+## Digest Guidance
+- 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
+- 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
+- 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+
+## Understanding Notes
+- 围绕GameObject、Component、Transform、Camera与Scene的生命周期。
+- 关注运行时脚本与管理器如何驱动渲染与资源依赖。
+
 ## Key Files Index
-- `[43]` **Runtime/GameObject/Camera.cpp** *(Content Included)*
-- `[42]` **Runtime/GameObject/Camera.h** *(Content Included)*
 - `[42]` **Runtime/GameObject/Transform.h** *(Content Included)*
+- `[42]` **Runtime/GameObject/Camera.h** *(Content Included)*
 - `[41]` **Runtime/GameObject/MonoBehaviour.h** *(Content Included)*
-- `[38]` **Runtime/GameObject/ComponentType.h** *(Content Included)*
 - `[38]` **Runtime/Scripts/CameraController.h** *(Content Included)*
-- `[37]` **Runtime/GameObject/Component.h** *(Content Included)*
+- `[38]` **Runtime/GameObject/ComponentType.h** *(Content Included)*
 - `[37]` **Runtime/Managers/WindowManager.h** *(Content Included)*
-- `[36]` **Runtime/GameObject/Transform.cpp** *(Content Included)*
-- `[36]` **Runtime/Scripts/CameraController.cpp** *(Content Included)*
-- `[35]` **Runtime/Managers/WindowManager.cpp** *(Content Included)*
-- `[33]` **Runtime/GameObject/Component.cpp** *(Content Included)*
-- `[33]` **Runtime/GameObject/MonoBehaviour.cpp** *(Content Included)*
+- `[37]` **Runtime/GameObject/Component.h** *(Content Included)*
 - `[27]` **Runtime/Serialization/ComponentFactory.h** *(Content Included)*
 - `[27]` **Runtime/Platforms/Windows/WindowManagerWindows.h** *(Content Included)*
 - `[26]` **Runtime/GameObject/GameObject.h** *(Content Included)*
-- `[25]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp** *(Content Included)*
-- `[23]` **Runtime/Scene/Scene.cpp** *(Content Included)*
 - `[23]` **Runtime/Scene/Scene.h** *(Content Included)*
-- `[21]` **Runtime/GameObject/GameObject.cpp** *(Content Included)*
 - `[19]` **Runtime/GameObject/MeshRenderer.h**
 - `[17]` **Runtime/GameObject/MeshFilter.h**
-- `[15]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[14]` **Runtime/Scene/SceneManager.h**
-- `[14]` **Runtime/Serialization/MetaFactory.cpp**
-- `[13]` **Editor/Panel/EditorMainBar.cpp**
 - `[12]` **Runtime/Managers/Manager.h**
-- `[12]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
-- `[12]` **Editor/Panel/EditorInspectorPanel.cpp**
-- `[11]` **Runtime/GameObject/MeshFilter.cpp**
-- `[11]` **Runtime/Scene/SceneManager.cpp**
 - `[10]` **Runtime/Serialization/MetaFactory.h**
 - `[9]` **Runtime/Core/PublicStruct.h**
-- `[9]` **Runtime/Renderer/Renderer.cpp**
-- `[8]` **Editor/Panel/EditorHierarchyPanel.cpp**
 - `[8]` **Editor/Panel/EditorInspectorPanel.h**
-- `[7]` **Editor/EditorSettings.h**
 - `[7]` **Runtime/PreCompiledHeader.h**
 - `[7]` **Runtime/Renderer/RenderSorter.h**
 - `[7]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
+- `[7]` **Editor/EditorSettings.h**
 - `[6]` **Runtime/Renderer/RenderCommand.h**
 - `[6]` **Runtime/Renderer/RenderContext.h**
 - `[6]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[6]` **Assets/Shader/SimpleTestShader.hlsl**
-- `[5]` **Runtime/Graphics/GPUSceneManager.cpp**
-- `[5]` **Runtime/Graphics/ModelData.cpp**
-- `[5]` **Runtime/Renderer/RenderAPI.h**
-- `[5]` **Runtime/Renderer/RenderEngine.cpp**
-- `[5]` **Runtime/Renderer/Renderer.h**
+- `[5]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[5]` **Runtime/Settings/ProjectSettings.h**
+- `[5]` **Runtime/Renderer/RenderAPI.h**
+- `[5]` **Runtime/Renderer/Renderer.h**
+- `[5]` **Assets/Shader/BlitShader.hlsl**
+- `[5]` **Assets/Shader/GPUCulling.hlsl**
+- `[4]` **premake5.lua**
+- `[4]` **Runtime/Graphics/ModelData.h**
+- `[4]` **Runtime/Graphics/Shader.h**
+- `[4]` **Runtime/Platforms/D3D12/d3dUtil.h**
+- `[4]` **Runtime/Platforms/D3D12/D3D12Struct.h**
+- `[4]` **Runtime/Math/AABB.h**
+- `[4]` **Runtime/Renderer/Culling.h**
+- `[3]` **Runtime/EngineCore.h**
+- `[3]` **Runtime/Graphics/GPUSceneManager.h**
+- `[3]` **Runtime/Renderer/RenderUniforms.h**
+- `[3]` **Editor/D3D12/D3D12EditorGUIManager.h**
+- `[2]` **Runtime/CoreAssert.h**
+- `[2]` **Runtime/Graphics/MaterialLayout.h**
+- `[2]` **Runtime/Graphics/Texture.h**
+- `[2]` **Runtime/Graphics/ComputeShader.h**
+- `[2]` **Runtime/Graphics/IGPUResource.h**
+- `[2]` **Runtime/Graphics/GPUTexture.h**
+- `[2]` **Runtime/Graphics/RenderTexture.h**
+- `[2]` **Runtime/Graphics/ModelUtils.h**
+- `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
+- `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
+- `[2]` **Runtime/Graphics/Material.h**
+- `[2]` **Runtime/Graphics/MaterialInstance.h**
+- `[2]` **Runtime/Resources/Resource.h**
+- `[2]` **Runtime/Resources/ResourceHandle.h**
+- `[2]` **Runtime/Resources/Asset.h**
+- `[2]` **Runtime/Resources/ResourceManager.h**
+- `[2]` **Runtime/Serialization/JsonSerializer.h**
 
 ## Evidence & Implementation Details
-
-### File: `Runtime/GameObject/Camera.h`
-```cpp
-namespace EngineCore
-{
-    class Camera : public Component
-    {
-    public:
-        Camera() = default;
-        Camera(GameObject* parent);
-        virtual ~Camera() override {};
-        float mFov;
-        float mAspect;
-        float mNear;
-        float mFar; 
-        float mWidth;
-        float mHeight;
-        Matrix4x4 mProjectionMatrix;
-        Vector3 mLookAt;
-        Matrix4x4 mViewMatrix;
-        Frustum mFrustum;
-
-        static ComponentType GetStaticType() { return ComponentType::Camera; };
-        virtual ComponentType GetType() const override { return ComponentType::Camera; };
-        void Update();
-    public:
-        RenderPassAsset mRenderPassAsset;
-        // 这两个只是描述符， 没必要用指针
-        RenderTexture* depthAttachment;
-        RenderTexture* colorAttachment;
-        void UpdateCameraMatrix();
-
-
-        virtual const char* GetScriptName() const override { return "Camera"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"Fov", mFov},
-                {"Aspect", mAspect},
-                {"Near", mNear},
-                {"Far", mFar},
-                {"Width", mWidth},
-                {"Height", mHeight}
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override {
-            data.at("Fov").get_to(mFov);
-            data.at("Aspect").get_to(mAspect);
-            data.at("Near").get_to(mNear);
-            data.at("Far").get_to(mFar);
-            data.at("Width").get_to(mWidth);
-            data.at("Height").get_to(mHeight);
-        }
-    };
-```
 
 ### File: `Runtime/GameObject/Transform.h`
 ```cpp
@@ -175,12 +142,69 @@ namespace EngineCore
 ```
 ...
 ```cpp
+        inline void DettachParent()
+        {
+            if(parentTransform != nullptr) parentTransform->RemoveChild(this);
+            parentTransform = nullptr;
         }
 
         inline void AddChild(Transform* transform)
         {
-            childTransforms.push_back(transform);
-        };
+```
+
+### File: `Runtime/GameObject/Camera.h`
+```cpp
+namespace EngineCore
+{
+    class Camera : public Component
+    {
+    public:
+        Camera() = default;
+        Camera(GameObject* parent);
+        virtual ~Camera() override {};
+        float mFov;
+        float mAspect;
+        float mNear;
+        float mFar; 
+        float mWidth;
+        float mHeight;
+        Matrix4x4 mProjectionMatrix;
+        Vector3 mLookAt;
+        Matrix4x4 mViewMatrix;
+        Frustum mFrustum;
+
+        static ComponentType GetStaticType() { return ComponentType::Camera; };
+        virtual ComponentType GetType() const override { return ComponentType::Camera; };
+        void Update();
+    public:
+        RenderPassAsset mRenderPassAsset;
+        // 这两个只是描述符， 没必要用指针
+        RenderTexture* depthAttachment;
+        RenderTexture* colorAttachment;
+        void UpdateCameraMatrix();
+
+
+        virtual const char* GetScriptName() const override { return "Camera"; }
+        virtual json SerializedFields() const override {
+            return json{
+                {"Fov", mFov},
+                {"Aspect", mAspect},
+                {"Near", mNear},
+                {"Far", mFar},
+                {"Width", mWidth},
+                {"Height", mHeight}
+            };
+        }
+        
+        virtual void DeserializedFields(const json& data) override {
+            data.at("Fov").get_to(mFov);
+            data.at("Aspect").get_to(mAspect);
+            data.at("Near").get_to(mNear);
+            data.at("Far").get_to(mFar);
+            data.at("Width").get_to(mWidth);
+            data.at("Height").get_to(mHeight);
+        }
+    };
 ```
 
 ### File: `Runtime/GameObject/MonoBehaviour.h`
@@ -212,20 +236,6 @@ namespace EngineCore
     };
 ```
 
-### File: `Runtime/GameObject/ComponentType.h`
-```cpp
-namespace EngineCore
-{
-    enum class ComponentType
-    {
-        MeshRenderer,
-        MeshFilter,
-        Camera,
-        Transform,
-        Script
-    };
-```
-
 ### File: `Runtime/Scripts/CameraController.h`
 ```cpp
 {
@@ -246,24 +256,17 @@ namespace EngineCore
     };
 ```
 
-### File: `Runtime/GameObject/Component.h`
+### File: `Runtime/GameObject/ComponentType.h`
 ```cpp
-
-    class GameObject;
-    class Component
+namespace EngineCore
+{
+    enum class ComponentType
     {
-    public:
-        Component(){};
-        virtual ~Component() = 0;
-        virtual ComponentType GetType() const = 0;
-        
-        GameObject* gameObject = nullptr;
-        bool enabled = true;
-        
-        // 每个类需要自己实现序列化和反序列化方法。
-        virtual const char* GetScriptName() const = 0;
-        virtual json SerializedFields() const { return json::object(); }
-        virtual void DeserializedFields(const json& j) {};
+        MeshRenderer,
+        MeshFilter,
+        Camera,
+        Transform,
+        Script
     };
 ```
 
@@ -295,6 +298,27 @@ namespace EngineCore
         bool mResized = false;
         bool mAppPaused = false;
 		bool mMaximized = false;
+    };
+```
+
+### File: `Runtime/GameObject/Component.h`
+```cpp
+
+    class GameObject;
+    class Component
+    {
+    public:
+        Component(){};
+        virtual ~Component() = 0;
+        virtual ComponentType GetType() const = 0;
+        
+        GameObject* gameObject = nullptr;
+        bool enabled = true;
+        
+        // 每个类需要自己实现序列化和反序列化方法。
+        virtual const char* GetScriptName() const = 0;
+        virtual json SerializedFields() const { return json::object(); }
+        virtual void DeserializedFields(const json& j) {};
     };
 ```
 

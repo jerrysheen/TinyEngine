@@ -16,6 +16,10 @@ def load_config():
         "include_ext": [".h", ".hpp", ".cpp", ".inl"],
         "ignore_dirs": ["bin", "build", ".git", "ThirdParty"],
         "max_snippet_lines": 25,
+        "index_exclude_ext": [".cpp", ".c", ".cc"],
+        "project_goal": "Build a modern rendering engine with GPU-driven rendering, scalable resources, and tooling support.",
+        "digest_guidance": [],
+        "subsystem_notes": {},
         "subsystems": {}
     }
     if cfg_path.exists():
@@ -99,7 +103,13 @@ def extract_smart_snippets(content: str, keywords: list, max_lines=20):
     # Regex for interesting definition starts
     # Matches: class X, struct X, void FunctionName(...)
     # Added: static/inline, HLSL buffers/textures
-    def_pattern = re.compile(r'^\s*((static|inline|virtual)\s+)?(class|struct|enum|namespace|cbuffer)\s+\w+|^\s*((static|inline|virtual)\s+)?[\w:<>]+[\s\*&]+\w+\s*\(.*\)|^\s*(Texture2D|TextureCube|SamplerState)\s*[<>\w]*\s+\w+', re.MULTILINE)
+    def_pattern = re.compile(
+        r'^\s*((static|inline|virtual|constexpr|friend)\s+)?(class|struct|enum|namespace|cbuffer)\s+\w+'
+        r'|^\s*(template\s*<[^>]+>\s*)?((static|inline|virtual|constexpr)\s+)?[\w:<>~]+\s+[\w:<>~]+\s*\([^;{]*\)\s*(const)?\s*(override|final)?\s*(;|\{)'
+        r'|^\s*[\w:<>~]+\s*\([^;{]*\)\s*(const)?\s*(override|final)?\s*(;|\{)'
+        r'|^\s*(Texture2D|TextureCube|SamplerState)\s*[<>\w]*\s+\w+',
+        re.MULTILINE,
+    )
     
     # Regex for user manual hints
 
@@ -119,6 +129,12 @@ def extract_smart_snippets(content: str, keywords: list, max_lines=20):
             lower_line = line.lower()
             if any(k in lower_line for k in keyword_roots):
                 relevant_indices.append((i, 10))
+
+    # 3. Fallback: extract function declarations in headers if few hits
+    if len(relevant_indices) < 3:
+        for i, line in enumerate(lines):
+            if def_pattern.match(line):
+                relevant_indices.append((i, 5))
 
     # Sort by priority and position
     relevant_indices.sort(key=lambda x: x[1], reverse=True)
@@ -187,6 +203,7 @@ def generate_digests():
             pass
 
     subsystems = CONFIG["subsystems"]
+    index_exclude_ext = set(ext.lower() for ext in CONFIG.get("index_exclude_ext", []))
     
     for sys_name, keywords in subsystems.items():
         print(f"Generating digest for {sys_name}...")
@@ -201,7 +218,13 @@ def generate_digests():
         ranked_files.sort(key=lambda x: x[0], reverse=True)
         
         # Files to list in index (structure view) - show more files for context
-        index_files = ranked_files[:50] 
+        index_files = []
+        for score, f in ranked_files:
+            if f.suffix.lower() in index_exclude_ext:
+                continue
+            index_files.append((score, f))
+            if len(index_files) >= 60:
+                break
         
         # Files to extract content from (deep dive)
         content_files = ranked_files[:20] 
@@ -210,6 +233,23 @@ def generate_digests():
         out_lines = []
         out_lines.append(f"# Architecture Digest: {sys_name}")
         out_lines.append(f"> Auto-generated. Focus: {', '.join(keywords)}")
+
+        project_goal = CONFIG.get("project_goal")
+        if project_goal:
+            out_lines.append("\n## Project Intent")
+            out_lines.append(project_goal)
+
+        guidance = CONFIG.get("digest_guidance", [])
+        if guidance:
+            out_lines.append("\n## Digest Guidance")
+            for note in guidance:
+                out_lines.append(f"- {note}")
+
+        notes = CONFIG.get("subsystem_notes", {}).get(sys_name, [])
+        if notes:
+            out_lines.append("\n## Understanding Notes")
+            for note in notes:
+                out_lines.append(f"- {note}")
         out_lines.append("\n## Key Files Index")
         
         for score, f in index_files:

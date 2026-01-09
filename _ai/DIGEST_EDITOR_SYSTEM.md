@@ -1,57 +1,79 @@
 # Architecture Digest: EDITOR_SYSTEM
 > Auto-generated. Focus: Editor, Panel, Inspector, Hierarchy, Gizmo, GUI, Widget, Console
 
+## Project Intent
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+
+## Digest Guidance
+- 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
+- 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
+- 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+
+## Understanding Notes
+- 编辑器提供调试与可视化界面，支撑迭代与资产编辑。
+- 关注面板/GUI管理与场景交互。
+
 ## Key Files Index
-- `[80]` **Editor/Panel/EditorConsolePanel.cpp** *(Content Included)*
-- `[80]` **Editor/Panel/EditorHierarchyPanel.cpp** *(Content Included)*
-- `[80]` **Editor/Panel/EditorInspectorPanel.cpp** *(Content Included)*
 - `[78]` **Editor/Panel/EditorHierarchyPanel.h** *(Content Included)*
 - `[74]` **Editor/Panel/EditorConsolePanel.h** *(Content Included)*
 - `[74]` **Editor/Panel/EditorInspectorPanel.h** *(Content Included)*
-- `[67]` **Editor/EditorGUIManager.cpp** *(Content Included)*
 - `[55]` **Editor/EditorGUIManager.h** *(Content Included)*
-- `[55]` **Editor/Panel/EditorGameViewPanel.cpp** *(Content Included)*
-- `[55]` **Editor/Panel/EditorProjectPanel.cpp** *(Content Included)*
 - `[52]` **Editor/D3D12/D3D12EditorGUIManager.h** *(Content Included)*
-- `[52]` **Editor/Panel/EditorGameViewPanel.h** *(Content Included)*
 - `[52]` **Editor/Panel/EditorProjectPanel.h** *(Content Included)*
-- `[50]` **Editor/D3D12/D3D12EditorGUIManager.cpp** *(Content Included)*
+- `[52]` **Editor/Panel/EditorGameViewPanel.h** *(Content Included)*
 - `[48]` **Editor/Panel/EditorPanel.h** *(Content Included)*
-- `[47]` **Editor/Panel/EditorPanel.cpp** *(Content Included)*
 - `[45]` **Editor/EditorSettings.h** *(Content Included)*
-- `[44]` **Editor/Panel/EditorMainBar.cpp** *(Content Included)*
-- `[40]` **Editor/EditorSettings.cpp** *(Content Included)*
 - `[40]` **Editor/Panel/EditorMainBar.h** *(Content Included)*
 - `[12]` **Runtime/Renderer/Renderer.h**
-- `[9]` **Runtime/Core/Game.cpp**
+- `[11]` **premake5.lua**
 - `[9]` **Runtime/Renderer/RenderCommand.h**
-- `[7]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
-- `[6]` **Runtime/Renderer/Renderer.cpp**
-- `[5]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
 - `[4]` **Runtime/Core/Profiler.h**
-- `[4]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[4]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
+- `[4]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[3]` **Runtime/PreCompiledHeader.h**
-- `[3]` **Runtime/Renderer/RenderEngine.h**
 - `[3]` **Runtime/Resources/ResourceManager.h**
+- `[3]` **Runtime/Renderer/RenderEngine.h**
 - `[2]` **Runtime/CoreAssert.h**
 - `[2]` **Runtime/EngineCore.h**
-- `[2]` **Runtime/Core/Game.h**
-- `[2]` **Runtime/Core/InstanceID.h**
-- `[2]` **Runtime/Core/Object.h**
+- `[2]` **Runtime/Scripts/CameraController.h**
+- `[2]` **Runtime/Graphics/MaterialLayout.h**
+- `[2]` **Runtime/Graphics/Texture.h**
+- `[2]` **Runtime/Graphics/GPUSceneManager.h**
+- `[2]` **Runtime/Graphics/ModelData.h**
+- `[2]` **Runtime/Graphics/ComputeShader.h**
+- `[2]` **Runtime/Graphics/IGPUResource.h**
+- `[2]` **Runtime/Graphics/GPUTexture.h**
+- `[2]` **Runtime/Graphics/RenderTexture.h**
+- `[2]` **Runtime/Graphics/ModelUtils.h**
+- `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
+- `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
+- `[2]` **Runtime/Graphics/Material.h**
+- `[2]` **Runtime/Graphics/Shader.h**
+- `[2]` **Runtime/Graphics/MaterialInstance.h**
+- `[2]` **Runtime/Scene/SceneManager.h**
+- `[2]` **Runtime/Scene/Scene.h**
+- `[2]` **Runtime/Resources/Resource.h**
+- `[2]` **Runtime/Resources/ResourceHandle.h**
+- `[2]` **Runtime/Resources/Asset.h**
+- `[2]` **Runtime/Serialization/MetaFactory.h**
+- `[2]` **Runtime/Serialization/JsonSerializer.h**
+- `[2]` **Runtime/Serialization/ComponentFactory.h**
+- `[2]` **Runtime/Serialization/BaseTypeSerialization.h**
+- `[2]` **Runtime/Serialization/MetaData.h**
+- `[2]` **Runtime/Serialization/AssetSerialization.h**
+- `[2]` **Runtime/Serialization/MetaLoader.h**
 - `[2]` **Runtime/Core/PublicEnum.h**
 - `[2]` **Runtime/Core/PublicStruct.h**
-- `[2]` **Runtime/GameObject/Camera.h**
-- `[2]` **Runtime/GameObject/Component.h**
-- `[2]` **Runtime/GameObject/ComponentType.h**
-- `[2]` **Runtime/GameObject/GameObject.h**
-- `[2]` **Runtime/GameObject/MeshFilter.h**
-- `[2]` **Runtime/GameObject/MeshRenderer.h**
-- `[2]` **Runtime/GameObject/MonoBehaviour.h**
-- `[2]` **Runtime/GameObject/Transform.h**
-- `[2]` **Runtime/Graphics/ComputeShader.h**
-- `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
-- `[2]` **Runtime/Graphics/GPUSceneManager.h**
+- `[2]` **Runtime/Core/InstanceID.h**
+- `[2]` **Runtime/Core/Object.h**
+- `[2]` **Runtime/Core/Game.h**
+- `[2]` **Runtime/Core/Allocator/LinearAllocator.h**
+- `[2]` **Runtime/Core/Concurrency/CpuEvent.h**
+- `[2]` **Runtime/Managers/Manager.h**
+- `[2]` **Runtime/Managers/WindowManager.h**
+- `[2]` **Runtime/Platforms/Windows/WindowManagerWindows.h**
+- `[2]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
+- `[2]` **Runtime/Platforms/D3D12/d3dUtil.h**
 
 ## Evidence & Implementation Details
 
@@ -219,22 +241,6 @@ namespace EngineEditor
 }
 ```
 
-### File: `Editor/Panel/EditorGameViewPanel.h`
-```cpp
-#include "EditorPanel.h"
-
-namespace EngineEditor
-{
-    class EditorGameViewPanel : public EditorPanel
-    {
-    public:
-        virtual void DrawGUI() override;
-        virtual ~EditorGameViewPanel() override;
-    };
-
-}
-```
-
 ### File: `Editor/Panel/EditorProjectPanel.h`
 ```cpp
 #include "EditorPanel.h"
@@ -246,6 +252,22 @@ namespace EngineEditor
     public:
         virtual void DrawGUI() override;
         virtual ~EditorProjectPanel() override;
+    };
+
+}
+```
+
+### File: `Editor/Panel/EditorGameViewPanel.h`
+```cpp
+#include "EditorPanel.h"
+
+namespace EngineEditor
+{
+    class EditorGameViewPanel : public EditorPanel
+    {
+    public:
+        virtual void DrawGUI() override;
+        virtual ~EditorGameViewPanel() override;
     };
 
 }
