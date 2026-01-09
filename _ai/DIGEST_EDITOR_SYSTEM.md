@@ -1,0 +1,361 @@
+# Architecture Digest: EDITOR_SYSTEM
+> Auto-generated. Focus: Editor, Panel, Inspector, Hierarchy, Gizmo, GUI, Widget, Console
+
+## Key Files Index
+- `[80]` **Editor/Panel/EditorConsolePanel.cpp** *(Content Included)*
+- `[80]` **Editor/Panel/EditorHierarchyPanel.cpp** *(Content Included)*
+- `[80]` **Editor/Panel/EditorInspectorPanel.cpp** *(Content Included)*
+- `[78]` **Editor/Panel/EditorHierarchyPanel.h** *(Content Included)*
+- `[74]` **Editor/Panel/EditorConsolePanel.h** *(Content Included)*
+- `[74]` **Editor/Panel/EditorInspectorPanel.h** *(Content Included)*
+- `[67]` **Editor/EditorGUIManager.cpp** *(Content Included)*
+- `[55]` **Editor/EditorGUIManager.h** *(Content Included)*
+- `[55]` **Editor/Panel/EditorGameViewPanel.cpp** *(Content Included)*
+- `[55]` **Editor/Panel/EditorProjectPanel.cpp** *(Content Included)*
+- `[52]` **Editor/D3D12/D3D12EditorGUIManager.h** *(Content Included)*
+- `[52]` **Editor/Panel/EditorGameViewPanel.h** *(Content Included)*
+- `[52]` **Editor/Panel/EditorProjectPanel.h** *(Content Included)*
+- `[50]` **Editor/D3D12/D3D12EditorGUIManager.cpp** *(Content Included)*
+- `[48]` **Editor/Panel/EditorPanel.h** *(Content Included)*
+- `[47]` **Editor/Panel/EditorPanel.cpp** *(Content Included)*
+- `[45]` **Editor/EditorSettings.h** *(Content Included)*
+- `[44]` **Editor/Panel/EditorMainBar.cpp** *(Content Included)*
+- `[40]` **Editor/EditorSettings.cpp** *(Content Included)*
+- `[40]` **Editor/Panel/EditorMainBar.h** *(Content Included)*
+- `[12]` **Runtime/Renderer/Renderer.h**
+- `[9]` **Runtime/Core/Game.cpp**
+- `[9]` **Runtime/Renderer/RenderCommand.h**
+- `[7]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
+- `[6]` **Runtime/Renderer/Renderer.cpp**
+- `[5]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
+- `[4]` **Runtime/Core/Profiler.h**
+- `[4]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
+- `[4]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
+- `[3]` **Runtime/PreCompiledHeader.h**
+- `[3]` **Runtime/Renderer/RenderEngine.h**
+- `[3]` **Runtime/Resources/ResourceManager.h**
+- `[2]` **Runtime/CoreAssert.h**
+- `[2]` **Runtime/EngineCore.h**
+- `[2]` **Runtime/Core/Game.h**
+- `[2]` **Runtime/Core/InstanceID.h**
+- `[2]` **Runtime/Core/Object.h**
+- `[2]` **Runtime/Core/PublicEnum.h**
+- `[2]` **Runtime/Core/PublicStruct.h**
+- `[2]` **Runtime/GameObject/Camera.h**
+- `[2]` **Runtime/GameObject/Component.h**
+- `[2]` **Runtime/GameObject/ComponentType.h**
+- `[2]` **Runtime/GameObject/GameObject.h**
+- `[2]` **Runtime/GameObject/MeshFilter.h**
+- `[2]` **Runtime/GameObject/MeshRenderer.h**
+- `[2]` **Runtime/GameObject/MonoBehaviour.h**
+- `[2]` **Runtime/GameObject/Transform.h**
+- `[2]` **Runtime/Graphics/ComputeShader.h**
+- `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
+- `[2]` **Runtime/Graphics/GPUSceneManager.h**
+
+## Evidence & Implementation Details
+
+### File: `Editor/Panel/EditorHierarchyPanel.h`
+```cpp
+#include "imgui.h"
+
+namespace EngineEditor
+{
+    using EngineCore::GameObject;
+    class EditorHierarchyPanel : public EditorPanel
+    {
+    public:
+        virtual void DrawGUI() override;
+        virtual ~EditorHierarchyPanel() override;  
+    private:
+        int nodeIdx = 0;
+        EngineCore::GameObject* selectedGO = nullptr;
+        ImGuiTreeNodeFlags baseFlags = ImGuiTreeNodeFlags_OpenOnArrow | 
+            ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;   
+        void DrawNode(GameObject* go);   
+    }; 
+
+}
+```
+
+### File: `Editor/Panel/EditorConsolePanel.h`
+```cpp
+#include "EditorPanel.h"
+
+namespace EngineEditor
+{
+    class EditorConsolePanel : public EditorPanel
+    {
+    public:
+        virtual void DrawGUI() override;
+        virtual ~EditorConsolePanel() override;
+    };
+
+}
+```
+
+### File: `Editor/Panel/EditorInspectorPanel.h`
+```cpp
+#include "GameObject/Transform.h"
+
+namespace EngineEditor
+{
+    class EditorInspectorPanel : public EditorPanel
+    {
+    public:
+        virtual void DrawGUI() override;
+        virtual ~EditorInspectorPanel() override;
+        void DrawTransformComponent(EngineCore::Transform* transform);
+
+        // 一个小工具：把角度差wrap到[-180,180]，避免359→-1的大跳
+        static inline float WrapDelta180(float d) {
+            while (d > 180.f) d -= 360.f;
+            while (d < -180.f) d += 360.f;
+            return d;
+        }
+
+        // 给每个Transform维护一份UI角度缓存（仅用于显示/差分计算）
+        struct EulerUICache 
+        { 
+            EulerUICache() = default;
+            Vector3 eulerDeg = { 0,0,0 }; 
+            bool seeded = false; 
+        };
+
+        static std::unordered_map<EngineCore::Transform*, EulerUICache> sEulerCache;
+    };
+
+}
+```
+
+### File: `Editor/EditorGUIManager.h`
+```cpp
+#include "GameObject/GameObject.h"
+
+namespace EngineEditor
+{
+    using GameObject = EngineCore::GameObject;
+    class EditorPanel;
+    class EditorGUIManager
+    {
+    public:
+    // 对象不允许纯虚函数，所以要用指针，因为是指针，所以*sInstance表示对象，外面返回引用&就行。
+        static EngineEditor::EditorGUIManager* s_Instance;
+        static EngineEditor::EditorGUIManager* GetInstance(){ return (s_Instance);};
+        virtual ~EditorGUIManager();
+        
+        static void Create();
+        static void OnDestory();
+        virtual void BeginFrame() = 0;
+        virtual void EndFrame() = 0;
+        // Update不需要实现， 因为是一个纯Payload，无任何信息/
+        void Update();
+        // 录入指令部分，不需要有具体RenderAPI实现。
+        void Render();
+        void InitPanel();
+
+        inline void SetCurrentSelected(GameObject* go) 
+        { 
+            currentSelected = go; 
+        };
+        inline GameObject* GetCurrentSelected()
+        { 
+            return currentSelected;
+        };
+    private:
+        std::vector<EditorPanel*> mPanelList;
+        GameObject* currentSelected = nullptr;
+    };
+
+
+}
+```
+
+### File: `Editor/D3D12/D3D12EditorGUIManager.h`
+```cpp
+#include "imgui.h"
+
+namespace EngineEditor
+{
+    class D3D12EditorGUIManager : public EditorGUIManager
+    {
+    public:
+        // 渲染线程beginFrame，重置CommandList
+        virtual void BeginFrame() override;
+        // 渲染线程EndFrame，提交指令
+        virtual void EndFrame() override;
+        static void ApplyDpiScale(float scale)
+        {
+            // 1) 缩放 ImGui Style
+            ImGuiStyle& style = ImGui::GetStyle();
+            style.ScaleAllSizes(scale);
+
+            // 2) 重新构建字体（把像素大小乘上 scale）
+            ImGuiIO& io = ImGui::GetIO();
+            io.Fonts->Clear();
+            // 举例：原 16px 字体，按比例放大
+            io.Fonts->AddFontFromFileTTF("c:/Windows/Fonts/segoeui.ttf", 16.0f * scale);
+            io.Fonts->Build();
+
+            // 3) 如果你不想重建字体，也可以简单用全局缩放(体验略差)
+            // io.FontGlobalScale = scale; // 简易方案（字体不会变清晰度）
+        }
+        D3D12EditorGUIManager();
+        ~D3D12EditorGUIManager();
+	private:
+
+		const uint32_t maxDescriptorNum = 256;
+
+		UINT descriptorSize;
+		std::vector<bool> descriptorUseState;
+		ComPtr<ID3D12DescriptorHeap> descriptorHeap = nullptr;
+		ComPtr<ID3D12GraphicsCommandList> commandList = nullptr;
+		std::vector<ComPtr<ID3D12CommandAllocator>> commandAllocators;
+
+		void InitForDirectX12();
+		UINT GetNextAvailablePos();
+
+    };
+}
+```
+
+### File: `Editor/Panel/EditorGameViewPanel.h`
+```cpp
+#include "EditorPanel.h"
+
+namespace EngineEditor
+{
+    class EditorGameViewPanel : public EditorPanel
+    {
+    public:
+        virtual void DrawGUI() override;
+        virtual ~EditorGameViewPanel() override;
+    };
+
+}
+```
+
+### File: `Editor/Panel/EditorProjectPanel.h`
+```cpp
+#include "EditorPanel.h"
+
+namespace EngineEditor
+{
+    class EditorProjectPanel : public EditorPanel
+    {
+    public:
+        virtual void DrawGUI() override;
+        virtual ~EditorProjectPanel() override;
+    };
+
+}
+```
+
+### File: `Editor/Panel/EditorPanel.h`
+```cpp
+#pragma once
+
+namespace EngineEditor
+{
+    class EditorPanel
+    {
+    public: 
+        virtual void DrawGUI() = 0;
+        virtual ~EditorPanel() = 0;
+    };
+
+}
+```
+
+### File: `Editor/EditorSettings.h`
+```cpp
+
+
+namespace EngineEditor
+{
+using Vector2 = EngineCore::Vector2;
+    // Editor
+    class EditorSettings
+    {
+    private:
+        // StartPos 和 Size都是0~1的ratio
+        static Vector2  hierarchyStartPos;
+        static Vector2  hierarchySize;
+        static Vector2  consoleStartPos;
+        static Vector2  consoleSize;
+        static Vector2  projectStartPos;
+        static Vector2  projectSize;
+        static Vector2  inspectorStartPos;
+        static Vector2  inspectorSize;
+        static Vector2  mainBarStartPos;
+        static Vector2  mainBarSize;
+        static Vector2  gameViewStartPos;
+        static Vector2  gameViewSize;
+
+        static Vector2 currentWindowSize;
+    public:
+        inline static Vector2 GetHierarchyPanelStartPos(){return hierarchyStartPos * currentWindowSize;};
+        inline static Vector2 GetHierarchyPanelEndPos(){return (hierarchyStartPos + hierarchySize) * currentWindowSize; };
+        inline static Vector2 GetHierarchyPanelSize(){return hierarchySize * currentWindowSize;};
+
+        inline static Vector2 GetConsolePanelStartPos(){return consoleStartPos * currentWindowSize;};
+        inline static Vector2 GetConsolePanelEndPos(){return (consoleStartPos + consoleSize) * currentWindowSize;};
+        inline static Vector2 GetConsolePanelSize(){return consoleSize * currentWindowSize;};
+
+        inline static Vector2 GetProjectPanelStartPos(){return projectStartPos * currentWindowSize;};
+        inline static Vector2 GetProjectPanelEndPos(){return (projectStartPos + projectSize) * currentWindowSize;};
+        inline static Vector2 GetProjectPanelSize(){return projectSize * currentWindowSize;};
+
+        inline static Vector2 GetInspectorPanelStartPos(){return inspectorStartPos * currentWindowSize;};
+        inline static Vector2 GetInspectorPanelEndPos(){return (inspectorStartPos + inspectorSize) * currentWindowSize;};
+        inline static Vector2 GetInspectorPanelSize(){return inspectorSize * currentWindowSize;};
+
+        inline static Vector2 GetMainBarPanelStartPos(){return mainBarStartPos * currentWindowSize;};
+        inline static Vector2 GetMainBarPanelEndPos(){return (mainBarStartPos + mainBarSize) * currentWindowSize;};
+        inline static Vector2 GetMainBarPanelSize(){return mainBarSize * currentWindowSize;};
+
+        inline static Vector2 GetGameViewPanelStartPos(){return gameViewStartPos * currentWindowSize;};
+        inline static Vector2 GetGameViewPanelEndPos(){return (gameViewStartPos + gameViewSize) * currentWindowSize;};
+        inline static Vector2 GetGameViewPanelSize(){return gameViewSize * currentWindowSize;};
+        
+        static void UpdateLayout(){};
+
+    };
+
+
+}
+```
+
+### File: `Editor/Panel/EditorMainBar.h`
+```cpp
+
+
+namespace EngineEditor
+{
+    using ResourceManager = EngineCore::ResourceManager;
+    using AssetID = EngineCore::AssetID;
+    using Resource = EngineCore::Resource;
+    using AssetType = EngineCore::AssetType;
+    using Material = EngineCore::Material;
+    using Shader = EngineCore::Shader;
+    using ModelData = EngineCore::ModelData;
+    using Texture = EngineCore::Texture;
+    //using MaterialMetaData = EngineCore::MaterialMetaData;
+    using TextureMetaData = EngineCore::TextureMetaData;
+    using MetaData = EngineCore::MetaData;
+    using SceneManager = EngineCore::SceneManager;
+    using Scene = EngineCore::Scene;
+
+    class EditorMainBar : public EditorPanel
+    {
+    public:
+        virtual void DrawGUI() override;
+        virtual ~EditorMainBar() override;
+    private:
+        void GenerateSceneMetaFile();
+        void CreateHouseGameObject();
+
+    };
+
+}
+```

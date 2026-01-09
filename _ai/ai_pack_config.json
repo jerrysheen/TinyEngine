@@ -1,0 +1,19 @@
+{
+    "source_root": ".",
+    "include_ext": [".h", ".hpp", ".inl", ".cpp", ".c", ".cc", ".hlsl"],
+    "ignore_dirs": [
+      "bin", "build", "out", ".git", ".vs", ".cursor",
+      "ThirdParty", "Vendor", "Projects", 
+      "Runtime/External", "External", "tools", "Doc", "Docs", "Note"
+    ],
+    "max_snippet_lines": 60,
+    "subsystems": {
+      "CORE_SYSTEM": ["Runtime/Core", "Runtime/Math", "Runtime/Serialization", "PublicStruct", "PublicEnum", "Profiler", "Job", "InstanceID", "Allocator"],
+      "GAMEPLAY": ["Runtime/GameObject", "Runtime/Scene", "Runtime/Scripts", "Runtime/Managers", "Window", "Input", "Camera", "Transform", "Component", "MonoBehaviour"],
+      "RHI_D3D12": ["Runtime/Platforms/D3D12", "RenderAPI", "Descriptor", "RootSignature", "PSO", "SwapChain", "Barrier", "Command", "Fence", "Context"],
+      "GRAPHICS_RES": ["Runtime/Graphics", "Runtime/Resources", "Material", "Texture", "GPUBuffer", "Mesh", "Model", "GpuScene", "Vertex", "Index", "Layout"],
+      "RENDER_PIPE": ["Runtime/Renderer", "RenderPass", "RenderPath", "RenderContext", "Batch", "Culling", "RenderEngine", "Sort", "FrameGraph", "Blit"],
+      "EDITOR_SYSTEM": ["Editor", "Panel", "Inspector", "Hierarchy", "Gizmo", "GUI", "Widget", "Console"],
+      "SHADER_LIB": ["Assets/Shader", "hlsl", "glsl", "include", "Lighting", "Surface"]
+    }
+  }
