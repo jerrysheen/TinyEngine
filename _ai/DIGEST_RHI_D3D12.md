@@ -1,57 +1,79 @@
 # Architecture Digest: RHI_D3D12
 > Auto-generated. Focus: Runtime/Platforms/D3D12, RenderAPI, Descriptor, RootSignature, PSO, SwapChain, Barrier, Command, Fence, Context
 
+## Project Intent
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+
+## Digest Guidance
+- 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
+- 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
+- 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+
+## Understanding Notes
+- D3D12实现决定现代渲染器能力上限（资源状态、PSO、RootSignature等）。
+- 需要抽取关键API与资源/命令上下文结构。
+
 ## Key Files Index
-- `[70]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[64]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
-- `[41]` **Runtime/Platforms/D3D12/D3D12PSO.cpp** *(Content Included)*
-- `[40]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp** *(Content Included)*
 - `[39]` **Runtime/Platforms/D3D12/D3D12RootSignature.h** *(Content Included)*
 - `[38]` **Runtime/Platforms/D3D12/D3D12PSO.h** *(Content Included)*
-- `[32]` **Runtime/Renderer/RenderAPI.h** *(Content Included)*
 - `[32]` **Runtime/Renderer/RenderCommand.h** *(Content Included)*
-- `[27]` **Runtime/Renderer/RenderContext.h** *(Content Included)*
-- `[27]` **Runtime/Platforms/D3D12/D3D12Struct.h** *(Content Included)*
+- `[32]` **Runtime/Renderer/RenderAPI.h** *(Content Included)*
 - `[27]` **Runtime/Platforms/D3D12/d3dx12.h** *(Content Included)*
-- `[25]` **Runtime/Renderer/RenderAPI.cpp** *(Content Included)*
-- `[25]` **Runtime/Renderer/RenderContext.cpp** *(Content Included)*
-- `[23]` **Editor/D3D12/D3D12EditorGUIManager.cpp** *(Content Included)*
-- `[20]` **Runtime/Renderer/Renderer.cpp** *(Content Included)*
-- `[20]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp** *(Content Included)*
-- `[20]` **Runtime/Platforms/D3D12/d3dUtil.cpp** *(Content Included)*
+- `[27]` **Runtime/Platforms/D3D12/D3D12Struct.h** *(Content Included)*
+- `[27]` **Runtime/Renderer/RenderContext.h** *(Content Included)*
 - `[18]` **Runtime/Renderer/Renderer.h** *(Content Included)*
-- `[17]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h** *(Content Included)*
-- `[17]` **Runtime/Platforms/D3D12/D3D12DescManager.cpp** *(Content Included)*
+- `[17]` **Runtime/Platforms/D3D12/d3dUtil.h** *(Content Included)*
 - `[17]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
-- `[17]` **Runtime/Platforms/D3D12/d3dUtil.h**
+- `[17]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h**
 - `[12]` **Runtime/Platforms/D3D12/D3D12Buffer.h**
 - `[12]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[12]` **Runtime/Platforms/D3D12/D3D12Texture.h**
 - `[12]` **Editor/D3D12/D3D12EditorGUIManager.h**
-- `[10]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
-- `[9]` **Runtime/Renderer/RenderEngine.cpp**
 - `[9]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
 - `[8]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[7]` **Runtime/Graphics/IGPUResource.h**
 - `[7]` **Runtime/Renderer/BatchManager.h**
-- `[7]` **Runtime/Renderer/RenderEngine.h**
 - `[7]` **Runtime/Renderer/RenderSorter.h**
 - `[7]` **Runtime/Renderer/RenderStruct.h**
+- `[7]` **Runtime/Renderer/RenderEngine.h**
 - `[7]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
-- `[7]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h**
-- `[7]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
-- `[7]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
-- `[7]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.cpp**
 - `[7]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h**
+- `[7]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
+- `[7]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h**
 - `[6]` **Runtime/Core/PublicStruct.h**
 - `[6]` **Runtime/Renderer/SPSCRingBuffer.h**
-- `[6]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
-- `[5]` **Runtime/Renderer/BatchManager.cpp**
 - `[5]` **Runtime/Renderer/Culling.h**
 - `[5]` **Runtime/Renderer/RenderPath/IRenderPath.h**
-- `[5]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
+- `[3]` **Runtime/Graphics/ModelData.h**
+- `[3]` **Runtime/Graphics/Material.h**
+- `[3]` **Runtime/Scene/Scene.h**
 - `[3]` **Editor/EditorGUIManager.h**
-- `[3]` **Runtime/Graphics/GPUBufferAllocator.cpp**
+- `[2]` **Runtime/CoreAssert.h**
+- `[2]` **Runtime/EngineCore.h**
+- `[2]` **Runtime/PreCompiledHeader.h**
+- `[2]` **Runtime/Scripts/CameraController.h**
+- `[2]` **Runtime/Graphics/MaterialLayout.h**
+- `[2]` **Runtime/Graphics/Texture.h**
+- `[2]` **Runtime/Graphics/GPUSceneManager.h**
+- `[2]` **Runtime/Graphics/ComputeShader.h**
+- `[2]` **Runtime/Graphics/GPUTexture.h**
+- `[2]` **Runtime/Graphics/RenderTexture.h**
+- `[2]` **Runtime/Graphics/ModelUtils.h**
+- `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
+- `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
+- `[2]` **Runtime/Graphics/Shader.h**
+- `[2]` **Runtime/Graphics/MaterialInstance.h**
+- `[2]` **Runtime/Scene/SceneManager.h**
+- `[2]` **Runtime/Resources/Resource.h**
+- `[2]` **Runtime/Resources/ResourceHandle.h**
+- `[2]` **Runtime/Resources/Asset.h**
+- `[2]` **Runtime/Resources/ResourceManager.h**
+- `[2]` **Runtime/Serialization/MetaFactory.h**
+- `[2]` **Runtime/Serialization/JsonSerializer.h**
+- `[2]` **Runtime/Serialization/ComponentFactory.h**
+- `[2]` **Runtime/Serialization/BaseTypeSerialization.h**
+- `[2]` **Runtime/Serialization/MetaData.h**
 
 ## Evidence & Implementation Details
 
@@ -232,6 +254,70 @@ namespace EngineCore
     };
 ```
 
+### File: `Runtime/Renderer/RenderCommand.h`
+```cpp
+    };
+
+    struct PSODesc
+    {
+        MaterailRenderState matRenderState;
+
+        TextureFormat colorAttachment = TextureFormat::EMPTY;
+        TextureFormat depthAttachment = TextureFormat::EMPTY;
+        uint32_t GetHash()
+        {
+            if(hashID != 0) return hashID;
+            hashID = 0;
+            HashCombine(hashID, matRenderState.shaderInstanceID);
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.enableDepthTest));
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.depthComparisonFunc));
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.enableDepthWrite));
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.enableBlend));
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.srcBlend));
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.destBlend));
+            HashCombine(hashID, static_cast<uint32_t>(colorAttachment));
+            HashCombine(hashID, static_cast<uint32_t>(depthAttachment));
+            return hashID;
+        };
+    private:
+        uint32_t hashID = 0;
+    };
+```
+...
+```cpp
+    };
+
+    struct Payload_DrawCommand 
+    {
+        uint32_t vaoID;
+        int count;
+    };
+```
+...
+```cpp
+    };
+
+    struct Payload_DrawInstancedCommand
+    {
+        uint32_t vaoID;
+        int count;
+        uint32_t perDrawOffset;
+        uint32_t perDrawStride;
+    };
+```
+...
+```cpp
+        Payload_SetBufferResourceState setBufferResourceState;
+        Payload_DrawIndirect setDrawIndirect;
+        CommandData() {};
+```
+...
+```cpp
+        CommandData data;
+    public:
+        DrawCommand(){};
+```
+
 ### File: `Runtime/Renderer/RenderAPI.h`
 ```cpp
 namespace  EngineCore
@@ -294,132 +380,6 @@ namespace  EngineCore
     public:
         static std::unique_ptr<RenderAPI> s_Instance;
     protected:
-```
-
-### File: `Runtime/Renderer/RenderCommand.h`
-```cpp
-    };
-
-    struct PSODesc
-    {
-        MaterailRenderState matRenderState;
-
-        TextureFormat colorAttachment = TextureFormat::EMPTY;
-        TextureFormat depthAttachment = TextureFormat::EMPTY;
-        uint32_t GetHash()
-        {
-            if(hashID != 0) return hashID;
-            hashID = 0;
-            HashCombine(hashID, matRenderState.shaderInstanceID);
-            HashCombine(hashID, static_cast<uint32_t>(matRenderState.enableDepthTest));
-            HashCombine(hashID, static_cast<uint32_t>(matRenderState.depthComparisonFunc));
-            HashCombine(hashID, static_cast<uint32_t>(matRenderState.enableDepthWrite));
-            HashCombine(hashID, static_cast<uint32_t>(matRenderState.enableBlend));
-            HashCombine(hashID, static_cast<uint32_t>(matRenderState.srcBlend));
-            HashCombine(hashID, static_cast<uint32_t>(matRenderState.destBlend));
-            HashCombine(hashID, static_cast<uint32_t>(colorAttachment));
-            HashCombine(hashID, static_cast<uint32_t>(depthAttachment));
-            return hashID;
-        };
-    private:
-        uint32_t hashID = 0;
-    };
-```
-...
-```cpp
-    };
-
-    struct Payload_DrawCommand 
-    {
-        uint32_t vaoID;
-        int count;
-    };
-```
-...
-```cpp
-    };
-
-    struct Payload_DrawInstancedCommand
-    {
-        uint32_t vaoID;
-        int count;
-        uint32_t perDrawOffset;
-        uint32_t perDrawStride;
-    };
-```
-...
-```cpp
-    };
-
-    struct DrawCommand 
-    {
-        RenderOp op{ RenderOp::kInvalid };
-        CommandData data;
-    public:
-        DrawCommand(){};
-    };
-```
-
-### File: `Runtime/Renderer/RenderContext.h`
-```cpp
-{
-    // 记录灯光，阴影，物体信息？
-    class RenderContext
-    {
-    public:
-        RenderContext()
-        {
-            visibleItems.resize(10000);
-        }
-        Camera* camera;
-        vector<LightData*> visibleLights;
-        vector<RenderPacket> visibleItems;
-        int currentMaxIndex = 0;
-
-        inline void Reset()
-        {
-            camera = nullptr;
-            visibleLights.clear();
-            visibleItems.clear();
-        }
-
-        static void DrawRenderers(RenderContext& renderContext, 
-                           const ContextDrawSettings& drawingSettings, 
-                           const ContextFilterSettings& filteringSettings, 
-                           std::vector<RenderBatch>& outDrawRecords);
-        
-        static void BatchContext(std::vector<RenderPacket*>& sortedItem);
-
-        static bool CanBatch(const RenderBatch& batch, const RenderPacket item);
-
-    private:
-
-    };
-```
-
-### File: `Runtime/Platforms/D3D12/D3D12Struct.h`
-```cpp
-    };
-
-    struct TD3D12Fence
-    {
-    public:
-        int mCurrentFence;
-        Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
-    };
-```
-...
-```cpp
-
-    // 存储创建PSO需要的信息
-    struct TD3D12PSO
-    {
-        PSODesc desc;
-        Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
-        std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout;
-        ComPtr<ID3DBlob> vsBlob;
-        ComPtr<ID3DBlob> psBlob;
-    };
 ```
 
 ### File: `Runtime/Platforms/D3D12/d3dx12.h`
@@ -527,11 +487,21 @@ struct CD3DX12_DESCRIPTOR_RANGE : public D3D12_DESCRIPTOR_RANGE
 ```
 ...
 ```cpp
+struct CD3DX12_ROOT_DESCRIPTOR_TABLE : public D3D12_ROOT_DESCRIPTOR_TABLE
 {
     CD3DX12_ROOT_DESCRIPTOR_TABLE() {}
-    explicit CD3DX12_ROOT_DESCRIPTOR_TABLE(const D3D12_ROOT_DESCRIPTOR_TABLE &o) :
-        D3D12_ROOT_DESCRIPTOR_TABLE(o)
-    {}
+```
+...
+```cpp
+        _In_reads_opt_(numDescriptorRanges) const D3D12_DESCRIPTOR_RANGE* _pDescriptorRanges)
+    {
+        Init(numDescriptorRanges, _pDescriptorRanges);
+    }
+    
+    inline void Init(
+        UINT numDescriptorRanges,
+        _In_reads_(numDescriptorRanges) const D3D12_DESCRIPTOR_RANGE* _pDescriptorRanges)
+    {
 ```
 ...
 ```cpp
@@ -564,68 +534,67 @@ struct CD3DX12_ROOT_DESCRIPTOR : public D3D12_ROOT_DESCRIPTOR
     }
 };
 ```
+
+### File: `Runtime/Platforms/D3D12/D3D12Struct.h`
+```cpp
+    };
+
+    struct TD3D12Fence
+    {
+    public:
+        int mCurrentFence;
+        Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
+    };
+```
 ...
 ```cpp
 
-//------------------------------------------------------------------------------------------------
-struct CD3DX12_CPU_DESCRIPTOR_HANDLE : public D3D12_CPU_DESCRIPTOR_HANDLE
+    // 存储创建PSO需要的信息
+    struct TD3D12PSO
+    {
+        PSODesc desc;
+        Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
+        std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout;
+        ComPtr<ID3DBlob> vsBlob;
+        ComPtr<ID3DBlob> psBlob;
+    };
+```
+
+### File: `Runtime/Renderer/RenderContext.h`
+```cpp
 {
-    CD3DX12_CPU_DESCRIPTOR_HANDLE() {}
-    explicit CD3DX12_CPU_DESCRIPTOR_HANDLE(const D3D12_CPU_DESCRIPTOR_HANDLE &o) :
-        D3D12_CPU_DESCRIPTOR_HANDLE(o)
-    {}
-    CD3DX12_CPU_DESCRIPTOR_HANDLE(CD3DX12_DEFAULT) { ptr = 0; }
-    CD3DX12_CPU_DESCRIPTOR_HANDLE(_In_ const D3D12_CPU_DESCRIPTOR_HANDLE &other, INT offsetScaledByIncrementSize)
+    // 记录灯光，阴影，物体信息？
+    class RenderContext
     {
-        InitOffsetted(other, offsetScaledByIncrementSize);
-    }
-    CD3DX12_CPU_DESCRIPTOR_HANDLE(_In_ const D3D12_CPU_DESCRIPTOR_HANDLE &other, INT offsetInDescriptors, UINT descriptorIncrementSize)
-    {
-        InitOffsetted(other, offsetInDescriptors, descriptorIncrementSize);
-    }
-    CD3DX12_CPU_DESCRIPTOR_HANDLE& Offset(INT offsetInDescriptors, UINT descriptorIncrementSize)
-    { 
-        ptr += offsetInDescriptors * descriptorIncrementSize;
-        return *this;
-    }
-    CD3DX12_CPU_DESCRIPTOR_HANDLE& Offset(INT offsetScaledByIncrementSize) 
-    { 
-        ptr += offsetScaledByIncrementSize;
-        return *this;
-    }
-    bool operator==(_In_ const D3D12_CPU_DESCRIPTOR_HANDLE& other)
-    {
-        return (ptr == other.ptr);
-    }
-    bool operator!=(_In_ const D3D12_CPU_DESCRIPTOR_HANDLE& other)
-    {
-        return (ptr != other.ptr);
-    }
-    CD3DX12_CPU_DESCRIPTOR_HANDLE &operator=(const D3D12_CPU_DESCRIPTOR_HANDLE &other)
-    {
-        ptr = other.ptr;
-        return *this;
-    }
-    
-    inline void InitOffsetted(_In_ const D3D12_CPU_DESCRIPTOR_HANDLE &base, INT offsetScaledByIncrementSize)
-    {
-        InitOffsetted(*this, base, offsetScaledByIncrementSize);
-    }
-    
-    inline void InitOffsetted(_In_ const D3D12_CPU_DESCRIPTOR_HANDLE &base, INT offsetInDescriptors, UINT descriptorIncrementSize)
-    {
-        InitOffsetted(*this, base, offsetInDescriptors, descriptorIncrementSize);
-    }
-    
-    static inline void InitOffsetted(_Out_ D3D12_CPU_DESCRIPTOR_HANDLE &handle, _In_ const D3D12_CPU_DESCRIPTOR_HANDLE &base, INT offsetScaledByIncrementSize)
-    {
-        handle.ptr = base.ptr + offsetScaledByIncrementSize;
-    }
-    
-    static inline void InitOffsetted(_Out_ D3D12_CPU_DESCRIPTOR_HANDLE &handle, _In_ const D3D12_CPU_DESCRIPTOR_HANDLE &base, INT offsetInDescriptors, UINT descriptorIncrementSize)
-    {
-        handle.ptr = base.ptr + offsetInDescriptors * descriptorIncrementSize;
-    }
+    public:
+        RenderContext()
+        {
+            visibleItems.resize(10000);
+        }
+        Camera* camera;
+        vector<LightData*> visibleLights;
+        vector<RenderPacket> visibleItems;
+        int currentMaxIndex = 0;
+
+        inline void Reset()
+        {
+            camera = nullptr;
+            visibleLights.clear();
+            visibleItems.clear();
+        }
+
+        static void DrawRenderers(RenderContext& renderContext, 
+                           const ContextDrawSettings& drawingSettings, 
+                           const ContextFilterSettings& filteringSettings, 
+                           std::vector<RenderBatch>& outDrawRecords);
+        
+        static void BatchContext(std::vector<RenderPacket*>& sortedItem);
+
+        static bool CanBatch(const RenderBatch& batch, const RenderPacket item);
+
+    private:
+
+    };
 ```
 
 ### File: `Runtime/Renderer/Renderer.h`
@@ -694,6 +663,21 @@ struct CD3DX12_CPU_DESCRIPTOR_HANDLE : public D3D12_CPU_DESCRIPTOR_HANDLE
 ...
 ```cpp
 
+
+                RenderAPI::GetInstance()->RenderAPIPresentFrame();
+
+                CpuEvent::RenderThreadSubmited().Signal();
+
+                if (hasResize)
+                {
+                    RenderAPI::GetInstance()->RenderAPIWindowResize(pendingResize);
+                    hasResize = false;
+                    pendingResize = { 0,0 };
+                }
+```
+...
+```cpp
+
         void FlushPerFrameData();
         void FlushPerPassData(const RenderContext& context);
         void CreatePerFrameData();
@@ -703,37 +687,80 @@ struct CD3DX12_CPU_DESCRIPTOR_HANDLE : public D3D12_CPU_DESCRIPTOR_HANDLE
 }
 ```
 
-### File: `Runtime/Platforms/D3D12/D3D12DescAllocator.h`
+### File: `Runtime/Platforms/D3D12/d3dUtil.h`
 ```cpp
-        D3D12DescAllocator(D3D12_DESCRIPTOR_HEAP_TYPE heapType, bool isFrameHeap);
-        ~D3D12DescAllocator(){};
-        inline D3D12_DESCRIPTOR_HEAP_TYPE GetHeapType(){ return mHeapType;};
+{
+    WCHAR buffer[512];
+    MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, buffer, 512);
+    return std::wstring(buffer);
+}
+
+/*
+#if defined(_DEBUG)
+    #ifndef Assert
+    #define Assert(x, description)                                  \
+    {                                                               \
 ```
 ...
 ```cpp
-        DescriptorHandle CreateDescriptor(const D3D12_SAMPLER_DESC& desc){};
-		DescriptorHandle CreateDescriptor(const D3D12_CONSTANT_BUFFER_VIEW_DESC& desc);
-		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc);
-		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc);
-		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc);
-        DescriptorHandle GetNextAvaliableDesc();
-        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mHeap;
-        void Reset();
-        DescriptorHandle GetFrameAllocator(int count);
+                    else if(result == Debug::AssertBreak)           \
+        {                                                           \
+            __debugbreak();                                         \
+        }                                                           \
+        }                                                           \
+    }
+    #endif
+#else
+    #ifndef Assert
+    #define Assert(x, description) 
+    #endif
+#endif 		
+    */
 
-    private:
-        D3D12_DESCRIPTOR_HEAP_TYPE mHeapType;
-        D3D12_DESCRIPTOR_HEAP_FLAGS GetHeapVisible(D3D12_DESCRIPTOR_HEAP_TYPE heapType, bool isFrameHeap);
-        int ConfigAllocatorDescSize(D3D12_DESCRIPTOR_HEAP_TYPE heapType);
+class d3dUtil
+{
+```
+...
+```cpp
+    static bool IsKeyDown(int vkeyCode);
 
-        std::vector<bool> isInUse;
+    static std::string ToString(HRESULT hr);
 
-        int currentOffset = 0;
-        int currCount = 0;
-        uint32_t startIndex = 0;
-        uint32_t mDescriptorSize = 0;
-        int maxCount = 0;
-    };
+    static UINT CalcConstantBufferByteSize(UINT byteSize)
+    {
+        // Constant buffers must be a multiple of the minimum hardware
+        // allocation size (usually 256 bytes).  So round up to nearest
+        // multiple of 256.  We do this by adding 255 and then masking off
+        // the lower 2 bytes which store all bits < 256.
+        // Example: Suppose byteSize = 300.
+        // (300 + 255) & ~255
+        // 555 & ~255
+        // 0x022B & ~0x00ff
+        // 0x022B & 0xff00
+        // 0x0200
+        // 512
+        return (byteSize + 255) & ~255;
+    }
+```
+...
+```cpp
+		const std::string& target);
 
-}
+    static D3D12_RESOURCE_DIMENSION GetFBOD3D12Dimesnsion(const EngineCore::TextureDimension& dimension);
+    static DXGI_FORMAT GetFBOD3D12Format(const EngineCore::TextureFormat& format);
+};
+
+class DxException
+{
+```
+...
+```cpp
+
+
+struct D3D12DrawCommand
+{
+    ComPtr<ID3D12CommandAllocator> allocators;
+    ComPtr<ID3D12GraphicsCommandList4> commandLists;
+    bool inUse;
+};
 ```

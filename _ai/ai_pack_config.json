@@ -1,12 +1,65 @@
 {
     "source_root": ".",
-    "include_ext": [".h", ".hpp", ".inl", ".cpp", ".c", ".cc", ".hlsl"],
+    "include_ext": [".h", ".hpp", ".inl", ".cpp", ".c", ".cc", ".hlsl", ".lua"],
     "ignore_dirs": [
       "bin", "build", "out", ".git", ".vs", ".cursor",
       "ThirdParty", "Vendor", "Projects", 
       "Runtime/External", "External", "tools", "Doc", "Docs", "Note"
     ],
     "max_snippet_lines": 60,
+    "index_exclude_ext": [".cpp", ".c", ".cc"],
+    "project_goal": "目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。",
+    "digest_guidance": [
+      "优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。",
+      "突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。",
+      "关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。"
+    ],
+    "subsystem_notes": {
+      "CORE_SYSTEM": [
+        "核心数据结构、内存分配、标识系统与序列化元数据是其他模块的基础。",
+        "优先记录公开结构体/枚举/Allocator/Profiler接口。"
+      ],
+      "GAMEPLAY": [
+        "围绕GameObject、Component、Transform、Camera与Scene的生命周期。",
+        "关注运行时脚本与管理器如何驱动渲染与资源依赖。"
+      ],
+      "RHI_D3D12": [
+        "D3D12实现决定现代渲染器能力上限（资源状态、PSO、RootSignature等）。",
+        "需要抽取关键API与资源/命令上下文结构。"
+      ],
+      "GRAPHICS_RES": [
+        "资源层是材质、纹理、模型与GPU缓冲的核心纽带。",
+        "提取资源描述、布局、GPU缓冲与材质接口。"
+      ],
+      "RENDER_PIPE": [
+        "渲染管线负责Pass组织、排序、裁剪与FrameGraph思路。",
+        "强调RenderContext、RenderPass与RenderPath的接口。"
+      ],
+      "EDITOR_SYSTEM": [
+        "编辑器提供调试与可视化界面，支撑迭代与资产编辑。",
+        "关注面板/GUI管理与场景交互。"
+      ],
+      "SHADER_LIB": [
+        "Shader库是GPU驱动渲染的核心资产。",
+        "关注通用Shader结构、CBuffer布局与Pass一致性。"
+      ],
+      "ENGINE_OVERVIEW": [
+        "引擎入口、主循环与模块初始化/销毁流程。",
+        "定位Game/Render/Scene之间的耦合与调度关系。"
+      ],
+      "SCENE_SYSTEM": [
+        "Scene与GameObject/Component的组织结构。",
+        "场景管理、加载与切换流程。"
+      ],
+      "ASSET_PIPELINE": [
+        "资源导入、序列化、元数据与运行时缓存关系。",
+        "关注资源句柄、依赖管理与加载策略。"
+      ],
+      "PLATFORM_WINDOWING": [
+        "窗口、输入与平台层抽象决定跨平台能力。",
+        "关注窗口创建、消息循环与输入采样接口。"
+      ]
+    },
     "subsystems": {
       "CORE_SYSTEM": ["Runtime/Core", "Runtime/Math", "Runtime/Serialization", "PublicStruct", "PublicEnum", "Profiler", "Job", "InstanceID", "Allocator"],
       "GAMEPLAY": ["Runtime/GameObject", "Runtime/Scene", "Runtime/Scripts", "Runtime/Managers", "Window", "Input", "Camera", "Transform", "Component", "MonoBehaviour"],
@@ -14,6 +67,10 @@
       "GRAPHICS_RES": ["Runtime/Graphics", "Runtime/Resources", "Material", "Texture", "GPUBuffer", "Mesh", "Model", "GpuScene", "Vertex", "Index", "Layout"],
       "RENDER_PIPE": ["Runtime/Renderer", "RenderPass", "RenderPath", "RenderContext", "Batch", "Culling", "RenderEngine", "Sort", "FrameGraph", "Blit"],
       "EDITOR_SYSTEM": ["Editor", "Panel", "Inspector", "Hierarchy", "Gizmo", "GUI", "Widget", "Console"],
-      "SHADER_LIB": ["Assets/Shader", "hlsl", "glsl", "include", "Lighting", "Surface"]
+      "SHADER_LIB": ["Assets/Shader", "hlsl", "glsl", "include", "Lighting", "Surface"],
+      "ENGINE_OVERVIEW": ["Runtime/Entry", "EngineCore", "Game", "RenderEngine", "SceneManager", "Settings", "Application", "Runtime/Utils"],
+      "SCENE_SYSTEM": ["Runtime/Scene", "SceneManager", "Scene", "GameObject", "Component", "Transform", "Hierarchy"],
+      "ASSET_PIPELINE": ["Runtime/Resources", "Runtime/Serialization", "Meta", "Asset", "Importer", "Texture", "Material", "Shader", "Mesh"],
+      "PLATFORM_WINDOWING": ["Runtime/Platforms", "Window", "Input", "Platform", "Win32", "MessageLoop"]
     }
   }

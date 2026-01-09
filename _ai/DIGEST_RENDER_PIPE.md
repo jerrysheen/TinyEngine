@@ -1,57 +1,79 @@
 # Architecture Digest: RENDER_PIPE
 > Auto-generated. Focus: Runtime/Renderer, RenderPass, RenderPath, RenderContext, Batch, Culling, RenderEngine, Sort, FrameGraph, Blit
 
+## Project Intent
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+
+## Digest Guidance
+- 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
+- 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
+- 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+
+## Understanding Notes
+- 渲染管线负责Pass组织、排序、裁剪与FrameGraph思路。
+- 强调RenderContext、RenderPass与RenderPath的接口。
+
 ## Key Files Index
 - `[48]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h** *(Content Included)*
-- `[48]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp** *(Content Included)*
-- `[47]` **Runtime/Renderer/RenderContext.cpp** *(Content Included)*
-- `[47]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
-- `[47]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp** *(Content Included)*
-- `[47]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.cpp** *(Content Included)*
 - `[45]` **Runtime/Renderer/RenderEngine.h** *(Content Included)*
 - `[43]` **Runtime/Renderer/RenderPipeLine/RenderPass.h** *(Content Included)*
 - `[42]` **Runtime/Renderer/RenderContext.h** *(Content Included)*
 - `[42]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h** *(Content Included)*
-- `[42]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h** *(Content Included)*
 - `[42]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h** *(Content Included)*
-- `[41]` **Runtime/Renderer/BatchManager.cpp** *(Content Included)*
+- `[42]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h** *(Content Included)*
 - `[41]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h** *(Content Included)*
 - `[39]` **Runtime/Renderer/RenderSorter.h** *(Content Included)*
 - `[37]` **Runtime/Renderer/BatchManager.h** *(Content Included)*
 - `[36]` **Runtime/Renderer/RenderPath/IRenderPath.h** *(Content Included)*
 - `[35]` **Runtime/Renderer/Culling.h** *(Content Included)*
-- `[34]` **Runtime/Renderer/Culling.cpp** *(Content Included)*
-- `[31]` **Runtime/Renderer/RenderPipeLine/RenderPass.cpp** *(Content Included)*
 - `[26]` **Assets/Shader/GPUCulling.hlsl**
 - `[21]` **Assets/Shader/BlitShader.hlsl**
-- `[19]` **Runtime/Renderer/Renderer.cpp**
 - `[18]` **Runtime/Renderer/Renderer.h**
 - `[17]` **Runtime/Renderer/RenderAPI.h**
 - `[17]` **Runtime/Renderer/RenderStruct.h**
 - `[14]` **Runtime/Core/PublicStruct.h**
-- `[12]` **Runtime/Renderer/PerDrawAllocator.h**
 - `[12]` **Runtime/Renderer/RenderCommand.h**
 - `[12]` **Runtime/Renderer/RenderUniforms.h**
 - `[12]` **Runtime/Renderer/SPSCRingBuffer.h**
-- `[10]` **Runtime/Graphics/GPUSceneManager.cpp**
-- `[10]` **Runtime/Renderer/RenderAPI.cpp**
-- `[7]` **Runtime/GameObject/Camera.cpp**
+- `[12]` **Runtime/Renderer/PerDrawAllocator.h**
 - `[7]` **Runtime/Graphics/GPUSceneManager.h**
-- `[5]` **Runtime/GameObject/MeshFilter.cpp**
-- `[5]` **Runtime/GameObject/MeshRenderer.cpp**
-- `[5]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp**
-- `[4]` **Runtime/Core/Game.cpp**
-- `[4]` **Runtime/GameObject/Camera.h**
-- `[4]` **Runtime/Scene/SceneManager.cpp**
 - `[4]` **Runtime/Scene/SceneManager.h**
+- `[4]` **Runtime/GameObject/Camera.h**
 - `[3]` **Runtime/EngineCore.h**
 - `[3]` **Runtime/Core/PublicEnum.h**
-- `[3]` **Runtime/Graphics/GPUBufferAllocator.cpp**
-- `[2]` **Editor/EditorGUIManager.h**
-- `[2]` **Editor/EditorSettings.h**
 - `[2]` **Runtime/CoreAssert.h**
 - `[2]` **Runtime/PreCompiledHeader.h**
+- `[2]` **Runtime/Scripts/CameraController.h**
+- `[2]` **Runtime/Graphics/MaterialLayout.h**
+- `[2]` **Runtime/Graphics/Texture.h**
+- `[2]` **Runtime/Graphics/ModelData.h**
+- `[2]` **Runtime/Graphics/ComputeShader.h**
+- `[2]` **Runtime/Graphics/IGPUResource.h**
+- `[2]` **Runtime/Graphics/GPUTexture.h**
+- `[2]` **Runtime/Graphics/RenderTexture.h**
+- `[2]` **Runtime/Graphics/ModelUtils.h**
+- `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
+- `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
+- `[2]` **Runtime/Graphics/Material.h**
+- `[2]` **Runtime/Graphics/Shader.h**
+- `[2]` **Runtime/Graphics/MaterialInstance.h**
+- `[2]` **Runtime/Scene/Scene.h**
+- `[2]` **Runtime/Resources/Resource.h**
+- `[2]` **Runtime/Resources/ResourceHandle.h**
+- `[2]` **Runtime/Resources/Asset.h**
+- `[2]` **Runtime/Resources/ResourceManager.h**
+- `[2]` **Runtime/Serialization/MetaFactory.h**
+- `[2]` **Runtime/Serialization/JsonSerializer.h**
+- `[2]` **Runtime/Serialization/ComponentFactory.h**
+- `[2]` **Runtime/Serialization/BaseTypeSerialization.h**
+- `[2]` **Runtime/Serialization/MetaData.h**
+- `[2]` **Runtime/Serialization/AssetSerialization.h**
+- `[2]` **Runtime/Serialization/MetaLoader.h**
+- `[2]` **Runtime/Core/Profiler.h**
+- `[2]` **Runtime/Core/InstanceID.h**
+- `[2]` **Runtime/Core/Object.h**
 - `[2]` **Runtime/Core/Game.h**
+- `[2]` **Runtime/Core/Allocator/LinearAllocator.h**
 
 ## Evidence & Implementation Details
 
@@ -117,6 +139,36 @@ namespace EngineCore
             // Get Current BatchInfo:
             vector<DrawIndirectArgs> batchInfo = BatchManager::GetInstance()->GetBatchInfo();
             indirectDrawArgsBuffer->UploadBuffer(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
+```
+...
+```cpp
+            payload.groupY = 1;
+            payload.groupZ = 1;
+            Renderer::GetInstance()->DispatchComputeShader(payload);
+            // 先把shader跑起来， 渲染到RT上， 后续blit啥的接入后面再说
+
+            // 这个地方简单跑个绑定测试？
+            Renderer::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_SHADER_RESOURCE);
+            Renderer::GetInstance()->SetResourceState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_INDIRECT_ARGUMENT);
+
+            context.Reset();
+            context.camera = cam;
+            Renderer::GetInstance()->Render(context);
+#ifdef EDITOR
+            Renderer::GetInstance()->OnDrawGUI();
+#endif
+
+            Renderer::GetInstance()->EndFrame();
+        }
+
+        bool hasSetUpBuffer = false;
+        BufferAllocation cullingParamAlloc;
+        GPUBufferAllocator* cullingParamBuffer;
+        BufferAllocation indirectDrawArgsAlloc;
+        GPUBufferAllocator* indirectDrawArgsBuffer;
+
+    };
+}
 ```
 
 ### File: `Runtime/Renderer/RenderEngine.h`
@@ -280,15 +332,15 @@ namespace EngineCore
     };
 ```
 
-### File: `Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h`
+### File: `Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h`
 ```cpp
 namespace EngineCore
 {
-    class GPUSceneRenderPass : public RenderPass
+    class OpaqueRenderPass : public RenderPass
     {
     public:
 
-        GPUSceneRenderPass();
+        OpaqueRenderPass();
         // renderpass 初始化
         //virtual void Create(const RenderContext& context) override;
         // todo Create 也需要参数
@@ -304,15 +356,15 @@ namespace EngineCore
     };
 ```
 
-### File: `Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h`
+### File: `Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h`
 ```cpp
 namespace EngineCore
 {
-    class OpaqueRenderPass : public RenderPass
+    class GPUSceneRenderPass : public RenderPass
     {
     public:
 
-        OpaqueRenderPass();
+        GPUSceneRenderPass();
         // renderpass 初始化
         //virtual void Create(const RenderContext& context) override;
         // todo Create 也需要参数
