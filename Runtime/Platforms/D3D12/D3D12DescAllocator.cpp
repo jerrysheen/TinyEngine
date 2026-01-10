@@ -6,7 +6,7 @@
 
 namespace EngineCore
 {
-    D3D12DescAllocator::D3D12DescAllocator(D3D12_DESCRIPTOR_HEAP_TYPE heapType, bool isFrameHeap)
+    D3D12DescAllocator::D3D12DescAllocator(D3D12_DESCRIPTOR_HEAP_TYPE heapType, bool isFrameHeap, bool isShaderVisible)
     {
         // 能cast的是指针， 所以对象要转成指针。
         auto md3dDevice = D3D12DescManager::mD3DDevice;
@@ -14,10 +14,12 @@ namespace EngineCore
         D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
 		heapDesc.NumDescriptors = ConfigAllocatorDescSize(heapType);
 		heapDesc.Type = heapType;
-		heapDesc.Flags = GetHeapVisible(heapType, isFrameHeap);
+        // 如果强制开启 ShaderVisible，或者它是 FrameHeap (且符合类型)，则设为 Visible
+		heapDesc.Flags = (isShaderVisible || (isFrameHeap && (heapType == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV || heapType == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER))) 
+            ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+            
 		heapDesc.NodeMask = 0;
 		ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(mHeap.GetAddressOf())));
-        isInUse.resize(maxCount, false);
         mDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(mHeapType);
     }
 
@@ -47,8 +49,8 @@ namespace EngineCore
         switch (heapType)
         {
         case D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV:
-            maxCount = 10000;
-            return 10000;
+            maxCount = 2000; // 大幅增加 Size 以支持 Bindless + Dynamic
+            return 2000;
             break;
         case D3D12_DESCRIPTOR_HEAP_TYPE_RTV:
         case D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER:
@@ -65,7 +67,7 @@ namespace EngineCore
 
     DescriptorHandle D3D12DescAllocator::CreateDescriptor(const D3D12_CONSTANT_BUFFER_VIEW_DESC& desc)
     {
-        auto handle = GetNextAvaliableDesc();
+        auto handle = AllocateStaticHandle();
         //handle.heapType = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
         auto mD3D12Device = static_cast<D3D12RenderAPI*>(RenderAPI::GetInstance())->md3dDevice;
 
@@ -84,7 +86,7 @@ namespace EngineCore
    
     DescriptorHandle D3D12DescAllocator::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc)
     {
-        auto handle = GetNextAvaliableDesc();
+        auto handle = AllocateStaticHandle();
         //handle.heapType = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
         auto mD3D12Device = static_cast<D3D12RenderAPI*>(RenderAPI::GetInstance())->md3dDevice;
 
@@ -100,7 +102,7 @@ namespace EngineCore
 
     DescriptorHandle D3D12DescAllocator::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc)
     {
-        auto handle = GetNextAvaliableDesc();
+        auto handle = AllocateStaticHandle();
         auto mD3D12Device = static_cast<D3D12RenderAPI*>(RenderAPI::GetInstance())->md3dDevice;
 
 		// 创建DSV
@@ -114,7 +116,7 @@ namespace EngineCore
 
     DescriptorHandle D3D12DescAllocator::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc)
     {
-        auto handle = GetNextAvaliableDesc();
+        auto handle = AllocateStaticHandle();
         auto mD3D12Device = static_cast<D3D12RenderAPI*>(RenderAPI::GetInstance())->md3dDevice;
 
         // 创建CBV
@@ -130,44 +132,60 @@ namespace EngineCore
         return handle;
     }
 
-    DescriptorHandle D3D12DescAllocator::GetNextAvaliableDesc()
+    DescriptorHandle D3D12DescAllocator::AllocateStaticHandle()
     {
         DescriptorHandle handle;
-        for(int i = 0; i < isInUse.size(); i++)
+        
+        // 分配Persistane的handle
+        if (freeIndexList.size() > 0) 
         {
-            if(!isInUse[i])
-            {
-                isInUse[i] = 1;
-                handle.descriptorIdx = i;
-                return handle;
-            }
+            handle.descriptorIdx = freeIndexList.back();
+            freeIndexList.pop_back();
+            return handle;
         }
+        handle.descriptorIdx = currentOffset;
+        currentOffset++;
         return handle;
     }
 
     void D3D12DescAllocator::Reset()
     {
-        for(int i = 0; i < isInUse.size(); i++)
+        // 动态分配部分（currentOffset管理）回到 dynamicStartOffset
+        if (dynamicStartOffset > 0)
         {
-            isInUse[i] = 0;
+            // 如果是 FrameAllocator，dynamicStartOffset 默认为 0，全量重置
+            // 如果是 GlobalBindlessHeap，dynamicStartOffset > 0，只重置动态区
+             currDynamicoffset = dynamicStartOffset;
         }
-        currentOffset = 0;
+        else
+        {
+            freeIndexList.clear();
+            currentOffset = 0;
+        }
     }
 
-    // FrameAllocator 每帧重置，所以直接按照顺序取就ok。
-    DescriptorHandle D3D12DescAllocator::GetFrameAllocator(int count)
+    void D3D12DescAllocator::CleanPerFrameData()
     {
-        ASSERT_MSG(currentOffset + count < maxCount, "false");
-        //直接给handle，然后更新offSet;
-        DescriptorHandle handle;
-        handle.descriptorIdx = currentOffset;
-        D3D12_CPU_DESCRIPTOR_HANDLE cpuStart = mHeap->GetCPUDescriptorHandleForHeapStart();
-        D3D12_GPU_DESCRIPTOR_HANDLE gpuStart = mHeap->GetGPUDescriptorHandleForHeapStart();
-        
-        handle.cpuHandle = cpuStart.ptr + currentOffset * mDescriptorSize;
-        handle.gpuHandle = gpuStart.ptr + currentOffset * mDescriptorSize;
-        currentOffset += count;
-
-        return handle;
+        ASSERT(dynamicStartOffset > 0);
+        currDynamicoffset = dynamicStartOffset;
     }
+
+    DescriptorHandle D3D12DescAllocator::AllocateDynamicSpace(int count)
+    {
+         ASSERT_MSG(currDynamicoffset + count < maxCount, "Global Heap Dynamic Space Run out!");
+         ASSERT(dynamicStartOffset > 0);
+
+         //直接给handle，然后更新offSet;
+         DescriptorHandle handle;
+         handle.descriptorIdx = currDynamicoffset;
+         D3D12_CPU_DESCRIPTOR_HANDLE cpuStart = mHeap->GetCPUDescriptorHandleForHeapStart();
+         D3D12_GPU_DESCRIPTOR_HANDLE gpuStart = mHeap->GetGPUDescriptorHandleForHeapStart();
+
+         handle.cpuHandle = cpuStart.ptr + currDynamicoffset * mDescriptorSize;
+         handle.gpuHandle = gpuStart.ptr + currDynamicoffset * mDescriptorSize;
+         currDynamicoffset += count;
+
+         return handle;
+    }
+
 }

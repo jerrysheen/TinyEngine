@@ -19,20 +19,26 @@ namespace EngineCore
 		DescriptorHandle CreateDescriptor(const D3D12_CONSTANT_BUFFER_VIEW_DESC& desc);
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc);
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc);
-		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc);
-        
-        void ResetFrameAllocator();
-        DescriptorHandle GetFrameCbvSrvUavAllocator(int count);
-        DescriptorHandle GetFrameSamplerAllocator(int count);
-        vector<D3D12DescAllocator> mDescAllocators;
-        vector<D3D12DescAllocator> mFrameAllocators;
-        
-        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> GetFrameCbvSrvUavHeap()
+		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc, bool isShaderVisible = false);
+
+        inline DescriptorHandle GetFrameCbvSrvUavAllocator(int count) 
         {
-            return mFrameAllocators[0].mHeap;
-        };
+            return mBindlessAllocator->AllocateDynamicSpace(count);
+        }
+        
+
+        void ResetFrameAllocator();
+        vector<D3D12DescAllocator> mDescAllocators;
+ 
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> GetBindlessCbvSrvUavHeap()
+        {
+            return mBindlessAllocator->mHeap;
+        }
+
+
     private:
         static D3D12DescManager* mInstance;
-
+        // Bindless Heap (Shader Visible, Global)
+        D3D12DescAllocator* mBindlessAllocator = nullptr;
     };
 }

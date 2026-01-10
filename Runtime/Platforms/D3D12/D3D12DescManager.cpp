@@ -12,13 +12,22 @@ namespace EngineCore
         for(int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++)
         {
             mDescAllocators.emplace_back(D3D12_DESCRIPTOR_HEAP_TYPE(i), false);
+            std::wstring name;
+            switch(i)
+            {
+                case D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV: name = L"CPU_Heap_CBV_SRV_UAV"; break;
+                case D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER: name = L"CPU_Heap_SAMPLER"; break;
+                case D3D12_DESCRIPTOR_HEAP_TYPE_RTV: name = L"CPU_Heap_RTV"; break;
+                case D3D12_DESCRIPTOR_HEAP_TYPE_DSV: name = L"CPU_Heap_DSV"; break;
+            }
+            mDescAllocators.back().mHeap->SetName(name.c_str());
         }
 
-        for(int i = 0; i < 2; i++)
-        {
-            mFrameAllocators.emplace_back(D3D12_DESCRIPTOR_HEAP_TYPE(i), true);
-        }
-
+        // 初始化 Bindless Heap (Shader Visible = true)
+        mBindlessAllocator = new D3D12DescAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, false, true);
+        mBindlessAllocator->mHeap->SetName(L"Bindless_Global_Heap_CBV_SRV_UAV");
+        // 预留前 400,000 个给 Bindless 静态资源，后 100,000 个给每帧动态分配 (Ring Buffer)
+        mBindlessAllocator->SetDynamicStartOffset(1000);
     }
 
     D3D12DescManager::~D3D12DescManager(){};
@@ -47,9 +56,16 @@ namespace EngineCore
         return mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV].CreateDescriptor(resource, desc);
     }
 
-    DescriptorHandle D3D12DescManager::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc) 
+    DescriptorHandle D3D12DescManager::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc, bool isShaderVisible) 
     {
-        return mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].CreateDescriptor(resource, desc);
+        if(isShaderVisible)
+        {
+             return mBindlessAllocator->CreateDescriptor(resource, desc);
+        }
+        else
+        {
+            return mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].CreateDescriptor(resource, desc);
+        }
     }
 
     DescriptorHandle D3D12DescManager::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc)
@@ -59,21 +75,9 @@ namespace EngineCore
 
     void D3D12DescManager::ResetFrameAllocator()
     {
-        for(auto& alloctor : mFrameAllocators)
-        {
-            alloctor.Reset();
-        }        
+        mBindlessAllocator->CleanPerFrameData();
     }
 
-    DescriptorHandle D3D12DescManager::GetFrameCbvSrvUavAllocator(int count)
-    {
-        return mFrameAllocators[0].GetFrameAllocator(count);
-    }
-
-    DescriptorHandle D3D12DescManager::GetFrameSamplerAllocator(int count)
-    {
-        return mFrameAllocators[1].GetFrameAllocator(count);
-    }
 
     // heap 堆
     // heap offset

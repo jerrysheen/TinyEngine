@@ -33,6 +33,7 @@ namespace EngineCore
         kDispatchComputeShader = 17,
         kSetBufferResourceState = 18,
         kDrawIndirect = 19,
+        kSetBindlessMat = 20,
     };
 
     enum class DepthComparisonFunc : uint8_t
@@ -254,6 +255,11 @@ namespace EngineCore
         uint32_t startIndexInInstanceDataBuffer;
     };
 
+    struct Payload_SetBindlessMat
+    {
+        Material* mat;
+    };
+
     union CommandData 
     {
         Payload_BeginFrame beginFrame;
@@ -275,6 +281,7 @@ namespace EngineCore
         Payload_DispatchComputeShader dispatchComputeShader;
         Payload_SetBufferResourceState setBufferResourceState;
         Payload_DrawIndirect setDrawIndirect;
+        Payload_SetBindlessMat setBindlessMat;
         CommandData() {};
     };
 

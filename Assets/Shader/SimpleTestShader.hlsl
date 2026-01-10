@@ -6,10 +6,8 @@
 
 
 // 纹理资源
-Texture2D DiffuseTexture : register(t0, space0);
-Texture2D NormalTexture : register(t1, space0);
-Texture2D SpecularTexture : register(t2, space0);
-TextureCube EnvironmentMap : register(t3, space0);
+Texture2D g_Textures[1024] : register(t0, space0);
+
 
 // 采样器
 SamplerState LinearSampler : register(s0, space0);
@@ -70,8 +68,8 @@ float4 PSMain(VertexOutput input) : SV_Target
     PerMaterialData matData = LoadPerMaterialData(data.matIndex);
     half4 diffuseColor = matData.DiffuseColor;
     // todo: 材质属性还没设置
-    diffuseColor.xyz = DiffuseTexture.Sample(LinearSampler, input.TexCoord).xyz * diffuseColor.xyz ;
-    diffuseColor.xyz = DiffuseTexture.Sample(LinearSampler, input.TexCoord).xyz;
+    //diffuseColor.xyz = DiffuseTexture.Sample(LinearSampler, input.TexCoord).xyz * diffuseColor.xyz ;
+    diffuseColor.xyz = g_Textures[matData.DiffuseTextureIndex].Sample(LinearSampler, input.TexCoord).xyz;
     return diffuseColor;
 
     // // 采样纹理

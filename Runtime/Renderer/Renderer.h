@@ -63,6 +63,8 @@ namespace EngineCore
         
         void SetResourceState(IGPUResource* resource, BufferResourceState state);
         
+        void SetBindlessMat(Material* mat);
+        
         void DrawIndirect(Payload_DrawIndirect payload);
         
         void RenderThreadMain() 

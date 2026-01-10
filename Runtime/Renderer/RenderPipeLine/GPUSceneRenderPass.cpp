@@ -53,7 +53,7 @@ namespace EngineCore
             // 根据mat + pass信息组织pippeline
             Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
             // copy gpu material data desc 
-            Renderer::GetInstance()->SetMaterialData(mat);
+            Renderer::GetInstance()->SetBindlessMat(mat);
             // bind mesh vertexbuffer and indexbuffer.
             Renderer::GetInstance()->SetMeshData(vaoID);
             Payload_DrawIndirect indirectPayload;

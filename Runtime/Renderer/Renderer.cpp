@@ -247,6 +247,16 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(cmd);
     }
 
+    void Renderer::SetBindlessMat(Material *mat)
+    {
+        Payload_SetBindlessMat payload;
+        payload.mat = mat;
+        DrawCommand cmd;
+        cmd.data.setBindlessMat = payload;
+        cmd.op = RenderOp::kSetBindlessMat;
+        mRenderBuffer.PushBlocking(cmd);
+    }
+
     void Renderer::DrawIndirect(Payload_DrawIndirect payload)
     {
         DrawCommand cmd;
@@ -266,6 +276,9 @@ namespace EngineCore
         break;
         case RenderOp::kSetMaterial :
             RenderAPI::GetInstance()->RenderAPISetMaterial(cmd.data.setMaterial);
+        break;
+        case RenderOp::kSetBindlessMat :
+            RenderAPI::GetInstance()->RenderAPISetBindlessMat(cmd.data.setBindlessMat);
         break;
         case RenderOp::kCopyBufferRegion :
             RenderAPI::GetInstance()->RenderAPICopyRegion(cmd.data.copyBufferRegion);

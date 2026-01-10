@@ -116,7 +116,7 @@ namespace EngineCore
                 {
                     if (x.resourceName == bindDesc.Name) break;
                 }
-                shaderReflectionInfo->mConstantBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, 0, bindDesc.Space);
+                shaderReflectionInfo->mConstantBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, 0, bindDesc.Space, bindDesc.BindCount);
 
                 break;
             }
@@ -125,14 +125,14 @@ namespace EngineCore
                 {
                     if (x.resourceName == bindDesc.Name) break;
                 }
-                shaderReflectionInfo->mTextureInfo.emplace_back(bindDesc.Name, ShaderResourceType::TEXTURE, bindDesc.BindPoint, 0, bindDesc.Space);
+                shaderReflectionInfo->mTextureInfo.emplace_back(bindDesc.Name, ShaderResourceType::TEXTURE, bindDesc.BindPoint, 0, bindDesc.Space, bindDesc.BindCount);
                 break;
             case D3D_SIT_SAMPLER:
                 for (auto& x : shaderReflectionInfo->mSamplerInfo)
                 {
                     if (x.resourceName == bindDesc.Name) break;
                 }
-                shaderReflectionInfo->mSamplerInfo.emplace_back(bindDesc.Name, ShaderResourceType::SAMPLER, bindDesc.BindPoint, 0, bindDesc.Space);
+                shaderReflectionInfo->mSamplerInfo.emplace_back(bindDesc.Name, ShaderResourceType::SAMPLER, bindDesc.BindPoint, 0, bindDesc.Space, bindDesc.BindCount);
                 break;
             case D3D_SIT_STRUCTURED:
             case D3D_SIT_UAV_RWTYPED:
@@ -145,7 +145,7 @@ namespace EngineCore
                 {
                     if (x.resourceName == bindDesc.Name) break;
                 }
-                shaderReflectionInfo->mUavInfo.emplace_back(bindDesc.Name, ShaderResourceType::UAV, bindDesc.BindPoint, 0, bindDesc.Space);
+                shaderReflectionInfo->mUavInfo.emplace_back(bindDesc.Name, ShaderResourceType::UAV, bindDesc.BindPoint, 0, bindDesc.Space, bindDesc.BindCount);
                 break;
             default:
                 std::cout << " Not find any exites shader resource type " << std::endl;

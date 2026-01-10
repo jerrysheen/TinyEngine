@@ -61,10 +61,21 @@ namespace EngineCore
 
             UINT rootParamIndex = slotRootParameter.size();
 
+            UINT numDescriptors = 0;
+            for(const auto& info : srvList)
+            {
+                if(info.bindCount == 0) 
+                {
+                    numDescriptors = UINT_MAX;
+                    break;
+                }
+                numDescriptors += info.bindCount;
+            }
+
             descriptorRanges.emplace_back();
             descriptorRanges.back().Init(
                 D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                srvList.size(),
+                numDescriptors,
                 srvList[0].registerSlot,  // 使用实际的起始寄存器位置
                 space,
                 0

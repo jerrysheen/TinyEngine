@@ -51,9 +51,10 @@ namespace EngineCore
         int registerSlot;              
         int size = 0;                  // 对CB有意义，其他资源可为0
         int space = 0;
-        ShaderBindingInfo (const string& resourceName, ShaderResourceType type, int registerSlot, int size, int space)
+        int bindCount = 1;             // 绑定数量，数组时 > 1
+        ShaderBindingInfo (const string& resourceName, ShaderResourceType type, int registerSlot, int size, int space, int bindCount = 1)
             : resourceName(resourceName), type(type), registerSlot(registerSlot), size(size),
-            space(space)
+            space(space), bindCount(bindCount)
         {};
     };
 

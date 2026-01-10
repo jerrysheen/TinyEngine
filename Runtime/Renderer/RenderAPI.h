@@ -39,6 +39,7 @@ namespace  EngineCore
         virtual void RenderAPIConfigureRT(Payload_ConfigureRT payloadConfigureRT) = 0;
         virtual void RenderAPIDrawIndexed(Payload_DrawCommand payloadDrawCommand) = 0;
         virtual void RenderAPISetMaterial(Payload_SetMaterial payloadSetMaterial) = 0;
+        virtual void RenderAPISetBindlessMat(Payload_SetBindlessMat payloadSetBindlessMat) = 0;
         virtual void RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState) = 0;
         virtual void RenderAPISetSissorRect(Payload_SetSissorRect payloadSetSissorrect) = 0;
         virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) = 0;

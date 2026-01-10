@@ -47,6 +47,7 @@ namespace EngineCore
         virtual void RenderAPIConfigureRT(Payload_ConfigureRT payloadConfigureRT) override;
         virtual void RenderAPIDrawIndexed(Payload_DrawCommand payloadDrawCommand) override;
         virtual void RenderAPISetMaterial(Payload_SetMaterial payloadSetMaterial) override;
+        virtual void RenderAPISetBindlessMat(Payload_SetBindlessMat payloadSetBindlessMat) override;
         virtual void RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState) override;
         virtual void RenderAPISetSissorRect(Payload_SetSissorRect payloadSetSissorrect) override;
         virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) override;

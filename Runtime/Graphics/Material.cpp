@@ -21,8 +21,13 @@ namespace EngineCore
         GetTextureInfoFromShaderReflection();
         MaterialLayout layout = MaterialLayout::GetDefaultPBRLayout();
         matInstance = std::make_unique<MaterialInstance>(layout);
-        SetUpRenderState();
         materialAllocation = GPUSceneManager::GetInstance()->GetSinglePerMaterialData();
+        if(textureData.count("DiffuseTexture") > 0)
+        {
+            IGPUTexture* diffuse = textureData["DiffuseTexture"];
+            uint32_t index = diffuse->srvHandle.descriptorIdx;
+            matInstance->SetValue("DiffuseTextureIndex", &index, 4);
+        }
         UploadDataToGpu();
 
     }
@@ -38,6 +43,12 @@ namespace EngineCore
 
         SetUpRenderState();
         materialAllocation = GPUSceneManager::GetInstance()->GetSinglePerMaterialData();
+        if(textureData.count("DiffuseTexture") > 0)
+        {
+            IGPUTexture* diffuse = textureData["DiffuseTexture"];
+            uint32_t index = diffuse->srvHandle.descriptorIdx;
+            matInstance->SetValue("DiffuseTextureIndex", &index, 4);
+        }
         UploadDataToGpu();
     }
 
@@ -52,6 +63,12 @@ namespace EngineCore
         matInstance = std::make_unique<MaterialInstance>(layout);
         SetUpRenderState();
         materialAllocation = GPUSceneManager::GetInstance()->GetSinglePerMaterialData();
+        if(textureData.count("DiffuseTexture") > 0)
+        {
+            IGPUTexture* diffuse = textureData["DiffuseTexture"];
+            uint32_t index = diffuse->bindlessHandle.descriptorIdx;
+            matInstance->SetValue("DiffuseTextureIndex", &index, 4);
+        }
         UploadDataToGpu();
     }
 

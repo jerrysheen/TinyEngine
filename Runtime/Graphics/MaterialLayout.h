@@ -56,6 +56,10 @@ namespace EngineCore
 
             // float2 TilingFactor (8 bytes)
             AddProp("TilingFactor", ShaderVariableType::VECTOR2, 8);
+            
+            AddProp("DiffuseTextureIndex", ShaderVariableType::FLOAT, 4);
+            
+            AddProp("PaddingLast", ShaderVariableType::VECTOR3, 12);
 
             // 此时 offset = 16+16+4+4+8 = 48 bytes
             // 还需要补齐到 16 字节对齐吗？HLSL cbuffer 是 16 字节对齐的

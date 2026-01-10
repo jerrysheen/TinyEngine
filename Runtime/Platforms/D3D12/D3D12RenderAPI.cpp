@@ -411,7 +411,8 @@ namespace EngineCore
         srvDesc.Texture2D.MostDetailedMip = 0;
         srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
         
-        texture->srvHandle = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource.Get(), srvDesc);
+        texture->srvHandle = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource.Get(), srvDesc, false);
+        texture->bindlessHandle = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource.Get(), srvDesc, true);
         return texture;
     }
 
@@ -493,8 +494,9 @@ namespace EngineCore
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
             srvDesc.Texture2D.MipLevels = 1;
             
-            descHandle = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource, srvDesc);
+            descHandle = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource, srvDesc, false);
             texture->srvHandle = descHandle;
+            texture->bindlessHandle = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource, srvDesc, true);
         }
         else if (textureDesc.format == TextureFormat::D24S8)
         {
@@ -846,8 +848,9 @@ namespace EngineCore
         currentRootSignature = nullptr;
         currentPSO = psoObj;
 
+        // 统一使用 Bindless Heap (因为 FrameAllocator 的 SRV 部分现在也分配在 Bindless Heap 上了)
         ID3D12DescriptorHeap* heaps[] = {
-            D3D12DescManager::GetInstance()->GetFrameCbvSrvUavHeap().Get(),
+            D3D12DescManager::GetInstance()->GetBindlessCbvSrvUavHeap().Get(),
             // 如果用了采样器表，这里再加上 sampler heap
         };
         mCommandList->SetDescriptorHeaps(_countof(heaps), heaps);
@@ -972,7 +975,26 @@ namespace EngineCore
         }
     }
 
-    
+    void D3D12RenderAPI::RenderAPISetBindlessMat(Payload_SetBindlessMat payloadSetBindlessMat)
+    {
+        //TD3D12MaterialData& matData = m_DataMap[payloadSetMaterial.matId];
+        Material* mat = payloadSetBindlessMat.mat;
+        // todo： 重写buffer 绑定逻辑
+        uint64_t gpuAddr = GPUSceneManager::GetInstance()->allObjectDataBuffer->GetBaseGPUAddress();
+        mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllObjectData, gpuAddr);
+
+        gpuAddr = GPUSceneManager::GetInstance()->allMaterialDataBuffer->GetBaseGPUAddress();
+        mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllMaterialData, gpuAddr);
+        
+        gpuAddr = GPUSceneManager::GetInstance()->visibilityBuffer->GetBaseGPUAddress();
+        mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::PerDrawInstanceObjectsList, gpuAddr);
+        
+
+        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> bindlessHeap = D3D12DescManager::GetInstance()->GetBindlessCbvSrvUavHeap();
+        D3D12_GPU_DESCRIPTOR_HANDLE gpuaddress = bindlessHeap->GetGPUDescriptorHandleForHeapStart();
+        mCommandList->SetGraphicsRootDescriptorTable((UINT)RootSigSlot::Textures, gpuaddress);
+    }
+
     void D3D12RenderAPI::RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState)
     {
         // rootsig 只要和 pso匹配的，pso切换 rootsig不一定要切换

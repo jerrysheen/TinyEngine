@@ -83,6 +83,7 @@ namespace EngineCore
         uint64_t cpuHandle = UINT64_MAX;
         uint64_t gpuHandle = UINT64_MAX;
         uint32_t descriptorIdx = UINT32_MAX;  // bindless模式下，用的是index而不是地址
+        bool isValid() const { return cpuHandle != UINT64_MAX; }
     };
 
     class IGPUResource
@@ -116,7 +117,8 @@ namespace EngineCore
     public:
         virtual const TextureDesc& GetDesc() const = 0;
     public:
-        DescriptorHandle srvHandle;
+        DescriptorHandle srvHandle; // Non-Visible Heap Handle (for Copy Source)
+        DescriptorHandle bindlessHandle; // Shader-Visible Heap Handle (for Bindless Access)
         DescriptorHandle rtvHandle;
         DescriptorHandle dsvHandle;
     };
