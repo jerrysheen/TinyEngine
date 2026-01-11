@@ -19,8 +19,12 @@
 namespace EngineCore {
     ResourceHandle<Material> BistroSceneLoader::commonMatHandle;
 
-
     Scene* BistroSceneLoader::Load(const std::string& path) {
+        BistroSceneLoader loader;
+        return loader.LoadInternal(path);
+    }
+
+    Scene* BistroSceneLoader::LoadInternal(const std::string& path) {
         tinygltf::Model model;
         tinygltf::TinyGLTF loader;
 
@@ -35,6 +39,11 @@ namespace EngineCore {
         std::string err;
         std::string warn;
 
+        // 1. Load Definition & Data
+        // Note: This loads the entire glTF structure including buffers into memory.
+        // For a 100MB file, 150MB memory usage is expected due to internal structure overhead.
+        // This 'model' variable is local to this function and will be destructed (releasing all temporary memory)
+        // once the function returns, leaving only the converted ModelData in the ResourceManager.
         bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, path);
 
         if (!warn.empty()) {
@@ -52,16 +61,20 @@ namespace EngineCore {
 
         Scene* newScene = new Scene("BistroScene");
         SceneManager::GetInstance()->SetCurrentScene(newScene);
-        // 创建根节点作为容器
+        // Create root node
         GameObject* rootGo = newScene->CreateGameObject("BistroRoot");
 
-        // GLTF 可以有多个 Scene，默认使用 defaultScene
+        // GLTF can have multiple Scenes, default to defaultScene
         const tinygltf::Scene& scene = model.scenes[model.defaultScene > -1 ? model.defaultScene : 0];
         
+        // Clear cache before starting
+        m_MeshCache.clear();
+
         for (size_t i = 0; i < scene.nodes.size(); i++) {
             ProcessNode(model.nodes[scene.nodes[i]], model, rootGo, newScene);
         }
 
+        // Cache is cleared when loader instance is destroyed (end of Load function)
         return newScene;
     }
 
@@ -69,7 +82,7 @@ namespace EngineCore {
         GameObject* go = targetScene->CreateGameObject(node.name.empty() ? "Node" : node.name);
         go->SetParent(parent);
 
-        // 设置 Transform
+        // Transform
         if (node.translation.size() == 3) {
             go->transform->SetLocalPosition(Vector3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]));
         }
@@ -80,132 +93,172 @@ namespace EngineCore {
             go->transform->SetLocalScale(Vector3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]));
         }
         
-        // 如果有 matrix，需要分解 (这里简化，假设优先使用 T/R/S 或者没有 matrix)
-        // tinygltf 不会自动分解 matrix，如果 GLTF 只用了 matrix，这里需要额外的数学库分解
-        // Bistro 场景通常使用 T/R/S
+        // Handle Matrix if present (simplified assumption: T/R/S is preferred)
 
-        // 处理 Mesh
+        // Process Mesh
+        // node.mesh is the index into model.meshes
         if (node.mesh > -1) {
-            ProcessMesh(model.meshes[node.mesh], model, go);
+            ProcessMesh(node.mesh, model, go, targetScene);
         }
 
-        // 递归子节点
+        // Recursive children
         for (size_t i = 0; i < node.children.size(); i++) {
             ProcessNode(model.nodes[node.children[i]], model, go, targetScene);
         }
     }
 
-    void BistroSceneLoader::ProcessMesh(const tinygltf::Mesh& mesh, const tinygltf::Model& model, GameObject* go) {
-        // 使用 ResourceManager 创建并注册 ModelData
-        ResourceHandle<ModelData> modelHandle = ResourceManager::GetInstance()->CreateResource<ModelData>();
-        ModelData* modelData = modelHandle.Get();
-        modelData->bounds = AABB();
+    void BistroSceneLoader::ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene) {
+        std::vector<ResourceHandle<ModelData>> modelHandles;
 
-        // 暂时只处理第一个 Primitive，或者合并 Primitives
-        // Bistro 的 Mesh 可能有多个 Primitive，这里简单处理：如果是多个，只取第一个，或者需要创建子物体
-        // 为了简化，这里只处理 Primitive 0，或者将所有 Primitive 合并到一个 ModelData (需要材质一致)
-        // 正确做法：每个 Primitive 一个 draw call / submesh。
-        
-        if (mesh.primitives.empty()) return;
+        // Check Cache
+        auto it = m_MeshCache.find(meshIndex);
+        if (it != m_MeshCache.end()) {
+            modelHandles = it->second;
+        } else {
+            const tinygltf::Mesh& mesh = model.meshes[meshIndex];
 
-        const tinygltf::Primitive& primitive = mesh.primitives[0];
-        
-        // 1. 获取 Accessors 和 Buffers
-        // Indices
-        if (primitive.indices > -1) {
-            const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
-            const tinygltf::BufferView& bufferView = model.bufferViews[indexAccessor.bufferView];
-            const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
+            // Iterate all Primitives
+            for (const auto& primitive : mesh.primitives) {
+                ResourceHandle<ModelData> modelHandle = ResourceManager::GetInstance()->CreateResource<ModelData>();
+                ModelData* modelData = modelHandle.Get();
+                modelData->bounds = AABB();
 
-            const unsigned char* dataStart = buffer.data.data() + bufferView.byteOffset + indexAccessor.byteOffset;
-            int count = indexAccessor.count;
-            int componentType = indexAccessor.componentType; // 5123 (unsigned short), 5125 (unsigned int)
+                // 1. Get Accessors and Buffers
+                // Indices
+                if (primitive.indices > -1) {
+                    const tinygltf::Accessor& indexAccessor = model.accessors[primitive.indices];
+                    const tinygltf::BufferView& bufferView = model.bufferViews[indexAccessor.bufferView];
+                    const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
 
-            modelData->index.reserve(count);
-            if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
-                const unsigned short* buf = reinterpret_cast<const unsigned short*>(dataStart);
-                for (int i = 0; i < count; i++) modelData->index.push_back(buf[i]);
-            } else if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
-                const unsigned int* buf = reinterpret_cast<const unsigned int*>(dataStart);
-                for (int i = 0; i < count; i++) modelData->index.push_back(buf[i]);
+                    const unsigned char* dataStart = buffer.data.data() + bufferView.byteOffset + indexAccessor.byteOffset;
+                    size_t count = indexAccessor.count;
+                    int componentType = indexAccessor.componentType; 
+
+                    modelData->index.reserve(count);
+                    if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+                        const unsigned short* buf = reinterpret_cast<const unsigned short*>(dataStart);
+                        for (size_t i = 0; i < count; i++) modelData->index.push_back(buf[i]);
+                    } else if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+                        const unsigned int* buf = reinterpret_cast<const unsigned int*>(dataStart);
+                        for (size_t i = 0; i < count; i++) modelData->index.push_back(buf[i]);
+                    }
+                }
+
+                // Position
+                if (primitive.attributes.find("POSITION") != primitive.attributes.end()) {
+                    const tinygltf::Accessor& accessor = model.accessors[primitive.attributes.find("POSITION")->second];
+                    const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
+                    const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
+                    
+                    const unsigned char* dataStart = buffer.data.data() + bufferView.byteOffset + accessor.byteOffset;
+                    size_t count = accessor.count;
+                    int stride = accessor.ByteStride(bufferView); 
+
+                    modelData->vertex.resize(count);
+                    for (size_t i = 0; i < count; i++) {
+                        const float* buf = reinterpret_cast<const float*>(dataStart + i * stride);
+                        modelData->vertex[i].position = Vector3(buf[0], buf[1], buf[2]);
+                        modelData->bounds.Encapsulate(modelData->vertex[i].position);
+                    }
+                }
+
+                // Normal
+                if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) {
+                    const tinygltf::Accessor& accessor = model.accessors[primitive.attributes.find("NORMAL")->second];
+                    const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
+                    const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
+                    
+                    const unsigned char* dataStart = buffer.data.data() + bufferView.byteOffset + accessor.byteOffset;
+                    size_t count = accessor.count;
+                    int stride = accessor.ByteStride(bufferView);
+
+                    for (size_t i = 0; i < count; i++) {
+                        const float* buf = reinterpret_cast<const float*>(dataStart + i * stride);
+                        modelData->vertex[i].normal = Vector3(buf[0], buf[1], buf[2]);
+                    }
+                }
+
+                // UV0
+                if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) {
+                    const tinygltf::Accessor& accessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
+                    const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
+                    const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
+                    
+                    const unsigned char* dataStart = buffer.data.data() + bufferView.byteOffset + accessor.byteOffset;
+                    size_t count = accessor.count;
+                    int stride = accessor.ByteStride(bufferView);
+
+                    for (size_t i = 0; i < count; i++) {
+                        const float* buf = reinterpret_cast<const float*>(dataStart + i * stride);
+                        modelData->vertex[i].uv = Vector2(buf[0], buf[1]);
+                    }
+                }
+
+                // Set Layout
+                modelData->layout.push_back(InputLayout(VertexAttribute::POSITION, 3 * sizeof(float), 3, 8 * sizeof(float), 0));
+                modelData->layout.push_back(InputLayout(VertexAttribute::NORMAL, 3 * sizeof(float), 3, 8 * sizeof(float), 3 * sizeof(float)));
+                modelData->layout.push_back(InputLayout(VertexAttribute::UV0, 2 * sizeof(float), 2, 8 * sizeof(float), 6 * sizeof(float)));
+
+                // Upload to GPU
+                RenderAPI::GetInstance()->SetUpMesh(modelData, false);
+
+                // Optional: If we want to save memory and don't need CPU copy anymore, we could clear vectors here
+                // However, keep it for now as it might be needed for physics/picking
+                // modelData->vertex.clear();
+                // modelData->vertex.shrink_to_fit();
+                // modelData->index.clear();
+                // modelData->index.shrink_to_fit();
+
+                modelHandles.push_back(modelHandle);
             }
-        }
-
-        // Position
-        if (primitive.attributes.find("POSITION") != primitive.attributes.end()) {
-            const tinygltf::Accessor& accessor = model.accessors[primitive.attributes.find("POSITION")->second];
-            const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
-            const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
             
-            const unsigned char* dataStart = buffer.data.data() + bufferView.byteOffset + accessor.byteOffset;
-            int count = accessor.count;
-            int stride = accessor.ByteStride(bufferView); 
-
-            modelData->vertex.resize(count);
-            for (int i = 0; i < count; i++) {
-                const float* buf = reinterpret_cast<const float*>(dataStart + i * stride);
-                modelData->vertex[i].position = Vector3(buf[0], buf[1], buf[2]);
-                modelData->bounds.Encapsulate(modelData->vertex[i].position);
-            }
+            // Add to cache
+            m_MeshCache[meshIndex] = modelHandles;
         }
 
-        // Normal
-        if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) {
-            const tinygltf::Accessor& accessor = model.accessors[primitive.attributes.find("NORMAL")->second];
-            const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
-            const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
+        if (modelHandles.empty()) return;
+
+        // Create GameObject components
+        if (modelHandles.size() == 1) {
+            MeshFilter* mf = go->AddComponent<MeshFilter>();
+            mf->mMeshHandle = modelHandles[0];
+
+            MeshRenderer* mr = go->AddComponent<MeshRenderer>();
             
-            const unsigned char* dataStart = buffer.data.data() + bufferView.byteOffset + accessor.byteOffset;
-            int count = accessor.count;
-            int stride = accessor.ByteStride(bufferView);
-
-            for (int i = 0; i < count; i++) {
-                const float* buf = reinterpret_cast<const float*>(dataStart + i * stride);
-                modelData->vertex[i].normal = Vector3(buf[0], buf[1], buf[2]);
-            }
-        }
-
-        // UV0
-        if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) {
-            const tinygltf::Accessor& accessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
-            const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
-            const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
+            ResourceHandle<Shader> pbrShader = ResourceManager::GetInstance()->LoadAsset<Shader>("Shader/StandardPBR.hlsl");
             
-            const unsigned char* dataStart = buffer.data.data() + bufferView.byteOffset + accessor.byteOffset;
-            int count = accessor.count;
-            int stride = accessor.ByteStride(bufferView);
+            if (pbrShader.IsValid()) {
+                if (!commonMatHandle.IsValid()) 
+                {
+                    commonMatHandle = ResourceManager::GetInstance()->CreateResource<Material>(pbrShader);
+                }
 
-            for (int i = 0; i < count; i++) {
-                const float* buf = reinterpret_cast<const float*>(dataStart + i * stride);
-                modelData->vertex[i].uv = Vector2(buf[0], buf[1]);
+                mr->SetSharedMaterial(commonMatHandle);
+                mr->TryAddtoBatchManager();
+            } 
+        } else {
+            // Multiple primitives become child objects
+            for (size_t i = 0; i < modelHandles.size(); i++) {
+                GameObject* subGo = targetScene->CreateGameObject(go->name + "_SubMesh_" + std::to_string(i));
+                subGo->SetParent(go);
+
+                MeshFilter* mf = subGo->AddComponent<MeshFilter>();
+                mf->mMeshHandle = modelHandles[i];
+
+                MeshRenderer* mr = subGo->AddComponent<MeshRenderer>();
+                
+                ResourceHandle<Shader> pbrShader = ResourceManager::GetInstance()->LoadAsset<Shader>("Shader/StandardPBR.hlsl");
+                
+                if (pbrShader.IsValid()) {
+                    if (!commonMatHandle.IsValid()) 
+                    {
+                        commonMatHandle = ResourceManager::GetInstance()->CreateResource<Material>(pbrShader);
+                    }
+
+                    mr->SetSharedMaterial(commonMatHandle);
+                    mr->TryAddtoBatchManager();
+                } 
             }
         }
-
-        // 设置 Layout
-        modelData->layout.push_back(InputLayout(VertexAttribute::POSITION, 3 * sizeof(float), 3, 8 * sizeof(float), 0));
-        modelData->layout.push_back(InputLayout(VertexAttribute::NORMAL, 3 * sizeof(float), 3, 8 * sizeof(float), 3 * sizeof(float)));
-        modelData->layout.push_back(InputLayout(VertexAttribute::UV0, 2 * sizeof(float), 2, 8 * sizeof(float), 6 * sizeof(float)));
-
-        // 上传到 GPU
-        RenderAPI::GetInstance()->SetUpMesh(modelData, false);
-
-        // 添加组件
-        MeshFilter* mf = go->AddComponent<MeshFilter>();
-        mf->mMeshHandle = modelHandle;
-
-        MeshRenderer* mr = go->AddComponent<MeshRenderer>();
-        
-        ResourceHandle<Shader> pbrShader = ResourceManager::GetInstance()->LoadAsset<Shader>("Shader/StandardPBR.hlsl");
-        
-        
-        if (pbrShader.IsValid()) {
-            if (!commonMatHandle.IsValid()) 
-            {
-                commonMatHandle = ResourceManager::GetInstance()->CreateResource<Material>(pbrShader);
-            }
-
-            mr->SetSharedMaterial(commonMatHandle);
-            mr->TryAddtoBatchManager();
-        } 
     }
 }

@@ -113,7 +113,9 @@ namespace EngineCore
 
         auto* gameObject = scene->CreateGameObject("Camera");
         auto* cam = gameObject->AddComponent<Camera>();
+        gameObject->transform->SetLocalPosition(Vector3(-15, 2.5, -3));
         scene->mainCamera = cam;
+
 
         ASSERT(scene);
         if (scene) {
