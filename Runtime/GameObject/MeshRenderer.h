@@ -8,6 +8,7 @@
 #include "Math/AABB.h"
 #include "Renderer/RenderStruct.h"
 
+
 namespace EngineCore
 {
     class MeshRenderer : public Component
@@ -53,7 +54,8 @@ namespace EngineCore
         AABB worldBounds;
         uint32_t sceneRenderNodeIndex = UINT32_MAX;
         bool materialDirty = true;
-        
+		
+        void TryAddtoBatchManager();
         uint32_t renderLayer = 1;
     private:
         ResourceHandle<Material> mShardMatHandler;

@@ -71,5 +71,10 @@ namespace EngineCore
 		worldBounds.Transform(worldMatrix);
     }
 
+	void MeshRenderer::TryAddtoBatchManager()
+	{
+		BatchManager::GetInstance()->TryAddBatchCount(this);
+	}
+
 
 }

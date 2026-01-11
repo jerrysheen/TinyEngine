@@ -12,6 +12,7 @@ namespace EngineCore
 	MeshFilter::MeshFilter(GameObject* go)
 	{
 		gameObject = go;
+		BatchManager::GetInstance()->TryAddBatchCount(this);
 	}
 
     MeshFilter::~MeshFilter()

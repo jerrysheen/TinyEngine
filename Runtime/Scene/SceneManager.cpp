@@ -1,5 +1,6 @@
 ﻿#include "PreCompiledHeader.h"
 #include "SceneManager.h"
+#include "BistroSceneLoader.h"
 #include "Graphics/Texture.h"
 #include "Resources/ResourceManager.h"
 #include "GameObject/MeshFilter.h"
@@ -101,9 +102,25 @@ namespace EngineCore
 
     void SceneManager::Init() 
     {
-        json j = EngineCore::JsonSerializer::ReadFromJson("/Scenes/PerformanceTestScene.meta");
+        //json j = EngineCore::JsonSerializer::ReadFromJson("/Scenes/PerformanceTestScene.meta");
         //json j = EngineCore::JsonSerializer::ReadFromJson("/Scenes/SampleScene.meta");
-        Scene* scene = MetaFactory::CreateSceneFromMeta(j);
+        //Scene* scene = MetaFactory::CreateSceneFromMeta(j);
+
+        // Load Bistro Scene
+        string bistroPath = PathSettings::ResolveAssetPath("/Scenes/niagara_bistro/bistro.gltf"); 
+        string fullPath = PathSettings::ResolveAssetPath(bistroPath);
+        Scene* scene = BistroSceneLoader::Load(fullPath);
+
+        auto* gameObject = scene->CreateGameObject("Camera");
+        auto* cam = gameObject->AddComponent<Camera>();
+        scene->mainCamera = cam;
+
+        ASSERT(scene);
+        if (scene) {
+             mSceneMap[scene->name] = scene;
+             mCurrentScene = scene;
+             scene->Open();
+        }
 
         // todo: 应该能保存序列化 更多的meta， 包括场景中代码创建的， 只要是shader和texture是代码创建的， 应该就可以，而不是像现在这样。
         quadMesh = new ModelData(Primitive::Quad);

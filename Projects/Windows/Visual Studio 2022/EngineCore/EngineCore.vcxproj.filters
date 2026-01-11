@@ -31,6 +31,9 @@
     <Filter Include="Runtime\External\stb_image">
       <UniqueIdentifier>{F557B7FE-E167-63CF-4A21-C8ED36505268}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Runtime\External\tinygltf">
+      <UniqueIdentifier>{3B28B76D-A7EA-EAF7-F09A-79845C9CC3D5}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Runtime\GameObject">
       <UniqueIdentifier>{29D0A5D7-15B4-662D-7E14-61806A1751AF}</UniqueIdentifier>
     </Filter>
@@ -170,6 +173,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\External\stb_image\stb_image.h">
       <Filter>Runtime\External\stb_image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\External\stb_image\stb_image_write.h">
+      <Filter>Runtime\External\stb_image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\External\tinygltf\tiny_gltf.h">
+      <Filter>Runtime\External\tinygltf</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\GameObject\Camera.h">
       <Filter>Runtime\GameObject</Filter>
@@ -377,6 +386,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Resources\ResourceManager.h">
       <Filter>Runtime\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Scene\BistroSceneLoader.h">
+      <Filter>Runtime\Scene</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Scene\Scene.h">
       <Filter>Runtime\Scene</Filter>
@@ -613,6 +625,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Resources\ResourceManager.cpp">
       <Filter>Runtime\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Scene\BistroSceneLoader.cpp">
+      <Filter>Runtime\Scene</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Scene\Scene.cpp">
       <Filter>Runtime\Scene</Filter>

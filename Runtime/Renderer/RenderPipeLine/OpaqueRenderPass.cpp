@@ -45,6 +45,9 @@ namespace EngineCore
                                         drawSettings,
                                         filterSettings,
                                         mRenderPassInfo.renderBatchList);
+
+        PROFILER_EVENT_BEGIN("MainThread::OpaqueRenderPass::SetDrawCall");
+
         // todo： 后面挪到别的地方， 先做Batch的部分：
         Renderer::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
         Renderer::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
@@ -61,6 +64,9 @@ namespace EngineCore
             Renderer::GetInstance()->SetMeshData(record.vaoID);
             Renderer::GetInstance()->DrawIndexedInstanced(record.vaoID, record.instanceCount, PerDrawHandle{ nullptr, (uint32_t)record.alloc.offset, 0 });
         }
+
+        PROFILER_EVENT_END("MainThread::OpaqueRenderPass::SetDrawCall");
+
     }
 
     void OpaqueRenderPass::Filter(const RenderContext &context)

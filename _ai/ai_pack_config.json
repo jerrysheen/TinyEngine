@@ -71,6 +71,7 @@
       "ENGINE_OVERVIEW": ["Runtime/Entry", "EngineCore", "Game", "RenderEngine", "SceneManager", "Settings", "Application", "Runtime/Utils"],
       "SCENE_SYSTEM": ["Runtime/Scene", "SceneManager", "Scene", "GameObject", "Component", "Transform", "Hierarchy"],
       "ASSET_PIPELINE": ["Runtime/Resources", "Runtime/Serialization", "Meta", "Asset", "Importer", "Texture", "Material", "Shader", "Mesh"],
-      "PLATFORM_WINDOWING": ["Runtime/Platforms", "Window", "Input", "Platform", "Win32", "MessageLoop"]
+      "PLATFORM_WINDOWING": ["Runtime/Platforms", "Window", "Input", "Platform", "Win32", "MessageLoop"],
+      "SERIALIZATION":["AssetSerialization", "BaseTypeSerialization","ComponentFactory","JsonSerializer","MetaData", "MetaFactory", "MetaLoader","MeshRenderer","MeshFilter","Material","ModelData"]
     }
   }

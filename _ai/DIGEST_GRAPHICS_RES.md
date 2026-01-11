@@ -14,15 +14,15 @@
 - 提取资源描述、布局、GPU缓冲与材质接口。
 
 ## Key Files Index
-- `[62]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
+- `[64]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
 - `[48]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
 - `[46]` **Runtime/Graphics/ModelData.h** *(Content Included)*
 - `[44]` **Runtime/Graphics/MaterialInstance.h** *(Content Included)*
 - `[42]` **Runtime/Graphics/Material.h** *(Content Included)*
-- `[37]` **Runtime/Graphics/Texture.h** *(Content Included)*
-- `[37]` **Runtime/Graphics/RenderTexture.h** *(Content Included)*
-- `[37]` **Runtime/Graphics/ModelUtils.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
+- `[37]` **Runtime/Graphics/ModelUtils.h** *(Content Included)*
+- `[37]` **Runtime/Graphics/RenderTexture.h** *(Content Included)*
+- `[37]` **Runtime/Graphics/Texture.h** *(Content Included)*
 - `[35]` **Runtime/Graphics/GPUTexture.h** *(Content Included)*
 - `[35]` **Runtime/Graphics/IGPUBufferAllocator.h** *(Content Included)*
 - `[33]` **Runtime/GameObject/MeshRenderer.h**
@@ -33,46 +33,46 @@
 - `[24]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
 - `[23]` **Runtime/Graphics/IGPUResource.h**
 - `[21]` **Runtime/Renderer/BatchManager.h**
-- `[20]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[20]` **Runtime/Renderer/RenderCommand.h**
+- `[20]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[19]` **Runtime/Renderer/RenderAPI.h**
 - `[18]` **Runtime/Renderer/RenderStruct.h**
 - `[17]` **Runtime/Resources/ResourceManager.h**
 - `[17]` **Runtime/Platforms/D3D12/d3dx12.h**
 - `[17]` **Assets/Shader/SimpleTestShader.hlsl**
-- `[16]` **Runtime/Scene/Scene.h**
 - `[16]` **Runtime/Resources/Asset.h**
+- `[16]` **Runtime/Scene/Scene.h**
 - `[15]` **Runtime/Graphics/ComputeShader.h**
 - `[15]` **Editor/Panel/EditorMainBar.h**
 - `[14]` **Runtime/Graphics/Shader.h**
+- `[14]` **Assets/Shader/include/Core.hlsl**
 - `[13]` **Runtime/Scene/SceneManager.h**
 - `[13]` **Runtime/Serialization/BaseTypeSerialization.h**
 - `[12]` **Runtime/Resources/Resource.h**
 - `[12]` **Runtime/Resources/ResourceHandle.h**
 - `[12]` **Runtime/Serialization/MetaData.h**
+- `[11]` **Runtime/Renderer/Renderer.h**
 - `[11]` **Runtime/Serialization/MetaLoader.h**
 - `[11]` **Runtime/Platforms/D3D12/D3D12Struct.h**
-- `[10]` **Runtime/Renderer/Renderer.h**
 - `[10]` **Assets/Shader/BlitShader.hlsl**
-- `[10]` **Assets/Shader/include/Core.hlsl**
 - `[8]` **Runtime/Serialization/AssetSerialization.h**
 - `[8]` **Assets/Shader/GPUCulling.hlsl**
 - `[7]` **Runtime/Core/Profiler.h**
 - `[7]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
 - `[6]` **Runtime/GameObject/Camera.h**
-- `[6]` **Runtime/Renderer/RenderSorter.h**
 - `[6]` **Runtime/Renderer/RenderEngine.h**
+- `[6]` **Runtime/Renderer/RenderSorter.h**
 - `[6]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[5]` **Runtime/Core/PublicEnum.h**
 - `[5]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
 - `[4]` **premake5.lua**
-- `[4]` **Runtime/Serialization/MetaFactory.h**
-- `[4]` **Runtime/Platforms/D3D12/d3dUtil.h**
-- `[4]` **Runtime/GameObject/GameObject.h**
 - `[4]` **Runtime/GameObject/ComponentType.h**
+- `[4]` **Runtime/GameObject/GameObject.h**
 - `[4]` **Runtime/Renderer/RenderUniforms.h**
-- `[3]` **Runtime/Platforms/D3D12/D3D12Buffer.h**
-- `[3]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h**
+- `[4]` **Runtime/Serialization/MetaFactory.h**
+- `[4]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h**
+- `[4]` **Runtime/Platforms/D3D12/d3dUtil.h**
+- `[3]` **Editor/EditorSettings.h**
 - `[3]` **Runtime/Renderer/RenderContext.h**
 
 ## Evidence & Implementation Details
@@ -91,13 +91,22 @@ namespace EngineCore
 ```
 ...
 ```cpp
+            AddProp("TilingFactor", ShaderVariableType::VECTOR2, 8);
+            
+            AddProp("DiffuseTextureIndex", ShaderVariableType::FLOAT, 4);
+            
+            AddProp("PaddingLast", ShaderVariableType::VECTOR3, 12);
+
+            // 此时 offset = 16+16+4+4+8 = 48 bytes
+            // 还需要补齐到 16 字节对齐吗？HLSL cbuffer 是 16 字节对齐的
+            // 目前 48 刚好是 16 的倍数，完美。
+            
+            layout.m_TotalSize = currentOffset;
+            return layout;
+        }
+
         uint32_t GetPropertyOffset(const std::string& name)
         {
-            ASSERT(m_PropertyLayout.count(name) > 0);
-            return m_PropertyLayout[name].offset;
-        };
-
-        uint32_t GetSize(){ return m_TotalSize;}
 ```
 
 ### File: `Runtime/Graphics/GPUSceneManager.h`
@@ -257,59 +266,6 @@ namespace EngineCore
 }
 ```
 
-### File: `Runtime/Graphics/Texture.h`
-```cpp
-namespace EngineCore
-{
-    class Texture : public Resource
-    {
-    public:
-        Texture() = default;
-        Texture(const string& textureID);
-
-        Texture(MetaData* textureMetaData);
-        //inline const string GetName() const { return mTextureName; };
-
-        inline int GetWidth() { return textureDesc.width; };
-        inline int GetHeight() { return textureDesc.height; };
-    public:
-        IGPUTexture*  textureBuffer;
-        TextureDesc textureDesc;
-    };
-```
-
-### File: `Runtime/Graphics/RenderTexture.h`
-```cpp
-namespace EngineCore
-{
-    class RenderTexture
-    {
-    public:
-        RenderTexture() = default;
-        RenderTexture(TextureDesc textureDesc);
-
-
-        inline int GetWidth() { return textureDesc.width; };
-        inline int GetHeight() { return textureDesc.height; };
-    public:
-        IGPUTexture*  textureBuffer;
-        TextureDesc textureDesc;
-    };
-```
-
-### File: `Runtime/Graphics/ModelUtils.h`
-```cpp
-namespace EngineCore
-{
-    class ModelUtils
-    {
-    public:
-        static void GetFullScreenQuad(ModelData* modelData);
-    private:
-
-    };
-```
-
 ### File: `Runtime/Graphics/GPUBufferAllocator.h`
 ```cpp
     // Allocates small chunks of memory from a large GPU buffer.
@@ -355,6 +311,59 @@ namespace EngineCore
         
         // Helper to find a free block
         bool FindFreeBlock(uint32_t size, uint64_t& outOffset);
+    };
+```
+
+### File: `Runtime/Graphics/ModelUtils.h`
+```cpp
+namespace EngineCore
+{
+    class ModelUtils
+    {
+    public:
+        static void GetFullScreenQuad(ModelData* modelData);
+    private:
+
+    };
+```
+
+### File: `Runtime/Graphics/RenderTexture.h`
+```cpp
+namespace EngineCore
+{
+    class RenderTexture
+    {
+    public:
+        RenderTexture() = default;
+        RenderTexture(TextureDesc textureDesc);
+
+
+        inline int GetWidth() { return textureDesc.width; };
+        inline int GetHeight() { return textureDesc.height; };
+    public:
+        IGPUTexture*  textureBuffer;
+        TextureDesc textureDesc;
+    };
+```
+
+### File: `Runtime/Graphics/Texture.h`
+```cpp
+namespace EngineCore
+{
+    class Texture : public Resource
+    {
+    public:
+        Texture() = default;
+        Texture(const string& textureID);
+
+        Texture(MetaData* textureMetaData);
+        //inline const string GetName() const { return mTextureName; };
+
+        inline int GetWidth() { return textureDesc.width; };
+        inline int GetHeight() { return textureDesc.height; };
+    public:
+        IGPUTexture*  textureBuffer;
+        TextureDesc textureDesc;
     };
 ```
 

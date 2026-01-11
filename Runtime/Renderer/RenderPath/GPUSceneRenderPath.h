@@ -7,7 +7,7 @@
 #include "Graphics/IGPUResource.h"
 #include "Math/Frustum.h"
 #include "Renderer/BatchManager.h"
-
+#include "Scene/SceneManager.h"
 
 namespace EngineCore
 {

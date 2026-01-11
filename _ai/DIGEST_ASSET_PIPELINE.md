@@ -22,58 +22,58 @@
 - `[39]` **Assets/Shader/SimpleTestShader.hlsl** *(Content Included)*
 - `[38]` **Runtime/Serialization/MetaFactory.h** *(Content Included)*
 - `[36]` **Assets/Shader/BlitShader.hlsl** *(Content Included)*
-- `[34]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
+- `[35]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
+- `[33]` **Assets/Shader/include/Core.hlsl** *(Content Included)*
 - `[32]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
 - `[30]` **Runtime/Graphics/Shader.h** *(Content Included)*
 - `[30]` **Runtime/Serialization/BaseTypeSerialization.h** *(Content Included)*
-- `[29]` **Runtime/Graphics/Texture.h** *(Content Included)*
 - `[29]` **Runtime/Graphics/MaterialInstance.h**
-- `[29]` **Assets/Shader/include/Core.hlsl**
+- `[29]` **Runtime/Graphics/Texture.h**
+- `[27]` **Runtime/GameObject/MeshFilter.h**
 - `[27]` **Runtime/Graphics/RenderTexture.h**
 - `[27]` **Runtime/Resources/ResourceManager.h**
 - `[27]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[27]` **Runtime/Platforms/D3D12/D3D12Texture.h**
-- `[27]` **Runtime/GameObject/MeshFilter.h**
 - `[26]` **Runtime/Graphics/ComputeShader.h**
 - `[25]` **Runtime/Graphics/GPUTexture.h**
 - `[25]` **Editor/Panel/EditorMainBar.h**
-- `[22]` **Runtime/Resources/Resource.h**
 - `[22]` **Runtime/Core/PublicStruct.h**
+- `[22]` **Runtime/Resources/Resource.h**
 - `[20]` **Assets/Shader/GPUCulling.hlsl**
-- `[19]` **Runtime/Serialization/JsonSerializer.h**
 - `[19]` **Runtime/Renderer/RenderAPI.h**
+- `[19]` **Runtime/Serialization/JsonSerializer.h**
 - `[18]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
-- `[17]` **Runtime/Resources/ResourceHandle.h**
 - `[17]` **Runtime/Renderer/RenderCommand.h**
+- `[17]` **Runtime/Resources/ResourceHandle.h**
 - `[15]` **Runtime/Scene/SceneManager.h**
 - `[12]` **Runtime/Serialization/ComponentFactory.h**
 - `[12]` **Runtime/Platforms/D3D12/d3dx12.h**
 - `[11]` **Runtime/Graphics/ModelData.h**
+- `[11]` **Runtime/Renderer/BatchManager.h**
 - `[11]` **Runtime/Scene/Scene.h**
 - `[11]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
-- `[11]` **Runtime/Renderer/BatchManager.h**
 - `[10]` **Runtime/Graphics/GPUSceneManager.h**
+- `[10]` **Runtime/Graphics/IGPUResource.h**
+- `[10]` **Runtime/Renderer/Renderer.h**
 - `[10]` **Runtime/Renderer/RenderStruct.h**
 - `[10]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
-- `[9]` **Runtime/Graphics/IGPUResource.h**
-- `[9]` **Runtime/Renderer/Renderer.h**
 - `[8]` **Runtime/Core/PublicEnum.h**
 - `[8]` **Runtime/GameObject/Camera.h**
-- `[7]` **Runtime/Settings/ProjectSettings.h**
 - `[7]` **Runtime/Renderer/RenderSorter.h**
+- `[7]` **Runtime/Settings/ProjectSettings.h**
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[5]` **premake5.lua**
 - `[5]` **Runtime/Core/Profiler.h**
 - `[5]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
-- `[4]` **Runtime/Graphics/ModelUtils.h**
-- `[4]` **Runtime/Platforms/D3D12/D3D12PSO.h**
-- `[4]` **Runtime/GameObject/GameObject.h**
+- `[5]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
 - `[4]` **Runtime/GameObject/ComponentType.h**
-- `[3]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
-- `[3]` **Runtime/Platforms/D3D12/D3D12Struct.h**
-- `[3]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h**
+- `[4]` **Runtime/GameObject/GameObject.h**
+- `[4]` **Runtime/Graphics/ModelUtils.h**
+- `[4]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h**
+- `[4]` **Runtime/Platforms/D3D12/D3D12PSO.h**
 - `[3]` **Runtime/Utils/HashCombine.h**
-- `[2]` **Runtime/CoreAssert.h**
+- `[3]` **Runtime/Platforms/D3D12/D3D12Struct.h**
+- `[2]` **Editor/EditorGUIManager.h**
 
 ## Evidence & Implementation Details
 
@@ -332,10 +332,8 @@ namespace EngineCore
 ```hlsl
 
 // 纹理资源
-Texture2D DiffuseTexture : register(t0, space0);
-Texture2D NormalTexture : register(t1, space0);
-Texture2D SpecularTexture : register(t2, space0);
-TextureCube EnvironmentMap : register(t3, space0);
+Texture2D g_Textures[1024] : register(t0, space0);
+
 
 // 采样器
 SamplerState LinearSampler : register(s0, space0);
@@ -461,6 +459,10 @@ namespace EngineCore
 
             // float2 TilingFactor (8 bytes)
             AddProp("TilingFactor", ShaderVariableType::VECTOR2, 8);
+            
+            AddProp("DiffuseTextureIndex", ShaderVariableType::FLOAT, 4);
+            
+            AddProp("PaddingLast", ShaderVariableType::VECTOR3, 12);
 
             // 此时 offset = 16+16+4+4+8 = 48 bytes
             // 还需要补齐到 16 字节对齐吗？HLSL cbuffer 是 16 字节对齐的
@@ -472,6 +474,41 @@ namespace EngineCore
 
         uint32_t GetPropertyOffset(const std::string& name)
         {
+```
+
+### File: `Assets/Shader/include/Core.hlsl`
+```hlsl
+#define CORE_HLSLI
+
+cbuffer DrawIndices : register(b0, space0)
+{
+    uint g_InstanceBaseOffset;
+}
+```
+...
+```hlsl
+}
+
+cbuffer PerPassData : register(b2, space0)
+{
+    float3 CameraPosition;
+    float4x4 ViewMatrix; 
+    float4x4 ProjectionMatrix;
+}
+```
+...
+```hlsl
+
+
+struct PerMaterialData
+{
+    float4 DiffuseColor;
+    float4 SpecularColor;
+    float Roughness;
+    float Metallic;
+    float2 TilingFactor;
+    uint DiffuseTextureIndex;
+};
 ```
 
 ### File: `Runtime/GameObject/MeshRenderer.h`
@@ -609,25 +646,4 @@ namespace EngineCore
         };
     }
 
-```
-
-### File: `Runtime/Graphics/Texture.h`
-```cpp
-namespace EngineCore
-{
-    class Texture : public Resource
-    {
-    public:
-        Texture() = default;
-        Texture(const string& textureID);
-
-        Texture(MetaData* textureMetaData);
-        //inline const string GetName() const { return mTextureName; };
-
-        inline int GetWidth() { return textureDesc.width; };
-        inline int GetHeight() { return textureDesc.height; };
-    public:
-        IGPUTexture*  textureBuffer;
-        TextureDesc textureDesc;
-    };
 ```

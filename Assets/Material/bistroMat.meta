@@ -1,0 +1,17 @@
+{
+    "AssetType": "Material",
+    "Dependencies": {
+        "Shader": {
+            "AssetType": "Shader",
+            "Dependencies": {},
+            "Path": "D:/GitHubST/TinyEngine/Assets/Shader/StandardPBR.hlsl"
+        }
+    },
+    "FloatData": {},
+    "Matrix4x4Data": {
+    },
+    "Path": "D:/GitHubST/TinyEngine/Assets/Material/bistroMat.mat",
+    "Vec2Data": {},
+    "Vec3Data": {
+    }
+}

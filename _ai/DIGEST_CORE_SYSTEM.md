@@ -20,7 +20,7 @@
 - `[33]` **Runtime/Core/PublicStruct.h** *(Content Included)*
 - `[32]` **Runtime/Core/PublicEnum.h** *(Content Included)*
 - `[27]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
-- `[27]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h** *(Content Included)*
+- `[26]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h** *(Content Included)*
 - `[25]` **Runtime/Renderer/PerDrawAllocator.h** *(Content Included)*
 - `[23]` **Runtime/Graphics/IGPUBufferAllocator.h** *(Content Included)*
 - `[16]` **Runtime/Core/Object.h** *(Content Included)*
@@ -28,51 +28,51 @@
 - `[13]` **Runtime/Serialization/MetaData.h** *(Content Included)*
 - `[13]` **Runtime/Serialization/MetaLoader.h** *(Content Included)*
 - `[12]` **Runtime/CoreAssert.h** *(Content Included)*
-- `[12]` **Runtime/Serialization/MetaFactory.h**
-- `[12]` **Runtime/Serialization/JsonSerializer.h**
-- `[12]` **Runtime/Serialization/ComponentFactory.h**
-- `[12]` **Runtime/Serialization/AssetSerialization.h**
 - `[12]` **Runtime/Core/Game.h**
-- `[12]` **Runtime/Core/Concurrency/CpuEvent.h**
-- `[12]` **Runtime/Math/Quaternion.h**
 - `[12]` **Runtime/Math/AABB.h**
-- `[12]` **Runtime/Math/Plane.h**
-- `[12]` **Runtime/Math/Vector3.h**
-- `[12]` **Runtime/Math/Matrix4x4.h**
-- `[12]` **Runtime/Math/Vector2.h**
-- `[12]` **Runtime/Math/Math.h**
-- `[12]` **Runtime/Math/Vector4.h**
 - `[12]` **Runtime/Math/Frustum.h**
+- `[12]` **Runtime/Math/Math.h**
+- `[12]` **Runtime/Math/Matrix4x4.h**
+- `[12]` **Runtime/Math/Plane.h**
+- `[12]` **Runtime/Math/Quaternion.h**
+- `[12]` **Runtime/Math/Vector2.h**
+- `[12]` **Runtime/Math/Vector3.h**
+- `[12]` **Runtime/Math/Vector4.h**
+- `[12]` **Runtime/Serialization/AssetSerialization.h**
+- `[12]` **Runtime/Serialization/ComponentFactory.h**
+- `[12]` **Runtime/Serialization/JsonSerializer.h**
+- `[12]` **Runtime/Serialization/MetaFactory.h**
+- `[12]` **Runtime/Core/Concurrency/CpuEvent.h**
 - `[9]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[8]` **Runtime/Graphics/GPUSceneManager.h**
-- `[8]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[8]` **Runtime/Renderer/Renderer.h**
-- `[7]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
+- `[8]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[7]` **Runtime/Renderer/RenderCommand.h**
+- `[7]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
 - `[6]` **Runtime/Resources/Resource.h**
 - `[6]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[5]` **premake5.lua**
 - `[5]` **Runtime/Resources/Asset.h**
-- `[5]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[5]` **Runtime/Platforms/D3D12/D3D12Struct.h**
+- `[5]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[4]` **Runtime/Renderer/RenderAPI.h**
 - `[4]` **Editor/D3D12/D3D12EditorGUIManager.h**
 - `[3]` **Runtime/PreCompiledHeader.h**
-- `[3]` **Runtime/Graphics/MaterialLayout.h**
-- `[3]` **Runtime/Graphics/ModelData.h**
-- `[3]` **Runtime/Graphics/ComputeShader.h**
-- `[3]` **Runtime/Graphics/Material.h**
-- `[3]` **Runtime/Graphics/Shader.h**
-- `[3]` **Runtime/Scene/Scene.h**
 - `[3]` **Runtime/GameObject/Camera.h**
 - `[3]` **Runtime/GameObject/MeshFilter.h**
+- `[3]` **Runtime/Graphics/ComputeShader.h**
+- `[3]` **Runtime/Graphics/Material.h**
+- `[3]` **Runtime/Graphics/MaterialLayout.h**
+- `[3]` **Runtime/Graphics/ModelData.h**
+- `[3]` **Runtime/Graphics/Shader.h**
 - `[3]` **Runtime/Renderer/BatchManager.h**
-- `[3]` **Runtime/Renderer/RenderSorter.h**
 - `[3]` **Runtime/Renderer/RenderContext.h**
+- `[3]` **Runtime/Renderer/RenderSorter.h**
+- `[3]` **Runtime/Scene/Scene.h**
+- `[3]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h**
+- `[3]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
 - `[3]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h**
 - `[3]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
-- `[3]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
-- `[3]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h**
 - `[3]` **Assets/Shader/SimpleTestShader.hlsl**
 
 ## Evidence & Implementation Details
@@ -257,9 +257,10 @@ namespace EngineCore
         int registerSlot;              
         int size = 0;                  // 对CB有意义，其他资源可为0
         int space = 0;
-        ShaderBindingInfo (const string& resourceName, ShaderResourceType type, int registerSlot, int size, int space)
+        int bindCount = 1;             // 绑定数量，数组时 > 1
+        ShaderBindingInfo (const string& resourceName, ShaderResourceType type, int registerSlot, int size, int space, int bindCount = 1)
             : resourceName(resourceName), type(type), registerSlot(registerSlot), size(size),
-            space(space)
+            space(space), bindCount(bindCount)
         {};
     };
 
@@ -270,7 +271,6 @@ namespace EngineCore
 
         // todo: 确定这个地方是用vector还是直接单个对象
         ShaderStageType type;
-        vector<ShaderBindingInfo > mConstantBufferInfo;
 ```
 ...
 ```cpp
@@ -452,7 +452,7 @@ namespace EngineCore
     class D3D12DescAllocator
     {
     public:
-        D3D12DescAllocator(D3D12_DESCRIPTOR_HEAP_TYPE heapType, bool isFrameHeap);
+        D3D12DescAllocator(D3D12_DESCRIPTOR_HEAP_TYPE heapType, bool isFrameHeap, bool isShaderVisible = false);
         ~D3D12DescAllocator(){};
         inline D3D12_DESCRIPTOR_HEAP_TYPE GetHeapType(){ return mHeapType;};
 
@@ -461,20 +461,33 @@ namespace EngineCore
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc);
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc);
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc);
-        DescriptorHandle GetNextAvaliableDesc();
+        DescriptorHandle AllocateStaticHandle();
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mHeap;
+
         void Reset();
-        DescriptorHandle GetFrameAllocator(int count);
+        void CleanPerFrameData();
+
+        // 设置动态分配的起始位置（用于混合 Heap 模式）
+        void SetDynamicStartOffset(int offset) 
+        { 
+            dynamicStartOffset = offset;
+            currDynamicoffset = offset;
+        }
+        // 专门用于 Global Heap 的动态分配
+        DescriptorHandle AllocateDynamicSpace(int count);
 
     private:
         D3D12_DESCRIPTOR_HEAP_TYPE mHeapType;
         D3D12_DESCRIPTOR_HEAP_FLAGS GetHeapVisible(D3D12_DESCRIPTOR_HEAP_TYPE heapType, bool isFrameHeap);
         int ConfigAllocatorDescSize(D3D12_DESCRIPTOR_HEAP_TYPE heapType);
 
-        std::vector<bool> isInUse;
+        //std::vector<bool> isInUse;
+        std::vector<int> freeIndexList;
 
+        int dynamicStartOffset = 0; // 记录动态分配的起始点，Reset 时回到这里
+        int currDynamicoffset = 0;
+        
         int currentOffset = 0;
-        int currCount = 0;
         uint32_t startIndex = 0;
         uint32_t mDescriptorSize = 0;
         int maxCount = 0;

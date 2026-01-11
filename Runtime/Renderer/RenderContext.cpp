@@ -21,7 +21,7 @@ namespace EngineCore
         std::sort(visibleItems.begin(), visibleItems.end(), [](RenderPacket& a, RenderPacket& b) { return a.sortingKey < b.sortingKey; });
         PROFILER_EVENT_END("DrawRenderers::SortingContext");
         
-        
+        PROFILER_EVENT_BEGIN("DrawRenderers::PrepareBatch");
         vector<uint32_t> tempList;
         if(visibleItems.size() == 0) return;
         auto& item = visibleItems[0];
@@ -66,6 +66,8 @@ namespace EngineCore
             bactchList.push_back(currentBatch);
             tempList.clear();
         }
+        PROFILER_EVENT_END("DrawRenderers::PrepareBatch");
+
     }
 
     void RenderContext::BatchContext(std::vector<RenderPacket *> &sortedItem)
