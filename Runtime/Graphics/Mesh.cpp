@@ -53,7 +53,9 @@ namespace EngineCore
 		if(!isDynamic)
 		{
 			vertex.clear();
+			vertex.shrink_to_fit();
 			index.clear();
+			index.shrink_to_fit();
 		}
 	}
 
