@@ -2,7 +2,7 @@
 #include "Component.h"
 #include "ComponentType.h"
 #include "Resources/ResourceHandle.h"
-#include "Graphics/ModelData.h"
+#include "Graphics/Mesh.h"
 #include "Serialization/BaseTypeSerialization.h"
 #include "Math/AABB.h"
 
@@ -18,7 +18,7 @@ namespace EngineCore
         static ComponentType GetStaticType() { return ComponentType::MeshFilter; };
         virtual ComponentType GetType() const override{ return ComponentType::MeshFilter; };
     public:
-        ResourceHandle<ModelData> mMeshHandle;
+        ResourceHandle<Mesh> mMeshHandle;
         
         virtual const char* GetScriptName() const override { return "MeshFilter"; }
         virtual json SerializedFields() const override {

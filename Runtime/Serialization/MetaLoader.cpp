@@ -17,8 +17,9 @@ namespace EngineCore
     }
 
     template<>
-    MetaData* MetaLoader::LoadMetaData<ModelData>(const std::string& path)
+    MetaData* MetaLoader::LoadMetaData<Mesh>(const std::string& path)
     {
+        ASSERT(false);
         return LoadModelMetaData(path);
     }
 

@@ -9,7 +9,7 @@
 // #include "stb_image.h"
 // #define STB_IMAGE_WRITE_IMPLEMENTATION
 // #include "stb_image_write.h"
-#include "Graphics/ModelData.h"
+#include "Graphics/Mesh.h"
 #include "GameObject/GameObject.h"
 
 #include "Renderer/RenderAPI.h"
@@ -108,7 +108,7 @@ namespace EngineCore {
     }
 
     void BistroSceneLoader::ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene) {
-        std::vector<ResourceHandle<ModelData>> modelHandles;
+        std::vector<ResourceHandle<EngineCore::Mesh>> modelHandles;
 
         // Check Cache
         auto it = m_MeshCache.find(meshIndex);
@@ -119,9 +119,9 @@ namespace EngineCore {
 
             // Iterate all Primitives
             for (const auto& primitive : mesh.primitives) {
-                ResourceHandle<ModelData> modelHandle = ResourceManager::GetInstance()->CreateResource<ModelData>();
-                ModelData* modelData = modelHandle.Get();
-                modelData->bounds = AABB();
+                ResourceHandle<EngineCore::Mesh> modelHandle = ResourceManager::GetInstance()->CreateResource<EngineCore::Mesh>();
+                EngineCore::Mesh* mesh = modelHandle.Get();
+                mesh->bounds = AABB();
 
                 // 1. Get Accessors and Buffers
                 // Indices
@@ -134,13 +134,13 @@ namespace EngineCore {
                     size_t count = indexAccessor.count;
                     int componentType = indexAccessor.componentType; 
 
-                    modelData->index.reserve(count);
+                    mesh->index.reserve(count);
                     if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
                         const unsigned short* buf = reinterpret_cast<const unsigned short*>(dataStart);
-                        for (size_t i = 0; i < count; i++) modelData->index.push_back(buf[i]);
+                        for (size_t i = 0; i < count; i++) mesh->index.push_back(buf[i]);
                     } else if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
                         const unsigned int* buf = reinterpret_cast<const unsigned int*>(dataStart);
-                        for (size_t i = 0; i < count; i++) modelData->index.push_back(buf[i]);
+                        for (size_t i = 0; i < count; i++) mesh->index.push_back(buf[i]);
                     }
                 }
 
@@ -154,11 +154,11 @@ namespace EngineCore {
                     size_t count = accessor.count;
                     int stride = accessor.ByteStride(bufferView); 
 
-                    modelData->vertex.resize(count);
+                    mesh->vertex.resize(count);
                     for (size_t i = 0; i < count; i++) {
                         const float* buf = reinterpret_cast<const float*>(dataStart + i * stride);
-                        modelData->vertex[i].position = Vector3(buf[0], buf[1], buf[2]);
-                        modelData->bounds.Encapsulate(modelData->vertex[i].position);
+                        mesh->vertex[i].position = Vector3(buf[0], buf[1], buf[2]);
+                        mesh->bounds.Encapsulate(mesh->vertex[i].position);
                     }
                 }
 
@@ -174,7 +174,7 @@ namespace EngineCore {
 
                     for (size_t i = 0; i < count; i++) {
                         const float* buf = reinterpret_cast<const float*>(dataStart + i * stride);
-                        modelData->vertex[i].normal = Vector3(buf[0], buf[1], buf[2]);
+                        mesh->vertex[i].normal = Vector3(buf[0], buf[1], buf[2]);
                     }
                 }
 
@@ -190,17 +190,17 @@ namespace EngineCore {
 
                     for (size_t i = 0; i < count; i++) {
                         const float* buf = reinterpret_cast<const float*>(dataStart + i * stride);
-                        modelData->vertex[i].uv = Vector2(buf[0], buf[1]);
+                        mesh->vertex[i].uv = Vector2(buf[0], buf[1]);
                     }
                 }
 
                 // Set Layout
-                modelData->layout.push_back(InputLayout(VertexAttribute::POSITION, 3 * sizeof(float), 3, 8 * sizeof(float), 0));
-                modelData->layout.push_back(InputLayout(VertexAttribute::NORMAL, 3 * sizeof(float), 3, 8 * sizeof(float), 3 * sizeof(float)));
-                modelData->layout.push_back(InputLayout(VertexAttribute::UV0, 2 * sizeof(float), 2, 8 * sizeof(float), 6 * sizeof(float)));
+                mesh->layout.push_back(InputLayout(VertexAttribute::POSITION, 3 * sizeof(float), 3, 8 * sizeof(float), 0));
+                mesh->layout.push_back(InputLayout(VertexAttribute::NORMAL, 3 * sizeof(float), 3, 8 * sizeof(float), 3 * sizeof(float)));
+                mesh->layout.push_back(InputLayout(VertexAttribute::UV0, 2 * sizeof(float), 2, 8 * sizeof(float), 6 * sizeof(float)));
 
                 // Upload to GPU
-                RenderAPI::GetInstance()->SetUpMesh(modelData, false);
+                mesh->UploadMeshToGPU();
 
                 // Optional: If we want to save memory and don't need CPU copy anymore, we could clear vectors here
                 // However, keep it for now as it might be needed for physics/picking

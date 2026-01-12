@@ -4,7 +4,7 @@
 #include "Serialization/MetaData.h"
 #include "Core/PublicStruct.h"
 #include "Graphics/Material.h"
-#include "Graphics/ModelData.h"
+#include "Graphics/Mesh.h"
 #include "Graphics/Texture.h"
 #include "Renderer/RenderCommand.h"
 #include "Graphics/IGPUResource.h"
@@ -23,11 +23,7 @@ namespace  EngineCore
         virtual void  CompileShader(const string& path, Shader* shader) = 0;
         virtual void  CompileComputeShader(const string& path, ComputeShader* csShader) = 0;
         
-        virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
-        virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
 
-        //virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, uint32_t texInstanceID) = 0;
-        virtual void SetUpMesh(ModelData* data, bool isStatic = true) = 0;
         virtual IGPUTexture* CreateTextureBuffer(unsigned char* data, const TextureDesc& textureDesc) = 0;
         virtual IGPUTexture* CreateRenderTexture(const TextureDesc& textureDesc) = 0;
         

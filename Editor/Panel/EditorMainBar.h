@@ -6,7 +6,7 @@
 #include "Resources/Resource.h"
 #include "Graphics/Material.h"
 #include "Graphics/Shader.h"
-#include "Graphics/ModelData.h"
+#include "Graphics/Mesh.h"
 #include "Graphics/Texture.h"
 #include "Scene/SceneManager.h"
 #include "Scene/Scene.h"
@@ -20,7 +20,7 @@ namespace EngineEditor
     using AssetType = EngineCore::AssetType;
     using Material = EngineCore::Material;
     using Shader = EngineCore::Shader;
-    using ModelData = EngineCore::ModelData;
+    using Mesh = EngineCore::Mesh;
     using Texture = EngineCore::Texture;
     //using MaterialMetaData = EngineCore::MaterialMetaData;
     using TextureMetaData = EngineCore::TextureMetaData;

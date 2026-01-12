@@ -3,7 +3,7 @@
 #include "GameObject/GameObject.h"
 #include "GameObject/Camera.h"
 #include "GameObject/Transform.h"
-#include "Graphics/ModelUtils.h"
+#include "Graphics/MeshUtils.h"
 #include "GameObject/MeshRenderer.h"
 #include "Graphics/Material.h"
 #include "Serialization/MetaData.h"
@@ -46,7 +46,7 @@ namespace EngineCore
         // todo： 这部分数据也要找地方存， maybe一个Global的渲染处
 
         Material* blitMaterial;
-        ModelData* quadMesh;
+        Mesh* quadMesh;
         ResourceHandle<Shader> blitShader;
         ResourceHandle<Texture> testTexture;
 

@@ -49,13 +49,13 @@ namespace EngineCore
             int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
             int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
             Material* mat = renderContext.material;
-            uint32_t vaoID = renderContext.vaoID;
+            Mesh* mesh = renderContext.mesh;
             // 根据mat + pass信息组织pippeline
             Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
             // copy gpu material data desc 
             Renderer::GetInstance()->SetBindlessMat(mat);
             // bind mesh vertexbuffer and indexbuffer.
-            Renderer::GetInstance()->SetMeshData(vaoID);
+            Renderer::GetInstance()->SetMeshData(mesh);
             Payload_DrawIndirect indirectPayload;
             // temp:
             GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;

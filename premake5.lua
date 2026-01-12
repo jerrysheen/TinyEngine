@@ -97,7 +97,7 @@ project "EngineCore"
 		"Editor/",
 		"Vendor/libs",
 		"Vendor/Assimp/assimp/include",
-		"Vendor/Assimp/assimp/contrib/rapidjson/include/rapidjson"
+		"Vendor/Assimp/assimp/contrib/rapidjson/include"
 		-- "ThirdParty/Runtime/Core/spdlog/include",
 		-- "%{IncludeDir.GLFW}",
 		-- "%{IncludeDir.Glad}",

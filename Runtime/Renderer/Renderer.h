@@ -7,7 +7,7 @@
 #include <atomic>
 #include <iostream>
 #include <condition_variable>
-#include "Graphics/ModelData.h"
+#include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "RenderCommand.h"
 #include "SPSCRingBuffer.h"
@@ -39,7 +39,7 @@ namespace EngineCore
         void ResizeWindow(int width, int height);
         void OnDrawGUI();
         void SetPerDrawData(const PerDrawHandle& perDrawHandle);
-        void DrawIndexedInstanced(uint32_t vaoID, int count, const PerDrawHandle& perDrawHandle);
+        void DrawIndexedInstanced(Mesh* mesh, int count, const PerDrawHandle& perDrawHandle);
         void SetPerFrameData(UINT perFrameBufferID);
         void SetPerPassData(UINT perPassBufferID);
         
@@ -49,7 +49,7 @@ namespace EngineCore
 
         void ConfigureRenderTarget(const RenderPassInfo& passInfo);
 
-        void SetMeshData(uint32_t vaoID);
+        void SetMeshData(Mesh* meshFilter);
 
         void SetViewPort(const Vector2& viewportStartXY, const Vector2& viewportEndXY);
         // todo: complete this..

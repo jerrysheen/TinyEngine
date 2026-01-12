@@ -1,11 +1,11 @@
 #include "PreCompiledHeader.h"
-#include "ModelUtils.h"
+#include "MeshUtils.h"
 #include "Renderer/RenderAPI.h"
-
+#include "GeometryManager.h"
 namespace EngineCore
 {
 	// todo： vertex数据结构优化， 不需要三个数据
-	void ModelUtils::GetFullScreenQuad(ModelData* modelData)
+	void MeshUtils::GetFullScreenQuad(Mesh* modelData)
 	{
 		modelData->layout.emplace_back(InputLayout(VertexAttribute::POSITION, 3 * sizeof(float), 3, 8 * sizeof(float), 0));
 		modelData->layout.emplace_back(InputLayout(VertexAttribute::NORMAL, 3 * sizeof(float), 3, 8 * sizeof(float), 3 * sizeof(float)));
@@ -17,6 +17,6 @@ namespace EngineCore
 			Vertex{Vector3(1,-1,0), Vector3(0,0,1), Vector2(1,0)},  // 右下
 			Vertex{Vector3(1, 1,0), Vector3(0,0,1), Vector2(1,1)}   // 右上
 			});
-		RenderAPI::GetInstance()->SetUpMesh(modelData, false);
+		modelData->UploadMeshToGPU();
 	}
 }

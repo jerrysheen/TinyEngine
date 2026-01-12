@@ -9,29 +9,8 @@
 
 namespace EngineCore
 {
-    // 用来描述model Input 或者 shader reflection input
-    // todos: shader inputlayout 部分的控制， 目前只是简单把值塞过来
-    struct InputLayout
-    {
-        VertexAttribute type;
-        int size;
-        int dimension;
-        int stride;
-        int offset;
-        InputLayout(VertexAttribute _type, int _size, int _dimension, int _stride, int _offset)
-        {
-            type = _type; size = _size; dimension = _dimension; stride = _stride; offset = _offset;
-        };
-        InputLayout() = default;
-        InputLayout(VertexAttribute type) : type(type) {};
-    };
 
-    struct Vertex
-    {
-        Vector3 position;
-        Vector3 normal;
-        Vector2 uv;
-    };
+
 
     // constantbuffer中的变量记录
     struct ShaderConstantInfo
@@ -96,7 +75,7 @@ namespace EngineCore
         // 为了测试，先用直接塞数据的方式。
         uint64_t sortingKey = 0;
         MeshRenderer* meshRenderer;
-        uint32_t vaoID;
+        MeshFilter* meshFilter;
         float distanToCamera = 0;
     };
 
@@ -111,15 +90,15 @@ namespace EngineCore
     struct DrawRecord
     {
         Material* mat;
-        uint32_t vaoID;
+        Mesh* mesh;
 
         PerDrawHandle perDrawHandle;
         uint32_t instanceCount = 1;
 
-        DrawRecord(Material* mat, uint32_t vaoID)
-            :mat(mat), vaoID(vaoID), perDrawHandle{0,0}, instanceCount(1) {}
-        DrawRecord(Material* mat, uint32_t vaoID, const PerDrawHandle& handle, uint32_t instCount = 1)
-            :mat(mat), vaoID(vaoID), perDrawHandle(handle), instanceCount(instCount){}
+        DrawRecord(Material* mat, Mesh* mesh)
+            :mat(mat), mesh(mesh), perDrawHandle{0,0}, instanceCount(1) {}
+        DrawRecord(Material* mat, Mesh* mesh, const PerDrawHandle& handle, uint32_t instCount = 1)
+            :mat(mat), mesh(mesh), perDrawHandle(handle), instanceCount(instCount){}
     };
 
     struct RenderPassInfo

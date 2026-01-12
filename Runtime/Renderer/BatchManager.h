@@ -26,9 +26,9 @@ namespace EngineCore
     struct DrawIndirectContext
     {
         Material* material;
-        uint32_t vaoID;
+        Mesh* mesh;
         DrawIndirectContext() = default;
-        DrawIndirectContext(Material* mat, uint32_t vaoID): material(mat), vaoID(vaoID){}
+        DrawIndirectContext(Material* mat, Mesh* mesh): material(mat), mesh(mesh){}
     };
 
     class MeshRenderer;
@@ -53,9 +53,9 @@ namespace EngineCore
         static std::unordered_map<uint64_t, DrawIndirectParam> drawIndirectParamMap;
         static std::unordered_map<uint64_t, DrawIndirectContext> drawIndirectContextMap;
 
-        std::vector<RenderProxy> GetAvaliableRenderProxyList(MeshRenderer* meshRenderer, uint32_t vaoID); 
+        std::vector<RenderProxy> GetAvaliableRenderProxyList(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 
         static uint64_t GetBatchHash(MeshRenderer* meshRenderer, MeshFilter* meshFilter, uint32_t layer); 
-        static uint64_t GetBatchHash(MeshRenderer* meshRenderer, uint32_t vaoID, uint32_t layer); 
+
         vector<DrawIndirectArgs> GetBatchInfo();
     private:
         void TryAddBatches(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 

@@ -5,6 +5,7 @@
 #include "Core/PublicEnum.h"
 #include "Resources/Asset.h"
 #include "MetaData.h"
+#include "Graphics/Mesh.h"
 
 namespace EngineCore
 {
@@ -48,7 +49,7 @@ namespace EngineCore
     MetaData* MetaLoader::LoadMetaData<Texture>(const std::string& path);
     
     template<>
-    MetaData* MetaLoader::LoadMetaData<ModelData>(const std::string& path);
+    MetaData* MetaLoader::LoadMetaData<Mesh>(const std::string& path);
 
     template<>
     MetaData* MetaLoader::LoadMetaData<Material>(const std::string& path);

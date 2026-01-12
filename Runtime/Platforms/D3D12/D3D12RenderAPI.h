@@ -32,13 +32,8 @@ namespace EngineCore
 
         virtual void CompileShader(const string& path, Shader* shader) override;
         virtual void CompileComputeShader(const string& path, ComputeShader* csShader) override;
-        virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
-        virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
 
         inline TD3D12Fence* GetFrameFence() { return mFrameFence; };
-        // todo: maybe可以清理成模板。
-        //virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, uint32_t texInstanceID) override;
-        virtual void SetUpMesh(ModelData* data, bool isStatic = true) override;
         virtual IGPUTexture* CreateTextureBuffer(unsigned char* data, const TextureDesc& textureDesc) override;
         virtual IGPUTexture* CreateRenderTexture(const TextureDesc& textureDesc) override;
         
@@ -131,7 +126,6 @@ namespace EngineCore
         void InitRenderTarget();
 
         int GetNextVAOIndex();
-        TD3D12VAO& GetAvaliableModelDesc();
 
 
         Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
@@ -173,7 +167,6 @@ namespace EngineCore
         //unordered_map<uint32_t, TD3D12MaterialData> m_DataMap;
         vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
         ComPtr<ID3D12CommandSignature> mCommandSignature;
-        unordered_map<uint32_t, TD3D12VAO> VAOMap;
 
         unordered_map<uint32_t, TD3D12ConstantBuffer> mGlobalConstantBufferMap;
 

@@ -124,9 +124,9 @@ namespace EngineCore
         for (int i = 0; i < materialDirtyList.size(); i++)
         {
             uint32_t index = materialDirtyList[i];
-            uint32_t vaoID = renderSceneData.vaoIDList[i];
+            MeshFilter* meshFilter = renderSceneData.meshFilterList[i];
             MeshRenderer* meshRenderer = renderSceneData.meshRendererList[index];
-            if (vaoID == UINT32_MAX) return;
+            if (meshFilter == nullptr) return;
             if (meshRenderer == nullptr)
             {
                 // delete: 只处理RenderProxy相关信息。
@@ -139,7 +139,7 @@ namespace EngineCore
             {
                 // todo: 假设Proxy换了呢？ 就比如这个材质换成了另一个材质了？
                 // 这个事情似乎可以交给BatchManager去做，这里就访问就ok
-                vector<RenderProxy> proxyList = batchManager->GetAvaliableRenderProxyList(meshRenderer, vaoID);
+                vector<RenderProxy> proxyList = batchManager->GetAvaliableRenderProxyList(meshRenderer, meshFilter);
                 BufferAllocation allocation = renderProxyBuffer->Allocate(proxyList.size() * sizeof(RenderProxy));
                 renderProxyBuffer->UploadBuffer(allocation, proxyList.data(), proxyList.size() * sizeof(RenderProxy));
                 perObjectDataBuffer[index].renderProxyStartIndex = static_cast<uint32_t>(allocation.offset / sizeof(RenderProxy));

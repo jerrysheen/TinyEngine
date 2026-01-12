@@ -61,8 +61,8 @@ namespace EngineCore
             // copy gpu material data desc 
             Renderer::GetInstance()->SetMaterialData(record.mat);
             // bind mesh vertexbuffer and indexbuffer.
-            Renderer::GetInstance()->SetMeshData(record.vaoID);
-            Renderer::GetInstance()->DrawIndexedInstanced(record.vaoID, record.instanceCount, PerDrawHandle{ nullptr, (uint32_t)record.alloc.offset, 0 });
+            Renderer::GetInstance()->SetMeshData(record.mesh);
+            Renderer::GetInstance()->DrawIndexedInstanced(record.mesh, record.instanceCount, PerDrawHandle{ nullptr, (uint32_t)record.alloc.offset, 0 });
         }
 
         PROFILER_EVENT_END("MainThread::OpaqueRenderPass::SetDrawCall");

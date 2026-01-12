@@ -25,13 +25,13 @@ namespace EngineCore
     };
 
     class Material;
-    class ModelData;
+    class Mesh;
     struct RenderBatch
     {
         BufferAllocation alloc;
         
         Material* mat;
-        uint32_t vaoID;
+        Mesh* mesh;
         uint32_t index;
         uint32_t instanceCount;
     };

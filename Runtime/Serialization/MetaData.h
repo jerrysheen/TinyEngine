@@ -11,7 +11,6 @@ namespace EngineCore
 {
 
     class Texture;
-    class ModelData;
     class Material;
     struct MetaData
     {

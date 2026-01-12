@@ -1,16 +1,15 @@
 #pragma once
-#include "ModelData.h"
 #include <assimp/Importer.hpp>      // C++ importer interface
 #include <assimp/scene.h>           // Output data structure
 #include <assimp/postprocess.h>     // Post processing flags
-#include "Graphics/ModelData.h"
+#include "Graphics/Mesh.h"
 
 namespace EngineCore
 {
-    class ModelUtils
+    class MeshUtils
     {
     public:
-        static void GetFullScreenQuad(ModelData* modelData);
+        static void GetFullScreenQuad(Mesh* modelData);
     private:
 
     };

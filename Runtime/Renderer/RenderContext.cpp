@@ -28,7 +28,7 @@ namespace EngineCore
         auto& item = visibleItems[0];
         RenderBatch currentBatch;
         currentBatch.instanceCount = 1;
-        currentBatch.vaoID = item.vaoID;
+        currentBatch.mesh = item.meshFilter->mMeshHandle.Get();
         currentBatch.mat = item.meshRenderer->GetMaterial().Get();
         currentBatch.index = 0;
 
@@ -54,7 +54,7 @@ namespace EngineCore
                 
                 tempList.clear();
                 currentBatch.instanceCount = 1;
-                currentBatch.vaoID = item.vaoID;
+                currentBatch.mesh = item.meshFilter->mMeshHandle.Get();
                 currentBatch.mat = item.meshRenderer->GetMaterial().Get();
                 currentBatch.index = globalIndex;
                 uint32_t objIndex = item.meshRenderer->sceneRenderNodeIndex;
@@ -79,7 +79,7 @@ namespace EngineCore
 
     bool RenderContext::CanBatch(const RenderBatch& currentBatch, const RenderPacket item)
     {
-        return currentBatch.vaoID == item.vaoID &&
+        return currentBatch.mesh->GetInstanceID() == item.meshFilter->mMeshHandle.Get()->GetInstanceID() &&
             currentBatch.mat->GetAssetID() == item.meshRenderer->GetMaterial()->GetAssetID();
     }
 } // namespace EngineCore

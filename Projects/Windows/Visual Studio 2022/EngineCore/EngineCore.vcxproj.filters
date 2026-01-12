@@ -216,6 +216,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Graphics\GPUTexture.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\GeometryManager.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\IGPUBufferAllocator.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
@@ -231,10 +234,10 @@
     <ClInclude Include="..\..\..\..\Runtime\Graphics\MaterialLayout.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Graphics\ModelData.h">
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\Mesh.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Graphics\ModelUtils.h">
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\MeshUtils.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\RenderTexture.h">
@@ -521,13 +524,16 @@
     <ClCompile Include="..\..\..\..\Runtime\Graphics\GPUSceneManager.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\GeometryManager.cpp">
+      <Filter>Runtime\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\Material.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Graphics\ModelData.cpp">
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\Mesh.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Graphics\ModelUtils.cpp">
+    <ClCompile Include="..\..\..\..\Runtime\Graphics\MeshUtils.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\RenderTexture.cpp">

@@ -1,21 +1,25 @@
 #include "PreCompiledHeader.h"
-#include "ModelData.h"
-#include "ModelUtils.h"
+#include "Mesh.h"
+#include "MeshUtils.h"
 #include "Resources/Asset.h"
+#include "GeometryManager.h"
+#include "Renderer/RenderAPI.h"
+
 
 namespace EngineCore
 {
-    ModelData::ModelData(MetaData *metaData) : Resource(metaData)
+    Mesh::Mesh(MetaData *metaData) : Resource(metaData)
     {
 		mAssetType = AssetType::Mesh;
 		ASSERT(metaData->dependentMap.size() == 0);
 
-		ModelMetaData* modelMetaData = static_cast<ModelMetaData*>(metaData);
-		LoadAiMesh(modelMetaData->path);
+		ModelMetaData* MeshMetaData = static_cast<ModelMetaData*>(metaData);
+		LoadAiMesh(MeshMetaData->path);
+		UploadMeshToGPU();
     }
 
 
-	void ModelData::LoadAiMesh(const string& path)
+	void Mesh::LoadAiMesh(const string& path)
 	{
 		Assimp::Importer import;
 		const aiScene* scene = import.ReadFile(path, 
@@ -37,11 +41,24 @@ namespace EngineCore
 		layout.push_back(InputLayout(VertexAttribute::NORMAL, 3 * sizeof(float), 3, 8 * sizeof(float), 3 * sizeof(float)));
 		layout.push_back(InputLayout(VertexAttribute::UV0, 2 * sizeof(float), 2, 8 * sizeof(float), 6 * sizeof(float)));
 
-		RenderAPI::GetInstance()->SetUpMesh(this, false);
+
 	}
 
-    void ModelData::ProcessNode(aiNode* node, const aiScene* scene)
-	{
+    void Mesh::UploadMeshToGPU()
+    {
+		ASSERT(vertex.size() > 0);
+		ASSERT(index.size() > 0);
+		vertexAllocation = GeometryManager::GetInstance()->AllocateVertexBuffer(vertex.data(), vertex.size() * sizeof(Vertex));
+		indexAllocation = GeometryManager::GetInstance()->AllocateIndexBuffer(index.data(), index.size() * sizeof(uint32_t));
+		if(!isDynamic)
+		{
+			vertex.clear();
+			index.clear();
+		}
+	}
+
+    void Mesh::ProcessNode(aiNode *node, const aiScene *scene)
+    {
 		for (unsigned int i = 0; i < node->mNumMeshes; i++)
 		{
 			aiMesh* aimesh = scene->mMeshes[node->mMeshes[i]];
@@ -54,7 +71,7 @@ namespace EngineCore
 		}
 	}
 
-	void ModelData::ProcessMesh(aiMesh* aiMesh, const aiScene* scene)
+	void Mesh::ProcessMesh(aiMesh* aiMesh, const aiScene* scene)
 	{
 		std::vector<Vertex> vertexArray;
 		std::vector<int> indexArray;
@@ -119,19 +136,19 @@ namespace EngineCore
 	}
 
 	// 走默认构造。
-	ModelData::ModelData(Primitive primitiveType)
+	Mesh::Mesh(Primitive primitiveType)
 		:Resource()
     {
 		switch (primitiveType)
 		{	
 		case Primitive::Quad :
-			ModelUtils::GetFullScreenQuad(this);
+			MeshUtils::GetFullScreenQuad(this);
 			break;
 		case Primitive::Cube:
-			LoadAiMesh(PathSettings::ResolveAssetPath("Model/Primitives/Cube.obj"));
+			LoadAiMesh(PathSettings::ResolveAssetPath("Mesh/Primitives/Cube.obj"));
 			break;
 		case Primitive::Sphere:
-			LoadAiMesh(PathSettings::ResolveAssetPath("Model/Primitives/Sphere.obj"));
+			LoadAiMesh(PathSettings::ResolveAssetPath("Mesh/Primitives/Sphere.obj"));
 			break;
 		default:
 			break;

@@ -7,7 +7,7 @@
 #include <tuple>
 #include <vector>
 #include "Graphics/IGPUResource.h"
-
+#include "Graphics/Mesh.h"
 
 namespace EngineCore
 {
@@ -143,7 +143,7 @@ namespace EngineCore
 
     struct Payload_SetVBIB 
     {
-        uint32_t vaoId;
+        Mesh* mesh;
     };
 
     struct Payload_SetPerFrameData
@@ -199,7 +199,7 @@ namespace EngineCore
 
     struct Payload_DrawCommand 
     {
-        uint32_t vaoID;
+        Mesh* mesh;
         int count;
     };
 
@@ -226,7 +226,7 @@ namespace EngineCore
 
     struct Payload_DrawInstancedCommand
     {
-        uint32_t vaoID;
+        Mesh* mesh;
         int count;
         uint32_t perDrawOffset;
         uint32_t perDrawStride;

@@ -135,11 +135,11 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(temp);
     }
 
-    void Renderer::SetMeshData(uint32_t vaoID)
+    void Renderer::SetMeshData(Mesh* mesh)
     {
         DrawCommand temp;
         temp.op = RenderOp::kSetVBIB;
-        temp.data.setVBIB.vaoId = vaoID;
+        temp.data.setVBIB.mesh = mesh;
         mRenderBuffer.PushBlocking(temp);
     }
 
@@ -193,11 +193,11 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(temp);
     }
 
-    void Renderer::DrawIndexedInstanced(uint32_t vaoID, int count, const PerDrawHandle &perDrawHandle)
+    void Renderer::DrawIndexedInstanced(Mesh* mesh, int count, const PerDrawHandle &perDrawHandle)
     {
         DrawCommand temp;
         temp.op = RenderOp::kDrawInstanced;
-        temp.data.setDrawInstanceCmd.vaoID = vaoID;
+        temp.data.setDrawInstanceCmd.mesh = mesh;
         temp.data.setDrawInstanceCmd.count = count;
         temp.data.setDrawInstanceCmd.perDrawOffset = perDrawHandle.offset / sizeof(uint32_t);
         temp.data.setDrawInstanceCmd.perDrawStride = perDrawHandle.size / count;

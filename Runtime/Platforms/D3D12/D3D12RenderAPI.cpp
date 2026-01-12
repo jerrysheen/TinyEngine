@@ -516,30 +516,7 @@ namespace EngineCore
         return texture;
     }
 
-    // 初始化一次， 同步信息
-    void D3D12RenderAPI::CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos)
-    {
-        // uint32_t matID = mat->GetInstanceID();
-        // if (m_DataMap.count(matID) <= 0) m_DataMap.try_emplace(matID, TD3D12MaterialData());
-        // auto iter = m_DataMap.find(matID);
-        // TD3D12MaterialData data = iter->second;
-        // data.mTextureBufferArray.clear();
-        // for each(auto bufferInfo in resourceInfos)
-        // {
-        //     // 创建buffer resource + handle
-        //     // 初始化时没有Handler信息，后续就是对应Texture的InstanceID
-        //     TD3D12TextureHander textureHandler;
-        //     textureHandler.textureID = 0;
-        //     data.mTextureBufferArray.push_back(textureHandler);
-        // }
-        // m_DataMap[matID] = data;
-    }
 
-    void D3D12RenderAPI::CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos)
-    {
-
-    }
-    
 
     void D3D12RenderAPI::ImmediatelyExecute(std::function<void(ComPtr<ID3D12GraphicsCommandList> cmdList)>&& function)
     {
@@ -742,33 +719,33 @@ namespace EngineCore
     //     data.mTextureBufferArray[slotIndex].textureID = texInstanceID;
     // }
 
-    void D3D12RenderAPI::SetUpMesh(ModelData* data, bool isStatic)
-    {
-        TD3D12VAO vao;
-        Microsoft::WRL::ComPtr<ID3D12Resource> uploadBufferVertex;
-        Microsoft::WRL::ComPtr<ID3D12Resource> uploadBufferIndex;
-        ImmediatelyExecute([&](ComPtr<ID3D12GraphicsCommandList> cmdList) 
-        {        
-            vao.VertexBuffer = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(), cmdList.Get(), data->vertex.data(), data->vertex.size() * sizeof(float) * 8, uploadBufferVertex);
-            vao.IndexBuffer = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(), cmdList.Get(), data->index.data(), data->index.size() * sizeof(int), uploadBufferIndex);
-        });
+    // void D3D12RenderAPI::SetUpMesh(ModelData* data, bool isStatic)
+    // {
+    //     TD3D12VAO vao;
+    //     Microsoft::WRL::ComPtr<ID3D12Resource> uploadBufferVertex;
+    //     Microsoft::WRL::ComPtr<ID3D12Resource> uploadBufferIndex;
+    //     ImmediatelyExecute([&](ComPtr<ID3D12GraphicsCommandList> cmdList) 
+    //     {        
+    //         vao.VertexBuffer = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(), cmdList.Get(), data->vertex.data(), data->vertex.size() * sizeof(float) * 8, uploadBufferVertex);
+    //         vao.IndexBuffer = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(), cmdList.Get(), data->index.data(), data->index.size() * sizeof(int), uploadBufferIndex);
+    //     });
 
-        WaitForRenderFinish(mImediatelyFence);
-        D3D12_VERTEX_BUFFER_VIEW vbv;
-		vbv.BufferLocation = vao.VertexBuffer->GetGPUVirtualAddress();
-		vbv.StrideInBytes = sizeof(Vertex);
-		vbv.SizeInBytes = data->vertex.size() * sizeof(float)* 8;
+    //     WaitForRenderFinish(mImediatelyFence);
+    //     D3D12_VERTEX_BUFFER_VIEW vbv;
+	// 	vbv.BufferLocation = vao.VertexBuffer->GetGPUVirtualAddress();
+	// 	vbv.StrideInBytes = sizeof(Vertex);
+	// 	vbv.SizeInBytes = data->vertex.size() * sizeof(float)* 8;
 
-        D3D12_INDEX_BUFFER_VIEW ibv;
-		ibv.BufferLocation = vao.IndexBuffer->GetGPUVirtualAddress();
-		ibv.Format = DXGI_FORMAT_R32_UINT;
-		ibv.SizeInBytes = data->index.size() * sizeof(int);
+    //     D3D12_INDEX_BUFFER_VIEW ibv;
+	// 	ibv.BufferLocation = vao.IndexBuffer->GetGPUVirtualAddress();
+	// 	ibv.Format = DXGI_FORMAT_R32_UINT;
+	// 	ibv.SizeInBytes = data->index.size() * sizeof(int);
 
-        vao.vertexBufferView = vbv;
-        vao.indexBufferView = ibv;
+    //     vao.vertexBufferView = vbv;
+    //     vao.indexBufferView = ibv;
 
-        VAOMap.try_emplace(data->GetInstanceID(), std::move(vao));
-    }
+    //     VAOMap.try_emplace(data->GetInstanceID(), std::move(vao));
+    // }
 
     int D3D12RenderAPI::GetNextVAOIndex()
     {
@@ -923,8 +900,11 @@ namespace EngineCore
 
     void D3D12RenderAPI::RenderAPIDrawIndexed(Payload_DrawCommand payloadDrawCommand)
     {
-        auto& vao = VAOMap[payloadDrawCommand.vaoID];
-        mCommandList->DrawIndexedInstanced(vao.indexBufferView.SizeInBytes / sizeof(int), payloadDrawCommand.count, 0, 0, 0);
+        ASSERT(payloadDrawCommand.mesh != nullptr);
+        Mesh* mesh = payloadDrawCommand.mesh;
+        auto indexAllocation = mesh->indexAllocation;
+
+        mCommandList->DrawIndexedInstanced(indexAllocation->size / sizeof(uint32_t), payloadDrawCommand.count, 0, 0, 0);
     }
 
     void D3D12RenderAPI::RenderAPISetMaterial(Payload_SetMaterial payloadSetMaterial)
@@ -1048,9 +1028,24 @@ namespace EngineCore
 
     void D3D12RenderAPI::RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB)
     {
-        auto& vao = VAOMap[payloadSetVBIB.vaoId];
-        mCommandList->IASetVertexBuffers(0, 1, &vao.vertexBufferView);
-        mCommandList->IASetIndexBuffer(&vao.indexBufferView);
+        Mesh* mesh = payloadSetVBIB.mesh;
+        ASSERT(mesh != nullptr);
+        auto* vertexAllocation = mesh->vertexAllocation;
+        auto* indexAllocation = mesh->indexAllocation;
+
+        D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
+        vertexBufferView.BufferLocation = vertexAllocation->gpuAddress;
+        vertexBufferView.SizeInBytes = vertexAllocation->size;
+        vertexBufferView.StrideInBytes = vertexAllocation->stride;
+
+        D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
+        indexBufferView.BufferLocation = indexAllocation->gpuAddress;
+        indexBufferView.SizeInBytes = indexAllocation->size;
+        indexBufferView.Format = DXGI_FORMAT_R32_UINT;
+
+
+        mCommandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+        mCommandList->IASetIndexBuffer(&indexBufferView);
         mCommandList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     }
 
@@ -1217,9 +1212,13 @@ namespace EngineCore
 
     void D3D12RenderAPI::RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd)
     {
-        auto& vao = VAOMap[setDrawInstanceCmd.vaoID];
+        ASSERT(setDrawInstanceCmd.mesh != nullptr);
+        Mesh* mesh = setDrawInstanceCmd.mesh;
+        auto indexAllocation = mesh->indexAllocation;
+
+
         mCommandList->SetGraphicsRoot32BitConstants((UINT)RootSigSlot::DrawIndiceConstant, 1, &setDrawInstanceCmd.perDrawOffset, 0);
-        mCommandList->DrawIndexedInstanced(vao.indexBufferView.SizeInBytes / sizeof(int), setDrawInstanceCmd.count, 0, 0, setDrawInstanceCmd.perDrawOffset);
+        mCommandList->DrawIndexedInstanced(indexAllocation->size / sizeof(uint32_t), setDrawInstanceCmd.count, 0, 0, setDrawInstanceCmd.perDrawOffset);
         //ASSERT_MSG(false, "Not Implemented!");
     }
 

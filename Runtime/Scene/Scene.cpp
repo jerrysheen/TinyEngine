@@ -12,7 +12,7 @@ namespace EngineCore
         std::queue<uint32_t> empty;
         std::swap(empty, m_FreeSceneNode);
         renderSceneData.meshRendererList.reserve(10000);
-        renderSceneData.vaoIDList.reserve(10000);
+        renderSceneData.meshFilterList.reserve(10000);
         renderSceneData.aabbList.reserve(10000);
         renderSceneData.objectToWorldMatrixList.reserve(10000);
         renderSceneData.layerList.reserve(10000);
@@ -183,9 +183,9 @@ namespace EngineCore
             {
                 auto* meshFilter = meshRenderer->gameObject->GetComponent<MeshFilter>();
                 if(!meshFilter) continue;
-                if(renderSceneData.vaoIDList[i] == UINT32_MAX)
+                if(renderSceneData.meshFilterList[i] == nullptr)
                 {
-                    renderSceneData.vaoIDList[i] = meshFilter->mMeshHandle.Get()->GetInstanceID();
+                    renderSceneData.meshFilterList[i] = meshFilter;
                 }
                 meshRenderer->lastSyncTransformVersion = currversion;
                 meshRenderer->UpdateBounds(meshFilter->mMeshHandle.Get()->bounds, meshRenderer->gameObject->transform->GetWorldMatrix());

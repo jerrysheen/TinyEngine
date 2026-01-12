@@ -19,13 +19,13 @@ namespace EngineCore
         for(int i = 0; i < scene->renderSceneData.meshRendererList.size(); i++)
         {
             if( sceneRenderData.meshRendererList[i] &&
-                sceneRenderData.vaoIDList[i] != UINT32_MAX)
+                sceneRenderData.meshFilterList[i])
             {
                 if (cam->mFrustum.TestAABB(sceneRenderData.aabbList[i]) != IntersectResult::Outside) 
                 {
                     RenderPacket packet;
                     packet.meshRenderer = sceneRenderData.meshRendererList[i];
-                    packet.vaoID = sceneRenderData.vaoIDList[i];
+                    packet.meshFilter = sceneRenderData.meshFilterList[i];
                     Vector3 pos = sceneRenderData.objectToWorldMatrixList[i].ExtractWorldPosition();
                     packet.distanToCamera = Vector3::Distance(campos, pos);
                     context.visibleItems.push_back(std::move(packet));

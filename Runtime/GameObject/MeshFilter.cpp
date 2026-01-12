@@ -1,7 +1,7 @@
 #include "PreCompiledHeader.h"
 #include "MeshFilter.h"
 #include "Resources/ResourceHandle.h"
-#include "Graphics/ModelData.h"
+#include "Graphics/Mesh.h"
 #include "GameObject.h"
 #include "Serialization/ComponentFactory.h"
 #include "Renderer/BatchManager.h"

@@ -28,7 +28,7 @@ namespace EngineCore
             float farPlane = context.camera->mFar;
             for(auto& item : items)
             {
-                uint32_t meshID = item.vaoID;
+                uint32_t meshID = item.meshFilter->mMeshHandle->GetAssetID();
                 uint32_t matID = item.meshRenderer->GetMaterial()->GetAssetID();
 
                 float distance = item.distanToCamera;

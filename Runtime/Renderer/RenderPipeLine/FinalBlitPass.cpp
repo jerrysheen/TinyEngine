@@ -35,8 +35,8 @@ namespace EngineCore
         mRootSigSlot = RootSigSlot::PerPassData;
         Material* mat = SceneManager::GetInstance()->blitMaterial;
         mat->SetTexture("SrcTexture", context.camera->colorAttachment->textureBuffer);
-        ModelData* model = SceneManager::GetInstance()->quadMesh;
-        mRenderPassInfo.drawRecordList.emplace_back(mat, model->GetInstanceID());
+        Mesh* model = SceneManager::GetInstance()->quadMesh;
+        mRenderPassInfo.drawRecordList.emplace_back(mat, model);
         // todo： 后面挪到别的地方， 先做Batch的部分：
         Renderer::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
         Renderer::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
@@ -52,8 +52,8 @@ namespace EngineCore
         //Renderer::GetInstance()->SetResourceState(tex, BufferResourceState::STATE_SHADER_RESOURCE);
         //Renderer::GetInstance()->BindTexture(tex, 0, 0);
         // bind mesh vertexbuffer and indexbuffer.
-        Renderer::GetInstance()->SetMeshData(model->GetInstanceID());
-        Renderer::GetInstance()->DrawIndexedInstanced(model->GetInstanceID(), 1, PerDrawHandle{0,0});
+        Renderer::GetInstance()->SetMeshData(model);
+        Renderer::GetInstance()->DrawIndexedInstanced(model, 1, PerDrawHandle{0,0});
     }
 
     void FinalBlitPass::Filter(const RenderContext& context)

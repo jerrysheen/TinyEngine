@@ -2,7 +2,7 @@
 #include "d3dUtil.h"
 
 
-#include "Graphics/ModelUtils.h"
+#include "Graphics/MeshUtils.h"
 #include "Graphics/Material.h"
 #include "Core/InstanceID.h"
 #include "Renderer/RenderCommand.h"
@@ -21,14 +21,6 @@ namespace EngineCore
         DescriptorHandle handleCBV = {};
         int registerSlot = 0;
         TD3D12ConstantBuffer(){};
-    };
-
-    struct TD3D12VAO
-    {
-        Microsoft::WRL::ComPtr<ID3D12Resource> VertexBuffer = nullptr;
-	    Microsoft::WRL::ComPtr<ID3D12Resource> IndexBuffer = nullptr;
-        D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
-        D3D12_INDEX_BUFFER_VIEW indexBufferView;
     };
 
     struct TD3D12Fence

@@ -111,7 +111,7 @@ namespace EngineEditor
 
 		// 添加MeshFilter组件
 		auto* meshFilter = houseObj->AddComponent<MeshFilter>();
-		meshFilter->mMeshHandle = ResourceManager::GetInstance()->LoadAsset<ModelData>("Model/viking_room.obj");
+		meshFilter->mMeshHandle = ResourceManager::GetInstance()->LoadAsset<Mesh>("Model/viking_room.obj");
 
 		// 添加MeshRenderer组件
 		auto* meshRenderer = houseObj->AddComponent<MeshRenderer>();

@@ -6,7 +6,7 @@
 #include "Graphics/Material.h"
 
 #include <map>
-#include "Graphics/ModelData.h"
+#include "Graphics/Mesh.h"
 
 namespace tinygltf {
     class Node;
@@ -28,6 +28,6 @@ namespace EngineCore {
         void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
         void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
 
-        std::map<int, std::vector<ResourceHandle<ModelData>>> m_MeshCache;
+        std::map<int, std::vector<ResourceHandle<Mesh>>> m_MeshCache;
     };
 }

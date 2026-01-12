@@ -1,7 +1,7 @@
 #include "PreCompiledHeader.h"
 #include "BatchManager.h"
 #include "Utils/HashCombine.h"
-#include "Graphics/ModelData.h"
+#include "Graphics/Mesh.h"
 
 namespace EngineCore
 {
@@ -41,7 +41,7 @@ namespace EngineCore
 
     }
 
-    std::vector<RenderProxy> BatchManager::GetAvaliableRenderProxyList(MeshRenderer *meshRenderer, uint32_t vaoID)
+    std::vector<RenderProxy> BatchManager::GetAvaliableRenderProxyList(MeshRenderer *meshRenderer, MeshFilter* meshFilter)
     {
         ASSERT(meshRenderer != nullptr);
         vector<RenderProxy> renderProxyList;
@@ -50,7 +50,7 @@ namespace EngineCore
         {
             if ((mask & (1u<<i)) != 0)
             {
-                uint64_t hash = GetBatchHash(meshRenderer, vaoID, i);
+                uint64_t hash = GetBatchHash(meshRenderer, meshFilter, i);
                 RenderProxy proxy;
                 proxy.batchID = drawIndirectParamMap[hash].indexInDrawIndirectList;
                 renderProxyList.push_back(proxy);
@@ -73,23 +73,7 @@ namespace EngineCore
 
         if(drawIndirectContextMap.count(batchKey) == 0)
         {
-            drawIndirectContextMap[batchKey] = {meshRenderer->GetMaterial().Get(), vaoID};
-        }
-        return batchKey; 
-    }
-
-    uint64_t BatchManager::GetBatchHash(MeshRenderer *meshRenderer, uint32_t vaoID, uint32_t layer)
-    {
-        uint64_t batchKey = 0;
-        uint32_t matKey = meshRenderer->GetMaterial()->mRenderState.GetHash();
-        HashCombine(matKey, static_cast<uint32_t>(layer));
-        uint32_t meshKey = vaoID;
-        batchKey |= matKey;
-        batchKey |= (static_cast<uint64_t>(meshKey) << 32);
-        
-        if(drawIndirectContextMap.count(batchKey) == 0)
-        {
-            drawIndirectContextMap[batchKey] = {meshRenderer->GetMaterial().Get(), vaoID};
+            drawIndirectContextMap[batchKey] = {meshRenderer->GetMaterial().Get(), meshFilter->mMeshHandle.Get()};
         }
         return batchKey; 
     }
@@ -138,11 +122,11 @@ namespace EngineCore
                 else
                 {
                     BatchMap[batchKey] = 1;
-                    ModelData* modeldata = meshFilter->mMeshHandle.Get();
-                    ASSERT(modeldata != nullptr);
+                    Mesh* mesh = meshFilter->mMeshHandle.Get();
+                    ASSERT(mesh != nullptr);
                     drawIndirectParamMap[batchKey] = 
                     {
-                        (uint32_t)modeldata->index.size(), // 比如这个Mesh有300个索引
+                        (uint32_t)mesh->indexAllocation->size, // 比如这个Mesh有300个索引
                         0,
                         0
                     };

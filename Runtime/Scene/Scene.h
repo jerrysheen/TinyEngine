@@ -11,7 +11,7 @@ namespace EngineCore
     struct RenderSceneData
     {
         vector<MeshRenderer*> meshRendererList;
-        vector<uint32_t> vaoIDList;
+        vector<MeshFilter*> meshFilterList;
         vector<AABB> aabbList;
         vector<Matrix4x4> objectToWorldMatrixList;
         vector<uint32_t> layerList;
@@ -30,11 +30,11 @@ namespace EngineCore
                 auto* meshFilter = renderer->gameObject->GetComponent<MeshFilter>();
                 if(meshFilter != nullptr)
                 {
-                    vaoIDList[index] = meshFilter->mMeshHandle.Get()->GetInstanceID();
+                    meshFilterList[index] = meshFilter;
                 }
                 else
                 {
-                    vaoIDList[index] = UINT32_MAX;
+                    meshFilterList[index] = nullptr;
                 }
             }
         }
@@ -42,7 +42,7 @@ namespace EngineCore
         inline void PushNewData() 
         {
             meshRendererList.emplace_back();
-            vaoIDList.emplace_back();
+            meshFilterList.emplace_back();
             aabbList.emplace_back();
             objectToWorldMatrixList.emplace_back();
             layerList.emplace_back();
@@ -52,7 +52,7 @@ namespace EngineCore
         inline void DeleteData(uint32_t index)
         {
             meshRendererList[index] = nullptr;
-            vaoIDList[index] = UINT32_MAX;
+            meshFilterList[index] = nullptr;
 
             // 后续删除RenderProxy
         }
