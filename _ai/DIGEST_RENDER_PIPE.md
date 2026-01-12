@@ -36,11 +36,12 @@
 - `[12]` **Runtime/Renderer/RenderCommand.h**
 - `[12]` **Runtime/Renderer/RenderUniforms.h**
 - `[12]` **Runtime/Renderer/SPSCRingBuffer.h**
-- `[7]` **Runtime/Graphics/GPUSceneManager.h**
+- `[9]` **Runtime/Graphics/GPUSceneManager.h**
 - `[4]` **Runtime/GameObject/Camera.h**
 - `[4]` **Runtime/Scene/SceneManager.h**
 - `[3]` **Runtime/EngineCore.h**
 - `[3]` **Runtime/Core/PublicEnum.h**
+- `[3]` **Runtime/GameObject/MeshRenderer.h**
 - `[2]` **Editor/EditorGUIManager.h**
 - `[2]` **Editor/EditorSettings.h**
 - `[2]` **Runtime/CoreAssert.h**
@@ -53,10 +54,10 @@
 - `[2]` **Runtime/GameObject/ComponentType.h**
 - `[2]` **Runtime/GameObject/GameObject.h**
 - `[2]` **Runtime/GameObject/MeshFilter.h**
-- `[2]` **Runtime/GameObject/MeshRenderer.h**
 - `[2]` **Runtime/GameObject/MonoBehaviour.h**
 - `[2]` **Runtime/GameObject/Transform.h**
 - `[2]` **Runtime/Graphics/ComputeShader.h**
+- `[2]` **Runtime/Graphics/GeometryManager.h**
 - `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/GPUTexture.h**
 - `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
@@ -64,8 +65,8 @@
 - `[2]` **Runtime/Graphics/Material.h**
 - `[2]` **Runtime/Graphics/MaterialInstance.h**
 - `[2]` **Runtime/Graphics/MaterialLayout.h**
-- `[2]` **Runtime/Graphics/ModelData.h**
-- `[2]` **Runtime/Graphics/ModelUtils.h**
+- `[2]` **Runtime/Graphics/Mesh.h**
+- `[2]` **Runtime/Graphics/MeshUtils.h**
 - `[2]` **Runtime/Graphics/RenderTexture.h**
 - `[2]` **Runtime/Graphics/Shader.h**
 - `[2]` **Runtime/Graphics/Texture.h**
@@ -73,7 +74,6 @@
 - `[2]` **Runtime/Managers/WindowManager.h**
 - `[2]` **Runtime/Math/AABB.h**
 - `[2]` **Runtime/Math/Frustum.h**
-- `[2]` **Runtime/Math/Math.h**
 
 ## Evidence & Implementation Details
 
@@ -109,11 +109,11 @@ namespace EngineCore
                 
                 desc.debugName = L"IndirectDrawArgsBuffer";
                 desc.memoryType = BufferMemoryType::Default;
-                desc.size = sizeof(DrawIndirectArgs) * 100;
+                desc.size = sizeof(DrawIndirectArgs) * 3000;
                 desc.stride = sizeof(DrawIndirectArgs);
                 desc.usage = BufferUsage::StructuredBuffer;
                 indirectDrawArgsBuffer = new GPUBufferAllocator(desc);
-                indirectDrawArgsAlloc = indirectDrawArgsBuffer->Allocate(sizeof(DrawIndirectArgs) * 100);
+                indirectDrawArgsAlloc = indirectDrawArgsBuffer->Allocate(sizeof(DrawIndirectArgs) * 3000);
             }
 
             //todo:
@@ -252,7 +252,7 @@ namespace EngineCore
 
         inline const RenderPassInfo& GetRenderPassInfo(){return mRenderPassInfo;};
         RootSigSlot mRootSigSlot;
-    protected:
+    public:
         string name;
         RenderPassInfo mRenderPassInfo;
     };
@@ -418,7 +418,7 @@ namespace EngineCore
             float farPlane = context.camera->mFar;
             for(auto& item : items)
             {
-                uint32_t meshID = item.vaoID;
+                uint32_t meshID = item.meshFilter->mMeshHandle->GetAssetID();
                 uint32_t matID = item.meshRenderer->GetMaterial()->GetAssetID();
 
                 float distance = item.distanToCamera;
@@ -468,9 +468,9 @@ namespace EngineCore
         static std::unordered_map<uint64_t, DrawIndirectParam> drawIndirectParamMap;
         static std::unordered_map<uint64_t, DrawIndirectContext> drawIndirectContextMap;
 
-        std::vector<RenderProxy> GetAvaliableRenderProxyList(MeshRenderer* meshRenderer, uint32_t vaoID); 
+        std::vector<RenderProxy> GetAvaliableRenderProxyList(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 
         static uint64_t GetBatchHash(MeshRenderer* meshRenderer, MeshFilter* meshFilter, uint32_t layer); 
-        static uint64_t GetBatchHash(MeshRenderer* meshRenderer, uint32_t vaoID, uint32_t layer); 
+
         vector<DrawIndirectArgs> GetBatchInfo();
     private:
         void TryAddBatches(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 

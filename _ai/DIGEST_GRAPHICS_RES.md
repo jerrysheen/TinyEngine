@@ -15,65 +15,65 @@
 
 ## Key Files Index
 - `[64]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
+- `[52]` **Runtime/Graphics/Mesh.h** *(Content Included)*
 - `[48]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
-- `[46]` **Runtime/Graphics/ModelData.h** *(Content Included)*
 - `[44]` **Runtime/Graphics/MaterialInstance.h** *(Content Included)*
 - `[42]` **Runtime/Graphics/Material.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
-- `[37]` **Runtime/Graphics/ModelUtils.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/RenderTexture.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/Texture.h** *(Content Included)*
+- `[36]` **Runtime/Graphics/MeshUtils.h** *(Content Included)*
 - `[35]` **Runtime/Graphics/GPUTexture.h** *(Content Included)*
 - `[35]` **Runtime/Graphics/IGPUBufferAllocator.h** *(Content Included)*
 - `[33]` **Runtime/GameObject/MeshRenderer.h**
 - `[32]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
-- `[29]` **Runtime/GameObject/MeshFilter.h**
-- `[27]` **Runtime/Core/PublicStruct.h**
+- `[28]` **Runtime/Graphics/GeometryManager.h**
+- `[27]` **Runtime/GameObject/MeshFilter.h**
 - `[27]` **Runtime/Platforms/D3D12/D3D12Texture.h**
+- `[25]` **Runtime/Renderer/RenderCommand.h**
 - `[24]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
 - `[23]` **Runtime/Graphics/IGPUResource.h**
 - `[21]` **Runtime/Renderer/BatchManager.h**
-- `[20]` **Runtime/Renderer/RenderCommand.h**
-- `[20]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
-- `[19]` **Runtime/Renderer/RenderAPI.h**
-- `[18]` **Runtime/Renderer/RenderStruct.h**
+- `[20]` **Runtime/Renderer/RenderStruct.h**
+- `[17]` **Runtime/Core/PublicStruct.h**
 - `[17]` **Runtime/Resources/ResourceManager.h**
 - `[17]` **Runtime/Platforms/D3D12/d3dx12.h**
 - `[17]` **Assets/Shader/SimpleTestShader.hlsl**
+- `[17]` **Assets/Shader/StandardPBR.hlsl**
+- `[16]` **Runtime/Renderer/RenderAPI.h**
 - `[16]` **Runtime/Resources/Asset.h**
 - `[16]` **Runtime/Scene/Scene.h**
 - `[15]` **Runtime/Graphics/ComputeShader.h**
+- `[15]` **Runtime/Scene/BistroSceneLoader.h**
+- `[15]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[15]` **Editor/Panel/EditorMainBar.h**
 - `[14]` **Runtime/Graphics/Shader.h**
+- `[14]` **Runtime/Renderer/Renderer.h**
 - `[14]` **Assets/Shader/include/Core.hlsl**
 - `[13]` **Runtime/Scene/SceneManager.h**
 - `[13]` **Runtime/Serialization/BaseTypeSerialization.h**
 - `[12]` **Runtime/Resources/Resource.h**
 - `[12]` **Runtime/Resources/ResourceHandle.h**
-- `[12]` **Runtime/Serialization/MetaData.h**
-- `[11]` **Runtime/Renderer/Renderer.h**
-- `[11]` **Runtime/Serialization/MetaLoader.h**
-- `[11]` **Runtime/Platforms/D3D12/D3D12Struct.h**
+- `[12]` **Runtime/Serialization/MetaLoader.h**
+- `[11]` **Runtime/Serialization/MetaData.h**
 - `[10]` **Assets/Shader/BlitShader.hlsl**
+- `[8]` **Runtime/Renderer/RenderSorter.h**
 - `[8]` **Runtime/Serialization/AssetSerialization.h**
 - `[8]` **Assets/Shader/GPUCulling.hlsl**
 - `[7]` **Runtime/Core/Profiler.h**
 - `[7]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
 - `[6]` **Runtime/GameObject/Camera.h**
 - `[6]` **Runtime/Renderer/RenderEngine.h**
-- `[6]` **Runtime/Renderer/RenderSorter.h**
 - `[6]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[5]` **Runtime/Core/PublicEnum.h**
 - `[5]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
+- `[5]` **Runtime/Platforms/D3D12/D3D12Struct.h**
 - `[4]` **premake5.lua**
 - `[4]` **Runtime/GameObject/ComponentType.h**
 - `[4]` **Runtime/GameObject/GameObject.h**
 - `[4]` **Runtime/Renderer/RenderUniforms.h**
 - `[4]` **Runtime/Serialization/MetaFactory.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h**
-- `[4]` **Runtime/Platforms/D3D12/d3dUtil.h**
-- `[3]` **Editor/EditorSettings.h**
-- `[3]` **Runtime/Renderer/RenderContext.h**
 
 ## Evidence & Implementation Details
 
@@ -109,6 +109,70 @@ namespace EngineCore
         {
 ```
 
+### File: `Runtime/Graphics/Mesh.h`
+```cpp
+{
+    // 用来描述model Input 或者 shader reflection input
+    struct InputLayout
+    {
+        VertexAttribute type;
+        int size;
+        int dimension;
+        int stride;
+        int offset;
+        InputLayout(VertexAttribute _type, int _size, int _dimension, int _stride, int _offset)
+        {
+            type = _type; size = _size; dimension = _dimension; stride = _stride; offset = _offset;
+        };
+        InputLayout() = default;
+        InputLayout(VertexAttribute type) : type(type) {};
+    };
+```
+...
+```cpp
+    };
+
+    struct MeshBufferAllocation
+    {
+        IGPUBuffer* buffer = nullptr;
+        // 当前数据开始位置， 可以直接绑定
+        uint64_t gpuAddress = 0;
+        uint64_t offset =0;
+        uint64_t size = 0;
+        uint32_t stride = 0;
+        bool isValid = false;
+        struct MeshBufferAllocation() = default;
+        struct MeshBufferAllocation(IGPUBuffer* buffer, uint64_t gpuAddress, uint64_t offset, uint64_t size, uint64_t stride)
+            :buffer(buffer), gpuAddress(gpuAddress), offset(offset), size(size), stride(stride)
+        {
+            isValid = true;
+        }
+    };
+```
+...
+```cpp
+
+        Mesh() = default;
+        Mesh(MetaData* metaData);
+        Mesh(Primitive primitiveType);
+        MeshBufferAllocation* vertexAllocation;
+        MeshBufferAllocation* indexAllocation;
+        void UploadMeshToGPU();
+
+        AABB bounds;
+        std::vector<Vertex> vertex;
+        std::vector<int> index;
+        std::vector<InputLayout> layout;
+    private:
+        void ProcessNode(aiNode* node, const aiScene* scene);
+        void LoadAiMesh(const string& path);
+        void ProcessMesh(aiMesh* aiMesh, const aiScene* scene);
+
+    };
+
+}
+```
+
 ### File: `Runtime/Graphics/GPUSceneManager.h`
 ```cpp
 {
@@ -129,7 +193,7 @@ namespace EngineCore
         void TryFreeRenderProxyBlock(uint32_t index);
         void TryCreateRenderProxyBlock(uint32_t index);
         BufferAllocation LagacyRenderPathUploadBatch(void *data, uint32_t size);
-
+        void FlushBatchUploads();
         void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
         void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);
 
@@ -150,28 +214,7 @@ namespace EngineCore
         ResourceHandle<ComputeShader> GPUCullingShaderHandler;
     private:
         static GPUSceneManager* sInstance; 
-    };
-```
-
-### File: `Runtime/Graphics/ModelData.h`
-```cpp
-{
-    ModelData* GetFullScreenQuad();
-    class ModelData : public Resource
-    {
-    public:
-        // todo: 先这么写，后续或许抽成单独Component
-        AABB bounds;
-        std::vector<Vertex> vertex;
-        std::vector<int> index;
-        std::vector<InputLayout> layout;
-        ModelData() = default;
-        ModelData(MetaData* metaData);
-        ModelData(Primitive primitiveType);
-    private:
-        void ProcessNode(aiNode* node, const aiScene* scene);
-        void LoadAiMesh(const string& path);
-        void ProcessMesh(aiMesh* aiMesh, const aiScene* scene);
+        vector<CopyOp> mPendingBatchCopies;
     };
 ```
 
@@ -314,19 +357,6 @@ namespace EngineCore
     };
 ```
 
-### File: `Runtime/Graphics/ModelUtils.h`
-```cpp
-namespace EngineCore
-{
-    class ModelUtils
-    {
-    public:
-        static void GetFullScreenQuad(ModelData* modelData);
-    private:
-
-    };
-```
-
 ### File: `Runtime/Graphics/RenderTexture.h`
 ```cpp
 namespace EngineCore
@@ -364,6 +394,19 @@ namespace EngineCore
     public:
         IGPUTexture*  textureBuffer;
         TextureDesc textureDesc;
+    };
+```
+
+### File: `Runtime/Graphics/MeshUtils.h`
+```cpp
+namespace EngineCore
+{
+    class MeshUtils
+    {
+    public:
+        static void GetFullScreenQuad(Mesh* modelData);
+    private:
+
     };
 ```
 

@@ -47,7 +47,6 @@
 - `[5]` **Runtime/Renderer/RenderPath/IRenderPath.h**
 - `[3]` **Editor/EditorGUIManager.h**
 - `[3]` **Runtime/Graphics/Material.h**
-- `[3]` **Runtime/Graphics/ModelData.h**
 - `[3]` **Runtime/Scene/Scene.h**
 - `[2]` **Editor/EditorSettings.h**
 - `[2]` **Runtime/CoreAssert.h**
@@ -67,13 +66,14 @@
 - `[2]` **Runtime/GameObject/MonoBehaviour.h**
 - `[2]` **Runtime/GameObject/Transform.h**
 - `[2]` **Runtime/Graphics/ComputeShader.h**
+- `[2]` **Runtime/Graphics/GeometryManager.h**
 - `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/GPUSceneManager.h**
 - `[2]` **Runtime/Graphics/GPUTexture.h**
 - `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/MaterialInstance.h**
 - `[2]` **Runtime/Graphics/MaterialLayout.h**
-- `[2]` **Runtime/Graphics/ModelUtils.h**
+- `[2]` **Runtime/Graphics/Mesh.h**
 
 ## Evidence & Implementation Details
 
@@ -90,13 +90,8 @@ namespace EngineCore
 
         virtual void CompileShader(const string& path, Shader* shader) override;
         virtual void CompileComputeShader(const string& path, ComputeShader* csShader) override;
-        virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
-        virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
 
         inline TD3D12Fence* GetFrameFence() { return mFrameFence; };
-        // todo: maybe可以清理成模板。
-        //virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, uint32_t texInstanceID) override;
-        virtual void SetUpMesh(ModelData* data, bool isStatic = true) override;
         virtual IGPUTexture* CreateTextureBuffer(unsigned char* data, const TextureDesc& textureDesc) override;
         virtual IGPUTexture* CreateRenderTexture(const TextureDesc& textureDesc) override;
         
@@ -139,6 +134,11 @@ namespace EngineCore
         UINT mCurrBackBuffer = 0;
         static const int SwapChainBufferCount = 3;
         Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
+        // 给底层使用的具体资源
+        D3D12Texture mBackBuffer[SwapChainBufferCount];
+        // 一个壳，上层用，IGPUTexture = mBackBuffer
+        RenderTexture mBackBufferProxyRenderTexture;
+        D3D12Texture mBackBufferProxy;
 ```
 ...
 ```cpp
@@ -168,7 +168,6 @@ namespace EngineCore
         void InitRenderTarget();
 
         int GetNextVAOIndex();
-        TD3D12VAO& GetAvaliableModelDesc();
 
 
         Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
@@ -210,7 +209,8 @@ namespace EngineCore
         //unordered_map<uint32_t, TD3D12MaterialData> m_DataMap;
         vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
         ComPtr<ID3D12CommandSignature> mCommandSignature;
-        unordered_map<uint32_t, TD3D12VAO> VAOMap;
+
+        unordered_map<uint32_t, TD3D12ConstantBuffer> mGlobalConstantBufferMap;
 ```
 
 ### File: `Runtime/Platforms/D3D12/D3D12RootSignature.h`
@@ -268,11 +268,7 @@ namespace  EngineCore
         virtual void  CompileShader(const string& path, Shader* shader) = 0;
         virtual void  CompileComputeShader(const string& path, ComputeShader* csShader) = 0;
         
-        virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
-        virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) = 0;
 
-        //virtual void SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, uint32_t texInstanceID) = 0;
-        virtual void SetUpMesh(ModelData* data, bool isStatic = true) = 0;
         virtual IGPUTexture* CreateTextureBuffer(unsigned char* data, const TextureDesc& textureDesc) = 0;
         virtual IGPUTexture* CreateRenderTexture(const TextureDesc& textureDesc) = 0;
         
@@ -316,6 +312,10 @@ namespace  EngineCore
         virtual void WaitForGpuFinished() = 0;
     public:
         static std::unique_ptr<RenderAPI> s_Instance;
+    protected:
+        vector<RenderPassInfo> mRenderPassInfoList;
+    private:
+        virtual void SetGlobalDataImpl(uint32_t bufferID, uint32_t offset, uint32_t size, const void* value) = 0;
 ```
 
 ### File: `Runtime/Renderer/RenderCommand.h`
@@ -353,7 +353,7 @@ namespace  EngineCore
 
     struct Payload_DrawCommand 
     {
-        uint32_t vaoID;
+        Mesh* mesh;
         int count;
     };
 ```
@@ -363,7 +363,7 @@ namespace  EngineCore
 
     struct Payload_DrawInstancedCommand
     {
-        uint32_t vaoID;
+        Mesh* mesh;
         int count;
         uint32_t perDrawOffset;
         uint32_t perDrawStride;
@@ -608,7 +608,7 @@ struct CD3DX12_ROOT_DESCRIPTOR : public D3D12_ROOT_DESCRIPTOR
         void ResizeWindow(int width, int height);
         void OnDrawGUI();
         void SetPerDrawData(const PerDrawHandle& perDrawHandle);
-        void DrawIndexedInstanced(uint32_t vaoID, int count, const PerDrawHandle& perDrawHandle);
+        void DrawIndexedInstanced(Mesh* mesh, int count, const PerDrawHandle& perDrawHandle);
         void SetPerFrameData(UINT perFrameBufferID);
         void SetPerPassData(UINT perPassBufferID);
         
@@ -618,7 +618,7 @@ struct CD3DX12_ROOT_DESCRIPTOR : public D3D12_ROOT_DESCRIPTOR
 
         void ConfigureRenderTarget(const RenderPassInfo& passInfo);
 
-        void SetMeshData(uint32_t vaoID);
+        void SetMeshData(Mesh* meshFilter);
 
         void SetViewPort(const Vector2& viewportStartXY, const Vector2& viewportEndXY);
         // todo: complete this..

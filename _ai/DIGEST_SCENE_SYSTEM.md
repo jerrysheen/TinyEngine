@@ -19,6 +19,7 @@
 - `[49]` **Runtime/GameObject/Transform.h** *(Content Included)*
 - `[48]` **Runtime/Scene/Scene.h** *(Content Included)*
 - `[42]` **Runtime/GameObject/GameObject.h** *(Content Included)*
+- `[42]` **Runtime/Scene/BistroSceneLoader.h** *(Content Included)*
 - `[40]` **Runtime/GameObject/Component.h** *(Content Included)*
 - `[37]` **Runtime/GameObject/ComponentType.h** *(Content Included)*
 - `[35]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h** *(Content Included)*
@@ -33,7 +34,7 @@
 - `[13]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[11]` **Editor/Panel/EditorMainBar.h**
 - `[9]` **Editor/Panel/EditorInspectorPanel.h**
-- `[8]` **Runtime/Graphics/ModelData.h**
+- `[8]` **Runtime/Graphics/Mesh.h**
 - `[7]` **Editor/EditorGUIManager.h**
 - `[7]` **Editor/EditorSettings.h**
 - `[5]` **Runtime/EngineCore.h**
@@ -44,7 +45,7 @@
 - `[4]` **Runtime/Scripts/CameraController.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
 - `[3]` **Runtime/Core/PublicStruct.h**
-- `[3]` **Runtime/Graphics/ModelUtils.h**
+- `[3]` **Runtime/Graphics/MeshUtils.h**
 - `[3]` **Runtime/Renderer/Culling.h**
 - `[3]` **Runtime/Renderer/RenderContext.h**
 - `[3]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
@@ -56,6 +57,7 @@
 - `[2]` **Runtime/Core/Profiler.h**
 - `[2]` **Runtime/Core/PublicEnum.h**
 - `[2]` **Runtime/Graphics/ComputeShader.h**
+- `[2]` **Runtime/Graphics/GeometryManager.h**
 - `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/GPUTexture.h**
 - `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
@@ -72,8 +74,6 @@
 - `[2]` **Runtime/Math/Math.h**
 - `[2]` **Runtime/Math/Matrix4x4.h**
 - `[2]` **Runtime/Math/Plane.h**
-- `[2]` **Runtime/Math/Quaternion.h**
-- `[2]` **Runtime/Math/Vector2.h**
 
 ## Evidence & Implementation Details
 
@@ -113,7 +113,7 @@ namespace EngineCore
         // todo： 这部分数据也要找地方存， maybe一个Global的渲染处
 
         Material* blitMaterial;
-        ModelData* quadMesh;
+        Mesh* quadMesh;
         ResourceHandle<Shader> blitShader;
         ResourceHandle<Texture> testTexture;
 
@@ -158,7 +158,7 @@ namespace EngineCore
         void TryFreeRenderProxyBlock(uint32_t index);
         void TryCreateRenderProxyBlock(uint32_t index);
         BufferAllocation LagacyRenderPathUploadBatch(void *data, uint32_t size);
-
+        void FlushBatchUploads();
         void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
         void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);
 
@@ -179,6 +179,7 @@ namespace EngineCore
         ResourceHandle<ComputeShader> GPUCullingShaderHandler;
     private:
         static GPUSceneManager* sInstance; 
+        vector<CopyOp> mPendingBatchCopies;
     };
 ```
 
@@ -264,7 +265,7 @@ namespace EngineCore
     struct RenderSceneData
     {
         vector<MeshRenderer*> meshRendererList;
-        vector<uint32_t> vaoIDList;
+        vector<MeshFilter*> meshFilterList;
         vector<AABB> aabbList;
         vector<Matrix4x4> objectToWorldMatrixList;
         vector<uint32_t> layerList;
@@ -283,11 +284,11 @@ namespace EngineCore
                 auto* meshFilter = renderer->gameObject->GetComponent<MeshFilter>();
                 if(meshFilter != nullptr)
                 {
-                    vaoIDList[index] = meshFilter->mMeshHandle.Get()->GetInstanceID();
+                    meshFilterList[index] = meshFilter;
                 }
                 else
                 {
-                    vaoIDList[index] = UINT32_MAX;
+                    meshFilterList[index] = nullptr;
                 }
             }
         }
@@ -295,7 +296,7 @@ namespace EngineCore
         inline void PushNewData() 
         {
             meshRendererList.emplace_back();
-            vaoIDList.emplace_back();
+            meshFilterList.emplace_back();
             aabbList.emplace_back();
             objectToWorldMatrixList.emplace_back();
             layerList.emplace_back();
@@ -305,7 +306,7 @@ namespace EngineCore
         inline void DeleteData(uint32_t index)
         {
             meshRendererList[index] = nullptr;
-            vaoIDList[index] = UINT32_MAX;
+            meshFilterList[index] = nullptr;
 
             // 后续删除RenderProxy
         }
@@ -412,6 +413,27 @@ namespace EngineCore
     };
 ```
 
+### File: `Runtime/Scene/BistroSceneLoader.h`
+```cpp
+
+namespace EngineCore {
+    class GameObject;
+    class Scene;
+
+    class BistroSceneLoader {
+    public:
+        static Scene* Load(const std::string& path);
+        static ResourceHandle<Material> commonMatHandle;
+        
+    private:
+        Scene* LoadInternal(const std::string& path);
+        void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
+        void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
+
+        std::map<int, std::vector<ResourceHandle<Mesh>>> m_MeshCache;
+    };
+```
+
 ### File: `Runtime/GameObject/Component.h`
 ```cpp
     using json = nlohmann::json;
@@ -480,11 +502,11 @@ namespace EngineCore
                 
                 desc.debugName = L"IndirectDrawArgsBuffer";
                 desc.memoryType = BufferMemoryType::Default;
-                desc.size = sizeof(DrawIndirectArgs) * 100;
+                desc.size = sizeof(DrawIndirectArgs) * 3000;
                 desc.stride = sizeof(DrawIndirectArgs);
                 desc.usage = BufferUsage::StructuredBuffer;
                 indirectDrawArgsBuffer = new GPUBufferAllocator(desc);
-                indirectDrawArgsAlloc = indirectDrawArgsBuffer->Allocate(sizeof(DrawIndirectArgs) * 100);
+                indirectDrawArgsAlloc = indirectDrawArgsBuffer->Allocate(sizeof(DrawIndirectArgs) * 3000);
             }
 
             //todo:

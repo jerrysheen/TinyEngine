@@ -15,51 +15,55 @@
 
 ## Key Files Index
 - `[51]` **Runtime/Serialization/MetaData.h** *(Content Included)*
+- `[49]` **Runtime/Serialization/MetaLoader.h** *(Content Included)*
 - `[48]` **Runtime/Serialization/AssetSerialization.h** *(Content Included)*
-- `[47]` **Runtime/Serialization/MetaLoader.h** *(Content Included)*
 - `[42]` **Runtime/Resources/Asset.h** *(Content Included)*
 - `[41]` **Runtime/Graphics/Material.h** *(Content Included)*
 - `[39]` **Assets/Shader/SimpleTestShader.hlsl** *(Content Included)*
 - `[38]` **Runtime/Serialization/MetaFactory.h** *(Content Included)*
 - `[36]` **Assets/Shader/BlitShader.hlsl** *(Content Included)*
 - `[35]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
+- `[33]` **Runtime/Graphics/Mesh.h** *(Content Included)*
 - `[33]` **Assets/Shader/include/Core.hlsl** *(Content Included)*
 - `[32]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
 - `[30]` **Runtime/Graphics/Shader.h** *(Content Included)*
-- `[30]` **Runtime/Serialization/BaseTypeSerialization.h** *(Content Included)*
+- `[30]` **Runtime/Serialization/BaseTypeSerialization.h**
 - `[29]` **Runtime/Graphics/MaterialInstance.h**
 - `[29]` **Runtime/Graphics/Texture.h**
+- `[29]` **Assets/Shader/StandardPBR.hlsl**
+- `[28]` **Editor/Panel/EditorMainBar.h**
 - `[27]` **Runtime/GameObject/MeshFilter.h**
+- `[27]` **Runtime/Graphics/MeshUtils.h**
 - `[27]` **Runtime/Graphics/RenderTexture.h**
 - `[27]` **Runtime/Resources/ResourceManager.h**
 - `[27]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[27]` **Runtime/Platforms/D3D12/D3D12Texture.h**
 - `[26]` **Runtime/Graphics/ComputeShader.h**
 - `[25]` **Runtime/Graphics/GPUTexture.h**
-- `[25]` **Editor/Panel/EditorMainBar.h**
 - `[22]` **Runtime/Core/PublicStruct.h**
+- `[22]` **Runtime/Renderer/RenderCommand.h**
 - `[22]` **Runtime/Resources/Resource.h**
 - `[20]` **Assets/Shader/GPUCulling.hlsl**
 - `[19]` **Runtime/Renderer/RenderAPI.h**
 - `[19]` **Runtime/Serialization/JsonSerializer.h**
-- `[18]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
-- `[17]` **Runtime/Renderer/RenderCommand.h**
 - `[17]` **Runtime/Resources/ResourceHandle.h**
-- `[15]` **Runtime/Scene/SceneManager.h**
+- `[17]` **Runtime/Scene/SceneManager.h**
+- `[16]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
+- `[14]` **Runtime/Renderer/Renderer.h**
+- `[13]` **Runtime/Renderer/RenderStruct.h**
 - `[12]` **Runtime/Serialization/ComponentFactory.h**
 - `[12]` **Runtime/Platforms/D3D12/d3dx12.h**
-- `[11]` **Runtime/Graphics/ModelData.h**
 - `[11]` **Runtime/Renderer/BatchManager.h**
 - `[11]` **Runtime/Scene/Scene.h**
 - `[11]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
 - `[10]` **Runtime/Graphics/GPUSceneManager.h**
 - `[10]` **Runtime/Graphics/IGPUResource.h**
-- `[10]` **Runtime/Renderer/Renderer.h**
-- `[10]` **Runtime/Renderer/RenderStruct.h**
+- `[10]` **Runtime/Renderer/RenderSorter.h**
 - `[10]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
+- `[9]` **Runtime/Scene/BistroSceneLoader.h**
 - `[8]` **Runtime/Core/PublicEnum.h**
 - `[8]` **Runtime/GameObject/Camera.h**
-- `[7]` **Runtime/Renderer/RenderSorter.h**
+- `[7]` **Runtime/Graphics/GeometryManager.h**
 - `[7]` **Runtime/Settings/ProjectSettings.h**
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[5]` **premake5.lua**
@@ -68,12 +72,8 @@
 - `[5]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
 - `[4]` **Runtime/GameObject/ComponentType.h**
 - `[4]` **Runtime/GameObject/GameObject.h**
-- `[4]` **Runtime/Graphics/ModelUtils.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12PSO.h**
-- `[3]` **Runtime/Utils/HashCombine.h**
-- `[3]` **Runtime/Platforms/D3D12/D3D12Struct.h**
-- `[2]` **Editor/EditorGUIManager.h**
 
 ## Evidence & Implementation Details
 
@@ -82,7 +82,6 @@
 {
 
     class Texture;
-    class ModelData;
     class Material;
     struct MetaData
     {
@@ -108,6 +107,47 @@
         unordered_map<string, Matrix4x4> matrix4x4Data;
         // 无意义的Texture*，只是为了和MaterialData做方便的同步而已。
         unordered_map<string, Texture*> textureData;
+    };
+```
+
+### File: `Runtime/Serialization/MetaLoader.h`
+```cpp
+namespace EngineCore
+{
+    class MetaLoader
+    {
+    public:
+        static MaterialMetaData* LoadMaterialMetaData(const std::string& path);
+        static ShaderVariableType GetShaderVaribleType(uint32_t size);
+        static TextureMetaData* LoadTextureMetaData(const std::string& path);
+        static ModelMetaData* LoadModelMetaData(const std::string& path);
+        template<typename T>
+        static MetaData* LoadMetaData(const std::string& path)
+        {
+            MetaData* metaData = new MetaData();
+            metaData->path = path;
+            return metaData;
+            // do nothing, for example shader..
+        };
+
+        
+
+        template<typename T>
+        static T* LoadMeta(const std::string& path)
+        {
+            std::ifstream file(path);
+            
+            if(!file.is_open())
+            {
+                throw std::runtime_error("Can't open Meta File" + path);
+            }
+
+            json j = json::parse(file);
+            file.close();
+            
+            return j.get<T>();
+        }
+
     };
 ```
 
@@ -173,47 +213,6 @@ namespace EngineCore
                 {"Matrix4x4Data", v.matrix4x4Data}
             };
     }
-```
-
-### File: `Runtime/Serialization/MetaLoader.h`
-```cpp
-namespace EngineCore
-{
-    class MetaLoader
-    {
-    public:
-        static MaterialMetaData* LoadMaterialMetaData(const std::string& path);
-        static ShaderVariableType GetShaderVaribleType(uint32_t size);
-        static TextureMetaData* LoadTextureMetaData(const std::string& path);
-        static ModelMetaData* LoadModelMetaData(const std::string& path);
-        template<typename T>
-        static MetaData* LoadMetaData(const std::string& path)
-        {
-            MetaData* metaData = new MetaData();
-            metaData->path = path;
-            return metaData;
-            // do nothing, for example shader..
-        };
-
-        
-
-        template<typename T>
-        static T* LoadMeta(const std::string& path)
-        {
-            std::ifstream file(path);
-            
-            if(!file.is_open())
-            {
-                throw std::runtime_error("Can't open Meta File" + path);
-            }
-
-            json j = json::parse(file);
-            file.close();
-            
-            return j.get<T>();
-        }
-
-    };
 ```
 
 ### File: `Runtime/Resources/Asset.h`
@@ -476,6 +475,51 @@ namespace EngineCore
         {
 ```
 
+### File: `Runtime/Graphics/Mesh.h`
+```cpp
+    };
+
+    struct MeshBufferAllocation
+    {
+        IGPUBuffer* buffer = nullptr;
+        // 当前数据开始位置， 可以直接绑定
+        uint64_t gpuAddress = 0;
+        uint64_t offset =0;
+        uint64_t size = 0;
+        uint32_t stride = 0;
+        bool isValid = false;
+        struct MeshBufferAllocation() = default;
+        struct MeshBufferAllocation(IGPUBuffer* buffer, uint64_t gpuAddress, uint64_t offset, uint64_t size, uint64_t stride)
+            :buffer(buffer), gpuAddress(gpuAddress), offset(offset), size(size), stride(stride)
+        {
+            isValid = true;
+        }
+    };
+```
+...
+```cpp
+
+        Mesh() = default;
+        Mesh(MetaData* metaData);
+        Mesh(Primitive primitiveType);
+        MeshBufferAllocation* vertexAllocation;
+        MeshBufferAllocation* indexAllocation;
+        void UploadMeshToGPU();
+
+        AABB bounds;
+        std::vector<Vertex> vertex;
+        std::vector<int> index;
+        std::vector<InputLayout> layout;
+    private:
+        void ProcessNode(aiNode* node, const aiScene* scene);
+        void LoadAiMesh(const string& path);
+        void ProcessMesh(aiMesh* aiMesh, const aiScene* scene);
+
+    };
+
+}
+```
+
 ### File: `Assets/Shader/include/Core.hlsl`
 ```hlsl
 #define CORE_HLSLI
@@ -558,13 +602,16 @@ namespace EngineCore
         AABB worldBounds;
         uint32_t sceneRenderNodeIndex = UINT32_MAX;
         bool materialDirty = true;
-        
+		
+        void TryAddtoBatchManager();
         uint32_t renderLayer = 1;
     private:
         ResourceHandle<Material> mShardMatHandler;
         ResourceHandle<Material> mInstanceMatHandler;
 
     };
+
+}
 ```
 
 ### File: `Runtime/Graphics/Shader.h`
@@ -582,68 +629,4 @@ namespace EngineCore
         ~Shader();
         string name;
     };
-```
-
-### File: `Runtime/Serialization/BaseTypeSerialization.h`
-```cpp
-#include "Graphics/IGPUResource.h"
-
-namespace EngineCore
-{
-    // // Vector3
-    using json = nlohmann::json;
-    inline void to_json(json& j, const Vector3& v)
-    {
-        j = json{ {"x", v.x}, {"y", v.y}, {"z", v.z} };
-    }
-
-    inline void from_json(const json& j, EngineCore::Vector3& v)
-    {
-        j.at("x").get_to(v.x);
-        j.at("y").get_to(v.y);
-        j.at("z").get_to(v.z);
-    }
-
-    //vector2
-    inline void to_json(json& j, const EngineCore::Vector2& v)
-    {
-        j = json{ {"x", v.x}, {"y", v.y}};
-    }
-
-    inline void from_json(const json& j, EngineCore::Vector2& v)
-    {
-        j.at("x").get_to(v.x);
-        j.at("y").get_to(v.y);
-    }
-
-    // Matrix4x4
-    inline void to_json(json& j, const EngineCore::Matrix4x4& m)
-    {
-        j = json{
-            {"m00", m.m00}, {"m01", m.m01}, {"m02", m.m02},{"m03", m.m03},
-            {"m10", m.m10}, {"m11", m.m11}, {"m12", m.m12}, {"m13", m.m13},
-            {"m20", m.m20}, {"m21", m.m21}, {"m22", m.m22}, {"m23", m.m23},
-            {"m30", m.m30}, {"m31", m.m31}, {"m32", m.m32}, {"m33", m.m33}
-        };
-    }
-
-    inline void from_json(const json& j, EngineCore::Matrix4x4& m)
-    {
-        j.at("m00").get_to(m.m00); j.at("m01").get_to(m.m01); j.at("m02").get_to(m.m02); j.at("m03").get_to(m.m03);
-        j.at("m10").get_to(m.m10); j.at("m11").get_to(m.m11); j.at("m12").get_to(m.m12); j.at("m13").get_to(m.m13);
-        j.at("m20").get_to(m.m20); j.at("m21").get_to(m.m21); j.at("m22").get_to(m.m22); j.at("m23").get_to(m.m23);
-        j.at("m30").get_to(m.m30); j.at("m31").get_to(m.m31); j.at("m32").get_to(m.m32); j.at("m33").get_to(m.m33);
-    }
-
-    // Quaternion
-    inline void to_json(json& j, const EngineCore::Quaternion& m)
-    {
-        j = json{
-            {"x", m.x},
-            {"y", m.y},
-            {"z", m.z},
-            {"w", m.w},
-        };
-    }
-
 ```

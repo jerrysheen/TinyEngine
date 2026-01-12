@@ -49,6 +49,7 @@
 - `[2]` **Runtime/GameObject/MonoBehaviour.h**
 - `[2]` **Runtime/GameObject/Transform.h**
 - `[2]` **Runtime/Graphics/ComputeShader.h**
+- `[2]` **Runtime/Graphics/GeometryManager.h**
 - `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/GPUSceneManager.h**
 - `[2]` **Runtime/Graphics/GPUTexture.h**
@@ -57,8 +58,8 @@
 - `[2]` **Runtime/Graphics/Material.h**
 - `[2]` **Runtime/Graphics/MaterialInstance.h**
 - `[2]` **Runtime/Graphics/MaterialLayout.h**
-- `[2]` **Runtime/Graphics/ModelData.h**
-- `[2]` **Runtime/Graphics/ModelUtils.h**
+- `[2]` **Runtime/Graphics/Mesh.h**
+- `[2]` **Runtime/Graphics/MeshUtils.h**
 - `[2]` **Runtime/Graphics/RenderTexture.h**
 - `[2]` **Runtime/Graphics/Shader.h**
 - `[2]` **Runtime/Graphics/Texture.h**
@@ -73,7 +74,6 @@
 - `[2]` **Runtime/Math/Vector2.h**
 - `[2]` **Runtime/Math/Vector3.h**
 - `[2]` **Runtime/Math/Vector4.h**
-- `[2]` **Runtime/Renderer/BatchManager.h**
 
 ## Evidence & Implementation Details
 
@@ -360,7 +360,7 @@ namespace EngineEditor
     using AssetType = EngineCore::AssetType;
     using Material = EngineCore::Material;
     using Shader = EngineCore::Shader;
-    using ModelData = EngineCore::ModelData;
+    using Mesh = EngineCore::Mesh;
     using Texture = EngineCore::Texture;
     //using MaterialMetaData = EngineCore::MaterialMetaData;
     using TextureMetaData = EngineCore::TextureMetaData;

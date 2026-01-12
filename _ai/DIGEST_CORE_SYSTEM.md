@@ -46,16 +46,16 @@
 - `[9]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[8]` **Runtime/Graphics/GPUSceneManager.h**
 - `[8]` **Runtime/Renderer/Renderer.h**
-- `[8]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
+- `[7]` **Runtime/Graphics/GeometryManager.h**
 - `[7]` **Runtime/Renderer/RenderCommand.h**
 - `[7]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
+- `[7]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[6]` **Runtime/Resources/Resource.h**
 - `[6]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[5]` **premake5.lua**
 - `[5]` **Runtime/Resources/Asset.h**
 - `[5]` **Runtime/Platforms/D3D12/D3D12Struct.h**
 - `[5]` **Runtime/Platforms/D3D12/d3dUtil.h**
-- `[4]` **Runtime/Renderer/RenderAPI.h**
 - `[4]` **Editor/D3D12/D3D12EditorGUIManager.h**
 - `[3]` **Runtime/PreCompiledHeader.h**
 - `[3]` **Runtime/GameObject/Camera.h**
@@ -63,17 +63,17 @@
 - `[3]` **Runtime/Graphics/ComputeShader.h**
 - `[3]` **Runtime/Graphics/Material.h**
 - `[3]` **Runtime/Graphics/MaterialLayout.h**
-- `[3]` **Runtime/Graphics/ModelData.h**
 - `[3]` **Runtime/Graphics/Shader.h**
 - `[3]` **Runtime/Renderer/BatchManager.h**
+- `[3]` **Runtime/Renderer/RenderAPI.h**
 - `[3]` **Runtime/Renderer/RenderContext.h**
 - `[3]` **Runtime/Renderer/RenderSorter.h**
-- `[3]` **Runtime/Scene/Scene.h**
 - `[3]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h**
 - `[3]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
 - `[3]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h**
 - `[3]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
 - `[3]` **Assets/Shader/SimpleTestShader.hlsl**
+- `[3]` **Assets/Shader/StandardPBR.hlsl**
 
 ## Evidence & Implementation Details
 
@@ -215,29 +215,8 @@ namespace EngineCore
 
 namespace EngineCore
 {
-    // 用来描述model Input 或者 shader reflection input
-    // todos: shader inputlayout 部分的控制， 目前只是简单把值塞过来
-    struct InputLayout
-    {
-        VertexAttribute type;
-        int size;
-        int dimension;
-        int stride;
-        int offset;
-        InputLayout(VertexAttribute _type, int _size, int _dimension, int _stride, int _offset)
-        {
-            type = _type; size = _size; dimension = _dimension; stride = _stride; offset = _offset;
-        };
-        InputLayout() = default;
-        InputLayout(VertexAttribute type) : type(type) {};
-    };
 
-    struct Vertex
-    {
-        Vector3 position;
-        Vector3 normal;
-        Vector2 uv;
-    };
+
 
     // constantbuffer中的变量记录
     struct ShaderConstantInfo
@@ -271,26 +250,30 @@ namespace EngineCore
 
         // todo: 确定这个地方是用vector还是直接单个对象
         ShaderStageType type;
-```
-...
-```cpp
+        vector<ShaderBindingInfo > mConstantBufferInfo;
+        vector<ShaderBindingInfo > mTextureInfo;
+        vector<ShaderBindingInfo > mSamplerInfo;
         vector<ShaderBindingInfo > mUavInfo;
 
         ShaderReflectionInfo(){};
-```
-...
-```cpp
+
+
+        // 定义偏移量常量 (方便修改)
+        static const int BIT_OFFSET_CBV = 0;
+        static const int BIT_OFFSET_SRV = 16;
+        static const int BIT_OFFSET_UAV = 48;
+        static const int BIT_OFFSET_SAMPLER = 56;
     };
 
     struct LightData
     {
 
     };
+
+
 ```
 ...
 ```cpp
-
-    // 前向声明，防止循环引用。
     class Transform;
     class MeshRenderer;
     class MeshFilter;
@@ -300,7 +283,7 @@ namespace EngineCore
         // 为了测试，先用直接塞数据的方式。
         uint64_t sortingKey = 0;
         MeshRenderer* meshRenderer;
-        uint32_t vaoID;
+        MeshFilter* meshFilter;
         float distanToCamera = 0;
     };
 ```
@@ -311,15 +294,39 @@ namespace EngineCore
     struct DrawRecord
     {
         Material* mat;
-        uint32_t vaoID;
+        Mesh* mesh;
 
         PerDrawHandle perDrawHandle;
         uint32_t instanceCount = 1;
 
-        DrawRecord(Material* mat, uint32_t vaoID)
-            :mat(mat), vaoID(vaoID), perDrawHandle{0,0}, instanceCount(1) {}
-        DrawRecord(Material* mat, uint32_t vaoID, const PerDrawHandle& handle, uint32_t instCount = 1)
-            :mat(mat), vaoID(vaoID), perDrawHandle(handle), instanceCount(instCount){}
+        DrawRecord(Material* mat, Mesh* mesh)
+            :mat(mat), mesh(mesh), perDrawHandle{0,0}, instanceCount(1) {}
+        DrawRecord(Material* mat, Mesh* mesh, const PerDrawHandle& handle, uint32_t instCount = 1)
+            :mat(mat), mesh(mesh), perDrawHandle(handle), instanceCount(instCount){}
+    };
+```
+...
+```cpp
+    };
+
+    class RenderPass;
+    struct RenderPassAsset
+    {
+        vector<RenderPass*> renderPasses;
+        inline void Clear()
+        {
+             for (RenderPass* pass : renderPasses) 
+                delete pass;
+        };
+    };
+```
+...
+```cpp
+    };
+
+    struct ContextFilterSettings
+    {
+
     };
 ```
 
@@ -604,7 +611,6 @@ namespace EngineCore
 {
 
     class Texture;
-    class ModelData;
     class Material;
     struct MetaData
     {
@@ -649,7 +655,7 @@ namespace EngineCore
 
 ### File: `Runtime/Serialization/MetaLoader.h`
 ```cpp
-#include "MetaData.h"
+#include "Graphics/Mesh.h"
 
 namespace EngineCore
 {
@@ -693,7 +699,7 @@ namespace EngineCore
     MetaData* MetaLoader::LoadMetaData<Texture>(const std::string& path);
     
     template<>
-    MetaData* MetaLoader::LoadMetaData<ModelData>(const std::string& path);
+    MetaData* MetaLoader::LoadMetaData<Mesh>(const std::string& path);
 
     template<>
     MetaData* MetaLoader::LoadMetaData<Material>(const std::string& path);

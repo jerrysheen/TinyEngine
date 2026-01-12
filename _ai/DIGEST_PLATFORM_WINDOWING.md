@@ -29,7 +29,7 @@
 - `[22]` **Runtime/Platforms/D3D12/d3dx12.h** *(Content Included)*
 - `[9]` **Runtime/PreCompiledHeader.h**
 - `[7]` **Editor/EditorSettings.h**
-- `[7]` **Runtime/Core/PublicStruct.h**
+- `[7]` **Runtime/Graphics/Mesh.h**
 - `[6]` **Runtime/Renderer/RenderCommand.h**
 - `[5]` **premake5.lua**
 - `[5]` **Runtime/Renderer/RenderAPI.h**
@@ -38,11 +38,11 @@
 - `[5]` **Assets/Shader/BlitShader.hlsl**
 - `[5]` **Assets/Shader/GPUCulling.hlsl**
 - `[5]` **Assets/Shader/SimpleTestShader.hlsl**
+- `[5]` **Assets/Shader/StandardPBR.hlsl**
 - `[4]` **Runtime/Graphics/Shader.h**
 - `[4]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[4]` **Editor/D3D12/D3D12EditorGUIManager.h**
 - `[3]` **Runtime/EngineCore.h**
-- `[3]` **Runtime/Graphics/ModelData.h**
 - `[2]` **Editor/EditorGUIManager.h**
 - `[2]` **Runtime/CoreAssert.h**
 - `[2]` **Runtime/Core/Game.h**
@@ -50,6 +50,7 @@
 - `[2]` **Runtime/Core/Object.h**
 - `[2]` **Runtime/Core/Profiler.h**
 - `[2]` **Runtime/Core/PublicEnum.h**
+- `[2]` **Runtime/Core/PublicStruct.h**
 - `[2]` **Runtime/GameObject/Camera.h**
 - `[2]` **Runtime/GameObject/Component.h**
 - `[2]` **Runtime/GameObject/ComponentType.h**
@@ -59,6 +60,7 @@
 - `[2]` **Runtime/GameObject/MonoBehaviour.h**
 - `[2]` **Runtime/GameObject/Transform.h**
 - `[2]` **Runtime/Graphics/ComputeShader.h**
+- `[2]` **Runtime/Graphics/GeometryManager.h**
 - `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/GPUSceneManager.h**
 - `[2]` **Runtime/Graphics/GPUTexture.h**
@@ -67,13 +69,11 @@
 - `[2]` **Runtime/Graphics/Material.h**
 - `[2]` **Runtime/Graphics/MaterialInstance.h**
 - `[2]` **Runtime/Graphics/MaterialLayout.h**
-- `[2]` **Runtime/Graphics/ModelUtils.h**
+- `[2]` **Runtime/Graphics/MeshUtils.h**
 - `[2]` **Runtime/Graphics/RenderTexture.h**
 - `[2]` **Runtime/Graphics/Texture.h**
 - `[2]` **Runtime/Managers/Manager.h**
 - `[2]` **Runtime/Math/AABB.h**
-- `[2]` **Runtime/Math/Frustum.h**
-- `[2]` **Runtime/Math/Math.h**
 
 ## Evidence & Implementation Details
 
@@ -135,15 +135,6 @@ namespace EngineCore
 
         D3D12RenderAPI();
         ~D3D12RenderAPI(){};
-```
-...
-```cpp
-        virtual void CompileShader(const string& path, Shader* shader) override;
-        virtual void CompileComputeShader(const string& path, ComputeShader* csShader) override;
-        virtual void CreateMaterialTextureSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
-        virtual void CreateMaterialUAVSlots(const Material* mat, const vector<ShaderBindingInfo >& resourceInfos) override;
-
-        inline TD3D12Fence* GetFrameFence() { return mFrameFence; };
 ```
 ...
 ```cpp
@@ -223,7 +214,6 @@ namespace EngineCore
         void InitRenderTarget();
 
         int GetNextVAOIndex();
-        TD3D12VAO& GetAvaliableModelDesc();
 
 
         Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
@@ -265,7 +255,8 @@ namespace EngineCore
         //unordered_map<uint32_t, TD3D12MaterialData> m_DataMap;
         vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
         ComPtr<ID3D12CommandSignature> mCommandSignature;
-        unordered_map<uint32_t, TD3D12VAO> VAOMap;
+
+        unordered_map<uint32_t, TD3D12ConstantBuffer> mGlobalConstantBufferMap;
 ```
 
 ### File: `Runtime/Platforms/D3D12/D3D12Struct.h`
@@ -285,14 +276,6 @@ namespace EngineCore
         DescriptorHandle handleCBV = {};
         int registerSlot = 0;
         TD3D12ConstantBuffer(){};
-    };
-
-    struct TD3D12VAO
-    {
-        Microsoft::WRL::ComPtr<ID3D12Resource> VertexBuffer = nullptr;
-	    Microsoft::WRL::ComPtr<ID3D12Resource> IndexBuffer = nullptr;
-        D3D12_VERTEX_BUFFER_VIEW vertexBufferView;
-        D3D12_INDEX_BUFFER_VIEW indexBufferView;
     };
 
     struct TD3D12Fence

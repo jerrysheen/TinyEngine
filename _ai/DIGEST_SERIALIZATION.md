@@ -10,42 +10,43 @@
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
 
 ## Key Files Index
-- `[35]` **Runtime/Serialization/MetaLoader.h** *(Content Included)*
+- `[34]` **Runtime/Serialization/MetaLoader.h** *(Content Included)*
 - `[33]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
 - `[31]` **Runtime/Graphics/Material.h** *(Content Included)*
 - `[31]` **Runtime/Serialization/AssetSerialization.h** *(Content Included)*
-- `[31]` **Runtime/Serialization/MetaData.h** *(Content Included)*
-- `[30]` **Runtime/GameObject/MeshFilter.h** *(Content Included)*
-- `[30]` **Runtime/Graphics/ModelData.h** *(Content Included)*
+- `[30]` **Runtime/Serialization/MetaData.h** *(Content Included)*
+- `[28]` **Runtime/GameObject/MeshFilter.h** *(Content Included)*
 - `[27]` **Runtime/Graphics/MaterialInstance.h** *(Content Included)*
 - `[27]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
 - `[27]` **Runtime/Serialization/MetaFactory.h** *(Content Included)*
 - `[25]` **Runtime/Serialization/JsonSerializer.h** *(Content Included)*
 - `[24]` **Runtime/Serialization/BaseTypeSerialization.h** *(Content Included)*
 - `[24]` **Runtime/Serialization/ComponentFactory.h** *(Content Included)*
-- `[16]` **Runtime/Renderer/BatchManager.h**
-- `[16]` **Editor/Panel/EditorMainBar.h**
-- `[15]` **Runtime/Scene/Scene.h**
+- `[16]` **Runtime/Renderer/BatchManager.h** *(Content Included)*
+- `[16]` **Runtime/Scene/Scene.h**
 - `[14]` **Runtime/Resources/ResourceManager.h**
-- `[10]` **Runtime/Renderer/RenderAPI.h**
-- `[9]` **Runtime/Core/PublicStruct.h**
+- `[13]` **Editor/Panel/EditorMainBar.h**
+- `[11]` **Runtime/Core/PublicStruct.h**
+- `[8]` **Runtime/Renderer/RenderAPI.h**
 - `[8]` **Runtime/Renderer/Renderer.h**
-- `[8]` **Runtime/Renderer/RenderStruct.h**
-- `[8]` **Runtime/Scene/SceneManager.h**
-- `[8]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[7]` **Runtime/Graphics/GPUSceneManager.h**
 - `[7]` **Runtime/Renderer/RenderCommand.h**
+- `[7]` **Runtime/Renderer/RenderStruct.h**
 - `[7]` **Runtime/Resources/Resource.h**
-- `[6]` **Runtime/Graphics/ModelUtils.h**
+- `[7]` **Runtime/Scene/SceneManager.h**
+- `[6]` **Runtime/Scene/BistroSceneLoader.h**
+- `[6]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
+- `[5]` **Runtime/Graphics/Mesh.h**
+- `[5]` **Runtime/Renderer/RenderSorter.h**
 - `[5]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
 - `[5]` **Assets/Shader/include/Core.hlsl**
 - `[4]` **Runtime/GameObject/ComponentType.h**
 - `[4]` **Runtime/GameObject/GameObject.h**
 - `[4]` **Runtime/Graphics/Shader.h**
 - `[4]` **Runtime/Graphics/Texture.h**
-- `[4]` **Runtime/Renderer/RenderSorter.h**
 - `[3]` **Runtime/GameObject/Camera.h**
 - `[3]` **Runtime/GameObject/Transform.h**
+- `[3]` **Runtime/Graphics/MeshUtils.h**
 - `[3]` **Runtime/Resources/Asset.h**
 - `[3]` **Runtime/Platforms/D3D12/D3D12Struct.h**
 - `[2]` **Editor/EditorGUIManager.h**
@@ -61,6 +62,7 @@
 - `[2]` **Runtime/GameObject/Component.h**
 - `[2]` **Runtime/GameObject/MonoBehaviour.h**
 - `[2]` **Runtime/Graphics/ComputeShader.h**
+- `[2]` **Runtime/Graphics/GeometryManager.h**
 - `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/GPUTexture.h**
 - `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
@@ -68,8 +70,6 @@
 - `[2]` **Runtime/Graphics/RenderTexture.h**
 - `[2]` **Runtime/Managers/Manager.h**
 - `[2]` **Runtime/Managers/WindowManager.h**
-- `[2]` **Runtime/Math/AABB.h**
-- `[2]` **Runtime/Math/Frustum.h**
 
 ## Evidence & Implementation Details
 
@@ -161,13 +161,16 @@ namespace EngineCore
         AABB worldBounds;
         uint32_t sceneRenderNodeIndex = UINT32_MAX;
         bool materialDirty = true;
-        
+		
+        void TryAddtoBatchManager();
         uint32_t renderLayer = 1;
     private:
         ResourceHandle<Material> mShardMatHandler;
         ResourceHandle<Material> mInstanceMatHandler;
 
     };
+
+}
 ```
 
 ### File: `Runtime/Graphics/Material.h`
@@ -299,7 +302,6 @@ namespace EngineCore
 ```cpp
 
     class Texture;
-    class ModelData;
     class Material;
     struct MetaData
     {
@@ -342,7 +344,7 @@ namespace EngineCore
         static ComponentType GetStaticType() { return ComponentType::MeshFilter; };
         virtual ComponentType GetType() const override{ return ComponentType::MeshFilter; };
     public:
-        ResourceHandle<ModelData> mMeshHandle;
+        ResourceHandle<Mesh> mMeshHandle;
         
         virtual const char* GetScriptName() const override { return "MeshFilter"; }
         virtual json SerializedFields() const override {
@@ -359,28 +361,6 @@ namespace EngineCore
         }
     private:
         uint32_t hash;
-    };
-```
-
-### File: `Runtime/Graphics/ModelData.h`
-```cpp
-{
-    ModelData* GetFullScreenQuad();
-    class ModelData : public Resource
-    {
-    public:
-        // todo: 先这么写，后续或许抽成单独Component
-        AABB bounds;
-        std::vector<Vertex> vertex;
-        std::vector<int> index;
-        std::vector<InputLayout> layout;
-        ModelData() = default;
-        ModelData(MetaData* metaData);
-        ModelData(Primitive primitiveType);
-    private:
-        void ProcessNode(aiNode* node, const aiScene* scene);
-        void LoadAiMesh(const string& path);
-        void ProcessMesh(aiMesh* aiMesh, const aiScene* scene);
     };
 ```
 
@@ -710,4 +690,37 @@ namespace EngineCore
                     }); \
             } \
         } ComponentClass##_instance; \
+```
+
+### File: `Runtime/Renderer/BatchManager.h`
+```cpp
+        Mesh* mesh;
+        DrawIndirectContext() = default;
+        DrawIndirectContext(Material* mat, Mesh* mesh): material(mat), mesh(mesh){}
+```
+...
+```cpp
+        }
+
+        void TryAddBatchCount(MeshRenderer* meshRenderer);
+        void TryDecreaseBatchCount(MeshRenderer* meshRenderer);
+
+        void TryAddBatchCount(MeshFilter* meshFilter);
+        void TryDecreaseBatchCount(MeshFilter* meshFilter);
+        static std::unordered_map<uint64_t, int> BatchMap;
+        static std::unordered_map<uint64_t, DrawIndirectParam> drawIndirectParamMap;
+        static std::unordered_map<uint64_t, DrawIndirectContext> drawIndirectContextMap;
+
+        std::vector<RenderProxy> GetAvaliableRenderProxyList(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 
+        static uint64_t GetBatchHash(MeshRenderer* meshRenderer, MeshFilter* meshFilter, uint32_t layer); 
+
+        vector<DrawIndirectArgs> GetBatchInfo();
+    private:
+        void TryAddBatches(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 
+        void TryDecreaseBatches(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 
+        static void Create();
+        static BatchManager* s_Instance;
+
+    };
+}
 ```

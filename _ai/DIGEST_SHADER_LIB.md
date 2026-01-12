@@ -16,6 +16,7 @@
 ## Key Files Index
 - `[42]` **Assets/Shader/include/Core.hlsl** *(Content Included)*
 - `[34]` **Assets/Shader/SimpleTestShader.hlsl** *(Content Included)*
+- `[34]` **Assets/Shader/StandardPBR.hlsl** *(Content Included)*
 - `[31]` **Assets/Shader/BlitShader.hlsl** *(Content Included)*
 - `[31]` **Assets/Shader/GPUCulling.hlsl** *(Content Included)*
 - `[8]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
@@ -32,8 +33,7 @@
 - `[7]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
 - `[7]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
 - `[7]` **Runtime/Graphics/Material.h** *(Content Included)*
-- `[7]` **Runtime/Graphics/ModelData.h** *(Content Included)*
-- `[7]` **Runtime/Graphics/ModelUtils.h** *(Content Included)*
+- `[7]` **Runtime/Graphics/Mesh.h** *(Content Included)*
 - `[7]` **Runtime/Graphics/Shader.h**
 - `[7]` **Runtime/Math/AABB.h**
 - `[7]` **Runtime/Math/Math.h**
@@ -43,6 +43,7 @@
 - `[7]` **Runtime/Renderer/Renderer.h**
 - `[7]` **Runtime/Renderer/RenderSorter.h**
 - `[7]` **Runtime/Resources/ResourceManager.h**
+- `[7]` **Runtime/Scene/BistroSceneLoader.h**
 - `[7]` **Runtime/Scene/Scene.h**
 - `[7]` **Runtime/Scene/SceneManager.h**
 - `[7]` **Runtime/Serialization/BaseTypeSerialization.h**
@@ -56,6 +57,7 @@
 - `[7]` **Runtime/Platforms/D3D12/D3D12Struct.h**
 - `[7]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[7]` **Editor/Panel/EditorMainBar.h**
+- `[6]` **Runtime/Graphics/MeshUtils.h**
 - `[6]` **Runtime/Renderer/RenderEngine.h**
 - `[6]` **Runtime/Renderer/RenderStruct.h**
 - `[6]` **Runtime/Resources/Resource.h**
@@ -72,8 +74,6 @@
 - `[5]` **Runtime/Renderer/Culling.h**
 - `[5]` **Runtime/Renderer/RenderContext.h**
 - `[5]` **Runtime/Renderer/SPSCRingBuffer.h**
-- `[5]` **Runtime/Resources/Asset.h**
-- `[5]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h**
 
 ## Evidence & Implementation Details
 
@@ -117,6 +117,24 @@ struct PerObjectData
 // 纹理资源
 Texture2D g_Textures[1024] : register(t0, space0);
 
+
+// 采样器
+SamplerState LinearSampler : register(s0, space0);
+SamplerState PointSampler : register(s1, space0);
+SamplerState AnisotropicSampler : register(s2,space0);
+SamplerComparisonState ShadowSampler : register(s3, space0);
+
+// 顶点着色器输入
+struct VertexInput
+{
+    float3 Position : POSITION;
+    float3 Normal : NORMAL;
+    float2 TexCoord : TEXCOORD0;
+};
+```
+
+### File: `Assets/Shader/StandardPBR.hlsl`
+```hlsl
 
 // 采样器
 SamplerState LinearSampler : register(s0, space0);
@@ -416,29 +434,8 @@ namespace EngineCore
 
 namespace EngineCore
 {
-    // 用来描述model Input 或者 shader reflection input
-    // todos: shader inputlayout 部分的控制， 目前只是简单把值塞过来
-    struct InputLayout
-    {
-        VertexAttribute type;
-        int size;
-        int dimension;
-        int stride;
-        int offset;
-        InputLayout(VertexAttribute _type, int _size, int _dimension, int _stride, int _offset)
-        {
-            type = _type; size = _size; dimension = _dimension; stride = _stride; offset = _offset;
-        };
-        InputLayout() = default;
-        InputLayout(VertexAttribute type) : type(type) {};
-    };
 
-    struct Vertex
-    {
-        Vector3 position;
-        Vector3 normal;
-        Vector2 uv;
-    };
+
 
     // constantbuffer中的变量记录
     struct ShaderConstantInfo
@@ -472,26 +469,30 @@ namespace EngineCore
 
         // todo: 确定这个地方是用vector还是直接单个对象
         ShaderStageType type;
-```
-...
-```cpp
+        vector<ShaderBindingInfo > mConstantBufferInfo;
+        vector<ShaderBindingInfo > mTextureInfo;
+        vector<ShaderBindingInfo > mSamplerInfo;
         vector<ShaderBindingInfo > mUavInfo;
 
         ShaderReflectionInfo(){};
-```
-...
-```cpp
+
+
+        // 定义偏移量常量 (方便修改)
+        static const int BIT_OFFSET_CBV = 0;
+        static const int BIT_OFFSET_SRV = 16;
+        static const int BIT_OFFSET_UAV = 48;
+        static const int BIT_OFFSET_SAMPLER = 56;
     };
 
     struct LightData
     {
 
     };
+
+
 ```
 ...
 ```cpp
-
-    // 前向声明，防止循环引用。
     class Transform;
     class MeshRenderer;
     class MeshFilter;
@@ -501,7 +502,7 @@ namespace EngineCore
         // 为了测试，先用直接塞数据的方式。
         uint64_t sortingKey = 0;
         MeshRenderer* meshRenderer;
-        uint32_t vaoID;
+        MeshFilter* meshFilter;
         float distanToCamera = 0;
     };
 ```
@@ -512,15 +513,39 @@ namespace EngineCore
     struct DrawRecord
     {
         Material* mat;
-        uint32_t vaoID;
+        Mesh* mesh;
 
         PerDrawHandle perDrawHandle;
         uint32_t instanceCount = 1;
 
-        DrawRecord(Material* mat, uint32_t vaoID)
-            :mat(mat), vaoID(vaoID), perDrawHandle{0,0}, instanceCount(1) {}
-        DrawRecord(Material* mat, uint32_t vaoID, const PerDrawHandle& handle, uint32_t instCount = 1)
-            :mat(mat), vaoID(vaoID), perDrawHandle(handle), instanceCount(instCount){}
+        DrawRecord(Material* mat, Mesh* mesh)
+            :mat(mat), mesh(mesh), perDrawHandle{0,0}, instanceCount(1) {}
+        DrawRecord(Material* mat, Mesh* mesh, const PerDrawHandle& handle, uint32_t instCount = 1)
+            :mat(mat), mesh(mesh), perDrawHandle(handle), instanceCount(instCount){}
+    };
+```
+...
+```cpp
+    };
+
+    class RenderPass;
+    struct RenderPassAsset
+    {
+        vector<RenderPass*> renderPasses;
+        inline void Clear()
+        {
+             for (RenderPass* pass : renderPasses) 
+                delete pass;
+        };
+    };
+```
+...
+```cpp
+    };
+
+    struct ContextFilterSettings
+    {
+
     };
 ```
 
@@ -664,7 +689,7 @@ namespace EngineCore
         static ComponentType GetStaticType() { return ComponentType::MeshFilter; };
         virtual ComponentType GetType() const override{ return ComponentType::MeshFilter; };
     public:
-        ResourceHandle<ModelData> mMeshHandle;
+        ResourceHandle<Mesh> mMeshHandle;
         
         virtual const char* GetScriptName() const override { return "MeshFilter"; }
         virtual json SerializedFields() const override {
@@ -688,7 +713,7 @@ namespace EngineCore
 
 ### File: `Runtime/GameObject/MeshRenderer.h`
 ```cpp
-#include "Renderer/RenderStruct.h"
+
 
 namespace EngineCore
 {
@@ -735,7 +760,8 @@ namespace EngineCore
         AABB worldBounds;
         uint32_t sceneRenderNodeIndex = UINT32_MAX;
         bool materialDirty = true;
-        
+		
+        void TryAddtoBatchManager();
         uint32_t renderLayer = 1;
     private:
         ResourceHandle<Material> mShardMatHandler;
@@ -933,7 +959,7 @@ namespace EngineCore
         void TryFreeRenderProxyBlock(uint32_t index);
         void TryCreateRenderProxyBlock(uint32_t index);
         BufferAllocation LagacyRenderPathUploadBatch(void *data, uint32_t size);
-
+        void FlushBatchUploads();
         void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
         void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);
 
@@ -954,6 +980,7 @@ namespace EngineCore
         ResourceHandle<ComputeShader> GPUCullingShaderHandler;
     private:
         static GPUSceneManager* sInstance; 
+        vector<CopyOp> mPendingBatchCopies;
     };
 
 }
@@ -1022,45 +1049,77 @@ namespace EngineCore
 }
 ```
 
-### File: `Runtime/Graphics/ModelData.h`
+### File: `Runtime/Graphics/Mesh.h`
 ```cpp
 #include "Math/AABB.h"
 
 namespace EngineCore
 {
-    ModelData* GetFullScreenQuad();
-    class ModelData : public Resource
+    // 用来描述model Input 或者 shader reflection input
+    struct InputLayout
+    {
+        VertexAttribute type;
+        int size;
+        int dimension;
+        int stride;
+        int offset;
+        InputLayout(VertexAttribute _type, int _size, int _dimension, int _stride, int _offset)
+        {
+            type = _type; size = _size; dimension = _dimension; stride = _stride; offset = _offset;
+        };
+        InputLayout() = default;
+        InputLayout(VertexAttribute type) : type(type) {};
+    };
+
+
+    struct Vertex
+    {
+        Vector3 position;
+        Vector3 normal;
+        Vector2 uv;
+    };
+
+    struct MeshBufferAllocation
+    {
+        IGPUBuffer* buffer = nullptr;
+        // 当前数据开始位置， 可以直接绑定
+        uint64_t gpuAddress = 0;
+        uint64_t offset =0;
+        uint64_t size = 0;
+        uint32_t stride = 0;
+        bool isValid = false;
+        struct MeshBufferAllocation() = default;
+        struct MeshBufferAllocation(IGPUBuffer* buffer, uint64_t gpuAddress, uint64_t offset, uint64_t size, uint64_t stride)
+            :buffer(buffer), gpuAddress(gpuAddress), offset(offset), size(size), stride(stride)
+        {
+            isValid = true;
+        }
+    };
+
+    class Mesh : public Resource
     {
     public:
         // todo: 先这么写，后续或许抽成单独Component
+
+        Mesh() = default;
+        Mesh(MetaData* metaData);
+        Mesh(Primitive primitiveType);
+        MeshBufferAllocation* vertexAllocation;
+        MeshBufferAllocation* indexAllocation;
+        void UploadMeshToGPU();
+
         AABB bounds;
         std::vector<Vertex> vertex;
         std::vector<int> index;
-        std::vector<InputLayout> layout;
-        ModelData() = default;
-        ModelData(MetaData* metaData);
-        ModelData(Primitive primitiveType);
+```
+...
+```cpp
     private:
         void ProcessNode(aiNode* node, const aiScene* scene);
         void LoadAiMesh(const string& path);
         void ProcessMesh(aiMesh* aiMesh, const aiScene* scene);
-    };
-
-}
-```
-
-### File: `Runtime/Graphics/ModelUtils.h`
-```cpp
-#include "Graphics/ModelData.h"
-
-namespace EngineCore
-{
-    class ModelUtils
-    {
-    public:
-        static void GetFullScreenQuad(ModelData* modelData);
-    private:
 
     };
+
 }
 ```

@@ -72,6 +72,8 @@
       "SCENE_SYSTEM": ["Runtime/Scene", "SceneManager", "Scene", "GameObject", "Component", "Transform", "Hierarchy"],
       "ASSET_PIPELINE": ["Runtime/Resources", "Runtime/Serialization", "Meta", "Asset", "Importer", "Texture", "Material", "Shader", "Mesh"],
       "PLATFORM_WINDOWING": ["Runtime/Platforms", "Window", "Input", "Platform", "Win32", "MessageLoop"],
-      "SERIALIZATION":["AssetSerialization", "BaseTypeSerialization","ComponentFactory","JsonSerializer","MetaData", "MetaFactory", "MetaLoader","MeshRenderer","MeshFilter","Material","ModelData"]
+      "SERIALIZATION":["AssetSerialization", "BaseTypeSerialization","ComponentFactory","JsonSerializer","MetaData", "MetaFactory", "MetaLoader","MeshRenderer","MeshFilter","Material","ModelData"],
+      "MODEL":["Mesh", "GeometryManager","MeshFilter","Scene","D3D12RenderAPI","RenderAPI", "MetaFactory", "MetaLoader","MeshRenderer","BistroSceneLoader"],
+      "GameLogicUpdate":["Game", "SceneManager","Scene","RenderEngine","LagacyRenderPath","GPUSceneRenderPath", "Renderer", "RenderContext","FinalBlitPass","GPUSceneRenderPass","OpaqueRenderPass"]
     }
   }

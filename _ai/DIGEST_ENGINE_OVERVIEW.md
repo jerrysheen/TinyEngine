@@ -40,6 +40,7 @@
 - `[9]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[9]` **Editor/Panel/EditorHierarchyPanel.h**
 - `[8]` **Editor/EditorGUIManager.h**
+- `[8]` **Runtime/Scene/BistroSceneLoader.h**
 - `[8]` **Runtime/Serialization/JsonSerializer.h**
 - `[7]` **Runtime/Serialization/AssetSerialization.h**
 - `[7]` **Runtime/Serialization/BaseTypeSerialization.h**
@@ -64,6 +65,7 @@
 - `[3]` **Runtime/Core/Object.h**
 - `[3]` **Runtime/Core/PublicEnum.h**
 - `[3]` **Runtime/Graphics/ComputeShader.h**
+- `[3]` **Runtime/Graphics/GeometryManager.h**
 - `[3]` **Runtime/Graphics/GPUBufferAllocator.h**
 - `[3]` **Runtime/Graphics/GPUTexture.h**
 - `[3]` **Runtime/Graphics/IGPUBufferAllocator.h**
@@ -71,9 +73,7 @@
 - `[3]` **Runtime/Graphics/Material.h**
 - `[3]` **Runtime/Graphics/MaterialInstance.h**
 - `[3]` **Runtime/Graphics/MaterialLayout.h**
-- `[3]` **Runtime/Graphics/ModelData.h**
-- `[3]` **Runtime/Graphics/ModelUtils.h**
-- `[3]` **Runtime/Graphics/RenderTexture.h**
+- `[3]` **Runtime/Graphics/Mesh.h**
 
 ## Evidence & Implementation Details
 
@@ -115,7 +115,7 @@ namespace EngineCore
         // todo： 这部分数据也要找地方存， maybe一个Global的渲染处
 
         Material* blitMaterial;
-        ModelData* quadMesh;
+        Mesh* quadMesh;
         ResourceHandle<Shader> blitShader;
         ResourceHandle<Texture> testTexture;
 
@@ -350,7 +350,7 @@ namespace EngineCore
         void TryFreeRenderProxyBlock(uint32_t index);
         void TryCreateRenderProxyBlock(uint32_t index);
         BufferAllocation LagacyRenderPathUploadBatch(void *data, uint32_t size);
-
+        void FlushBatchUploads();
         void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
         void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);
 
@@ -371,6 +371,7 @@ namespace EngineCore
         ResourceHandle<ComputeShader> GPUCullingShaderHandler;
     private:
         static GPUSceneManager* sInstance; 
+        vector<CopyOp> mPendingBatchCopies;
     };
 
 }
