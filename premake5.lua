@@ -96,7 +96,8 @@ project "EngineCore"
 		"Runtime/External/nlohmann",
 		"Editor/",
 		"Vendor/libs",
-		"Vendor/Assimp/assimp/include"
+		"Vendor/Assimp/assimp/include",
+		"Vendor/Assimp/assimp/contrib/rapidjson/include/rapidjson"
 		-- "ThirdParty/Runtime/Core/spdlog/include",
 		-- "%{IncludeDir.GLFW}",
 		-- "%{IncludeDir.Glad}",
@@ -121,6 +122,7 @@ project "EngineCore"
 
 		defines
 		{
+			"TINYGLTF_USE_RAPIDJSON",
 			-- "HZ_PLATFORM_WINDOWS",
 			-- "HZ_BUILD_DLL",
 			-- "GLFW_INCLUDE_NONE",

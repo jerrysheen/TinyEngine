@@ -48,8 +48,8 @@ namespace EngineCore
         PROFILER_EVENT_END("MainThread::WaitForGpuFinished");
 
 
-        lagacyRenderPath.Execute(renderContext);
-        //gpuSceneRenderPath.Execute(renderContext);
+        //lagacyRenderPath.Execute(renderContext);
+        gpuSceneRenderPath.Execute(renderContext);
 
         SignalMainThreadSubmited();
 

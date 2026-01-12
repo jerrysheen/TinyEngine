@@ -39,11 +39,11 @@ namespace EngineCore
                 
                 desc.debugName = L"IndirectDrawArgsBuffer";
                 desc.memoryType = BufferMemoryType::Default;
-                desc.size = sizeof(DrawIndirectArgs) * 100;
+                desc.size = sizeof(DrawIndirectArgs) * 3000;
                 desc.stride = sizeof(DrawIndirectArgs);
                 desc.usage = BufferUsage::StructuredBuffer;
                 indirectDrawArgsBuffer = new GPUBufferAllocator(desc);
-                indirectDrawArgsAlloc = indirectDrawArgsBuffer->Allocate(sizeof(DrawIndirectArgs) * 100);
+                indirectDrawArgsAlloc = indirectDrawArgsBuffer->Allocate(sizeof(DrawIndirectArgs) * 3000);
             }
 
             //todo:

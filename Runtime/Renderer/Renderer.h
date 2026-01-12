@@ -119,7 +119,7 @@ namespace EngineCore
         
 
     private:
-        SPSCRingBuffer<8192> mRenderBuffer;
+        SPSCRingBuffer<16384> mRenderBuffer;
         std::thread mRenderThread;
         bool hasResize = false;
         bool hasDrawGUI = false;

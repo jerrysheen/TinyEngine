@@ -990,9 +990,9 @@ namespace EngineCore
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::PerDrawInstanceObjectsList, gpuAddr);
         
 
-        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> bindlessHeap = D3D12DescManager::GetInstance()->GetBindlessCbvSrvUavHeap();
-        D3D12_GPU_DESCRIPTOR_HANDLE gpuaddress = bindlessHeap->GetGPUDescriptorHandleForHeapStart();
-        mCommandList->SetGraphicsRootDescriptorTable((UINT)RootSigSlot::Textures, gpuaddress);
+        //Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> bindlessHeap = D3D12DescManager::GetInstance()->GetBindlessCbvSrvUavHeap();
+        //D3D12_GPU_DESCRIPTOR_HANDLE gpuaddress = bindlessHeap->GetGPUDescriptorHandleForHeapStart();
+        //mCommandList->SetGraphicsRootDescriptorTable((UINT)RootSigSlot::Textures, gpuaddress);
     }
 
     void D3D12RenderAPI::RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState)
