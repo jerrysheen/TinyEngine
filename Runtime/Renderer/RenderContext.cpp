@@ -5,6 +5,7 @@
 #include "Core/Profiler.h"
 #include "RenderSorter.h"
 #include "Graphics/GPUSceneManager.h"
+#include "Renderer/Renderer.h"
 
 namespace EngineCore
 {
@@ -30,6 +31,7 @@ namespace EngineCore
         currentBatch.vaoID = item.vaoID;
         currentBatch.mat = item.meshRenderer->GetMaterial().Get();
         currentBatch.index = 0;
+
         // todo : 回头这个东西应该也是CPU端映射的。
         uint32_t objIndex = item.meshRenderer->sceneRenderNodeIndex;
         tempList.push_back(objIndex);
@@ -66,6 +68,7 @@ namespace EngineCore
             bactchList.push_back(currentBatch);
             tempList.clear();
         }
+        GPUSceneManager::GetInstance()->FlushBatchUploads();
         PROFILER_EVENT_END("DrawRenderers::PrepareBatch");
 
     }

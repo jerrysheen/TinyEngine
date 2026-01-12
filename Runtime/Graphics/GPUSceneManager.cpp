@@ -40,7 +40,7 @@ namespace EngineCore
     {
         perFrameBatchBuffer->Reset();
         perFramelinearMemoryAllocator->Reset();
-
+        mPendingBatchCopies.clear();
         // 消化sceneRenderData中的dirty
         Scene* mCurrentScene = SceneManager::GetInstance()->GetCurrentScene();
         auto& renderSceneData = mCurrentScene->renderSceneData;
@@ -90,9 +90,28 @@ namespace EngineCore
 
     BufferAllocation GPUSceneManager::LagacyRenderPathUploadBatch(void *data, uint32_t size)
     {
-        auto& allocation = visibilityBuffer->Allocate(size);
-        visibilityBuffer->UploadBuffer(allocation, data, allocation.size);
-        return allocation;
+        auto& destAllocation = visibilityBuffer->Allocate(size);
+        auto& srcAllocation = perFrameBatchBuffer->Allocate(size);
+        perFrameBatchBuffer->UploadBuffer(srcAllocation, data, size);
+
+        CopyOp op = {};
+        op.srcOffset = srcAllocation.offset;
+        op.dstOffset = destAllocation.offset;
+        op.size = size;
+        mPendingBatchCopies.push_back(op);
+
+        return destAllocation;        
+    }
+
+    void GPUSceneManager::FlushBatchUploads()
+    {
+        Payload_CopyBufferRegion copyRegionCmd = {};
+        copyRegionCmd.srcUploadBuffer = perFrameBatchBuffer->GetGPUBuffer();
+        copyRegionCmd.destDefaultBuffer = visibilityBuffer->GetGPUBuffer();
+        copyRegionCmd.copyList = mPendingBatchCopies.data();
+        copyRegionCmd.count = mPendingBatchCopies.size();
+        Renderer::GetInstance()->CopyBufferRegion(copyRegionCmd);
+        mPendingBatchCopies.clear();
     }
 
     void GPUSceneManager::UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList)

@@ -48,7 +48,7 @@ namespace EngineCore
         PROFILER_ZONE("MainThread::Renderer::Render");
 
         FlushPerFrameData();
-        for(auto& pass : context.camera->mRenderPassAsset.renderPasses)
+        for(auto* pass : context.camera->mRenderPassAsset.renderPasses)
         {
             FlushPerPassData(context);
             pass->Configure(context);

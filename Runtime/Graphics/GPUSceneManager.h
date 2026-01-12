@@ -27,7 +27,7 @@ namespace EngineCore
         void TryFreeRenderProxyBlock(uint32_t index);
         void TryCreateRenderProxyBlock(uint32_t index);
         BufferAllocation LagacyRenderPathUploadBatch(void *data, uint32_t size);
-
+        void FlushBatchUploads();
         void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
         void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);
 
@@ -48,6 +48,7 @@ namespace EngineCore
         ResourceHandle<ComputeShader> GPUCullingShaderHandler;
     private:
         static GPUSceneManager* sInstance; 
+        vector<CopyOp> mPendingBatchCopies;
     };
 
 }
