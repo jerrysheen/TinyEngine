@@ -1,6 +1,7 @@
 #include "PreCompiledHeader.h"
 #include "RenderEngine.h"
 #include "RenderAPI.h"
+#include "Settings/ProjectSettings.h"
 #include "Managers/WindowManager.h"
 #include "GameObject/Camera.h"
 #include "Renderer.h"
@@ -48,8 +49,14 @@ namespace EngineCore
         PROFILER_EVENT_END("MainThread::WaitForGpuFinished");
 
 
-        //lagacyRenderPath.Execute(renderContext);
-        gpuSceneRenderPath.Execute(renderContext);
+        if (RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy)
+        {
+            lagacyRenderPath.Execute(renderContext);
+        }
+        else
+        {
+            gpuSceneRenderPath.Execute(renderContext);
+        }
 
         SignalMainThreadSubmited();
 

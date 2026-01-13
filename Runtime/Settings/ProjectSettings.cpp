@@ -1,4 +1,4 @@
-﻿#include "PreCompiledHeader.h"
+#include "PreCompiledHeader.h"
 #include "ProjectSettings.h"
 
 namespace EngineCore
@@ -81,5 +81,8 @@ namespace EngineCore
 
     int WindowSettings::s_WindowHeight = 1080;
     int WindowSettings::s_WindowWidth = 1920;
+
+    RenderSettings::RenderPathType RenderSettings::s_RenderPath = RenderSettings::RenderPathType::GPUScene;
+    bool RenderSettings::s_EnableVertexPulling = true;
 
 };

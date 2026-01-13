@@ -969,10 +969,12 @@ namespace EngineCore
         
         gpuAddr = GPUSceneManager::GetInstance()->visibilityBuffer->GetBaseGPUAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::PerDrawInstanceObjectsList, gpuAddr);
-        
-        gpuAddr = GeometryManager::GetInstance()->GetVertexBuffer()->GetGPUVirtualAddress();
-        mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::LargeVertexBuffer, gpuAddr);
-        
+
+        if (RenderSettings::s_EnableVertexPulling)
+        {
+            gpuAddr = GeometryManager::GetInstance()->GetVertexBuffer()->GetGPUVirtualAddress();
+            mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::LargeVertexBuffer, gpuAddr);
+        }
 
         //Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> bindlessHeap = D3D12DescManager::GetInstance()->GetBindlessCbvSrvUavHeap();
         //D3D12_GPU_DESCRIPTOR_HANDLE gpuaddress = bindlessHeap->GetGPUDescriptorHandleForHeapStart();

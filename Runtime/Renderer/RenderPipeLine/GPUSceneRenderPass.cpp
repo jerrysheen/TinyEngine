@@ -1,5 +1,6 @@
 #include "PreCompiledHeader.h"
 #include "GPUSceneRenderPass.h"
+#include "Settings/ProjectSettings.h"
 
 // temp include
 #include "Platforms/D3D12/D3D12RenderAPI.h"
@@ -43,7 +44,7 @@ namespace EngineCore
         Renderer::GetInstance()->SetSissorRect(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
 
         Renderer::GetInstance()->SetPerPassData((UINT)mRenderPassInfo.mRootSigSlot);
-        if(!enableVertexPulling)
+        if(!RenderSettings::s_EnableVertexPulling)
         {
             for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
             {

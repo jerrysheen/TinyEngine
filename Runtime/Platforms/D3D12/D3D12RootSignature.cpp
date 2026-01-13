@@ -2,6 +2,7 @@
 #include "D3D12RootSignature.h"
 #include "Graphics/Shader.h"
 #include "Graphics/ComputeShader.h"
+#include "Settings/ProjectSettings.h"
 
 namespace EngineCore
 {
@@ -52,6 +53,22 @@ namespace EngineCore
             srvBySpace[bindingInfo.space].push_back(bindingInfo);
         }
 
+        // 执行空绑定
+        if(srvBySpace.size() == 0)
+        {
+            descriptorRanges.emplace_back();
+            descriptorRanges.back().Init(
+                D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                1,
+                0,  // 使用实际的起始寄存器位置
+                0,
+                0
+            );
+
+            slotRootParameter.emplace_back();
+            slotRootParameter.back().InitAsDescriptorTable(1, &descriptorRanges.back());
+
+        }
         for (auto& [space, srvList] : srvBySpace)
         {
             std::sort(srvList.begin(), srvList.end(),
@@ -86,9 +103,12 @@ namespace EngineCore
 
         }
 
-        slotRootParameter.emplace_back();
-        auto largeVertexBuffer = GetRootSigBinding(RootSigSlot::LargeVertexBuffer);
-        slotRootParameter.back().InitAsShaderResourceView(largeVertexBuffer.RegisterIndex, largeVertexBuffer.RegisterSpace);
+        if(RenderSettings::s_EnableVertexPulling)
+        {
+            slotRootParameter.emplace_back();
+            auto largeVertexBuffer = GetRootSigBinding(RootSigSlot::LargeVertexBuffer);
+            slotRootParameter.back().InitAsShaderResourceView(largeVertexBuffer.RegisterIndex, largeVertexBuffer.RegisterSpace);
+        }
 
 
         // Static Sampler

@@ -23,7 +23,6 @@ namespace EngineCore
 
         virtual void Submit() override;
     public:
-        bool enableVertexPulling = true;
     };
 
 }

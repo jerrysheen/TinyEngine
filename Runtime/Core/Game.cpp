@@ -17,6 +17,7 @@ namespace EngineCore
         RenderEngine::Create();
         SceneManager::Create();
 
+        ASSERT(!(RenderSettings::s_EnableVertexPulling == true && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy));
         //std::cout << "Launch Game" << std::endl;
         // init Manager...
         #ifdef EDITOR

@@ -58,7 +58,6 @@ namespace EngineCore
         static uint64_t GetBatchHash(MeshRenderer* meshRenderer, MeshFilter* meshFilter, uint32_t layer); 
 
         vector<DrawIndirectArgs> GetBatchInfo();
-        bool enableVertexPulling = true;
     private:
         void TryAddBatches(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 
         void TryDecreaseBatches(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 

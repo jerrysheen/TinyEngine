@@ -8,6 +8,7 @@
 #include "Serialization/ComponentFactory.h"
 #include "Math/Frustum.h"
 #include "Graphics/IGPUResource.h"
+#include "Settings/ProjectSettings.h"
 
 REGISTER_SCRIPT(Camera)
 
@@ -18,8 +19,14 @@ namespace EngineCore
     {
         gameObject = go;
         // fake one.
-        mRenderPassAsset.renderPasses.push_back(new GPUSceneRenderPass());
-        //mRenderPassAsset.renderPasses.push_back(new OpaqueRenderPass());
+        if(RenderSettings::s_RenderPath == RenderSettings::RenderPathType::GPUScene)
+        {
+            mRenderPassAsset.renderPasses.push_back(new GPUSceneRenderPass());
+        }
+        else
+        {
+            mRenderPassAsset.renderPasses.push_back(new OpaqueRenderPass());
+        }
         mRenderPassAsset.renderPasses.push_back(new FinalBlitPass());
 
         TextureDesc colorAttachmentDesc;

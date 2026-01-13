@@ -14,6 +14,7 @@
 
 #include "Renderer/RenderAPI.h"
 #include "Scene.h"
+#include "Settings/ProjectSettings.h"
 
 
 namespace EngineCore {
@@ -225,7 +226,12 @@ namespace EngineCore {
 
             MeshRenderer* mr = go->AddComponent<MeshRenderer>();
             
-            ResourceHandle<Shader> pbrShader = ResourceManager::GetInstance()->LoadAsset<Shader>("Shader/StandardPBR.hlsl");
+            std::string shaderName = "Shader/StandardPBR.hlsl";
+            if(RenderSettings::s_EnableVertexPulling)
+            {
+                shaderName = "Shader/StandardPBR_VertexPulling.hlsl";
+            }
+            ResourceHandle<Shader> pbrShader = ResourceManager::GetInstance()->LoadAsset<Shader>(shaderName);
             
             if (pbrShader.IsValid()) {
                 if (!commonMatHandle.IsValid()) 
@@ -247,7 +253,12 @@ namespace EngineCore {
 
                 MeshRenderer* mr = subGo->AddComponent<MeshRenderer>();
                 
-                ResourceHandle<Shader> pbrShader = ResourceManager::GetInstance()->LoadAsset<Shader>("Shader/StandardPBR.hlsl");
+                std::string shaderName = "Shader/StandardPBR.hlsl";
+            if(RenderSettings::s_EnableVertexPulling)
+            {
+                shaderName = "Shader/StandardPBR_VertexPulling.hlsl";
+            }
+            ResourceHandle<Shader> pbrShader = ResourceManager::GetInstance()->LoadAsset<Shader>(shaderName);
                 
                 if (pbrShader.IsValid()) {
                     if (!commonMatHandle.IsValid()) 

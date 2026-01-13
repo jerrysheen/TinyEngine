@@ -2,6 +2,7 @@
 #include "BatchManager.h"
 #include "Utils/HashCombine.h"
 #include "Graphics/Mesh.h"
+#include "Settings/ProjectSettings.h"
 
 namespace EngineCore
 {
@@ -100,7 +101,7 @@ namespace EngineCore
             args.InstanceCount = 0;
             args.StartIndexLocation = 0;
             args.BaseVertexLocation = 0;
-            if(enableVertexPulling)
+            if(RenderSettings::s_EnableVertexPulling)
             {
                 args.StartIndexLocation = argsParam.startIndexLocation;
                 args.BaseVertexLocation = argsParam.baseVertexLocation;
@@ -132,7 +133,7 @@ namespace EngineCore
                     BatchMap[batchKey] = 1;
                     Mesh* mesh = meshFilter->mMeshHandle.Get();
                     ASSERT(mesh != nullptr);
-                    if(!enableVertexPulling)
+                    if(!RenderSettings::s_EnableVertexPulling)
                     {
                         drawIndirectParamMap[batchKey] = 
                         {

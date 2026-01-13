@@ -31,10 +31,12 @@ struct VertexOutput
     float3 Normal : NORMAL;
     float2 TexCoord : TEXCOORD0;
     nointerpolation int index : TEXCOORD1;
+    nointerpolation uint dbgVID : TEXCOORD7;
+    nointerpolation uint dbgIID : TEXCOORD8;
 };
 
 // 顶点着色器
-VertexOutput VSMain(VertexInput input, uint instanceID : SV_InstanceID)
+VertexOutput VSMain(uint vertexID : SV_VertexID, uint instanceID : SV_InstanceID)
 {
     VertexOutput output;
 
@@ -43,6 +45,7 @@ VertexOutput VSMain(VertexInput input, uint instanceID : SV_InstanceID)
     uint index = g_VisibleInstanceIndices[instanceID + g_InstanceBaseOffset];
     PerObjectData data = g_InputPerObjectDatas[index];
 
+    Vertex input = MeshBuffer[vertexID + data.baseVertexLocation];
 
     float4 worldPos = mul(float4(input.Position, 1.0f), data.objectToWorld);
     output.WorldPos = worldPos.xyz;
@@ -59,6 +62,8 @@ VertexOutput VSMain(VertexInput input, uint instanceID : SV_InstanceID)
     //output.TexCoord = input.TexCoord * TilingFactor;
     output.TexCoord = input.TexCoord;
     output.index = index;
+    output.dbgVID = vertexID;
+    output.dbgIID = instanceID;
     return output;
 }
 
