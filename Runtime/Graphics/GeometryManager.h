@@ -27,8 +27,9 @@ namespace EngineCore
 
         void FreeVertexAllocation(MeshBufferAllocation* allocation);
         void FreeIndexAllocation(MeshBufferAllocation* allocation);
-
-
+        inline IGPUBuffer* GetVertexBuffer(){ return m_GlobalVertexBufferAllocator->GetGPUBuffer();}
+        inline IGPUBuffer* GetIndexBuffer(){ return m_GLobalIndexBufferAllocator->GetGPUBuffer();}
+        inline uint32_t GetIndexBufferSize(){ return m_GLobalIndexBufferAllocator->bufferDesc.size;}    
     private:
         GPUBufferAllocator* m_GlobalVertexBufferAllocator;
         GPUBufferAllocator* m_GLobalIndexBufferAllocator;

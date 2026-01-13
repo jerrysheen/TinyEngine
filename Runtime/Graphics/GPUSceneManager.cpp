@@ -134,6 +134,7 @@ namespace EngineCore
                 perObjectDataBuffer[index].renderProxyStartIndex = 0;
                 perObjectDataBuffer[index].renderProxyCount = 0;
                 perObjectDataBuffer[index].matIndex = 0;
+                perObjectDataBuffer[index].baseVertexLocation = 0;
             }
             else
             {
@@ -145,7 +146,7 @@ namespace EngineCore
                 perObjectDataBuffer[index].renderProxyStartIndex = static_cast<uint32_t>(allocation.offset / sizeof(RenderProxy));
                 perObjectDataBuffer[index].renderProxyCount = proxyList.size();
                 perObjectDataBuffer[index].matIndex = meshRenderer->GetMaterial()->materialAllocation.offset;
-
+                perObjectDataBuffer[index].baseVertexLocation = meshFilter->mMeshHandle.Get()->vertexAllocation->offset;
             }
         }
     }

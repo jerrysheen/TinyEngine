@@ -11,11 +11,12 @@ namespace EngineCore
     struct DrawIndirectParam
     {
         uint32_t indexCount = 0; // 比如这个Mesh有300个索引
-        uint32_t startIndexInInstanceDataList = 0;
-        uint32_t vertexOffset = 0;
-        uint32_t indexInDrawIndirectList = 0;
-        DrawIndirectParam(uint32_t indexCount, uint32_t firstIndex, uint32_t vertexOffset)
-            : indexCount(indexCount), startIndexInInstanceDataList(firstIndex), vertexOffset(vertexOffset)
+        uint32_t startIndexInInstanceDataList = 0; // visiblityBuffer中的index
+        uint32_t indexInDrawIndirectList = 0; //indirectDrawCallBuffer中的index
+        uint32_t startIndexLocation;    // mesh big buffer 中的index index
+        uint32_t baseVertexLocation;    // mesh big buffer 中的vertex index；
+        DrawIndirectParam(uint32_t indexCount, uint32_t startIndex, uint32_t baseVertex)
+            : indexCount(indexCount), startIndexLocation(startIndex), baseVertexLocation(baseVertex)
         {
 
         }
@@ -57,6 +58,7 @@ namespace EngineCore
         static uint64_t GetBatchHash(MeshRenderer* meshRenderer, MeshFilter* meshFilter, uint32_t layer); 
 
         vector<DrawIndirectArgs> GetBatchInfo();
+        bool enableVertexPulling = true;
     private:
         void TryAddBatches(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 
         void TryDecreaseBatches(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 

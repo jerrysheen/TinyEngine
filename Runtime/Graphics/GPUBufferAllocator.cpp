@@ -8,6 +8,7 @@ namespace EngineCore
 {
     GPUBufferAllocator::GPUBufferAllocator(const BufferDesc &usage)
     {
+        bufferDesc = usage;
         m_MaxSize = usage.size;
         m_Buffer = RenderAPI::GetInstance()->CreateBuffer(usage, nullptr);
         m_CurrOffset = 0;

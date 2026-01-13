@@ -35,7 +35,7 @@ namespace EngineCore
        uint32_t matIndex = 0;
        uint32_t renderProxyStartIndex = 0;
        uint32_t renderProxyCount = 0;
-       uint32_t padding[1]; // 显式填充 12 字节，确保 C++ (80字节) 与 HLSL 布局严格一致
+       uint32_t baseVertexLocation = 0; 
        PerObjectData() = default;
    };
 

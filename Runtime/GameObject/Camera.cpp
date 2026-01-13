@@ -18,8 +18,8 @@ namespace EngineCore
     {
         gameObject = go;
         // fake one.
-        //mRenderPassAsset.renderPasses.push_back(new GPUSceneRenderPass());
-        mRenderPassAsset.renderPasses.push_back(new OpaqueRenderPass());
+        mRenderPassAsset.renderPasses.push_back(new GPUSceneRenderPass());
+        //mRenderPassAsset.renderPasses.push_back(new OpaqueRenderPass());
         mRenderPassAsset.renderPasses.push_back(new FinalBlitPass());
 
         TextureDesc colorAttachmentDesc;

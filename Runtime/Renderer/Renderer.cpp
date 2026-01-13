@@ -257,6 +257,16 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(cmd);
     }
 
+    void Renderer::SetBindLessMeshIB(uint32_t id)
+    {
+        Payload_SetBindLessMeshIB payload;
+        payload.id = id;
+        DrawCommand cmd;
+        cmd.data.SetBindLessMeshIB = payload;
+        cmd.op = RenderOp::kSetBindLessMeshIB;
+        mRenderBuffer.PushBlocking(cmd);
+    }
+
     void Renderer::DrawIndirect(Payload_DrawIndirect payload)
     {
         DrawCommand cmd;
@@ -279,6 +289,9 @@ namespace EngineCore
         break;
         case RenderOp::kSetBindlessMat :
             RenderAPI::GetInstance()->RenderAPISetBindlessMat(cmd.data.setBindlessMat);
+        break;
+        case RenderOp::kSetBindLessMeshIB :
+            RenderAPI::GetInstance()->RenderAPISetBindLessMeshIB();
         break;
         case RenderOp::kCopyBufferRegion :
             RenderAPI::GetInstance()->RenderAPICopyRegion(cmd.data.copyBufferRegion);

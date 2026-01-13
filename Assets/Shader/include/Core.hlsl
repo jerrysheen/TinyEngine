@@ -32,6 +32,12 @@ struct AABB
     float2 Padding;
 };
 
+struct Vertex
+{
+    float3 Position;
+    float3 Normal;
+    float2 TexCoord;
+};
 
 struct PerObjectData
 {
@@ -39,7 +45,7 @@ struct PerObjectData
     uint matIndex;
     uint renderProxyStartIndex;
     uint renderProxyCount;
-    uint padding; 
+    uint baseVertexLocation; 
 };
 
 
@@ -56,6 +62,7 @@ struct PerMaterialData
 StructuredBuffer<PerObjectData> g_InputPerObjectDatas : register(t0, space1);
 ByteAddressBuffer AllPerMaterialData : register(t1, space1);
 StructuredBuffer<uint> g_VisibleInstanceIndices: register(t2, space1);
+StructuredBuffer<Vertex> MeshBuffer: register(t3, space1);
 
 PerMaterialData LoadPerMaterialData(uint index)
 {

@@ -34,6 +34,7 @@ namespace EngineCore
         kSetBufferResourceState = 18,
         kDrawIndirect = 19,
         kSetBindlessMat = 20,
+        kSetBindLessMeshIB = 21,
     };
 
     enum class DepthComparisonFunc : uint8_t
@@ -249,6 +250,7 @@ namespace EngineCore
 
     struct Payload_DrawIndirect
     {
+        // 这个payload只关心， 我绘制哪几个IndirectDraw，怎么找到，
         IGPUBuffer* indirectArgsBuffer;
         uint32_t startIndex;
         uint32_t count;
@@ -258,6 +260,11 @@ namespace EngineCore
     struct Payload_SetBindlessMat
     {
         Material* mat;
+    };
+
+    struct Payload_SetBindLessMeshIB
+    {
+        uint32_t id;
     };
 
     union CommandData 
@@ -282,6 +289,7 @@ namespace EngineCore
         Payload_SetBufferResourceState setBufferResourceState;
         Payload_DrawIndirect setDrawIndirect;
         Payload_SetBindlessMat setBindlessMat;
+        Payload_SetBindLessMeshIB SetBindLessMeshIB;
         CommandData() {};
     };
 

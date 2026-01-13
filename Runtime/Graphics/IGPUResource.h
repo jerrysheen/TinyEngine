@@ -97,8 +97,8 @@ namespace EngineCore
         inline BufferResourceState GetState() const { return m_ResourceState;}
         inline void SetState(BufferResourceState state) { m_ResourceState = state; };
     protected:
-            BufferResourceState m_ResourceState = BufferResourceState::STATE_COMMON;
-            std::wstring m_Name;
+        BufferResourceState m_ResourceState = BufferResourceState::STATE_COMMON;
+        std::wstring m_Name;
     };
 
     class IGPUBuffer : public IGPUResource

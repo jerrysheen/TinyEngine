@@ -71,11 +71,11 @@ namespace EngineCore
             indirectDrawArgsBuffer->UploadBuffer(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
 
             ComputeShader* csShader = GPUSceneManager::GetInstance()->GPUCullingShaderHandler.Get();
+            csShader->SetBuffer("CullingParams", cullingParamBuffer->GetGPUBuffer());
             csShader->SetBuffer("g_InputAABBs", GPUSceneManager::GetInstance()->allAABBBuffer->GetGPUBuffer());
             csShader->SetBuffer("g_InputPerObjectDatas", GPUSceneManager::GetInstance()->allObjectDataBuffer->GetGPUBuffer());
             csShader->SetBuffer("g_RenderProxies", GPUSceneManager::GetInstance()->renderProxyBuffer->GetGPUBuffer());
             csShader->SetBuffer("g_VisibleInstanceIndices", GPUSceneManager::GetInstance()->visibilityBuffer->GetGPUBuffer());
-            csShader->SetBuffer("CullingParams", cullingParamBuffer->GetGPUBuffer());
             csShader->SetBuffer("g_IndirectDrawCallArgs", indirectDrawArgsBuffer->GetGPUBuffer());
 
             

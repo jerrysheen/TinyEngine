@@ -86,6 +86,11 @@ namespace EngineCore
 
         }
 
+        slotRootParameter.emplace_back();
+        auto largeVertexBuffer = GetRootSigBinding(RootSigSlot::LargeVertexBuffer);
+        slotRootParameter.back().InitAsShaderResourceView(largeVertexBuffer.RegisterIndex, largeVertexBuffer.RegisterSpace);
+
+
         // Static Sampler
         CD3DX12_STATIC_SAMPLER_DESC staticSampler(
             0,

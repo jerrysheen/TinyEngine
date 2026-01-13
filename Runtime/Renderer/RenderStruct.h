@@ -45,6 +45,7 @@ namespace EngineCore
         AllMaterialData = 4, // SRV t1 (StructuredBuffer) - 替代原来的 PerMaterialData
         PerDrawInstanceObjectsList = 5, // SRV t1 (StructuredBuffer) - 替代原来的 PerMaterialData
         Textures        = 6, // Descriptor Table (t2...)
+        LargeVertexBuffer = 6,
         Count
     };
 
@@ -58,6 +59,7 @@ namespace EngineCore
             case RootSigSlot::AllObjectData : return {0, 1};
             case RootSigSlot::AllMaterialData : return {1, 1};
             case RootSigSlot::PerDrawInstanceObjectsList : return {2, 1};
+            case RootSigSlot::LargeVertexBuffer : return {3, 1};
             //case RootSigSlot::Textures           : return {0, 2};
             default: return {0, 0};
         }
@@ -110,11 +112,11 @@ namespace EngineCore
 
     struct DrawIndirectArgs
     {
-        uint32_t indexCount = 0;             // 比如这个Mesh有300个索引
-        uint32_t instanceCount = 0;                 // 【重置为0】等待GPU计数
-        uint32_t firstIndex = 0;
-        uint32_t vertexOffset = 0;
-        uint32_t firstInstance = 0;     
+        uint32_t IndexCountPerInstanc = 0;             // 比如这个Mesh有300个索引
+        uint32_t InstanceCount = 0;                 // 【重置为0】等待GPU计数
+        uint32_t StartIndexLocation = 0;
+        uint32_t BaseVertexLocation = 0;
+        uint32_t StartInstanceLocation = 0;     
     };
 
     struct RenderProxy

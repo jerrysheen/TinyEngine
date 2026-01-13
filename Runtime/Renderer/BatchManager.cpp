@@ -95,8 +95,16 @@ namespace EngineCore
             DrawIndirectArgs args;
             ASSERT(drawIndirectParamMap.count(key) > 0);
             DrawIndirectParam& argsParam = drawIndirectParamMap[key];
-            args.indexCount = argsParam.indexCount;
-            args.firstInstance = globalOffset; // 这个依旧需要设置， 不然GPU Culling会错。
+            args.IndexCountPerInstanc = argsParam.indexCount;
+            args.StartInstanceLocation = globalOffset; // 这个依旧需要设置， 不然GPU Culling会错。
+            args.InstanceCount = 0;
+            args.StartIndexLocation = 0;
+            args.BaseVertexLocation = 0;
+            if(enableVertexPulling)
+            {
+                args.StartIndexLocation = argsParam.startIndexLocation;
+                args.BaseVertexLocation = argsParam.baseVertexLocation;
+            }
             drawIndirectArgsList.push_back(args);
             
             // 更新 BatchID
@@ -124,12 +132,25 @@ namespace EngineCore
                     BatchMap[batchKey] = 1;
                     Mesh* mesh = meshFilter->mMeshHandle.Get();
                     ASSERT(mesh != nullptr);
-                    drawIndirectParamMap[batchKey] = 
+                    if(!enableVertexPulling)
                     {
-                        (uint32_t)mesh->indexAllocation->size, // 比如这个Mesh有300个索引
-                        0,
-                        0
-                    };
+                        drawIndirectParamMap[batchKey] = 
+                        {
+                            (uint32_t)mesh->indexAllocation->size / (uint32_t)sizeof(uint32_t), // 比如这个Mesh有300个索引
+                            0,
+                            0
+                        };
+                    }
+                    else
+                    {
+                        drawIndirectParamMap[batchKey] = 
+                        {
+                            (uint32_t)mesh->indexAllocation->size / (uint32_t)sizeof(uint32_t), // 比如这个Mesh有300个索引
+                            (uint32_t)mesh->indexAllocation->offset, 
+                            (uint32_t)mesh->vertexAllocation->offset,
+                        };
+                    }
+
                 }
             }
         }
