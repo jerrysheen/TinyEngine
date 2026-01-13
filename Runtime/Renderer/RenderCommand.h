@@ -89,6 +89,19 @@ namespace EngineCore
             HashCombine(hashID, static_cast<uint32_t>(destBlend));
             return hashID;
         }
+
+        void Reset() 
+        {
+            shaderInstanceID = 0;
+            rootSignatureKey;
+            enableDepthTest = true;
+            enableDepthWrite = true;
+            depthComparisonFunc = DepthComparisonFunc::LEQUAL;
+            enableBlend = false;
+            srcBlend = (BlendState)0;
+            destBlend = (BlendState)0;
+            hashID = 0;
+        }
     };
 
     struct PSODesc

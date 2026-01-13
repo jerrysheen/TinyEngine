@@ -39,6 +39,9 @@ namespace EngineCore
     // maybe send a context here?
     void EngineCore::GPUSceneRenderPass::Execute(RenderContext& context)
     {
+        // 每Pass设置一次
+        m_LastMatState.Reset();
+
         Renderer::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
         Renderer::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
         Renderer::GetInstance()->SetSissorRect(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
@@ -71,17 +74,20 @@ namespace EngineCore
         }
         else
         {
+            int count = 0;
             for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
             {
+                if (count != 0) break;
                 int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
                 int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
                 Material* mat = renderContext.material;
-                Mesh* mesh = renderContext.mesh;
-                // 根据mat + pass信息组织pippeline
-                Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
-                // copy gpu material data desc 
-                Renderer::GetInstance()->SetBindlessMat(mat);
-                Renderer::GetInstance()->SetBindLessMeshIB(0);
+                if (mat->GetMaterialRenderState().GetHash() != m_LastMatState.GetHash())
+                {
+                    m_LastMatState = mat->GetMaterialRenderState();
+                    Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
+                    Renderer::GetInstance()->SetBindlessMat(mat);
+                    Renderer::GetInstance()->SetBindLessMeshIB(0);
+                }
 
                 Payload_DrawIndirect indirectPayload;
                 // temp:
@@ -92,6 +98,7 @@ namespace EngineCore
                 indirectPayload.startIndex = batchID;
                 indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
                 Renderer::GetInstance()->DrawIndirect(indirectPayload);
+                count++;
             }
         }
 

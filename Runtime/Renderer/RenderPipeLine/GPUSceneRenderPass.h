@@ -22,7 +22,8 @@ namespace EngineCore
         virtual void Filter(const RenderContext& context) override;
 
         virtual void Submit() override;
-    public:
+    private:
+        MaterailRenderState m_LastMatState;
     };
 
 }
