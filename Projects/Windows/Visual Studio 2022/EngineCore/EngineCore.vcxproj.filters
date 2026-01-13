@@ -213,9 +213,6 @@
     <ClInclude Include="..\..\..\..\Runtime\Graphics\GPUSceneManager.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Graphics\GPUTexture.h">
-      <Filter>Runtime\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\GeometryManager.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
