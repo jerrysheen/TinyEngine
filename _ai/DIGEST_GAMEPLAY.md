@@ -42,6 +42,7 @@
 - `[6]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[6]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[6]` **Assets/Shader/StandardPBR.hlsl**
+- `[6]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
 - `[5]` **Runtime/Renderer/RenderAPI.h**
 - `[5]` **Runtime/Renderer/Renderer.h**
 - `[5]` **Runtime/Settings/ProjectSettings.h**
@@ -73,7 +74,6 @@
 - `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/IGPUResource.h**
 - `[2]` **Runtime/Graphics/Material.h**
-- `[2]` **Runtime/Graphics/MaterialInstance.h**
 
 ## Evidence & Implementation Details
 

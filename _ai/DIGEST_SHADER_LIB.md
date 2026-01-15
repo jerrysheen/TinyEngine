@@ -17,6 +17,7 @@
 - `[42]` **Assets/Shader/include/Core.hlsl** *(Content Included)*
 - `[34]` **Assets/Shader/SimpleTestShader.hlsl** *(Content Included)*
 - `[34]` **Assets/Shader/StandardPBR.hlsl** *(Content Included)*
+- `[34]` **Assets/Shader/StandardPBR_VertexPulling.hlsl** *(Content Included)*
 - `[31]` **Assets/Shader/BlitShader.hlsl** *(Content Included)*
 - `[31]` **Assets/Shader/GPUCulling.hlsl** *(Content Included)*
 - `[8]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
@@ -32,8 +33,8 @@
 - `[7]` **Runtime/Graphics/ComputeShader.h** *(Content Included)*
 - `[7]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
 - `[7]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
-- `[7]` **Runtime/Graphics/Material.h** *(Content Included)*
-- `[7]` **Runtime/Graphics/Mesh.h** *(Content Included)*
+- `[7]` **Runtime/Graphics/Material.h**
+- `[7]` **Runtime/Graphics/Mesh.h**
 - `[7]` **Runtime/Graphics/Shader.h**
 - `[7]` **Runtime/Math/AABB.h**
 - `[7]` **Runtime/Math/Math.h**
@@ -73,7 +74,6 @@
 - `[5]` **Runtime/Math/Matrix4x4.h**
 - `[5]` **Runtime/Renderer/Culling.h**
 - `[5]` **Runtime/Renderer/RenderContext.h**
-- `[5]` **Runtime/Renderer/SPSCRingBuffer.h**
 
 ## Evidence & Implementation Details
 
@@ -99,15 +99,27 @@ cbuffer PerPassData : register(b2, space0)
 ```
 ...
 ```hlsl
+};
 
-
-struct PerObjectData
+struct Vertex
 {
-    float4x4 objectToWorld;
-    uint matIndex;
-    uint renderProxyStartIndex;
-    uint renderProxyCount;
-    uint padding; 
+    float3 Position;
+    float3 Normal;
+    float2 TexCoord;
+};
+```
+...
+```hlsl
+
+
+struct PerMaterialData
+{
+    float4 DiffuseColor;
+    float4 SpecularColor;
+    float Roughness;
+    float Metallic;
+    float2 TilingFactor;
+    uint DiffuseTextureIndex;
 };
 ```
 
@@ -134,6 +146,24 @@ struct VertexInput
 ```
 
 ### File: `Assets/Shader/StandardPBR.hlsl`
+```hlsl
+
+// 采样器
+SamplerState LinearSampler : register(s0, space0);
+SamplerState PointSampler : register(s1, space0);
+SamplerState AnisotropicSampler : register(s2,space0);
+SamplerComparisonState ShadowSampler : register(s3, space0);
+
+// 顶点着色器输入
+struct VertexInput
+{
+    float3 Position : POSITION;
+    float3 Normal : NORMAL;
+    float2 TexCoord : TEXCOORD0;
+};
+```
+
+### File: `Assets/Shader/StandardPBR_VertexPulling.hlsl`
 ```hlsl
 
 // 采样器
@@ -913,7 +943,7 @@ namespace EngineCore
         virtual uint64_t GetBaseGPUAddress() const override;
         virtual void UploadBuffer(const BufferAllocation& alloc, void* data, uint32_t size) override;
         virtual IGPUBuffer* GetGPUBuffer() override;
-
+        BufferDesc bufferDesc;
     private:
 
         IGPUBuffer* m_Buffer = nullptr;
@@ -981,144 +1011,6 @@ namespace EngineCore
     private:
         static GPUSceneManager* sInstance; 
         vector<CopyOp> mPendingBatchCopies;
-    };
-
-}
-```
-
-### File: `Runtime/Graphics/Material.h`
-```cpp
-#include "MaterialInstance.h"
-
-namespace EngineCore
-{
-    class Material : public Resource
-    {
-    public:
-        bool isDirty = true;
-        std::unique_ptr<MaterialInstance> matInstance;
-        ResourceHandle<Shader> mShader;
-        unordered_map<string, IGPUTexture*> textureData;
-        unordered_map<std::string, ResourceHandle<Texture>> textureHandleMap;
-
-
-        Material() = default;
-        Material(MetaData* metaData);
-        Material(ResourceHandle<Shader> shader);
-        Material(const Material& other);
-        void UploadDataToGpu();
-        ~Material();
-
-
-        void SetValue(const string& name, void* data, uint32_t size) 
-        {
-            ASSERT(matInstance != nullptr);
-            matInstance->SetValue(name, data, size);
-        }
-
-        // 通用设置材质texture的接口
-        void SetTexture(const string& name, IGPUTexture* texture)
-        {
-            ASSERT(textureData.count(name) > 0);
-            if(textureHandleMap.count(name))
-            {
-                textureHandleMap.erase(name);
-            }
-            textureData[name] = texture;
-        }
-
-        // 运行时关联一个临时资源，建立一个引用， 防止资源因为0引用被销毁
-        void SetTexture(const string& name, ResourceHandle<Texture> texture)
-        {
-            ASSERT(textureData.count(name) > 0);
-            textureHandleMap[name] = texture;
-            if(texture.IsValid())
-            {
-                textureData[name] = texture.Get()->textureBuffer;
-            }
-        }
-
-        inline MaterailRenderState GetMaterialRenderState() const { return mRenderState;};
-        MaterailRenderState mRenderState;
-        BufferAllocation materialAllocation;
-    private:
-        void LoadDependency(const std::unordered_map<std::string, MetaData>& dependentMap);
-        void SetUpRenderState();
-        void GetTextureInfoFromShaderReflection();
-    };
-}
-```
-
-### File: `Runtime/Graphics/Mesh.h`
-```cpp
-#include "Math/AABB.h"
-
-namespace EngineCore
-{
-    // 用来描述model Input 或者 shader reflection input
-    struct InputLayout
-    {
-        VertexAttribute type;
-        int size;
-        int dimension;
-        int stride;
-        int offset;
-        InputLayout(VertexAttribute _type, int _size, int _dimension, int _stride, int _offset)
-        {
-            type = _type; size = _size; dimension = _dimension; stride = _stride; offset = _offset;
-        };
-        InputLayout() = default;
-        InputLayout(VertexAttribute type) : type(type) {};
-    };
-
-
-    struct Vertex
-    {
-        Vector3 position;
-        Vector3 normal;
-        Vector2 uv;
-    };
-
-    struct MeshBufferAllocation
-    {
-        IGPUBuffer* buffer = nullptr;
-        // 当前数据开始位置， 可以直接绑定
-        uint64_t gpuAddress = 0;
-        uint64_t offset =0;
-        uint64_t size = 0;
-        uint32_t stride = 0;
-        bool isValid = false;
-        struct MeshBufferAllocation() = default;
-        struct MeshBufferAllocation(IGPUBuffer* buffer, uint64_t gpuAddress, uint64_t offset, uint64_t size, uint64_t stride)
-            :buffer(buffer), gpuAddress(gpuAddress), offset(offset), size(size), stride(stride)
-        {
-            isValid = true;
-        }
-    };
-
-    class Mesh : public Resource
-    {
-    public:
-        // todo: 先这么写，后续或许抽成单独Component
-
-        Mesh() = default;
-        Mesh(MetaData* metaData);
-        Mesh(Primitive primitiveType);
-        MeshBufferAllocation* vertexAllocation;
-        MeshBufferAllocation* indexAllocation;
-        void UploadMeshToGPU();
-
-        AABB bounds;
-        std::vector<Vertex> vertex;
-        std::vector<int> index;
-```
-...
-```cpp
-    private:
-        void ProcessNode(aiNode* node, const aiScene* scene);
-        void LoadAiMesh(const string& path);
-        void ProcessMesh(aiMesh* aiMesh, const aiScene* scene);
-
     };
 
 }

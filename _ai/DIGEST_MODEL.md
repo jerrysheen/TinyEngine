@@ -12,14 +12,14 @@
 ## Key Files Index
 - `[55]` **Runtime/Scene/BistroSceneLoader.h** *(Content Included)*
 - `[53]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
+- `[53]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
 - `[52]` **Runtime/GameObject/MeshFilter.h** *(Content Included)*
-- `[52]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
 - `[42]` **Runtime/Scene/Scene.h** *(Content Included)*
 - `[32]` **Runtime/Graphics/GeometryManager.h** *(Content Included)*
 - `[32]` **Runtime/Graphics/Mesh.h** *(Content Included)*
 - `[32]` **Runtime/Scene/SceneManager.h** *(Content Included)*
 - `[32]` **Runtime/Serialization/MetaFactory.h** *(Content Included)*
-- `[28]` **Runtime/Renderer/RenderAPI.h**
+- `[29]` **Runtime/Renderer/RenderAPI.h**
 - `[28]` **Runtime/Serialization/MetaLoader.h**
 - `[27]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[26]` **Runtime/Graphics/GPUSceneManager.h**
@@ -45,6 +45,7 @@
 - `[4]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
 - `[3]` **Editor/EditorGUIManager.h**
 - `[3]` **Runtime/Serialization/JsonSerializer.h**
+- `[3]` **Runtime/Settings/ProjectSettings.h**
 - `[3]` **Runtime/Platforms/D3D12/D3D12Struct.h**
 - `[2]` **Editor/EditorSettings.h**
 - `[2]` **Runtime/CoreAssert.h**
@@ -69,7 +70,6 @@
 - `[2]` **Runtime/Graphics/Shader.h**
 - `[2]` **Runtime/Graphics/Texture.h**
 - `[2]` **Runtime/Managers/Manager.h**
-- `[2]` **Runtime/Managers/WindowManager.h**
 
 ## Evidence & Implementation Details
 
@@ -159,40 +159,6 @@ namespace EngineCore
 }
 ```
 
-### File: `Runtime/GameObject/MeshFilter.h`
-```cpp
-namespace EngineCore
-{
-    class MeshFilter : public Component
-    {
-        class GameObejct;
-    public:
-        MeshFilter() = default;
-        MeshFilter(GameObject* gamObject);
-        virtual ~MeshFilter() override;
-        static ComponentType GetStaticType() { return ComponentType::MeshFilter; };
-        virtual ComponentType GetType() const override{ return ComponentType::MeshFilter; };
-    public:
-        ResourceHandle<Mesh> mMeshHandle;
-        
-        virtual const char* GetScriptName() const override { return "MeshFilter"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"MeshHandle", mMeshHandle},
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override;
-
-        uint32_t GetHash()
-        {
-            return mMeshHandle->GetInstanceID();
-        }
-    private:
-        uint32_t hash;
-    };
-```
-
 ### File: `Runtime/Platforms/D3D12/D3D12RenderAPI.h`
 ```cpp
 namespace EngineCore
@@ -217,6 +183,7 @@ namespace EngineCore
         virtual void RenderAPIDrawIndexed(Payload_DrawCommand payloadDrawCommand) override;
         virtual void RenderAPISetMaterial(Payload_SetMaterial payloadSetMaterial) override;
         virtual void RenderAPISetBindlessMat(Payload_SetBindlessMat payloadSetBindlessMat) override;
+        virtual void RenderAPISetBindLessMeshIB() override;
         virtual void RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState) override;
         virtual void RenderAPISetSissorRect(Payload_SetSissorRect payloadSetSissorrect) override;
         virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) override;
@@ -254,7 +221,40 @@ namespace EngineCore
         D3D12Texture mBackBuffer[SwapChainBufferCount];
         // 一个壳，上层用，IGPUTexture = mBackBuffer
         RenderTexture mBackBufferProxyRenderTexture;
-        D3D12Texture mBackBufferProxy;
+```
+
+### File: `Runtime/GameObject/MeshFilter.h`
+```cpp
+namespace EngineCore
+{
+    class MeshFilter : public Component
+    {
+        class GameObejct;
+    public:
+        MeshFilter() = default;
+        MeshFilter(GameObject* gamObject);
+        virtual ~MeshFilter() override;
+        static ComponentType GetStaticType() { return ComponentType::MeshFilter; };
+        virtual ComponentType GetType() const override{ return ComponentType::MeshFilter; };
+    public:
+        ResourceHandle<Mesh> mMeshHandle;
+        
+        virtual const char* GetScriptName() const override { return "MeshFilter"; }
+        virtual json SerializedFields() const override {
+            return json{
+                {"MeshHandle", mMeshHandle},
+            };
+        }
+        
+        virtual void DeserializedFields(const json& data) override;
+
+        uint32_t GetHash()
+        {
+            return mMeshHandle->GetInstanceID();
+        }
+    private:
+        uint32_t hash;
+    };
 ```
 
 ### File: `Runtime/Scene/Scene.h`
@@ -402,8 +402,9 @@ namespace EngineCore
 
         void FreeVertexAllocation(MeshBufferAllocation* allocation);
         void FreeIndexAllocation(MeshBufferAllocation* allocation);
-
-
+        inline IGPUBuffer* GetVertexBuffer(){ return m_GlobalVertexBufferAllocator->GetGPUBuffer();}
+        inline IGPUBuffer* GetIndexBuffer(){ return m_GLobalIndexBufferAllocator->GetGPUBuffer();}
+        inline uint32_t GetIndexBufferSize(){ return m_GLobalIndexBufferAllocator->bufferDesc.size;}    
     private:
         GPUBufferAllocator* m_GlobalVertexBufferAllocator;
         GPUBufferAllocator* m_GLobalIndexBufferAllocator;
@@ -446,6 +447,7 @@ namespace EngineCore
         std::vector<Vertex> vertex;
         std::vector<int> index;
         std::vector<InputLayout> layout;
+        bool isDynamic = false;
     private:
         void ProcessNode(aiNode* node, const aiScene* scene);
         void LoadAiMesh(const string& path);

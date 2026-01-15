@@ -74,6 +74,7 @@
       "PLATFORM_WINDOWING": ["Runtime/Platforms", "Window", "Input", "Platform", "Win32", "MessageLoop"],
       "SERIALIZATION":["AssetSerialization", "BaseTypeSerialization","ComponentFactory","JsonSerializer","MetaData", "MetaFactory", "MetaLoader","MeshRenderer","MeshFilter","Material","ModelData"],
       "MODEL":["Mesh", "GeometryManager","MeshFilter","Scene","D3D12RenderAPI","RenderAPI", "MetaFactory", "MetaLoader","MeshRenderer","BistroSceneLoader"],
-      "GameLogicUpdate":["Game", "SceneManager","Scene","RenderEngine","LagacyRenderPath","GPUSceneRenderPath", "Renderer", "RenderContext","FinalBlitPass","GPUSceneRenderPass","OpaqueRenderPass"]
+      "GameLogicUpdate":["Game", "SceneManager","Scene","RenderEngine","LagacyRenderPath","GPUSceneRenderPath", "Renderer", "RenderContext","FinalBlitPass","GPUSceneRenderPass","OpaqueRenderPass"],
+      "GPUScene":["GPUSceneRenderPath", "GPUSceneManager", "GeometryManager","Mesh","Texture","IGPUResource","GPUBufferAllocator","ComputeShader", "D3D12RenderAPI","GPUSceneRenderPass","BatchManager"]
     }
   }

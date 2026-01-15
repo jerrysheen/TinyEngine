@@ -17,8 +17,8 @@
 - `[64]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
 - `[39]` **Runtime/Platforms/D3D12/D3D12RootSignature.h** *(Content Included)*
 - `[38]` **Runtime/Platforms/D3D12/D3D12PSO.h** *(Content Included)*
+- `[33]` **Runtime/Renderer/RenderCommand.h** *(Content Included)*
 - `[32]` **Runtime/Renderer/RenderAPI.h** *(Content Included)*
-- `[32]` **Runtime/Renderer/RenderCommand.h** *(Content Included)*
 - `[27]` **Runtime/Renderer/RenderContext.h** *(Content Included)*
 - `[27]` **Runtime/Platforms/D3D12/D3D12Struct.h** *(Content Included)*
 - `[27]` **Runtime/Platforms/D3D12/d3dx12.h** *(Content Included)*
@@ -101,6 +101,7 @@ namespace EngineCore
         virtual void RenderAPIDrawIndexed(Payload_DrawCommand payloadDrawCommand) override;
         virtual void RenderAPISetMaterial(Payload_SetMaterial payloadSetMaterial) override;
         virtual void RenderAPISetBindlessMat(Payload_SetBindlessMat payloadSetBindlessMat) override;
+        virtual void RenderAPISetBindLessMeshIB() override;
         virtual void RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState) override;
         virtual void RenderAPISetSissorRect(Payload_SetSissorRect payloadSetSissorrect) override;
         virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) override;
@@ -138,7 +139,6 @@ namespace EngineCore
         D3D12Texture mBackBuffer[SwapChainBufferCount];
         // 一个壳，上层用，IGPUTexture = mBackBuffer
         RenderTexture mBackBufferProxyRenderTexture;
-        D3D12Texture mBackBufferProxy;
 ```
 ...
 ```cpp
@@ -254,70 +254,6 @@ namespace EngineCore
     };
 ```
 
-### File: `Runtime/Renderer/RenderAPI.h`
-```cpp
-namespace  EngineCore
-{
-    class RenderAPI
-    {
-    public:
-        static RenderAPI* GetInstance(){ return s_Instance.get();}
-        static bool IsInitialized(){return s_Instance != nullptr;};
-       
-        static void Create();
-        virtual void  CompileShader(const string& path, Shader* shader) = 0;
-        virtual void  CompileComputeShader(const string& path, ComputeShader* csShader) = 0;
-        
-
-        virtual IGPUTexture* CreateTextureBuffer(unsigned char* data, const TextureDesc& textureDesc) = 0;
-        virtual IGPUTexture* CreateRenderTexture(const TextureDesc& textureDesc) = 0;
-        
-        //virtual void GetOrCreatePSO(const Material& mat, const RenderPassInfo &passinfo) = 0;
-        inline void AddRenderPassInfo(const RenderPassInfo& renderPassInfo){ mRenderPassInfoList.push_back(renderPassInfo); };
-        inline void ClearRenderPassInfo(){ mRenderPassInfoList.clear(); };
-        
-        virtual void RenderAPIBeginFrame() = 0;
-        virtual void RenderAPIConfigureRT(Payload_ConfigureRT payloadConfigureRT) = 0;
-        virtual void RenderAPIDrawIndexed(Payload_DrawCommand payloadDrawCommand) = 0;
-        virtual void RenderAPISetMaterial(Payload_SetMaterial payloadSetMaterial) = 0;
-        virtual void RenderAPISetBindlessMat(Payload_SetBindlessMat payloadSetBindlessMat) = 0;
-        virtual void RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState) = 0;
-        virtual void RenderAPISetSissorRect(Payload_SetSissorRect payloadSetSissorrect) = 0;
-        virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) = 0;
-        virtual void RenderAPISetViewPort(Payload_SetViewPort payloadSetViewport) = 0;
-        virtual void RenderAPISubmit() = 0;
-        virtual void RenderAPIWindowResize(Payload_WindowResize payloadWindowResize) = 0;
-        virtual void RenderAPIPresentFrame() = 0;
-        virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) = 0;
-        virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) = 0;
-        virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) = 0;
-        
-        virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) = 0;
-        
-        virtual void RenderAPISetPerDrawData(Payload_SetPerDrawData setPerDrawData) = 0;
-        virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) = 0;
-        
-        virtual IGPUBuffer* CreateBuffer(const BufferDesc& desc, void* data) = 0;
-        virtual void UploadBuffer(IGPUBuffer* buffer, uint32_t offset, void* data, uint32_t size) = 0;
-        virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) = 0;
-        virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) = 0;
-        virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) = 0;
-        virtual RenderTexture* GetCurrentBackBuffer() = 0;
-        template<typename T>
-        void SetGlobalValue(uint32_t bufferID, uint32_t offset, T* value)
-        {
-            uint32_t size = sizeof(T);
-            SetGlobalDataImpl(bufferID, offset, size, static_cast<void*>(value));
-        }
-        virtual void WaitForGpuFinished() = 0;
-    public:
-        static std::unique_ptr<RenderAPI> s_Instance;
-    protected:
-        vector<RenderPassInfo> mRenderPassInfoList;
-    private:
-        virtual void SetGlobalDataImpl(uint32_t bufferID, uint32_t offset, uint32_t size, const void* value) = 0;
-```
-
 ### File: `Runtime/Renderer/RenderCommand.h`
 ```cpp
     };
@@ -371,8 +307,8 @@ namespace  EngineCore
 ```
 ...
 ```cpp
-        Payload_DrawIndirect setDrawIndirect;
         Payload_SetBindlessMat setBindlessMat;
+        Payload_SetBindLessMeshIB SetBindLessMeshIB;
         CommandData() {};
 ```
 ...
@@ -380,6 +316,70 @@ namespace  EngineCore
         CommandData data;
     public:
         DrawCommand(){};
+```
+
+### File: `Runtime/Renderer/RenderAPI.h`
+```cpp
+namespace  EngineCore
+{
+    class RenderAPI
+    {
+    public:
+        static RenderAPI* GetInstance(){ return s_Instance.get();}
+        static bool IsInitialized(){return s_Instance != nullptr;};
+       
+        static void Create();
+        virtual void  CompileShader(const string& path, Shader* shader) = 0;
+        virtual void  CompileComputeShader(const string& path, ComputeShader* csShader) = 0;
+        
+
+        virtual IGPUTexture* CreateTextureBuffer(unsigned char* data, const TextureDesc& textureDesc) = 0;
+        virtual IGPUTexture* CreateRenderTexture(const TextureDesc& textureDesc) = 0;
+        
+        //virtual void GetOrCreatePSO(const Material& mat, const RenderPassInfo &passinfo) = 0;
+        inline void AddRenderPassInfo(const RenderPassInfo& renderPassInfo){ mRenderPassInfoList.push_back(renderPassInfo); };
+        inline void ClearRenderPassInfo(){ mRenderPassInfoList.clear(); };
+        
+        virtual void RenderAPIBeginFrame() = 0;
+        virtual void RenderAPIConfigureRT(Payload_ConfigureRT payloadConfigureRT) = 0;
+        virtual void RenderAPIDrawIndexed(Payload_DrawCommand payloadDrawCommand) = 0;
+        virtual void RenderAPISetMaterial(Payload_SetMaterial payloadSetMaterial) = 0;
+        virtual void RenderAPISetBindlessMat(Payload_SetBindlessMat payloadSetBindlessMat) = 0;
+        virtual void RenderAPISetBindLessMeshIB() = 0;
+        virtual void RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState) = 0;
+        virtual void RenderAPISetSissorRect(Payload_SetSissorRect payloadSetSissorrect) = 0;
+        virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) = 0;
+        virtual void RenderAPISetViewPort(Payload_SetViewPort payloadSetViewport) = 0;
+        virtual void RenderAPISubmit() = 0;
+        virtual void RenderAPIWindowResize(Payload_WindowResize payloadWindowResize) = 0;
+        virtual void RenderAPIPresentFrame() = 0;
+        virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) = 0;
+        virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) = 0;
+        virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) = 0;
+        
+        virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) = 0;
+        
+        virtual void RenderAPISetPerDrawData(Payload_SetPerDrawData setPerDrawData) = 0;
+        virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) = 0;
+        
+        virtual IGPUBuffer* CreateBuffer(const BufferDesc& desc, void* data) = 0;
+        virtual void UploadBuffer(IGPUBuffer* buffer, uint32_t offset, void* data, uint32_t size) = 0;
+        virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) = 0;
+        virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) = 0;
+        virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) = 0;
+        virtual RenderTexture* GetCurrentBackBuffer() = 0;
+        template<typename T>
+        void SetGlobalValue(uint32_t bufferID, uint32_t offset, T* value)
+        {
+            uint32_t size = sizeof(T);
+            SetGlobalDataImpl(bufferID, offset, size, static_cast<void*>(value));
+        }
+        virtual void WaitForGpuFinished() = 0;
+    public:
+        static std::unique_ptr<RenderAPI> s_Instance;
+    protected:
+        vector<RenderPassInfo> mRenderPassInfoList;
+    private:
 ```
 
 ### File: `Runtime/Renderer/RenderContext.h`
@@ -633,6 +633,7 @@ struct CD3DX12_ROOT_DESCRIPTOR : public D3D12_ROOT_DESCRIPTOR
         void SetResourceState(IGPUResource* resource, BufferResourceState state);
         
         void SetBindlessMat(Material* mat);
+        void SetBindLessMeshIB(uint32_t id);
         
         void DrawIndirect(Payload_DrawIndirect payload);
         
@@ -658,7 +659,6 @@ struct CD3DX12_ROOT_DESCRIPTOR : public D3D12_ROOT_DESCRIPTOR
                 PROFILER_EVENT_END("RenderThread::ProcessDrawComand");
                 // later do Gpu Fence...
                 RenderAPI::GetInstance()->RenderAPISubmit();
-
 ```
 ...
 ```cpp

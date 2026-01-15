@@ -23,11 +23,12 @@
 - `[38]` **Runtime/Serialization/MetaFactory.h** *(Content Included)*
 - `[36]` **Assets/Shader/BlitShader.hlsl** *(Content Included)*
 - `[35]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
+- `[34]` **Assets/Shader/include/Core.hlsl** *(Content Included)*
 - `[33]` **Runtime/Graphics/Mesh.h** *(Content Included)*
-- `[33]` **Assets/Shader/include/Core.hlsl** *(Content Included)*
 - `[32]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
 - `[30]` **Runtime/Graphics/Shader.h** *(Content Included)*
 - `[30]` **Runtime/Serialization/BaseTypeSerialization.h**
+- `[30]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
 - `[29]` **Runtime/Graphics/MaterialInstance.h**
 - `[29]` **Runtime/Graphics/Texture.h**
 - `[29]` **Assets/Shader/StandardPBR.hlsl**
@@ -43,12 +44,12 @@
 - `[22]` **Runtime/Core/PublicStruct.h**
 - `[22]` **Runtime/Renderer/RenderCommand.h**
 - `[22]` **Runtime/Resources/Resource.h**
+- `[20]` **Runtime/Renderer/RenderAPI.h**
 - `[20]` **Assets/Shader/GPUCulling.hlsl**
-- `[19]` **Runtime/Renderer/RenderAPI.h**
 - `[19]` **Runtime/Serialization/JsonSerializer.h**
 - `[17]` **Runtime/Resources/ResourceHandle.h**
 - `[17]` **Runtime/Scene/SceneManager.h**
-- `[16]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
+- `[17]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[14]` **Runtime/Renderer/Renderer.h**
 - `[13]` **Runtime/Renderer/RenderStruct.h**
 - `[12]` **Runtime/Serialization/ComponentFactory.h**
@@ -73,7 +74,6 @@
 - `[4]` **Runtime/GameObject/ComponentType.h**
 - `[4]` **Runtime/GameObject/GameObject.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h**
-- `[4]` **Runtime/Platforms/D3D12/D3D12PSO.h**
 
 ## Evidence & Implementation Details
 
@@ -475,6 +475,52 @@ namespace EngineCore
         {
 ```
 
+### File: `Assets/Shader/include/Core.hlsl`
+```hlsl
+#define CORE_HLSLI
+
+cbuffer DrawIndices : register(b0, space0)
+{
+    uint g_InstanceBaseOffset;
+}
+```
+...
+```hlsl
+}
+
+cbuffer PerPassData : register(b2, space0)
+{
+    float3 CameraPosition;
+    float4x4 ViewMatrix; 
+    float4x4 ProjectionMatrix;
+}
+```
+...
+```hlsl
+};
+
+struct Vertex
+{
+    float3 Position;
+    float3 Normal;
+    float2 TexCoord;
+};
+```
+...
+```hlsl
+
+
+struct PerMaterialData
+{
+    float4 DiffuseColor;
+    float4 SpecularColor;
+    float Roughness;
+    float Metallic;
+    float2 TilingFactor;
+    uint DiffuseTextureIndex;
+};
+```
+
 ### File: `Runtime/Graphics/Mesh.h`
 ```cpp
     };
@@ -510,6 +556,7 @@ namespace EngineCore
         std::vector<Vertex> vertex;
         std::vector<int> index;
         std::vector<InputLayout> layout;
+        bool isDynamic = false;
     private:
         void ProcessNode(aiNode* node, const aiScene* scene);
         void LoadAiMesh(const string& path);
@@ -518,41 +565,6 @@ namespace EngineCore
     };
 
 }
-```
-
-### File: `Assets/Shader/include/Core.hlsl`
-```hlsl
-#define CORE_HLSLI
-
-cbuffer DrawIndices : register(b0, space0)
-{
-    uint g_InstanceBaseOffset;
-}
-```
-...
-```hlsl
-}
-
-cbuffer PerPassData : register(b2, space0)
-{
-    float3 CameraPosition;
-    float4x4 ViewMatrix; 
-    float4x4 ProjectionMatrix;
-}
-```
-...
-```hlsl
-
-
-struct PerMaterialData
-{
-    float4 DiffuseColor;
-    float4 SpecularColor;
-    float Roughness;
-    float Metallic;
-    float2 TilingFactor;
-    uint DiffuseTextureIndex;
-};
 ```
 
 ### File: `Runtime/GameObject/MeshRenderer.h`

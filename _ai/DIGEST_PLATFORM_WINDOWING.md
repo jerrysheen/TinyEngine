@@ -39,6 +39,7 @@
 - `[5]` **Assets/Shader/GPUCulling.hlsl**
 - `[5]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[5]` **Assets/Shader/StandardPBR.hlsl**
+- `[5]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
 - `[4]` **Runtime/Graphics/Shader.h**
 - `[4]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[4]` **Editor/D3D12/D3D12EditorGUIManager.h**
@@ -73,7 +74,6 @@
 - `[2]` **Runtime/Graphics/RenderTexture.h**
 - `[2]` **Runtime/Graphics/Texture.h**
 - `[2]` **Runtime/Managers/Manager.h**
-- `[2]` **Runtime/Math/AABB.h**
 
 ## Evidence & Implementation Details
 

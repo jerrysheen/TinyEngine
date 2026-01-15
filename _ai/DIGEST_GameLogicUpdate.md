@@ -58,6 +58,7 @@
 - `[3]` **Runtime/Graphics/IGPUBufferAllocator.h**
 - `[3]` **Runtime/Graphics/Material.h**
 - `[3]` **Runtime/Graphics/MeshUtils.h**
+- `[3]` **Runtime/Settings/ProjectSettings.h**
 - `[3]` **Runtime/Platforms/D3D12/D3D12PSO.h**
 - `[3]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[3]` **Runtime/Platforms/D3D12/D3D12Struct.h**
@@ -69,7 +70,6 @@
 - `[2]` **Runtime/Core/Profiler.h**
 - `[2]` **Runtime/Core/PublicEnum.h**
 - `[2]` **Runtime/Graphics/ComputeShader.h**
-- `[2]` **Runtime/Graphics/GeometryManager.h**
 
 ## Evidence & Implementation Details
 
@@ -188,6 +188,8 @@ namespace EngineCore
         virtual void Filter(const RenderContext& context) override;
 
         virtual void Submit() override;
+    private:
+        MaterailRenderState m_LastMatState;
     };
 ```
 

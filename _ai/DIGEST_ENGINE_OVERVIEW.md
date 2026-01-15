@@ -411,7 +411,17 @@ namespace EngineCore
     };
 
 
-    class RenderSettings{};
+    class RenderSettings
+    {
+    public:
+        enum class RenderPathType
+        {
+            Legacy,
+            GPUScene
+        };
+        static RenderPathType s_RenderPath;
+        static bool s_EnableVertexPulling;
+    };
 
     class ProjectSettings
     {

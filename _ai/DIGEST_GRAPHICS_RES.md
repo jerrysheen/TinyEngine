@@ -19,6 +19,7 @@
 - `[48]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
 - `[44]` **Runtime/Graphics/MaterialInstance.h** *(Content Included)*
 - `[42]` **Runtime/Graphics/Material.h** *(Content Included)*
+- `[38]` **Assets/Shader/StandardPBR_VertexPulling.hlsl** *(Content Included)*
 - `[37]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/RenderTexture.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/Texture.h** *(Content Included)*
@@ -26,30 +27,30 @@
 - `[35]` **Runtime/Graphics/GPUTexture.h** *(Content Included)*
 - `[35]` **Runtime/Graphics/IGPUBufferAllocator.h** *(Content Included)*
 - `[33]` **Runtime/GameObject/MeshRenderer.h**
+- `[32]` **Runtime/Graphics/GeometryManager.h**
 - `[32]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
-- `[28]` **Runtime/Graphics/GeometryManager.h**
 - `[27]` **Runtime/GameObject/MeshFilter.h**
 - `[27]` **Runtime/Platforms/D3D12/D3D12Texture.h**
 - `[25]` **Runtime/Renderer/RenderCommand.h**
+- `[24]` **Runtime/Renderer/RenderStruct.h**
 - `[24]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
 - `[23]` **Runtime/Graphics/IGPUResource.h**
-- `[21]` **Runtime/Renderer/BatchManager.h**
-- `[20]` **Runtime/Renderer/RenderStruct.h**
+- `[22]` **Runtime/Renderer/BatchManager.h**
+- `[18]` **Assets/Shader/include/Core.hlsl**
 - `[17]` **Runtime/Core/PublicStruct.h**
+- `[17]` **Runtime/Renderer/RenderAPI.h**
 - `[17]` **Runtime/Resources/ResourceManager.h**
 - `[17]` **Runtime/Platforms/D3D12/d3dx12.h**
 - `[17]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[17]` **Assets/Shader/StandardPBR.hlsl**
-- `[16]` **Runtime/Renderer/RenderAPI.h**
 - `[16]` **Runtime/Resources/Asset.h**
 - `[16]` **Runtime/Scene/Scene.h**
+- `[16]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[15]` **Runtime/Graphics/ComputeShader.h**
 - `[15]` **Runtime/Scene/BistroSceneLoader.h**
-- `[15]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[15]` **Editor/Panel/EditorMainBar.h**
 - `[14]` **Runtime/Graphics/Shader.h**
 - `[14]` **Runtime/Renderer/Renderer.h**
-- `[14]` **Assets/Shader/include/Core.hlsl**
 - `[13]` **Runtime/Scene/SceneManager.h**
 - `[13]` **Runtime/Serialization/BaseTypeSerialization.h**
 - `[12]` **Runtime/Resources/Resource.h**
@@ -66,14 +67,13 @@
 - `[6]` **Runtime/Renderer/RenderEngine.h**
 - `[6]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[5]` **Runtime/Core/PublicEnum.h**
+- `[5]` **Runtime/Renderer/RenderUniforms.h**
 - `[5]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
 - `[5]` **Runtime/Platforms/D3D12/D3D12Struct.h**
 - `[4]` **premake5.lua**
 - `[4]` **Runtime/GameObject/ComponentType.h**
 - `[4]` **Runtime/GameObject/GameObject.h**
-- `[4]` **Runtime/Renderer/RenderUniforms.h**
 - `[4]` **Runtime/Serialization/MetaFactory.h**
-- `[4]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h**
 
 ## Evidence & Implementation Details
 
@@ -163,6 +163,7 @@ namespace EngineCore
         std::vector<Vertex> vertex;
         std::vector<int> index;
         std::vector<InputLayout> layout;
+        bool isDynamic = false;
     private:
         void ProcessNode(aiNode* node, const aiScene* scene);
         void LoadAiMesh(const string& path);
@@ -309,6 +310,18 @@ namespace EngineCore
 }
 ```
 
+### File: `Assets/Shader/StandardPBR_VertexPulling.hlsl`
+```hlsl
+
+// 顶点着色器输入
+struct VertexInput
+{
+    float3 Position : POSITION;
+    float3 Normal : NORMAL;
+    float2 TexCoord : TEXCOORD0;
+};
+```
+
 ### File: `Runtime/Graphics/GPUBufferAllocator.h`
 ```cpp
     // Allocates small chunks of memory from a large GPU buffer.
@@ -335,7 +348,7 @@ namespace EngineCore
         virtual uint64_t GetBaseGPUAddress() const override;
         virtual void UploadBuffer(const BufferAllocation& alloc, void* data, uint32_t size) override;
         virtual IGPUBuffer* GetGPUBuffer() override;
-
+        BufferDesc bufferDesc;
     private:
 
         IGPUBuffer* m_Buffer = nullptr;

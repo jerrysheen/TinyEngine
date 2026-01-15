@@ -23,7 +23,7 @@
 - `[42]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h** *(Content Included)*
 - `[41]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h** *(Content Included)*
 - `[39]` **Runtime/Renderer/RenderSorter.h** *(Content Included)*
-- `[37]` **Runtime/Renderer/BatchManager.h** *(Content Included)*
+- `[38]` **Runtime/Renderer/BatchManager.h** *(Content Included)*
 - `[36]` **Runtime/Renderer/RenderPath/IRenderPath.h** *(Content Included)*
 - `[35]` **Runtime/Renderer/Culling.h** *(Content Included)*
 - `[26]` **Assets/Shader/GPUCulling.hlsl**
@@ -37,6 +37,7 @@
 - `[12]` **Runtime/Renderer/RenderUniforms.h**
 - `[12]` **Runtime/Renderer/SPSCRingBuffer.h**
 - `[9]` **Runtime/Graphics/GPUSceneManager.h**
+- `[5]` **Runtime/Settings/ProjectSettings.h**
 - `[4]` **Runtime/GameObject/Camera.h**
 - `[4]` **Runtime/Scene/SceneManager.h**
 - `[3]` **Runtime/EngineCore.h**
@@ -73,7 +74,6 @@
 - `[2]` **Runtime/Managers/Manager.h**
 - `[2]` **Runtime/Managers/WindowManager.h**
 - `[2]` **Runtime/Math/AABB.h**
-- `[2]` **Runtime/Math/Frustum.h**
 
 ## Evidence & Implementation Details
 
@@ -353,6 +353,8 @@ namespace EngineCore
         virtual void Filter(const RenderContext& context) override;
 
         virtual void Submit() override;
+    private:
+        MaterailRenderState m_LastMatState;
     };
 ```
 

@@ -45,9 +45,9 @@
 - `[12]` **Runtime/Core/Concurrency/CpuEvent.h**
 - `[9]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[8]` **Runtime/Graphics/GPUSceneManager.h**
+- `[8]` **Runtime/Renderer/RenderCommand.h**
 - `[8]` **Runtime/Renderer/Renderer.h**
 - `[7]` **Runtime/Graphics/GeometryManager.h**
-- `[7]` **Runtime/Renderer/RenderCommand.h**
 - `[7]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
 - `[7]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[6]` **Runtime/Resources/Resource.h**
@@ -57,6 +57,7 @@
 - `[5]` **Runtime/Platforms/D3D12/D3D12Struct.h**
 - `[5]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[4]` **Editor/D3D12/D3D12EditorGUIManager.h**
+- `[4]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
 - `[3]` **Runtime/PreCompiledHeader.h**
 - `[3]` **Runtime/GameObject/Camera.h**
 - `[3]` **Runtime/GameObject/MeshFilter.h**
@@ -73,7 +74,6 @@
 - `[3]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h**
 - `[3]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
 - `[3]` **Assets/Shader/SimpleTestShader.hlsl**
-- `[3]` **Assets/Shader/StandardPBR.hlsl**
 
 ## Evidence & Implementation Details
 
@@ -430,7 +430,7 @@ namespace EngineCore
         virtual uint64_t GetBaseGPUAddress() const override;
         virtual void UploadBuffer(const BufferAllocation& alloc, void* data, uint32_t size) override;
         virtual IGPUBuffer* GetGPUBuffer() override;
-
+        BufferDesc bufferDesc;
     private:
 
         IGPUBuffer* m_Buffer = nullptr;
