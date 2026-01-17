@@ -120,6 +120,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Core\Concurrency\CpuEvent.h">
       <Filter>Runtime\Core\Concurrency</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Core\Concurrency\JobSystem.h">
+      <Filter>Runtime\Core\Concurrency</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Core\Game.h">
       <Filter>Runtime\Core</Filter>
     </ClInclude>
@@ -211,6 +214,9 @@
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\GPUSceneManager.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\GPUTexture.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\GeometryManager.h">
@@ -459,6 +465,9 @@
       <Filter>Editor\Panel</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Core\Concurrency\CpuEvent.cpp">
+      <Filter>Runtime\Core\Concurrency</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Core\Concurrency\JobSystem.cpp">
       <Filter>Runtime\Core\Concurrency</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Core\Game.cpp">

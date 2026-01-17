@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "EngineCore.h"
 #include "Resources/ResourceManager.h"
+#include "Concurrency/JobSystem.h"
 #ifdef EDITOR
 #include "EditorGUIManager.h"
 #endif
@@ -16,7 +17,7 @@ namespace EngineCore
         ResourceManager::Create();
         RenderEngine::Create();
         SceneManager::Create();
-
+        JobSystem::Create();
         ASSERT(!(RenderSettings::s_EnableVertexPulling == true && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy));
         //std::cout << "Launch Game" << std::endl;
         // init Manager...
