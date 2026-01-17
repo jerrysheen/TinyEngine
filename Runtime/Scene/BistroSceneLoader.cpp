@@ -15,14 +15,303 @@
 #include "Renderer/RenderAPI.h"
 #include "Scene.h"
 #include "Settings/ProjectSettings.h"
-
+#include <fstream>
+#include <unordered_map>
 
 namespace EngineCore {
     ResourceHandle<Material> BistroSceneLoader::commonMatHandle;
 
     Scene* BistroSceneLoader::Load(const std::string& path) {
+        // Check for cached binary
+        std::string cachePath = path + ".bin";
+        std::ifstream cacheFile(cachePath, std::ios::binary);
+        if (cacheFile.good()) {
+            cacheFile.close();
+            std::cout << "Loading from cache: " << cachePath << std::endl;
+            return LoadFromCache(cachePath);
+        }
+
         BistroSceneLoader loader;
         return loader.LoadInternal(path);
+    }
+
+    // Helper functions for binary IO
+    void WriteString(std::ofstream& out, const std::string& str) {
+        size_t len = str.length();
+        out.write(reinterpret_cast<const char*>(&len), sizeof(len));
+        if (len > 0) out.write(str.c_str(), len);
+    }
+
+    std::string ReadString(std::ifstream& in) {
+        size_t len;
+        in.read(reinterpret_cast<char*>(&len), sizeof(len));
+        if (len > 0) {
+            std::string str(len, '\0');
+            in.read(&str[0], len);
+            return str;
+        }
+        return "";
+    }
+
+    void WriteVector3(std::ofstream& out, const Vector3& v) {
+        out.write(reinterpret_cast<const char*>(&v), sizeof(Vector3));
+    }
+
+    Vector3 ReadVector3(std::ifstream& in) {
+        Vector3 v;
+        in.read(reinterpret_cast<char*>(&v), sizeof(Vector3));
+        return v;
+    }
+
+    void WriteQuaternion(std::ofstream& out, const Quaternion& q) {
+        out.write(reinterpret_cast<const char*>(&q), sizeof(Quaternion));
+    }
+
+    Quaternion ReadQuaternion(std::ifstream& in) {
+        Quaternion q;
+        in.read(reinterpret_cast<char*>(&q), sizeof(Quaternion));
+        return q;
+    }
+
+    void CollectMeshes(GameObject* node, std::vector<Mesh*>& distinctMeshes, std::unordered_map<Mesh*, int>& meshMap) {
+        MeshFilter* mf = node->GetComponent<MeshFilter>();
+        if (mf && mf->mMeshHandle.IsValid()) {
+            Mesh* mesh = mf->mMeshHandle.Get();
+            if (meshMap.find(mesh) == meshMap.end()) {
+                meshMap[mesh] = (int)distinctMeshes.size();
+                distinctMeshes.push_back(mesh);
+            }
+        }
+
+        for (auto child : node->GetChildren()) {
+            CollectMeshes(child, distinctMeshes, meshMap);
+        }
+    }
+
+    void SaveNode(GameObject* node, std::ofstream& out, std::unordered_map<Mesh*, int>& meshMap) {
+        // Name
+        WriteString(out, node->name);
+        
+        // Transform
+        WriteVector3(out, node->transform->GetLocalPosition());
+        WriteQuaternion(out, node->transform->GetLocalQuaternion());
+        WriteVector3(out, node->transform->GetLocalScale());
+
+        // Mesh
+        int meshID = -1;
+        MeshFilter* mf = node->GetComponent<MeshFilter>();
+        if (mf && mf->mMeshHandle.IsValid()) {
+            Mesh* mesh = mf->mMeshHandle.Get();
+            if (meshMap.count(mesh)) {
+                meshID = meshMap[mesh];
+            }
+        }
+        out.write(reinterpret_cast<const char*>(&meshID), sizeof(meshID));
+
+        // Children
+        const auto& children = node->GetChildren();
+        size_t childCount = children.size();
+        out.write(reinterpret_cast<const char*>(&childCount), sizeof(childCount));
+
+        for (auto child : children) {
+            SaveNode(child, out, meshMap);
+        }
+    }
+
+    void BistroSceneLoader::SaveToCache(Scene* scene, const std::string& path) {
+        std::ofstream out(path, std::ios::binary);
+        if (!out) {
+            std::cout << "Failed to open cache file for writing: " << path << std::endl;
+            return;
+        }
+
+        // Header
+        const char* magic = "TINY";
+        out.write(magic, 4);
+        int version = 1;
+        out.write(reinterpret_cast<const char*>(&version), sizeof(version));
+
+        GameObject* root = nullptr;
+        // Find BistroRoot - assumming it's one of the roots or we just take the first one?
+        // BistroSceneLoader creates "BistroRoot"
+        for (auto go : scene->rootObjList) {
+            if (go->name == "BistroRoot") {
+                root = go;
+                break;
+            }
+        }
+        
+        if (!root && !scene->rootObjList.empty()) {
+             root = scene->rootObjList[0];
+        }
+
+        if (!root) {
+            std::cout << "No root object found to save." << std::endl;
+            return;
+        }
+
+        // 1. Collect Meshes
+        std::vector<Mesh*> distinctMeshes;
+        std::unordered_map<Mesh*, int> meshMap;
+        CollectMeshes(root, distinctMeshes, meshMap);
+
+        // 2. Save Meshes
+        size_t meshCount = distinctMeshes.size();
+        out.write(reinterpret_cast<const char*>(&meshCount), sizeof(meshCount));
+
+        for (Mesh* mesh : distinctMeshes) {
+            // Bounds
+            out.write(reinterpret_cast<const char*>(&mesh->bounds), sizeof(AABB));
+            
+            // Vertices
+            size_t vCount = mesh->vertex.size();
+            out.write(reinterpret_cast<const char*>(&vCount), sizeof(vCount));
+            if (vCount > 0) {
+                out.write(reinterpret_cast<const char*>(mesh->vertex.data()), vCount * sizeof(Vertex));
+            }
+
+            // Indices
+            size_t iCount = mesh->index.size();
+            out.write(reinterpret_cast<const char*>(&iCount), sizeof(iCount));
+            if (iCount > 0) {
+                out.write(reinterpret_cast<const char*>(mesh->index.data()), iCount * sizeof(int));
+            }
+
+            // Layout
+            size_t lCount = mesh->layout.size();
+            out.write(reinterpret_cast<const char*>(&lCount), sizeof(lCount));
+            if (lCount > 0) {
+                out.write(reinterpret_cast<const char*>(mesh->layout.data()), lCount * sizeof(InputLayout));
+            }
+        }
+
+        // 3. Save Node Hierarchy
+        SaveNode(root, out, meshMap);
+
+        out.close();
+        std::cout << "Saved scene to cache: " << path << std::endl;
+    }
+
+    GameObject* LoadNode(Scene* scene, GameObject* parent, std::ifstream& in, const std::vector<ResourceHandle<Mesh>>& meshes) {
+        // Name
+        std::string name = ReadString(in);
+        GameObject* go = scene->CreateGameObject(name);
+        go->SetParent(parent);
+
+        // Transform
+        Vector3 pos = ReadVector3(in);
+        Quaternion rot = ReadQuaternion(in);
+        Vector3 scale = ReadVector3(in);
+
+        go->transform->SetLocalPosition(pos);
+        go->transform->SetLocalQuaternion(rot);
+        go->transform->SetLocalScale(scale);
+
+        // Mesh
+        int meshID;
+        in.read(reinterpret_cast<char*>(&meshID), sizeof(meshID));
+        if (meshID >= 0 && meshID < meshes.size()) {
+            MeshFilter* mf = go->AddComponent<MeshFilter>();
+            mf->mMeshHandle = meshes[meshID];
+
+            MeshRenderer* mr = go->AddComponent<MeshRenderer>();
+            
+            // Re-use common material logic
+             std::string shaderName = "Shader/StandardPBR.hlsl";
+            if(RenderSettings::s_EnableVertexPulling)
+            {
+                shaderName = "Shader/StandardPBR_VertexPulling.hlsl";
+            }
+            ResourceHandle<Shader> pbrShader = ResourceManager::GetInstance()->LoadAsset<Shader>(shaderName);
+            
+            if (pbrShader.IsValid()) {
+                if (!BistroSceneLoader::commonMatHandle.IsValid()) 
+                {
+                    BistroSceneLoader::commonMatHandle = ResourceManager::GetInstance()->CreateResource<Material>(pbrShader);
+                }
+
+                mr->SetSharedMaterial(BistroSceneLoader::commonMatHandle);
+                mr->TryAddtoBatchManager();
+            } 
+        }
+
+        // Children
+        size_t childCount;
+        in.read(reinterpret_cast<char*>(&childCount), sizeof(childCount));
+
+        for (size_t i = 0; i < childCount; i++) {
+            LoadNode(scene, go, in, meshes);
+        }
+
+        return go;
+    }
+
+    Scene* BistroSceneLoader::LoadFromCache(const std::string& path) {
+        std::ifstream in(path, std::ios::binary);
+        if (!in) return nullptr;
+
+        char magic[5] = {0};
+        in.read(magic, 4);
+        if (std::string(magic) != "TINY") {
+            std::cout << "Invalid cache file magic" << std::endl;
+            return nullptr;
+        }
+
+        int version;
+        in.read(reinterpret_cast<char*>(&version), sizeof(version));
+        if (version != 1) {
+             std::cout << "Invalid cache file version" << std::endl;
+             return nullptr;
+        }
+
+        Scene* newScene = new Scene("BistroScene");
+        SceneManager::GetInstance()->SetCurrentScene(newScene);
+
+        // 1. Load Meshes
+        size_t meshCount;
+        in.read(reinterpret_cast<char*>(&meshCount), sizeof(meshCount));
+        std::vector<ResourceHandle<Mesh>> loadedMeshes;
+        loadedMeshes.reserve(meshCount);
+
+        for (size_t i = 0; i < meshCount; i++) {
+            ResourceHandle<Mesh> handle = ResourceManager::GetInstance()->CreateResource<Mesh>();
+            Mesh* mesh = handle.Get();
+
+            // Bounds
+            in.read(reinterpret_cast<char*>(&mesh->bounds), sizeof(AABB));
+
+            // Vertices
+            size_t vCount;
+            in.read(reinterpret_cast<char*>(&vCount), sizeof(vCount));
+            if (vCount > 0) {
+                mesh->vertex.resize(vCount);
+                in.read(reinterpret_cast<char*>(mesh->vertex.data()), vCount * sizeof(Vertex));
+            }
+
+            // Indices
+            size_t iCount;
+            in.read(reinterpret_cast<char*>(&iCount), sizeof(iCount));
+            if (iCount > 0) {
+                mesh->index.resize(iCount);
+                in.read(reinterpret_cast<char*>(mesh->index.data()), iCount * sizeof(int));
+            }
+
+            // Layout
+            size_t lCount;
+            in.read(reinterpret_cast<char*>(&lCount), sizeof(lCount));
+            if (lCount > 0) {
+                mesh->layout.resize(lCount);
+                in.read(reinterpret_cast<char*>(mesh->layout.data()), lCount * sizeof(InputLayout));
+            }
+
+            mesh->UploadMeshToGPU();
+            loadedMeshes.push_back(handle);
+        }
+
+        // 2. Load Hierarchy
+        LoadNode(newScene, nullptr, in, loadedMeshes); // Root has no parent
+
+        return newScene;
     }
 
     Scene* BistroSceneLoader::LoadInternal(const std::string& path) {

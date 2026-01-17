@@ -94,11 +94,11 @@
         "Vendor/**": true,
         "Projects/**": true,
         "Tools/**": true,
-        "**/_ai": true
     },
 
     "search.exclude": {
         "**/_ai": true,
+        "Docs/**": true,
     },
     "chatgpt.runCodexInWindowsSubsystemForLinux": true
 }

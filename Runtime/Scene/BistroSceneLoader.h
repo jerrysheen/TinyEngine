@@ -21,6 +21,8 @@ namespace EngineCore {
     class BistroSceneLoader {
     public:
         static Scene* Load(const std::string& path);
+        static void SaveToCache(Scene* scene, const std::string& path);
+        static Scene* LoadFromCache(const std::string& path);
         static ResourceHandle<Material> commonMatHandle;
         
     private:

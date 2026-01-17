@@ -12,6 +12,8 @@
 #include "GameObject/MeshRenderer.h"
 #include "GameObject/Transform.h"
 #include "Resources/ResourceManager.h"
+#include "Scene/BistroSceneLoader.h"
+//#include "Settings/PathSettings.h"
 
 
 namespace EngineEditor
@@ -63,6 +65,17 @@ namespace EngineEditor
 				if (ImGui::MenuItem("Save SceneFile"))
 				{
 					GenerateSceneMetaFile();
+				}
+
+				if (ImGui::MenuItem("Serialize Bistro"))
+				{
+					using namespace EngineCore;
+					auto* scene = SceneManager::GetInstance()->GetCurrentScene();
+					if (scene) {
+						// Save to binary cache
+						std::string bistroPath = PathSettings::ResolveAssetPath("/Scenes/niagara_bistro/bistro.gltf.bin");
+						BistroSceneLoader::SaveToCache(scene, bistroPath);
+					}
 				}
 
 

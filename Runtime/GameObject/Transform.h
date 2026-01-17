@@ -65,7 +65,7 @@ namespace EngineCore
         inline void SetParent(Transform* transform)
         {
             parentTransform = transform; 
-            transform->AddChild(this);
+            if(transform)transform->AddChild(this);
         };
 
         inline void DettachParent()
