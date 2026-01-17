@@ -74,10 +74,8 @@ namespace EngineCore
         }
         else
         {
-            int count = 0;
             for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
             {
-                if (count != 0) break;
                 int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
                 int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
                 Material* mat = renderContext.material;
@@ -98,7 +96,6 @@ namespace EngineCore
                 indirectPayload.startIndex = batchID;
                 indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
                 Renderer::GetInstance()->DrawIndirect(indirectPayload);
-                count++;
             }
         }
 
