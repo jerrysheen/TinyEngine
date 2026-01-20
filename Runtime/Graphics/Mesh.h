@@ -67,7 +67,8 @@ namespace EngineCore
         std::vector<Vertex> vertex;
         std::vector<int> index;
         std::vector<InputLayout> layout;
-        bool isDynamic = false;
+        bool isDynamic = true;
+        virtual void OnLoadComplete() override { UploadMeshToGPU(); };
     private:
         void ProcessNode(aiNode* node, const aiScene* scene);
         void LoadAiMesh(const string& path);

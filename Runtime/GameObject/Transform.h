@@ -37,6 +37,10 @@ namespace EngineCore
         void SetLocalQuaternion(const Quaternion& localQuaternion);
         void SetLocalScale(const Vector3& localScale);
 
+        inline void SetWorldPosition(const Vector3& position) { mWorldPosition = position; }
+        inline void SetWorldQuaternion(const Quaternion& quaternion) { mWorldQuaternion = quaternion; }
+        inline void SetWorldScale(const Vector3& scale) { mWorldScale = scale; }
+
         inline const Matrix4x4& GetWorldMatrix()
         {
             UpdateIfDirty(); 

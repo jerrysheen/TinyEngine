@@ -141,6 +141,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Core\PublicStruct.h">
       <Filter>Runtime\Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Core\ThreadSafeQueue.h">
+      <Filter>Runtime\Core</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\CoreAssert.h">
       <Filter>Runtime</Filter>
     </ClInclude>
@@ -384,6 +387,15 @@
     <ClInclude Include="..\..\..\..\Runtime\Resources\Asset.h">
       <Filter>Runtime\Resources</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Resources\AssetRegistry.h">
+      <Filter>Runtime\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Resources\AssetTypeTraits.h">
+      <Filter>Runtime\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Resources\IResourceLoader.h">
+      <Filter>Runtime\Resources</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Resources\Resource.h">
       <Filter>Runtime\Resources</Filter>
     </ClInclude>
@@ -405,6 +417,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Scripts\CameraController.h">
       <Filter>Runtime\Scripts</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\AssetHeader.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Serialization\AssetSerialization.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
@@ -417,6 +432,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Serialization\JsonSerializer.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\MeshLoader.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Serialization\MetaData.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
@@ -424,6 +442,15 @@
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Serialization\MetaLoader.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\SceneLoader.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\StreamHelper.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\TextureLoader.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Settings\ProjectSettings.h">
@@ -634,6 +661,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\Renderer.cpp">
       <Filter>Runtime\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Resources\AssetRegistry.cpp">
+      <Filter>Runtime\Resources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Resources\ResourceManager.cpp">
       <Filter>Runtime\Resources</Filter>

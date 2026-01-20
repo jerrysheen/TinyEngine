@@ -6,6 +6,7 @@
 
 namespace EngineCore
 {
+
     //todo： 应该是一个永久的hash，保证每次的资源能对应上
     struct AssetID
     {
@@ -53,9 +54,14 @@ namespace EngineCore
         Animation = 5,
         Shader = 6,
         Runtime = 7,
+        Scene = 8
     };
 
-
+    enum class AssetCreateMethod
+    {
+        Serialization = 0,
+        Runtime = 1
+    };
 }
 
 namespace std {

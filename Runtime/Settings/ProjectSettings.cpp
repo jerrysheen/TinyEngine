@@ -82,7 +82,7 @@ namespace EngineCore
     int WindowSettings::s_WindowHeight = 1080;
     int WindowSettings::s_WindowWidth = 1920;
 
-    RenderSettings::RenderPathType RenderSettings::s_RenderPath = RenderSettings::RenderPathType::GPUScene;
-    bool RenderSettings::s_EnableVertexPulling = true;
+    RenderSettings::RenderPathType RenderSettings::s_RenderPath = RenderSettings::RenderPathType::Legacy;
+    bool RenderSettings::s_EnableVertexPulling = false;
 
 };

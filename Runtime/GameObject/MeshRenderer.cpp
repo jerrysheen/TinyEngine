@@ -17,7 +17,8 @@ namespace EngineCore
 	MeshRenderer::MeshRenderer(GameObject* go)
 	{
 		gameObject = go;
-		lastSyncTransformVersion = gameObject->transform->transformVersion;
+		// 设置为0意味着强制会有一次同步
+		lastSyncTransformVersion = 0;
 		Scene* currentScene = SceneManager::GetInstance()->GetCurrentScene();
 		if(currentScene != nullptr)
 		{

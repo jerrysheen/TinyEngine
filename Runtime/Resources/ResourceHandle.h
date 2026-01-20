@@ -3,6 +3,13 @@
 
 namespace EngineCore
 {
+    enum class ResourceState
+    {
+        NotExits = 0,
+        Loading = 1,
+        Success = 2,
+    };
+
     // 这个TypeT可以用来做一些强转功能。
     // ResourceHandle本身的创建并不会设计到Ref++， 因为已经在资源层记录
     // 但是Resource的拷贝，移动等，会涉及到Ref++；
@@ -50,6 +57,10 @@ namespace EngineCore
             return mAssetID.IsValid() && Get() != nullptr;
         }
 
+        ResourceState GetResourecState()
+        {
+            return ResourceManager::GetInstance()->GetResourceStateByID(mAssetID.value);
+        }
 
         inline AssetID GetAssetID() const {return mAssetID;};
     // todo : temp data for jason sereilization;

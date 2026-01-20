@@ -17,18 +17,57 @@
 #include "Settings/ProjectSettings.h"
 #include <fstream>
 #include <unordered_map>
+#include "Serialization/MeshLoader.h"
+#include "Serialization/SceneLoader.h"
+#include "Resources/AssetRegistry.h"
+#include "Resources/Asset.h"
 
 namespace EngineCore {
     ResourceHandle<Material> BistroSceneLoader::commonMatHandle;
 
     Scene* BistroSceneLoader::Load(const std::string& path) {
-        // Check for cached binary
-        std::string cachePath = path + ".bin";
-        std::ifstream cacheFile(cachePath, std::ios::binary);
+        AssetRegistry::GetInstance()->LoadFromDisk("AssetRegistry.bin");
+
+        EngineCore::SceneLoader sceneLoader;
+        std::string binPath = "Scenes/BistroScene.bin";
+        std::string fullPath = PathSettings::ResolveAssetPath(binPath);
+        
+        std::ifstream cacheFile(fullPath, std::ios::binary);
         if (cacheFile.good()) {
             cacheFile.close();
-            std::cout << "Loading from cache: " << cachePath << std::endl;
-            return LoadFromCache(cachePath);
+            std::cout << "Loading from cache: " << fullPath << std::endl;
+            Scene* res = static_cast<Scene*>(sceneLoader.Load(binPath));
+            // todo： 这个地方有加载时序问题。。
+            SceneManager::GetInstance()->SetCurrentScene(res);
+            for (auto& gameObject : res->allObjList) 
+            {
+                if (gameObject->GetComponent<MeshFilter>() != nullptr)
+                {
+                    if (gameObject->GetComponent<MeshRenderer>() != nullptr) continue;
+
+                    MeshRenderer* mr = gameObject->AddComponent<MeshRenderer>();
+
+                    // Re-use common material logic
+                    std::string shaderName = "Shader/StandardPBR.hlsl";
+                    if (RenderSettings::s_EnableVertexPulling)
+                    {
+                        shaderName = "Shader/StandardPBR_VertexPulling.hlsl";
+                    }
+                    ResourceHandle<Shader> pbrShader = ResourceManager::GetInstance()->LoadAsset<Shader>(shaderName);
+
+                    if (pbrShader.IsValid()) {
+                        if (!BistroSceneLoader::commonMatHandle.IsValid())
+                        {
+                            BistroSceneLoader::commonMatHandle = ResourceManager::GetInstance()->CreateResource<Material>(pbrShader);
+                        }
+
+                        mr->SetSharedMaterial(BistroSceneLoader::commonMatHandle);
+                        mr->TryAddtoBatchManager();
+                    }
+                }
+            }
+
+            return res;
         }
 
         BistroSceneLoader loader;
@@ -364,11 +403,19 @@ namespace EngineCore {
             ProcessNode(model.nodes[scene.nodes[i]], model, rootGo, newScene);
         }
 
+        AssetRegistry::GetInstance()->SaveToDisk("AssetRegistry.bin");
+
+        // Save serialized scene
+        EngineCore::SceneLoader sceneLoader;
+        // Use a temporary ID for now, or fetch from registry if available
+        sceneLoader.SaveSceneToBin(newScene, "/Scenes/BistroScene.bin", 0);
+
         // Cache is cleared when loader instance is destroyed (end of Load function)
         return newScene;
     }
 
-    void BistroSceneLoader::ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene) {
+    void BistroSceneLoader::ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene) 
+    {
         GameObject* go = targetScene->CreateGameObject(node.name.empty() ? "Node" : node.name);
         go->SetParent(parent);
 
@@ -491,6 +538,29 @@ namespace EngineCore {
 
                 // Upload to GPU
                 mesh->UploadMeshToGPU();
+
+                 {
+                     std::string meshName = "Bistro_Mesh_" + std::to_string(meshIndex) + "_" + std::to_string(modelHandles.size());
+                     std::string assetPath = "Mesh/" + meshName + ".bin";
+
+                     AssetID runtimeID = mesh->GetAssetID();
+                     AssetID newID = AssetIDGenerator::NewFromFile(assetPath);
+
+                     mesh->SetPath(assetPath);
+                     mesh->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+                     mesh->SetAssetID(newID);
+
+                     ResourceManager::GetInstance()->mResourceCache.erase(runtimeID);
+                     ResourceManager::GetInstance()->mResourceCache[newID] = mesh;
+                     ResourceManager::GetInstance()->mPathToID[assetPath] = newID;
+
+                     modelHandle = ResourceHandle<EngineCore::Mesh>(newID);
+
+                     MeshLoader loader;
+                     loader.SaveMeshToBin(mesh, assetPath, (uint32_t)newID);
+
+                     AssetRegistry::GetInstance()->RegisterAsset(mesh);
+                 }
 
                 // Optional: If we want to save memory and don't need CPU copy anymore, we could clear vectors here
                 // However, keep it for now as it might be needed for physics/picking

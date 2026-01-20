@@ -66,9 +66,13 @@ namespace EngineCore
             GPUSceneManager::GetInstance()->Tick();
             PROFILER_EVENT_END("MainThread::GPUSceneManagerTick");
 
+            
             // Get Current BatchInfo:
             vector<DrawIndirectArgs> batchInfo = BatchManager::GetInstance()->GetBatchInfo();
-            indirectDrawArgsBuffer->UploadBuffer(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
+            if (batchInfo.size() != 0) 
+            {
+                indirectDrawArgsBuffer->UploadBuffer(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
+            }
 
             ComputeShader* csShader = GPUSceneManager::GetInstance()->GPUCullingShaderHandler.Get();
             csShader->SetBuffer("CullingParams", cullingParamBuffer->GetGPUBuffer());

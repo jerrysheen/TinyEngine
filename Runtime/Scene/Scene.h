@@ -77,7 +77,7 @@ namespace EngineCore
         }
     };
 
-    class Scene : Object
+    class Scene : public Resource
     {
     public:
         Scene();

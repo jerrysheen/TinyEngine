@@ -190,6 +190,7 @@ namespace EngineCore
                 meshRenderer->lastSyncTransformVersion = currversion;
                 meshRenderer->UpdateBounds(meshFilter->mMeshHandle.Get()->bounds, meshRenderer->gameObject->transform->GetWorldMatrix());
                 renderSceneData.transformDirtyList.push_back(i);
+
             }
 
         }

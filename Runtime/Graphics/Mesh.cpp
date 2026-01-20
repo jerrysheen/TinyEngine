@@ -46,8 +46,7 @@ namespace EngineCore
 
     void Mesh::UploadMeshToGPU()
     {
-		ASSERT(vertex.size() > 0);
-		ASSERT(index.size() > 0);
+		if (vertex.size() == 0 || index.size() == 0) return;
 		vertexAllocation = GeometryManager::GetInstance()->AllocateVertexBuffer(vertex.data(), vertex.size() * sizeof(Vertex));
 		indexAllocation = GeometryManager::GetInstance()->AllocateIndexBuffer(index.data(), index.size() * sizeof(uint32_t));
 		if(!isDynamic)
@@ -147,14 +146,15 @@ namespace EngineCore
 			MeshUtils::GetFullScreenQuad(this);
 			break;
 		case Primitive::Cube:
-			LoadAiMesh(PathSettings::ResolveAssetPath("Mesh/Primitives/Cube.obj"));
+			LoadAiMesh(PathSettings::ResolveAssetPath("Model/Primitives/Cube.obj"));
 			break;
 		case Primitive::Sphere:
-			LoadAiMesh(PathSettings::ResolveAssetPath("Mesh/Primitives/Sphere.obj"));
+			LoadAiMesh(PathSettings::ResolveAssetPath("Model/Primitives/Sphere.obj"));
 			break;
 		default:
 			break;
 		}
+		UploadMeshToGPU();
     }
 
 }

@@ -2,12 +2,14 @@
 #include "Asset.h"
 #include "PreCompiledHeader.h"
 #include "ResourceHandle.h"
-#include "Asset.h"
 #include "Serialization/MetaData.h"
 #include "Serialization/MetaLoader.h"
 #include "Resources/Resource.h"
 #include "Settings/ProjectSettings.h"
-
+#include "IResourceLoader.h"
+#include "AssetRegistry.h"
+#include "AssetTypeTraits.h"
+#include "Core/ThreadSafeQueue.h"
 
 namespace EngineCore
 {
@@ -16,17 +18,49 @@ namespace EngineCore
     public:
         
         static void Create();
-        static void Delete();
-        ~ResourceManager(){};
-        ResourceManager(){};
+        void Destroy();
+        ~ResourceManager();
+        ResourceManager();
 
-        // todo :资源正确释放
-        static void Destroy()
+        void Update();
+        void WorkThreadLoad();
+
+        template<typename T>
+        ResourceHandle<T> LoadAssetAsync(uint64_t assetPathID, std::function<void()> callback)
         {
-            delete sInstance;
-            sInstance = nullptr;
-        };
+            if(mResourceCache.count(assetPathID) > 0)
+            {
+                return ResourceHandle<T>(assetPathID);
+            }
+            
+            mResourceCache[assetPathID] = nullptr;
+            string path = AssetRegistry::GetInstance()->GetAssetPath(assetPathID);
+            // 找到对应的Loader：
+            AssetType fileType = AssetTypeTraits<T>::Type;
+            ResourceHandle<T> handle(assetPathID);
+            auto* loader = m_Loaders[fileType];
 
+            m_WorkThreadQueue.TryPush([=]()
+            {
+                Resource* resource = loader->Load(path);
+                m_MainThreadQueue.TryPush([=]()
+                {
+                    // 主线程访问才对，不然会有线程安全问题
+                    mResourceCache[assetPathID] = resource;
+                    resource->OnLoadComplete();
+                    if(callback != nullptr)callback();
+                });
+            });
+
+            return handle;
+        }
+
+        ResourceState GetResourceStateByID(uint64_t assetID )
+        {
+            if(mResourceCache.count(assetID) == 0) return ResourceState::NotExits;
+            if(mResourceCache[assetID] == nullptr) return ResourceState::Loading;
+            if(mResourceCache[assetID] != nullptr) return ResourceState::Success;
+        }
 
         template<typename T>
         ResourceHandle<T> LoadAsset(const string& relativePath)
@@ -76,7 +110,8 @@ namespace EngineCore
         {
             if(mResourceCache.count(id) > 0)
             {
-                auto& resource  = mResourceCache[id];
+                auto* resource  = mResourceCache[id];
+                if (resource == nullptr) return;
                 resource->mRefCount++;
             }
         }
@@ -85,7 +120,8 @@ namespace EngineCore
         {
             if(mResourceCache.count(id) > 0)
             {
-                auto& resource  = mResourceCache[id];
+                auto* resource  = mResourceCache[id];
+                if (resource == nullptr) return;
                 if(--resource->mRefCount <= 0)
                 {
                     mPendingDeleteList.push_back(resource);
@@ -102,19 +138,30 @@ namespace EngineCore
 
         static inline ResourceManager* GetInstance()
         {
-            ASSERT(sInstance != nullptr);
+            if(sInstance == nullptr)
+            {
+                Create();
+            }
             return sInstance;
         };
 
         template<typename T>
         inline T* GetResource(AssetID id) 
         {
-            if (id.IsValid()) 
+            if(!id.IsValid()) return nullptr;
+
+            if(mResourceCache.count(id) == 0)
             {
-                ASSERT(mResourceCache.count(id) > 0);
-                return static_cast<T*>(mResourceCache[id]);
+                return nullptr;
             }
-            return nullptr;
+
+            Resource* res = mResourceCache[id];
+            if(res == nullptr)
+            {
+                return static_cast<T*>(GetDefaultResource<T>());
+            }
+            
+            return static_cast<T*>(res);
         }
 
         inline void GabageColloection()
@@ -124,6 +171,15 @@ namespace EngineCore
                 delete mPendingDeleteList[i];
             }
             mPendingDeleteList.clear();
+        };
+
+        void ResgisterResource(Resource* res, AssetID id)
+        {
+            if(mResourceCache.count(id) > 0)
+            {
+                ASSERT(mResourceCache[id] == res);
+            }
+            mResourceCache[id] == res;
         };
 
         template<typename T, typename... Args>
@@ -138,6 +194,23 @@ namespace EngineCore
             return ResourceHandle<T>(id);
         }
 
+        template<typename T>
+        Resource* GetDefaultResource()
+        {
+            auto fileType = AssetTypeTraits<T>::Type;
+            ASSERT(fileType != AssetType::Default);
+            AssetID id;
+            switch (fileType)
+            {
+            case AssetType::Mesh:
+                return defaultMesh;
+                break;
+            default:
+                ASSERT(false);
+                break;
+            }
+        }
+
     // todo: temp public for Editor Test
     public:
         void LoadDependencies(const std::vector<MetaData>& dependenciesList);
@@ -145,10 +218,15 @@ namespace EngineCore
         unordered_map<AssetID, Resource*> mResourceCache;
         unordered_map<string, AssetID> mPathToID;
         std::vector<Resource*> mPendingDeleteList;
-        void RegisterMaterial(const Material* mat);
-        void UnRegisterMaterial(const Material* mat);
-        // todo: 之后会把所有资源类，放在一个线性分配器里面
-        //std::vector<Material*> mAllMaterialData;
+
+        std::unordered_map<AssetType, IResourceLoader*> m_Loaders;
+
+        ThreadSafeQueue<std::function<void()>> m_WorkThreadQueue;
+        ThreadSafeQueue<std::function<void()>> m_MainThreadQueue;
+        std::thread mLoadThread;
+        bool isRuning = true;
+        Mesh* defaultMesh;
+
     };
 
 }

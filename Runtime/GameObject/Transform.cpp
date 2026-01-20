@@ -88,6 +88,10 @@ namespace EngineCore
 
     void Transform::UpdateTransform()
     {
+        if(parentTransform != nullptr && parentTransform->isDirty)
+        {
+            parentTransform->UpdateTransform();
+        }
         mLocalMatrix =  Matrix4x4::TRS(mLocalPosition, mLocalQuaternion, mLocalScale);
         if(parentTransform != nullptr)
         {

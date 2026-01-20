@@ -7,17 +7,18 @@
 #include "EditorGUIManager.h"
 #endif
 #include "Settings/ProjectSettings.h"
-
+#include "Resources/AssetRegistry.h"
 namespace EngineCore
 {
     void Game::Launch()
     {
         ProjectSettings::Initialize();
         // InitManagers Here.
-        ResourceManager::Create();
         RenderEngine::Create();
+        ResourceManager::Create();
         SceneManager::Create();
         JobSystem::Create();
+        AssetRegistry::Create();
         ASSERT(!(RenderSettings::s_EnableVertexPulling == true && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy));
         //std::cout << "Launch Game" << std::endl;
         // init Manager...
@@ -58,7 +59,7 @@ namespace EngineCore
         std::cout << "SceneManager destroyed." << std::endl;
 
         // 4. 最后销毁资源管理器
-        ResourceManager::Destroy();
+        ResourceManager::GetInstance()->Destroy();
         std::cout << "ResourceManager destroyed." << std::endl;
 
         std::cout << "Game shutdown complete." << std::endl;
@@ -68,7 +69,7 @@ namespace EngineCore
     {
         PROFILER_ZONE("MainThread::GameUpdate");
         SceneManager::GetInstance()->Update();
-    
+        ResourceManager::GetInstance()->Update();
     }
 
     void Game::Render()

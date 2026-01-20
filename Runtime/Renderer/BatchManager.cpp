@@ -118,6 +118,8 @@ namespace EngineCore
 
     void BatchManager::TryAddBatches(MeshRenderer *meshRenderer, MeshFilter *meshFilter)
     {
+        Mesh* mesh = meshFilter->mMeshHandle.Get();
+        if (mesh->indexAllocation == nullptr || mesh->vertexAllocation == nullptr) return;
         uint32_t mask = meshRenderer->renderLayer;
         for(int i = 0 ; i < 32; i++)
         {
