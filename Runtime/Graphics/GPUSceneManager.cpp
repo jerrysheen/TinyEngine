@@ -221,7 +221,7 @@ namespace EngineCore
                 currCopyPerObjectOPPtr->dstOffset = index * sizeof(PerObjectData);
                 currCopyPerObjectOPPtr->size = sizeof(PerObjectData);
                 currCopyPerObjectOPPtr++;
-                perObjectDataBuffer[i] = {};
+                perObjectDataBuffer[index] = {};
                 perObjectTempData.push_back({});
             }
             else
@@ -231,7 +231,7 @@ namespace EngineCore
                 currCopyPerObjectOPPtr->size = sizeof(PerObjectData);
                 currCopyPerObjectOPPtr++;
                 perObjectDataBuffer[i].objectToWorld = renderSceneData.objectToWorldMatrixList[i];
-                perObjectTempData.push_back(perObjectDataBuffer[i]);
+                perObjectTempData.push_back(perObjectDataBuffer[index]);
             }
         }
 
