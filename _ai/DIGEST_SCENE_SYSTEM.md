@@ -1,5 +1,5 @@
 # Architecture Digest: SCENE_SYSTEM
-> Auto-generated. Focus: Runtime/Scene, SceneManager, Scene, GameObject, Component, Transform, Hierarchy
+> Auto-generated. Focus: Runtime/Scene, SceneManager, Scene, GameObject, Component, Transform, Hierarchy, MeshFilter, MeshRenderer, Transform, GPUSceneManager, Game
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
@@ -14,49 +14,55 @@
 - 场景管理、加载与切换流程。
 
 ## Key Files Index
-- `[68]` **Runtime/Scene/SceneManager.h** *(Content Included)*
-- `[51]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
-- `[49]` **Runtime/GameObject/Transform.h** *(Content Included)*
-- `[48]` **Runtime/Scene/Scene.h** *(Content Included)*
-- `[42]` **Runtime/GameObject/GameObject.h** *(Content Included)*
-- `[42]` **Runtime/Scene/BistroSceneLoader.h** *(Content Included)*
-- `[40]` **Runtime/GameObject/Component.h** *(Content Included)*
-- `[37]` **Runtime/GameObject/ComponentType.h** *(Content Included)*
-- `[35]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h** *(Content Included)*
-- `[31]` **Runtime/Serialization/ComponentFactory.h** *(Content Included)*
-- `[29]` **Editor/Panel/EditorHierarchyPanel.h** *(Content Included)*
+- `[88]` **Runtime/GameObject/Transform.h** *(Content Included)*
+- `[76]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
+- `[75]` **Runtime/Scene/SceneManager.h** *(Content Included)*
+- `[74]` **Runtime/GameObject/GameObject.h** *(Content Included)*
+- `[68]` **Runtime/Scene/Scene.h** *(Content Included)*
+- `[62]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
+- `[55]` **Runtime/GameObject/MeshFilter.h** *(Content Included)*
+- `[55]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
+- `[53]` **Runtime/GameObject/Component.h** *(Content Included)*
+- `[50]` **Runtime/GameObject/ComponentType.h** *(Content Included)*
+- `[49]` **Runtime/Scene/BistroSceneLoader.h** *(Content Included)*
+- `[43]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
+- `[35]` **Runtime/Serialization/ComponentFactory.h**
+- `[34]` **Editor/Panel/EditorHierarchyPanel.h**
+- `[31]` **Runtime/GameObject/MonoBehaviour.h**
+- `[29]` **Runtime/GameObject/Camera.h**
+- `[27]` **Runtime/Core/Game.h**
+- `[27]` **Runtime/Serialization/MetaFactory.h**
 - `[24]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
-- `[22]` **Runtime/GameObject/MeshRenderer.h**
-- `[19]` **Runtime/GameObject/MonoBehaviour.h**
-- `[19]` **Runtime/Serialization/MetaFactory.h**
-- `[18]` **Runtime/GameObject/Camera.h**
-- `[18]` **Runtime/GameObject/MeshFilter.h**
-- `[13]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
-- `[11]` **Editor/Panel/EditorMainBar.h**
-- `[9]` **Editor/Panel/EditorInspectorPanel.h**
+- `[24]` **Editor/Panel/EditorGameViewPanel.h**
+- `[18]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
+- `[16]` **Runtime/Renderer/BatchManager.h**
+- `[15]` **Editor/Panel/EditorInspectorPanel.h**
+- `[12]` **Editor/EditorGUIManager.h**
+- `[12]` **Editor/EditorSettings.h**
+- `[12]` **Editor/Panel/EditorMainBar.h**
+- `[10]` **Runtime/Core/PublicStruct.h**
 - `[8]` **Runtime/Graphics/Mesh.h**
-- `[7]` **Editor/EditorGUIManager.h**
-- `[7]` **Editor/EditorSettings.h**
+- `[8]` **Runtime/Renderer/RenderSorter.h**
+- `[6]` **Runtime/Math/AABB.h**
+- `[6]` **Runtime/Scripts/CameraController.h**
 - `[5]` **Runtime/EngineCore.h**
 - `[5]` **Runtime/Renderer/RenderEngine.h**
-- `[4]` **Runtime/Math/AABB.h**
-- `[4]` **Runtime/Renderer/BatchManager.h**
-- `[4]` **Runtime/Renderer/RenderSorter.h**
-- `[4]` **Runtime/Scripts/CameraController.h**
+- `[4]` **Runtime/Renderer/Culling.h**
+- `[4]` **Runtime/Renderer/RenderContext.h**
+- `[4]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
-- `[3]` **Runtime/Core/PublicStruct.h**
 - `[3]` **Runtime/Graphics/MeshUtils.h**
-- `[3]` **Runtime/Renderer/Culling.h**
-- `[3]` **Runtime/Renderer/RenderContext.h**
+- `[3]` **Runtime/Renderer/Renderer.h**
+- `[3]` **Runtime/Resources/Asset.h**
+- `[3]` **Runtime/Serialization/AssetHeader.h**
 - `[3]` **Runtime/Settings/ProjectSettings.h**
-- `[3]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
 - `[2]` **Runtime/CoreAssert.h**
 - `[2]` **Runtime/PreCompiledHeader.h**
-- `[2]` **Runtime/Core/Game.h**
 - `[2]` **Runtime/Core/InstanceID.h**
 - `[2]` **Runtime/Core/Object.h**
 - `[2]` **Runtime/Core/Profiler.h**
 - `[2]` **Runtime/Core/PublicEnum.h**
+- `[2]` **Runtime/Core/ThreadSafeQueue.h**
 - `[2]` **Runtime/Graphics/ComputeShader.h**
 - `[2]` **Runtime/Graphics/GeometryManager.h**
 - `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
@@ -68,14 +74,127 @@
 - `[2]` **Runtime/Graphics/MaterialLayout.h**
 - `[2]` **Runtime/Graphics/RenderTexture.h**
 - `[2]` **Runtime/Graphics/Shader.h**
-- `[2]` **Runtime/Graphics/Texture.h**
-- `[2]` **Runtime/Managers/Manager.h**
-- `[2]` **Runtime/Managers/WindowManager.h**
-- `[2]` **Runtime/Math/Frustum.h**
-- `[2]` **Runtime/Math/Math.h**
-- `[2]` **Runtime/Math/Matrix4x4.h**
 
 ## Evidence & Implementation Details
+
+### File: `Runtime/GameObject/Transform.h`
+```cpp
+namespace EngineCore
+{
+    class GameObject;
+    struct Transform : Component
+    {
+        Transform();
+        Transform(GameObject* parent);
+        virtual ~Transform() override;
+        static ComponentType GetStaticType() { return ComponentType::Transform; };
+        virtual ComponentType GetType() const override{ return ComponentType::Transform; };
+        void MarkDirty();
+
+
+        void RotateX(float degree);
+        void RotateY(float degree);
+        void RotateZ(float degree);
+
+        const Vector3 GetLocalEulerAngles(); 
+        void SetLocalEulerAngles(const Vector3& eulerAngles);
+
+        const Vector3 GetWorldPosition(){ return mWorldPosition; };
+        const Quaternion GetWorldQuaternion(){ return mWorldQuaternion; };
+        const Vector3 GetWorldScale(){ return mWorldScale; };
+
+        const Vector3 GetLocalPosition() const { return mLocalPosition; };
+        const Quaternion GetLocalQuaternion() const { return mLocalQuaternion; };
+        const Vector3 GetLocalScale() const { return mLocalScale; };
+
+        void SetLocalPosition(const Vector3& localPosition);
+        void SetLocalQuaternion(const Quaternion& localQuaternion);
+        void SetLocalScale(const Vector3& localScale);
+
+        inline void SetWorldPosition(const Vector3& position) { mWorldPosition = position; }
+        inline void SetWorldQuaternion(const Quaternion& quaternion) { mWorldQuaternion = quaternion; }
+        inline void SetWorldScale(const Vector3& scale) { mWorldScale = scale; }
+
+        inline const Matrix4x4& GetWorldMatrix()
+        {
+            UpdateIfDirty(); 
+            return mWorldMatrix;
+        }
+        
+        inline const Matrix4x4& GetLocalMatrix()
+        {
+            UpdateIfDirty(); 
+            return mLocalMatrix;
+        }
+
+        void UpdateIfDirty();
+        void UpdateTransform();
+        //inline void UpdateNow() { UpdateTransform(); };
+        uint32_t transformVersion = 1;
+    public:
+        bool isDirty = true;
+        std::vector<Transform*> childTransforms;
+        Transform* parentTransform = nullptr;
+        
+    protected:
+
+        friend class GameObject;
+```
+...
+```cpp
+        {
+            parentTransform = transform; 
+            if(transform)transform->AddChild(this);
+        };
+
+        inline void DettachParent()
+        {
+```
+
+### File: `Runtime/Graphics/GPUSceneManager.h`
+```cpp
+{
+
+    class GPUSceneManager
+    {
+    public:
+        static GPUSceneManager* GetInstance();
+        GPUSceneManager();
+        static void Create();
+        void Tick();
+        void Destroy();
+        
+        BufferAllocation GetSinglePerMaterialData();
+        void RemoveSinglePerMaterialData(const BufferAllocation& bufferalloc);
+        void UpdateSinglePerMaterialData(const BufferAllocation& bufferalloc, void* data);
+
+        void TryFreeRenderProxyBlock(uint32_t index);
+        void TryCreateRenderProxyBlock(uint32_t index);
+        BufferAllocation LagacyRenderPathUploadBatch(void *data, uint32_t size);
+        void FlushBatchUploads();
+        void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
+        void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);
+
+        vector<PerObjectData> perObjectDataBuffer;
+
+        LinearAllocator* perFramelinearMemoryAllocator;
+
+        GPUBufferAllocator* allMaterialDataBuffer;
+        GPUBufferAllocator* allObjectDataBuffer;
+        GPUBufferAllocator* perFrameBatchBuffer;
+        GPUBufferAllocator* allAABBBuffer;
+        GPUBufferAllocator* renderProxyBuffer;
+
+
+        BufferAllocation visiblityAlloc;
+        GPUBufferAllocator* visibilityBuffer;
+        
+        ResourceHandle<ComputeShader> GPUCullingShaderHandler;
+    private:
+        static GPUSceneManager* sInstance; 
+        vector<CopyOp> mPendingBatchCopies;
+    };
+```
 
 ### File: `Runtime/Scene/SceneManager.h`
 ```cpp
@@ -138,124 +257,41 @@ namespace EngineCore
 }
 ```
 
-### File: `Runtime/Graphics/GPUSceneManager.h`
-```cpp
-{
-
-    class GPUSceneManager
-    {
-    public:
-        static GPUSceneManager* GetInstance();
-        GPUSceneManager();
-        static void Create();
-        void Tick();
-        void Destroy();
-        
-        BufferAllocation GetSinglePerMaterialData();
-        void RemoveSinglePerMaterialData(const BufferAllocation& bufferalloc);
-        void UpdateSinglePerMaterialData(const BufferAllocation& bufferalloc, void* data);
-
-        void TryFreeRenderProxyBlock(uint32_t index);
-        void TryCreateRenderProxyBlock(uint32_t index);
-        BufferAllocation LagacyRenderPathUploadBatch(void *data, uint32_t size);
-        void FlushBatchUploads();
-        void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
-        void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);
-
-        vector<PerObjectData> perObjectDataBuffer;
-
-        LinearAllocator* perFramelinearMemoryAllocator;
-
-        GPUBufferAllocator* allMaterialDataBuffer;
-        GPUBufferAllocator* allObjectDataBuffer;
-        GPUBufferAllocator* perFrameBatchBuffer;
-        GPUBufferAllocator* allAABBBuffer;
-        GPUBufferAllocator* renderProxyBuffer;
-
-
-        BufferAllocation visiblityAlloc;
-        GPUBufferAllocator* visibilityBuffer;
-        
-        ResourceHandle<ComputeShader> GPUCullingShaderHandler;
-    private:
-        static GPUSceneManager* sInstance; 
-        vector<CopyOp> mPendingBatchCopies;
-    };
-```
-
-### File: `Runtime/GameObject/Transform.h`
+### File: `Runtime/GameObject/GameObject.h`
 ```cpp
 namespace EngineCore
 {
-    class GameObject;
-    struct Transform : Component
+    class Component;
+    class Scene;
+    class Transform;
+    //class Transform;
+    // later we will inherete from Object, now just keep it simple.
+    class GameObject : Object
     {
-        Transform();
-        Transform(GameObject* parent);
-        virtual ~Transform() override;
-        static ComponentType GetStaticType() { return ComponentType::Transform; };
-        virtual ComponentType GetType() const override{ return ComponentType::Transform; };
-        void MarkDirty();
-
-
-        void RotateX(float degree);
-        void RotateY(float degree);
-        void RotateZ(float degree);
-
-        const Vector3 GetLocalEulerAngles(); 
-        void SetLocalEulerAngles(const Vector3& eulerAngles);
-
-        const Vector3 GetWorldPosition(){ return mWorldPosition; };
-        const Quaternion GetWorldQuaternion(){ return mWorldQuaternion; };
-        const Vector3 GetWorldScale(){ return mWorldScale; };
-
-        const Vector3 GetLocalPosition() const { return mLocalPosition; };
-        const Quaternion GetLocalQuaternion() const { return mLocalQuaternion; };
-        const Vector3 GetLocalScale() const { return mLocalScale; };
-
-        void SetLocalPosition(const Vector3& localPosition);
-        void SetLocalQuaternion(const Quaternion& localQuaternion);
-        void SetLocalScale(const Vector3& localScale);
-
-        inline const Matrix4x4& GetWorldMatrix()
-        {
-            UpdateIfDirty(); 
-            return mWorldMatrix;
-        }
-        
-        inline const Matrix4x4& GetLocalMatrix()
-        {
-            UpdateIfDirty(); 
-            return mLocalMatrix;
-        }
-
-        void UpdateIfDirty();
-        void UpdateTransform();
-        //inline void UpdateNow() { UpdateTransform(); };
-        uint32_t transformVersion = 1;
     public:
-        bool isDirty = true;
-        std::vector<Transform*> childTransforms;
-        Transform* parentTransform = nullptr;
-        
-    protected:
+        GameObject();
 
-        friend class GameObject;
-        // 外部不能访问修改， 只能访问GameObject.SetParent
-        inline void SetParent(Transform* transform)
-        {
-            parentTransform = transform; 
-```
-...
-```cpp
-        inline void DettachParent()
-        {
-            if(parentTransform != nullptr) parentTransform->RemoveChild(this);
-            parentTransform = nullptr;
-        }
+        GameObject::GameObject(const std::string& name, Scene* scene);
 
-        inline void AddChild(Transform* transform)
-        {
+        ~GameObject();
+        void SetParent(const GameObject* gameObject);
+        template<typename T>
+        inline T* GetComponent() const;
+        template<typename T>
+        inline T* AddComponent();
+
+        std::vector<GameObject*> GetChildren() const;
+    public:
+        Transform* transform;
+        std::unordered_map<ComponentType, Component*> components;
+        std::vector<MonoBehaviour*> scripts;
+        std::string name;
+        bool enabled = true;
+            // 非模板方式
+        void AddComponent(Component* compont);
+    private:
+        Scene* ownerScene = nullptr;
+    };
 ```
 
 ### File: `Runtime/Scene/Scene.h`
@@ -325,7 +361,7 @@ namespace EngineCore
 ```cpp
     };
 
-    class Scene : Object
+    class Scene : public Resource
     {
     public:
         Scene();
@@ -376,62 +412,173 @@ namespace EngineCore
     };    
 ```
 
-### File: `Runtime/GameObject/GameObject.h`
+### File: `Runtime/GameObject/MeshRenderer.h`
 ```cpp
 namespace EngineCore
 {
-    class Component;
-    class Scene;
-    class Transform;
-    //class Transform;
-    // later we will inherete from Object, now just keep it simple.
-    class GameObject : Object
+    class MeshRenderer : public Component
     {
+        class GameObejct;
     public:
-        GameObject();
+        MeshRenderer() = default;
+        MeshRenderer(GameObject* gamObject);
+        virtual ~MeshRenderer() override;
+        static ComponentType GetStaticType() { return ComponentType::MeshRenderer; };
+        virtual ComponentType GetType() const override{ return ComponentType::MeshRenderer; };
 
-        GameObject::GameObject(const std::string& name, Scene* scene);
+        virtual const char* GetScriptName() const override { return "MeshRenderer"; }
+        virtual json SerializedFields() const override {
+            return json{
+                {"MatHandle", mShardMatHandler},
+            };
+        }
+        
+        virtual void DeserializedFields(const json& data) override;
+        
+        void SetUpMaterialPropertyBlock();
 
-        ~GameObject();
-        void SetParent(const GameObject* gameObject);
-        template<typename T>
-        inline T* GetComponent() const;
-        template<typename T>
-        inline T* AddComponent();
+        inline Material* GetSharedMaterial()
+        { 
+            return mShardMatHandler.IsValid() ? mShardMatHandler.Get() : nullptr;
+        };
 
-        std::vector<GameObject*> GetChildren() const;
-    public:
-        Transform* transform;
-        std::unordered_map<ComponentType, Component*> components;
-        std::vector<MonoBehaviour*> scripts;
-        std::string name;
-        bool enabled = true;
-            // 非模板方式
-        void AddComponent(Component* compont);
+        inline void SetSharedMaterial(const ResourceHandle<Material>& mat) 
+        {
+            mShardMatHandler = mat;
+            SetUpMaterialPropertyBlock();
+        }
+
+        // return a new Material Instance;
+        Material* GetOrCreateMatInstance();
+        // 
+        ResourceHandle<Material> GetMaterial();
+        inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
+
+        void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
+        uint32_t lastSyncTransformVersion = 0;
+        bool shouldUpdateMeshRenderer = true;
+
+        AABB worldBounds;
+        uint32_t sceneRenderNodeIndex = UINT32_MAX;
+        bool materialDirty = true;
+		
+        void TryAddtoBatchManager();
+
+        uint32_t renderLayer = 1;
     private:
-        Scene* ownerScene = nullptr;
+        ResourceHandle<Material> mShardMatHandler;
+        ResourceHandle<Material> mInstanceMatHandler;
+
+    };
+
+}
+```
+
+### File: `Runtime/GameObject/MeshFilter.h`
+```cpp
+namespace EngineCore
+{
+    class MeshFilter : public Component
+    {
+        class GameObejct;
+    public:
+        MeshFilter() = default;
+        MeshFilter(GameObject* gamObject);
+
+        virtual ~MeshFilter() override;
+        static ComponentType GetStaticType() { return ComponentType::MeshFilter; };
+        virtual ComponentType GetType() const override{ return ComponentType::MeshFilter; };
+        void OnLoadResourceFinished();
+    public:
+        ResourceHandle<Mesh> mMeshHandle;
+        
+        virtual const char* GetScriptName() const override { return "MeshFilter"; }
+        virtual json SerializedFields() const override {
+            return json{
+                {"MeshHandle", mMeshHandle},
+            };
+        }
+        
+        virtual void DeserializedFields(const json& data) override;
+
+        uint32_t GetHash()
+        {
+            return mMeshHandle->GetInstanceID();
+        }
+    private:
+        uint32_t hash;
     };
 ```
 
-### File: `Runtime/Scene/BistroSceneLoader.h`
+### File: `Runtime/Serialization/SceneLoader.h`
 ```cpp
+namespace EngineCore
+{
+    struct SceneSerializedNode
+    {
+        char name[64];         // 固定长度名字
+        int32_t parentIndex = -1;
+        Vector3 position;
+        Quaternion rotation;
+        Vector3 scale;
 
-namespace EngineCore {
-    class GameObject;
-    class Scene;
+        uint64_t meshID = 0;
+        uint32_t materialID = 0;
 
-    class BistroSceneLoader {
-    public:
-        static Scene* Load(const std::string& path);
-        static ResourceHandle<Material> commonMatHandle;
-        
-    private:
-        Scene* LoadInternal(const std::string& path);
-        void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
-        void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
-
-        std::map<int, std::vector<ResourceHandle<Mesh>>> m_MeshCache;
     };
+```
+...
+```cpp
+                if(nodeData.parentIndex != -1)
+                {
+                    ASSERT(gameObjectMap.count(nodeData.parentIndex) > 0);
+                    go->SetParent(gameObjectMap[nodeData.parentIndex]);
+                }
+                gameObjectMap[i] = go;
+
+                //todo 加入材质的异步加载：
+                if(nodeData.meshID != 0)
+                {
+```
+...
+```cpp
+        void SaveSceneToBin(const Scene* scene, const std::string& relativePath, uint32_t id)
+        {
+            ASSERT(scene && scene->allObjList.size() > 0);
+            std::string binPath = PathSettings::ResolveAssetPath(relativePath);
+            std::ofstream out(binPath, std::ios::binary);
+
+            AssetHeader header;
+            header.assetID =id;
+            header.type = 0;
+            StreamHelper::Write(out, header);
+
+            std::vector<SceneSerializedNode> linearNode;
+            std::unordered_map<GameObject*, uint32_t> gameObjectMap;
+            for(int i = 0; i < scene->rootObjList.size(); i++)
+            {
+                GameObject* gameObject = scene->rootObjList[i];
+                
+                SerilizedNode(gameObject, gameObjectMap, linearNode);
+            }
+```
+...
+```cpp
+            else
+            {
+                ASSERT(gameObjectMap.count(parent->gameObject) > 0);
+                node.parentIndex = gameObjectMap[parent->gameObject];
+                gameObjectMap[gameObject] = linearNode.size();
+            }
+            node.materialID = 0;
+            node.meshID = meshID;
+            node.position = gameObject->transform->GetLocalPosition();
+            node.rotation = gameObject->transform->GetLocalQuaternion();
+            node.scale = gameObject->transform->GetLocalScale();
+            linearNode.push_back(node);
+
+            for (auto* child : gameObject->GetChildren()) 
+            {
 ```
 
 ### File: `Runtime/GameObject/Component.h`
@@ -470,132 +617,25 @@ namespace EngineCore
     };
 ```
 
-### File: `Runtime/Renderer/RenderPath/GPUSceneRenderPath.h`
+### File: `Runtime/Scene/BistroSceneLoader.h`
 ```cpp
-namespace EngineCore
-{
-    class GPUSceneRenderPath : public IRenderPath
-    {
+
+namespace EngineCore {
+    class GameObject;
+    class Scene;
+
+    class BistroSceneLoader {
     public:
-        virtual ~GPUSceneRenderPath() override 
-        {
-            delete cullingParamBuffer;
-            delete indirectDrawArgsBuffer;
-        };
-
-        virtual void Execute(RenderContext& context) override
-        {
-            if (!hasSetUpBuffer) 
-            {
-                hasSetUpBuffer = true;
-
-                BufferDesc desc;
-
-                desc.debugName = L"CullingParamBuffer";
-                desc.memoryType = BufferMemoryType::Upload;
-                desc.size = sizeof(GPUCullingParam);
-                desc.stride = sizeof(GPUCullingParam);
-                desc.usage = BufferUsage::ConstantBuffer;
-                cullingParamBuffer = new GPUBufferAllocator(desc);
-                cullingParamAlloc = cullingParamBuffer->Allocate(sizeof(Frustum));
-                
-                
-                desc.debugName = L"IndirectDrawArgsBuffer";
-                desc.memoryType = BufferMemoryType::Default;
-                desc.size = sizeof(DrawIndirectArgs) * 3000;
-                desc.stride = sizeof(DrawIndirectArgs);
-                desc.usage = BufferUsage::StructuredBuffer;
-                indirectDrawArgsBuffer = new GPUBufferAllocator(desc);
-                indirectDrawArgsAlloc = indirectDrawArgsBuffer->Allocate(sizeof(DrawIndirectArgs) * 3000);
-            }
-
-            //todo:
-            // 这个地方要把ResourceState切换一下
-            Renderer::GetInstance()->BeginFrame();
-            auto* visibilityBuffer = GPUSceneManager::GetInstance()->visibilityBuffer;
-            Renderer::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
-            Renderer::GetInstance()->SetResourceState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
-
-
-            Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->mainCamera;
-            int gameObjectCount = SceneManager::GetInstance()->GetCurrentScene()->allObjList.size();
-
-            GPUCullingParam cullingParam;
-            cullingParam.frustum = cam->mFrustum;
-            cullingParam.totalItem = gameObjectCount;
-            cullingParamBuffer->UploadBuffer(cullingParamAlloc, &cullingParam, sizeof(GPUCullingParam));
-
-            PROFILER_EVENT_BEGIN("MainThread::GPUSceneManagerTick");
-            GPUSceneManager::GetInstance()->Tick();
-            PROFILER_EVENT_END("MainThread::GPUSceneManagerTick");
-
-            // Get Current BatchInfo:
-            vector<DrawIndirectArgs> batchInfo = BatchManager::GetInstance()->GetBatchInfo();
-            indirectDrawArgsBuffer->UploadBuffer(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
-```
-
-### File: `Runtime/Serialization/ComponentFactory.h`
-```cpp
-namespace EngineCore
-{
-    class ComponentFactory
-    {
-    public :
-        using CreateFunc = std::function<Component*(GameObject*)>;
-        inline static Component* Create(const std::string& componentName, GameObject* go)
-        {
-            auto& registry = GetRegistry();
-            if(registry.count(componentName) > 0)
-            {
-                return registry[componentName](go);
-            }
-
-            ASSERT_MSG(false, "Can't find this script");
-            return nullptr;
-        }
-
-        inline static void Register(const std::string& componentName, CreateFunc createFunc)
-        {
-            GetRegistry()[componentName] = createFunc;
-        }
-    private :
-
-        // 这样写的好处， 不用在cpp调用， 初次调用的时候创建，一定保证时序
-        static std::unordered_map<std::string, CreateFunc>& GetRegistry()
-        {
-            static std::unordered_map<std::string, CreateFunc> registry;
-            return registry;
-        }
-    };
-```
-...
-```cpp
-#define REGISTER_SCRIPT(ComponentClass)\
-    namespace { \
-        struct ComponentClass##_Register { \
-            ComponentClass##_Register() { \
-                EngineCore::ComponentFactory::Register( #ComponentClass, \
-                    [](EngineCore::GameObject* go) -> EngineCore::Component* {\
-                        return new EngineCore::ComponentClass(go); \
-                    }); \
-            } \
-        } ComponentClass##_instance; \
-```
-
-### File: `Editor/Panel/EditorHierarchyPanel.h`
-```cpp
-{
-    using EngineCore::GameObject;
-    class EditorHierarchyPanel : public EditorPanel
-    {
-    public:
-        virtual void DrawGUI() override;
-        virtual ~EditorHierarchyPanel() override;  
+        static Scene* Load(const std::string& path);
+        static void SaveToCache(Scene* scene, const std::string& path);
+        static Scene* LoadFromCache(const std::string& path);
+        static ResourceHandle<Material> commonMatHandle;
+        
     private:
-        int nodeIdx = 0;
-        EngineCore::GameObject* selectedGO = nullptr;
-        ImGuiTreeNodeFlags baseFlags = ImGuiTreeNodeFlags_OpenOnArrow | 
-            ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;   
-        void DrawNode(GameObject* go);   
-    }; 
+        Scene* LoadInternal(const std::string& path);
+        void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
+        void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
+
+        std::map<int, std::vector<ResourceHandle<Mesh>>> m_MeshCache;
+    };
 ```

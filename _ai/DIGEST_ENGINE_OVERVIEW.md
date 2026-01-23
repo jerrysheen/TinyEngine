@@ -31,6 +31,7 @@
 - `[15]` **Runtime/GameObject/MonoBehaviour.h**
 - `[14]` **Runtime/GameObject/Camera.h**
 - `[13]` **Runtime/Utils/HashCombine.h**
+- `[12]` **Runtime/Serialization/SceneLoader.h**
 - `[11]` **Runtime/Serialization/ComponentFactory.h**
 - `[11]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[11]` **Editor/Panel/EditorMainBar.h**
@@ -44,6 +45,7 @@
 - `[8]` **Runtime/Serialization/JsonSerializer.h**
 - `[7]` **Runtime/Serialization/AssetSerialization.h**
 - `[7]` **Runtime/Serialization/BaseTypeSerialization.h**
+- `[7]` **Runtime/Serialization/MeshLoader.h**
 - `[6]` **Runtime/Resources/ResourceManager.h**
 - `[5]` **Runtime/Core/Profiler.h**
 - `[5]` **Runtime/Core/PublicStruct.h**
@@ -51,6 +53,7 @@
 - `[5]` **Runtime/Renderer/BatchManager.h**
 - `[5]` **Runtime/Renderer/Culling.h**
 - `[5]` **Runtime/Resources/Asset.h**
+- `[5]` **Runtime/Resources/AssetRegistry.h**
 - `[5]` **Runtime/Scripts/CameraController.h**
 - `[5]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
 - `[5]` **Editor/Panel/EditorInspectorPanel.h**
@@ -64,16 +67,13 @@
 - `[3]` **premake5.lua**
 - `[3]` **Runtime/Core/Object.h**
 - `[3]` **Runtime/Core/PublicEnum.h**
+- `[3]` **Runtime/Core/ThreadSafeQueue.h**
 - `[3]` **Runtime/Graphics/ComputeShader.h**
 - `[3]` **Runtime/Graphics/GeometryManager.h**
 - `[3]` **Runtime/Graphics/GPUBufferAllocator.h**
 - `[3]` **Runtime/Graphics/GPUTexture.h**
 - `[3]` **Runtime/Graphics/IGPUBufferAllocator.h**
 - `[3]` **Runtime/Graphics/IGPUResource.h**
-- `[3]` **Runtime/Graphics/Material.h**
-- `[3]` **Runtime/Graphics/MaterialInstance.h**
-- `[3]` **Runtime/Graphics/MaterialLayout.h**
-- `[3]` **Runtime/Graphics/Mesh.h**
 
 ## Evidence & Implementation Details
 
@@ -481,6 +481,10 @@ namespace EngineCore
         void SetLocalQuaternion(const Quaternion& localQuaternion);
         void SetLocalScale(const Vector3& localScale);
 
+        inline void SetWorldPosition(const Vector3& position) { mWorldPosition = position; }
+        inline void SetWorldQuaternion(const Quaternion& quaternion) { mWorldQuaternion = quaternion; }
+        inline void SetWorldScale(const Vector3& scale) { mWorldScale = scale; }
+
         inline const Matrix4x4& GetWorldMatrix()
         {
             UpdateIfDirty(); 
@@ -503,8 +507,4 @@ namespace EngineCore
         Transform* parentTransform = nullptr;
         
     protected:
-
-        friend class GameObject;
-        // 外部不能访问修改， 只能访问GameObject.SetParent
-        inline void SetParent(Transform* transform)
 ```

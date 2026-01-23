@@ -24,9 +24,10 @@
 - `[24]` **Runtime/Serialization/ComponentFactory.h** *(Content Included)*
 - `[16]` **Runtime/Renderer/BatchManager.h** *(Content Included)*
 - `[16]` **Runtime/Scene/Scene.h**
-- `[14]` **Runtime/Resources/ResourceManager.h**
 - `[13]` **Editor/Panel/EditorMainBar.h**
 - `[11]` **Runtime/Core/PublicStruct.h**
+- `[10]` **Runtime/Serialization/SceneLoader.h**
+- `[9]` **Runtime/Resources/ResourceManager.h**
 - `[8]` **Runtime/Renderer/RenderAPI.h**
 - `[8]` **Runtime/Renderer/Renderer.h**
 - `[7]` **Runtime/Graphics/GPUSceneManager.h**
@@ -38,6 +39,7 @@
 - `[6]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[5]` **Runtime/Graphics/Mesh.h**
 - `[5]` **Runtime/Renderer/RenderSorter.h**
+- `[5]` **Runtime/Resources/AssetTypeTraits.h**
 - `[5]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
 - `[5]` **Assets/Shader/include/Core.hlsl**
 - `[4]` **Runtime/GameObject/ComponentType.h**
@@ -59,6 +61,7 @@
 - `[2]` **Runtime/Core/Object.h**
 - `[2]` **Runtime/Core/Profiler.h**
 - `[2]` **Runtime/Core/PublicEnum.h**
+- `[2]` **Runtime/Core/ThreadSafeQueue.h**
 - `[2]` **Runtime/GameObject/Component.h**
 - `[2]` **Runtime/GameObject/MonoBehaviour.h**
 - `[2]` **Runtime/Graphics/ComputeShader.h**
@@ -67,9 +70,6 @@
 - `[2]` **Runtime/Graphics/GPUTexture.h**
 - `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/IGPUResource.h**
-- `[2]` **Runtime/Graphics/RenderTexture.h**
-- `[2]` **Runtime/Managers/Manager.h**
-- `[2]` **Runtime/Managers/WindowManager.h**
 
 ## Evidence & Implementation Details
 
@@ -158,11 +158,14 @@ namespace EngineCore
 
         void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
         uint32_t lastSyncTransformVersion = 0;
+        bool shouldUpdateMeshRenderer = true;
+
         AABB worldBounds;
         uint32_t sceneRenderNodeIndex = UINT32_MAX;
         bool materialDirty = true;
 		
         void TryAddtoBatchManager();
+
         uint32_t renderLayer = 1;
     private:
         ResourceHandle<Material> mShardMatHandler;
@@ -340,9 +343,11 @@ namespace EngineCore
     public:
         MeshFilter() = default;
         MeshFilter(GameObject* gamObject);
+
         virtual ~MeshFilter() override;
         static ComponentType GetStaticType() { return ComponentType::MeshFilter; };
         virtual ComponentType GetType() const override{ return ComponentType::MeshFilter; };
+        void OnLoadResourceFinished();
     public:
         ResourceHandle<Mesh> mMeshHandle;
         

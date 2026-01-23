@@ -17,16 +17,21 @@
 - `[51]` **Runtime/Serialization/MetaData.h** *(Content Included)*
 - `[49]` **Runtime/Serialization/MetaLoader.h** *(Content Included)*
 - `[48]` **Runtime/Serialization/AssetSerialization.h** *(Content Included)*
+- `[46]` **Runtime/Resources/AssetTypeTraits.h** *(Content Included)*
 - `[42]` **Runtime/Resources/Asset.h** *(Content Included)*
+- `[42]` **Runtime/Serialization/MeshLoader.h** *(Content Included)*
 - `[41]` **Runtime/Graphics/Material.h** *(Content Included)*
 - `[39]` **Assets/Shader/SimpleTestShader.hlsl** *(Content Included)*
 - `[38]` **Runtime/Serialization/MetaFactory.h** *(Content Included)*
+- `[37]` **Runtime/Resources/AssetRegistry.h** *(Content Included)*
+- `[36]` **Runtime/Serialization/AssetHeader.h** *(Content Included)*
 - `[36]` **Assets/Shader/BlitShader.hlsl** *(Content Included)*
 - `[35]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
 - `[34]` **Assets/Shader/include/Core.hlsl** *(Content Included)*
 - `[33]` **Runtime/Graphics/Mesh.h** *(Content Included)*
-- `[32]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
-- `[30]` **Runtime/Graphics/Shader.h** *(Content Included)*
+- `[32]` **Runtime/GameObject/MeshRenderer.h**
+- `[32]` **Runtime/Serialization/TextureLoader.h**
+- `[30]` **Runtime/Graphics/Shader.h**
 - `[30]` **Runtime/Serialization/BaseTypeSerialization.h**
 - `[30]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
 - `[29]` **Runtime/Graphics/MaterialInstance.h**
@@ -36,11 +41,12 @@
 - `[27]` **Runtime/GameObject/MeshFilter.h**
 - `[27]` **Runtime/Graphics/MeshUtils.h**
 - `[27]` **Runtime/Graphics/RenderTexture.h**
-- `[27]` **Runtime/Resources/ResourceManager.h**
 - `[27]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[27]` **Runtime/Platforms/D3D12/D3D12Texture.h**
 - `[26]` **Runtime/Graphics/ComputeShader.h**
+- `[26]` **Runtime/Resources/ResourceManager.h**
 - `[25]` **Runtime/Graphics/GPUTexture.h**
+- `[24]` **Runtime/Serialization/SceneLoader.h**
 - `[22]` **Runtime/Core/PublicStruct.h**
 - `[22]` **Runtime/Renderer/RenderCommand.h**
 - `[22]` **Runtime/Resources/Resource.h**
@@ -52,6 +58,8 @@
 - `[17]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[14]` **Runtime/Renderer/Renderer.h**
 - `[13]` **Runtime/Renderer/RenderStruct.h**
+- `[13]` **Runtime/Serialization/StreamHelper.h**
+- `[12]` **Runtime/Resources/IResourceLoader.h**
 - `[12]` **Runtime/Serialization/ComponentFactory.h**
 - `[12]` **Runtime/Platforms/D3D12/d3dx12.h**
 - `[11]` **Runtime/Renderer/BatchManager.h**
@@ -66,14 +74,6 @@
 - `[8]` **Runtime/GameObject/Camera.h**
 - `[7]` **Runtime/Graphics/GeometryManager.h**
 - `[7]` **Runtime/Settings/ProjectSettings.h**
-- `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
-- `[5]` **premake5.lua**
-- `[5]` **Runtime/Core/Profiler.h**
-- `[5]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
-- `[5]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
-- `[4]` **Runtime/GameObject/ComponentType.h**
-- `[4]` **Runtime/GameObject/GameObject.h**
-- `[4]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h**
 
 ## Evidence & Implementation Details
 
@@ -215,9 +215,20 @@ namespace EngineCore
     }
 ```
 
+### File: `Runtime/Resources/AssetTypeTraits.h`
+```cpp
+namespace EngineCore
+{
+    class Mesh;
+    class Texture;
+    class Material;
+
+    template<typename T> struct AssetTypeTraits { static const AssetType Type = AssetType::Default; };
+```
+
 ### File: `Runtime/Resources/Asset.h`
 ```cpp
-{
+
     //todo： 应该是一个永久的hash，保证每次的资源能对应上
     struct AssetID
     {
@@ -253,6 +264,7 @@ namespace EngineCore
         Animation = 5,
         Shader = 6,
         Runtime = 7,
+        Scene = 8
     };
 ```
 ...
@@ -263,6 +275,48 @@ namespace std {
         size_t operator()(const EngineCore::AssetID& a) const noexcept {
             return hash<uint64_t>{}(a.value);
         }
+    };
+```
+
+### File: `Runtime/Serialization/MeshLoader.h`
+```cpp
+namespace EngineCore
+{
+    class MeshLoader : public IResourceLoader
+    {
+    public:
+        virtual ~MeshLoader() = default;
+        virtual Resource* Load(const std::string& relativePath) override
+        {
+            std::string path = PathSettings::ResolveAssetPath(relativePath);
+            std::ifstream in(path, std::ios::binary);
+            in.seekg(sizeof(AssetHeader));
+
+            Mesh* mesh = new Mesh();
+            mesh->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+            mesh->SetAssetID(AssetIDGenerator::NewFromFile(path));
+            StreamHelper::Read(in, mesh->bounds);
+            StreamHelper::ReadVector(in, mesh->vertex);
+            StreamHelper::ReadVector(in, mesh->index);
+            return mesh;
+        }
+
+        void SaveMeshToBin(const Mesh* mesh, const std::string& relativePath, uint32_t id)
+        {
+            ASSERT(mesh && mesh->vertex.size() > 0 && mesh->index.size() > 0);
+            std::string binPath = PathSettings::ResolveAssetPath(relativePath);
+            std::ofstream out(binPath, std::ios::binary);
+
+            AssetHeader header;
+            header.assetID =id;
+            header.type = 2;
+            StreamHelper::Write(out, header);
+
+            StreamHelper::Write(out, mesh->bounds);
+            StreamHelper::WriteVector(out, mesh->vertex);
+            StreamHelper::WriteVector(out, mesh->index);
+        }
+
     };
 ```
 
@@ -413,6 +467,39 @@ struct VertexInput
             }
 ```
 
+### File: `Runtime/Resources/AssetRegistry.h`
+```cpp
+namespace EngineCore
+{
+    class AssetRegistry
+    {
+    public:
+        static void Create();
+        static void Destroy();
+        static AssetRegistry* GetInstance();
+        void RegisterAsset(Resource* resource);
+        std::string GetAssetPath(uint64_t id);
+        void SaveToDisk(const std::string& manifestPath);
+        void LoadFromDisk(const std::string& manifestPath);
+    private:
+        static AssetRegistry* s_Instacnce;
+        std::unordered_map<uint64_t, std::string> assetPathMap;
+    };
+```
+
+### File: `Runtime/Serialization/AssetHeader.h`
+```cpp
+    // type 1 = Texture
+    // type 2 = Mesh
+    struct AssetHeader
+    {
+        char magic[4] = {'E', 'N', 'G', 'N'};
+        uint32_t version = 1;
+        uint32_t assetID = 0;
+        uint32_t type = 0; 
+    };
+```
+
 ### File: `Assets/Shader/BlitShader.hlsl`
 ```hlsl
 
@@ -556,8 +643,11 @@ struct PerMaterialData
         std::vector<Vertex> vertex;
         std::vector<int> index;
         std::vector<InputLayout> layout;
-        bool isDynamic = false;
-    private:
+        bool isDynamic = true;
+        virtual void OnLoadComplete() override { UploadMeshToGPU(); };
+```
+...
+```cpp
         void ProcessNode(aiNode* node, const aiScene* scene);
         void LoadAiMesh(const string& path);
         void ProcessMesh(aiMesh* aiMesh, const aiScene* scene);
@@ -565,80 +655,4 @@ struct PerMaterialData
     };
 
 }
-```
-
-### File: `Runtime/GameObject/MeshRenderer.h`
-```cpp
-namespace EngineCore
-{
-    class MeshRenderer : public Component
-    {
-        class GameObejct;
-    public:
-        MeshRenderer() = default;
-        MeshRenderer(GameObject* gamObject);
-        virtual ~MeshRenderer() override;
-        static ComponentType GetStaticType() { return ComponentType::MeshRenderer; };
-        virtual ComponentType GetType() const override{ return ComponentType::MeshRenderer; };
-
-        virtual const char* GetScriptName() const override { return "MeshRenderer"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"MatHandle", mShardMatHandler},
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override;
-        
-        void SetUpMaterialPropertyBlock();
-
-        inline Material* GetSharedMaterial()
-        { 
-            return mShardMatHandler.IsValid() ? mShardMatHandler.Get() : nullptr;
-        };
-
-        inline void SetSharedMaterial(const ResourceHandle<Material>& mat) 
-        {
-            mShardMatHandler = mat;
-            SetUpMaterialPropertyBlock();
-        }
-
-        // return a new Material Instance;
-        Material* GetOrCreateMatInstance();
-        // 
-        ResourceHandle<Material> GetMaterial();
-        inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
-
-        void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
-        uint32_t lastSyncTransformVersion = 0;
-        AABB worldBounds;
-        uint32_t sceneRenderNodeIndex = UINT32_MAX;
-        bool materialDirty = true;
-		
-        void TryAddtoBatchManager();
-        uint32_t renderLayer = 1;
-    private:
-        ResourceHandle<Material> mShardMatHandler;
-        ResourceHandle<Material> mInstanceMatHandler;
-
-    };
-
-}
-```
-
-### File: `Runtime/Graphics/Shader.h`
-```cpp
-namespace EngineCore
-{
-    class Shader : public Resource
-    {
-    public:
-        Shader(MetaData* metaFile);
-        ShaderReflectionInfo mShaderReflectionInfo;
-        vector<InputLayout> mShaderInputLayout;
-
-        Shader();
-        ~Shader();
-        string name;
-    };
 ```

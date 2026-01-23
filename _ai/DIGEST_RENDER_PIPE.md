@@ -51,6 +51,7 @@
 - `[2]` **Runtime/Core/InstanceID.h**
 - `[2]` **Runtime/Core/Object.h**
 - `[2]` **Runtime/Core/Profiler.h**
+- `[2]` **Runtime/Core/ThreadSafeQueue.h**
 - `[2]` **Runtime/GameObject/Component.h**
 - `[2]` **Runtime/GameObject/ComponentType.h**
 - `[2]` **Runtime/GameObject/GameObject.h**
@@ -73,7 +74,6 @@
 - `[2]` **Runtime/Graphics/Texture.h**
 - `[2]` **Runtime/Managers/Manager.h**
 - `[2]` **Runtime/Managers/WindowManager.h**
-- `[2]` **Runtime/Math/AABB.h**
 
 ## Evidence & Implementation Details
 
@@ -136,9 +136,9 @@ namespace EngineCore
             GPUSceneManager::GetInstance()->Tick();
             PROFILER_EVENT_END("MainThread::GPUSceneManagerTick");
 
+            
             // Get Current BatchInfo:
             vector<DrawIndirectArgs> batchInfo = BatchManager::GetInstance()->GetBatchInfo();
-            indirectDrawArgsBuffer->UploadBuffer(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
 ```
 ...
 ```cpp

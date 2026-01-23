@@ -23,11 +23,13 @@
 - `[28]` **Runtime/Platforms/D3D12/D3D12Texture.h** *(Content Included)*
 - `[27]` **Runtime/GameObject/MeshFilter.h** *(Content Included)*
 - `[27]` **Runtime/Graphics/Mesh.h**
+- `[27]` **Runtime/Serialization/MeshLoader.h**
 - `[26]` **Runtime/Graphics/GPUTexture.h**
 - `[25]` **Runtime/Graphics/ComputeShader.h**
 - `[25]` **Runtime/Graphics/MeshUtils.h**
 - `[24]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
 - `[23]` **Runtime/Graphics/IGPUBufferAllocator.h**
+- `[22]` **Runtime/Serialization/TextureLoader.h**
 - `[19]` **Runtime/Renderer/RenderCommand.h**
 - `[15]` **Runtime/Renderer/RenderAPI.h**
 - `[12]` **Runtime/Serialization/BaseTypeSerialization.h**
@@ -36,14 +38,17 @@
 - `[10]` **Runtime/Scene/SceneManager.h**
 - `[10]` **Editor/Panel/EditorMainBar.h**
 - `[8]` **Runtime/Renderer/RenderStruct.h**
+- `[8]` **Runtime/Resources/AssetTypeTraits.h**
 - `[8]` **Runtime/Serialization/MetaData.h**
 - `[7]` **Runtime/Graphics/Material.h**
 - `[7]` **Runtime/Renderer/RenderSorter.h**
 - `[7]` **Runtime/Scene/BistroSceneLoader.h**
 - `[7]` **Runtime/Scene/Scene.h**
 - `[7]` **Runtime/Serialization/MetaLoader.h**
+- `[7]` **Runtime/Serialization/SceneLoader.h**
 - `[7]` **Runtime/Platforms/D3D12/d3dx12.h**
 - `[6]` **Runtime/GameObject/Camera.h**
+- `[6]` **Runtime/Resources/ResourceManager.h**
 - `[6]` **Runtime/Serialization/AssetSerialization.h**
 - `[6]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[6]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
@@ -57,6 +62,7 @@
 - `[5]` **Assets/Shader/include/Core.hlsl**
 - `[4]` **Runtime/GameObject/ComponentType.h**
 - `[4]` **Runtime/GameObject/GameObject.h**
+- `[4]` **Runtime/Serialization/AssetHeader.h**
 - `[4]` **Runtime/Serialization/MetaFactory.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12Struct.h**
@@ -64,12 +70,6 @@
 - `[3]` **Runtime/Core/PublicEnum.h**
 - `[3]` **Runtime/Graphics/MaterialLayout.h**
 - `[3]` **Runtime/Platforms/D3D12/D3D12Buffer.h**
-- `[3]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h**
-- `[3]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
-- `[3]` **Runtime/Platforms/D3D12/D3D12PSO.h**
-- `[3]` **Assets/Shader/BlitShader.hlsl**
-- `[2]` **Editor/EditorGUIManager.h**
-- `[2]` **Editor/EditorSettings.h**
 
 ## Evidence & Implementation Details
 
@@ -132,9 +132,9 @@ namespace EngineCore
             GPUSceneManager::GetInstance()->Tick();
             PROFILER_EVENT_END("MainThread::GPUSceneManagerTick");
 
+            
             // Get Current BatchInfo:
             vector<DrawIndirectArgs> batchInfo = BatchManager::GetInstance()->GetBatchInfo();
-            indirectDrawArgsBuffer->UploadBuffer(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
 ```
 ...
 ```cpp
@@ -460,11 +460,14 @@ namespace EngineCore
 
         void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
         uint32_t lastSyncTransformVersion = 0;
+        bool shouldUpdateMeshRenderer = true;
+
         AABB worldBounds;
         uint32_t sceneRenderNodeIndex = UINT32_MAX;
         bool materialDirty = true;
 		
         void TryAddtoBatchManager();
+
         uint32_t renderLayer = 1;
     private:
         ResourceHandle<Material> mShardMatHandler;
@@ -627,9 +630,11 @@ namespace EngineCore
     public:
         MeshFilter() = default;
         MeshFilter(GameObject* gamObject);
+
         virtual ~MeshFilter() override;
         static ComponentType GetStaticType() { return ComponentType::MeshFilter; };
         virtual ComponentType GetType() const override{ return ComponentType::MeshFilter; };
+        void OnLoadResourceFinished();
     public:
         ResourceHandle<Mesh> mMeshHandle;
         

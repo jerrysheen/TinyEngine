@@ -31,6 +31,7 @@
 - `[12]` **Runtime/Managers/Manager.h**
 - `[12]` **Runtime/Scene/BistroSceneLoader.h**
 - `[10]` **Runtime/Serialization/MetaFactory.h**
+- `[9]` **Runtime/Serialization/SceneLoader.h**
 - `[8]` **Runtime/Graphics/Mesh.h**
 - `[8]` **Editor/Panel/EditorInspectorPanel.h**
 - `[7]` **Editor/EditorSettings.h**
@@ -67,13 +68,12 @@
 - `[2]` **Runtime/Core/Object.h**
 - `[2]` **Runtime/Core/Profiler.h**
 - `[2]` **Runtime/Core/PublicEnum.h**
+- `[2]` **Runtime/Core/ThreadSafeQueue.h**
 - `[2]` **Runtime/Graphics/ComputeShader.h**
 - `[2]` **Runtime/Graphics/GeometryManager.h**
 - `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/GPUTexture.h**
 - `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
-- `[2]` **Runtime/Graphics/IGPUResource.h**
-- `[2]` **Runtime/Graphics/Material.h**
 
 ## Evidence & Implementation Details
 
@@ -165,6 +165,10 @@ namespace EngineCore
         void SetLocalQuaternion(const Quaternion& localQuaternion);
         void SetLocalScale(const Vector3& localScale);
 
+        inline void SetWorldPosition(const Vector3& position) { mWorldPosition = position; }
+        inline void SetWorldQuaternion(const Quaternion& quaternion) { mWorldQuaternion = quaternion; }
+        inline void SetWorldScale(const Vector3& scale) { mWorldScale = scale; }
+
         inline const Matrix4x4& GetWorldMatrix()
         {
             UpdateIfDirty(); 
@@ -190,20 +194,15 @@ namespace EngineCore
 
         friend class GameObject;
         // 外部不能访问修改， 只能访问GameObject.SetParent
-        inline void SetParent(Transform* transform)
-        {
-            parentTransform = transform; 
-            transform->AddChild(this);
 ```
 ...
 ```cpp
-        inline void DettachParent()
         {
-            if(parentTransform != nullptr) parentTransform->RemoveChild(this);
-            parentTransform = nullptr;
-        }
+            parentTransform = transform; 
+            if(transform)transform->AddChild(this);
+        };
 
-        inline void AddChild(Transform* transform)
+        inline void DettachParent()
         {
 ```
 

@@ -49,9 +49,11 @@
 - `[7]` **Runtime/Scene/SceneManager.h**
 - `[7]` **Runtime/Serialization/BaseTypeSerialization.h**
 - `[7]` **Runtime/Serialization/JsonSerializer.h**
+- `[7]` **Runtime/Serialization/MeshLoader.h**
 - `[7]` **Runtime/Serialization/MetaData.h**
 - `[7]` **Runtime/Serialization/MetaFactory.h**
 - `[7]` **Runtime/Serialization/MetaLoader.h**
+- `[7]` **Runtime/Serialization/SceneLoader.h**
 - `[7]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[7]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[7]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
@@ -63,17 +65,15 @@
 - `[6]` **Runtime/Renderer/RenderStruct.h**
 - `[6]` **Runtime/Resources/Resource.h**
 - `[6]` **Runtime/Serialization/AssetSerialization.h**
+- `[6]` **Runtime/Serialization/StreamHelper.h**
 - `[6]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h**
 - `[6]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
 - `[6]` **Runtime/Platforms/D3D12/D3D12PSO.h**
 - `[6]` **Editor/D3D12/D3D12EditorGUIManager.h**
 - `[5]` **premake5.lua**
 - `[5]` **Runtime/EngineCore.h**
+- `[5]` **Runtime/Core/ThreadSafeQueue.h**
 - `[5]` **Runtime/Graphics/MaterialInstance.h**
-- `[5]` **Runtime/Math/Frustum.h**
-- `[5]` **Runtime/Math/Matrix4x4.h**
-- `[5]` **Runtime/Renderer/Culling.h**
-- `[5]` **Runtime/Renderer/RenderContext.h**
 
 ## Evidence & Implementation Details
 
@@ -715,9 +715,11 @@ namespace EngineCore
     public:
         MeshFilter() = default;
         MeshFilter(GameObject* gamObject);
+
         virtual ~MeshFilter() override;
         static ComponentType GetStaticType() { return ComponentType::MeshFilter; };
         virtual ComponentType GetType() const override{ return ComponentType::MeshFilter; };
+        void OnLoadResourceFinished();
     public:
         ResourceHandle<Mesh> mMeshHandle;
         
@@ -787,11 +789,14 @@ namespace EngineCore
 
         void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
         uint32_t lastSyncTransformVersion = 0;
+        bool shouldUpdateMeshRenderer = true;
+
         AABB worldBounds;
         uint32_t sceneRenderNodeIndex = UINT32_MAX;
         bool materialDirty = true;
 		
         void TryAddtoBatchManager();
+
         uint32_t renderLayer = 1;
     private:
         ResourceHandle<Material> mShardMatHandler;
@@ -838,6 +843,10 @@ namespace EngineCore
         void SetLocalQuaternion(const Quaternion& localQuaternion);
         void SetLocalScale(const Vector3& localScale);
 
+        inline void SetWorldPosition(const Vector3& position) { mWorldPosition = position; }
+        inline void SetWorldQuaternion(const Quaternion& quaternion) { mWorldQuaternion = quaternion; }
+        inline void SetWorldScale(const Vector3& scale) { mWorldScale = scale; }
+
         inline const Matrix4x4& GetWorldMatrix()
         {
             UpdateIfDirty(); 
@@ -860,20 +869,15 @@ namespace EngineCore
         Transform* parentTransform = nullptr;
         
     protected:
-
-        friend class GameObject;
-        // 外部不能访问修改， 只能访问GameObject.SetParent
-        inline void SetParent(Transform* transform)
 ```
 ...
 ```cpp
-        inline void DettachParent()
         {
-            if(parentTransform != nullptr) parentTransform->RemoveChild(this);
-            parentTransform = nullptr;
-        }
+            parentTransform = transform; 
+            if(transform)transform->AddChild(this);
+        };
 
-        inline void AddChild(Transform* transform)
+        inline void DettachParent()
         {
 ```
 ...

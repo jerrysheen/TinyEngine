@@ -15,6 +15,7 @@
 
 ## Key Files Index
 - `[37]` **Runtime/Core/Profiler.h** *(Content Included)*
+- `[37]` **Runtime/Core/Concurrency/JobSystem.h** *(Content Included)*
 - `[36]` **Runtime/Core/InstanceID.h** *(Content Included)*
 - `[34]` **Runtime/Core/Allocator/LinearAllocator.h** *(Content Included)*
 - `[33]` **Runtime/Core/PublicStruct.h** *(Content Included)*
@@ -27,8 +28,9 @@
 - `[13]` **Runtime/Serialization/BaseTypeSerialization.h** *(Content Included)*
 - `[13]` **Runtime/Serialization/MetaData.h** *(Content Included)*
 - `[13]` **Runtime/Serialization/MetaLoader.h** *(Content Included)*
-- `[12]` **Runtime/CoreAssert.h** *(Content Included)*
+- `[12]` **Runtime/CoreAssert.h**
 - `[12]` **Runtime/Core/Game.h**
+- `[12]` **Runtime/Core/ThreadSafeQueue.h**
 - `[12]` **Runtime/Math/AABB.h**
 - `[12]` **Runtime/Math/Frustum.h**
 - `[12]` **Runtime/Math/Math.h**
@@ -38,10 +40,15 @@
 - `[12]` **Runtime/Math/Vector2.h**
 - `[12]` **Runtime/Math/Vector3.h**
 - `[12]` **Runtime/Math/Vector4.h**
+- `[12]` **Runtime/Serialization/AssetHeader.h**
 - `[12]` **Runtime/Serialization/AssetSerialization.h**
 - `[12]` **Runtime/Serialization/ComponentFactory.h**
 - `[12]` **Runtime/Serialization/JsonSerializer.h**
+- `[12]` **Runtime/Serialization/MeshLoader.h**
 - `[12]` **Runtime/Serialization/MetaFactory.h**
+- `[12]` **Runtime/Serialization/SceneLoader.h**
+- `[12]` **Runtime/Serialization/StreamHelper.h**
+- `[12]` **Runtime/Serialization/TextureLoader.h**
 - `[12]` **Runtime/Core/Concurrency/CpuEvent.h**
 - `[9]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[8]` **Runtime/Graphics/GPUSceneManager.h**
@@ -67,13 +74,6 @@
 - `[3]` **Runtime/Graphics/Shader.h**
 - `[3]` **Runtime/Renderer/BatchManager.h**
 - `[3]` **Runtime/Renderer/RenderAPI.h**
-- `[3]` **Runtime/Renderer/RenderContext.h**
-- `[3]` **Runtime/Renderer/RenderSorter.h**
-- `[3]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h**
-- `[3]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
-- `[3]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h**
-- `[3]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
-- `[3]` **Assets/Shader/SimpleTestShader.hlsl**
 
 ## Evidence & Implementation Details
 
@@ -147,6 +147,77 @@
         uint32_t    m_threadId = 0;
         uint8_t     m_depth = 0;
     };
+```
+
+### File: `Runtime/Core/Concurrency/JobSystem.h`
+```cpp
+namespace EngineCore
+{
+    struct JobCounter
+    {
+        std::atomic<int> value;
+    };
+```
+...
+```cpp
+    };
+
+    struct InternalJob
+    {
+        void (*function)(void*, void*);
+        void* JobData;
+        void* rawCounter;
+    };
+```
+...
+```cpp
+    {
+    public:
+        JobSystem();
+        ~JobSystem();
+        static void Create();
+        static void Shutdown();
+        static JobSystem* GetInstance();
+
+        template<typename CallableJob>
+        void KickJob(CallableJob job, JobHandle& handler, JobCounter* counter)
+        {
+            if(counter == nullptr)
+            {
+                counter = GetAvaliableCounter();
+            }
+
+            void* jobData = new CallableJob(job);
+
+            counter->value.fetch_add(1);
+            auto lambda = [](void* jobData, void* rawCounter)
+            {
+                CallableJob* job = (CallableJob*)jobData;
+                job();
+                JobCounter* counter = (JobCounter*)rawCounter;
+                counter->value.fetch_sub(1);
+                delete jobData;
+            }
+            handler.counter = counter;
+            InternalKickJob(lambda, jobData, counter);
+        }
+```
+...
+```cpp
+        std::vector<std::thread> m_Workers;
+
+        void WaitForJob(JobHandle handle);
+
+    private:
+        void InternalKickJob(void (*function)(void*, void*), void* JobData, void* rawCounter);
+        void WorkerThreadLoop(); 
+        bool TryExecuteOneJob();
+        static JobSystem* s_Instance;
+        JobCounter* GetAvaliableCounter();
+        std::deque<JobCounter*> counterQueue;
+    };
+
+};
 ```
 
 ### File: `Runtime/Core/InstanceID.h`
@@ -705,16 +776,4 @@ namespace EngineCore
     MetaData* MetaLoader::LoadMetaData<Material>(const std::string& path);
 
 }
-```
-
-### File: `Runtime/CoreAssert.h`
-```cpp
-    #define ASSERT_MSG(condition, message) \
-        do { \
-            if (!(condition)) { \
-                std::wcout << L"Assert Failed: " << L#condition << L"\n"; \
-                std::wcout << L"Message: " << message << L"\n"; \
-                std::wcout << L"File: " << __FILEW__ << L", Line: " << __LINE__ << L"\n"; \
-                __debugbreak(); \
-            } \
 ```

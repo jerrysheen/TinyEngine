@@ -52,6 +52,7 @@
 - `[2]` **Runtime/Core/Profiler.h**
 - `[2]` **Runtime/Core/PublicEnum.h**
 - `[2]` **Runtime/Core/PublicStruct.h**
+- `[2]` **Runtime/Core/ThreadSafeQueue.h**
 - `[2]` **Runtime/GameObject/Camera.h**
 - `[2]` **Runtime/GameObject/Component.h**
 - `[2]` **Runtime/GameObject/ComponentType.h**
@@ -73,7 +74,6 @@
 - `[2]` **Runtime/Graphics/MeshUtils.h**
 - `[2]` **Runtime/Graphics/RenderTexture.h**
 - `[2]` **Runtime/Graphics/Texture.h**
-- `[2]` **Runtime/Managers/Manager.h**
 
 ## Evidence & Implementation Details
 

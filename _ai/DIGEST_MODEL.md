@@ -15,12 +15,14 @@
 - `[53]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
 - `[52]` **Runtime/GameObject/MeshFilter.h** *(Content Included)*
 - `[42]` **Runtime/Scene/Scene.h** *(Content Included)*
+- `[38]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
 - `[32]` **Runtime/Graphics/GeometryManager.h** *(Content Included)*
 - `[32]` **Runtime/Graphics/Mesh.h** *(Content Included)*
 - `[32]` **Runtime/Scene/SceneManager.h** *(Content Included)*
 - `[32]` **Runtime/Serialization/MetaFactory.h** *(Content Included)*
 - `[29]` **Runtime/Renderer/RenderAPI.h**
 - `[28]` **Runtime/Serialization/MetaLoader.h**
+- `[27]` **Runtime/Serialization/MeshLoader.h**
 - `[27]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[26]` **Runtime/Graphics/GPUSceneManager.h**
 - `[26]` **Runtime/Graphics/MeshUtils.h**
@@ -31,16 +33,18 @@
 - `[11]` **Runtime/GameObject/GameObject.h**
 - `[10]` **Editor/Panel/EditorMainBar.h**
 - `[9]` **Runtime/Renderer/RenderSorter.h**
+- `[8]` **Runtime/Resources/ResourceManager.h**
 - `[7]` **Runtime/Renderer/RenderCommand.h**
 - `[7]` **Runtime/Renderer/RenderEngine.h**
 - `[7]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[6]` **Runtime/GameObject/ComponentType.h**
 - `[6]` **Runtime/Renderer/RenderStruct.h**
 - `[6]` **Runtime/Serialization/BaseTypeSerialization.h**
+- `[5]` **Runtime/Resources/Asset.h**
+- `[5]` **Runtime/Resources/AssetTypeTraits.h**
 - `[4]` **Runtime/EngineCore.h**
 - `[4]` **Runtime/GameObject/Transform.h**
-- `[4]` **Runtime/Resources/Asset.h**
-- `[4]` **Runtime/Resources/ResourceManager.h**
+- `[4]` **Runtime/Serialization/AssetHeader.h**
 - `[4]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
 - `[3]` **Editor/EditorGUIManager.h**
@@ -55,6 +59,7 @@
 - `[2]` **Runtime/Core/Object.h**
 - `[2]` **Runtime/Core/Profiler.h**
 - `[2]` **Runtime/Core/PublicEnum.h**
+- `[2]` **Runtime/Core/ThreadSafeQueue.h**
 - `[2]` **Runtime/GameObject/Camera.h**
 - `[2]` **Runtime/GameObject/Component.h**
 - `[2]` **Runtime/GameObject/MonoBehaviour.h**
@@ -65,11 +70,6 @@
 - `[2]` **Runtime/Graphics/IGPUResource.h**
 - `[2]` **Runtime/Graphics/Material.h**
 - `[2]` **Runtime/Graphics/MaterialInstance.h**
-- `[2]` **Runtime/Graphics/MaterialLayout.h**
-- `[2]` **Runtime/Graphics/RenderTexture.h**
-- `[2]` **Runtime/Graphics/Shader.h**
-- `[2]` **Runtime/Graphics/Texture.h**
-- `[2]` **Runtime/Managers/Manager.h**
 
 ## Evidence & Implementation Details
 
@@ -89,6 +89,8 @@ namespace EngineCore {
     class BistroSceneLoader {
     public:
         static Scene* Load(const std::string& path);
+        static void SaveToCache(Scene* scene, const std::string& path);
+        static Scene* LoadFromCache(const std::string& path);
         static ResourceHandle<Material> commonMatHandle;
         
     private:
@@ -144,11 +146,14 @@ namespace EngineCore
 
         void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
         uint32_t lastSyncTransformVersion = 0;
+        bool shouldUpdateMeshRenderer = true;
+
         AABB worldBounds;
         uint32_t sceneRenderNodeIndex = UINT32_MAX;
         bool materialDirty = true;
 		
         void TryAddtoBatchManager();
+
         uint32_t renderLayer = 1;
     private:
         ResourceHandle<Material> mShardMatHandler;
@@ -233,9 +238,11 @@ namespace EngineCore
     public:
         MeshFilter() = default;
         MeshFilter(GameObject* gamObject);
+
         virtual ~MeshFilter() override;
         static ComponentType GetStaticType() { return ComponentType::MeshFilter; };
         virtual ComponentType GetType() const override{ return ComponentType::MeshFilter; };
+        void OnLoadResourceFinished();
     public:
         ResourceHandle<Mesh> mMeshHandle;
         
@@ -324,7 +331,7 @@ namespace EngineCore
 ```cpp
     };
 
-    class Scene : Object
+    class Scene : public Resource
     {
     public:
         Scene();
@@ -373,6 +380,46 @@ namespace EngineCore
         RenderSceneData renderSceneData;
     private:
     };    
+```
+
+### File: `Runtime/Serialization/SceneLoader.h`
+```cpp
+namespace EngineCore
+{
+    struct SceneSerializedNode
+    {
+        char name[64];         // 固定长度名字
+        int32_t parentIndex = -1;
+        Vector3 position;
+        Quaternion rotation;
+        Vector3 scale;
+
+        uint64_t meshID = 0;
+        uint32_t materialID = 0;
+
+    };
+```
+...
+```cpp
+        void SaveSceneToBin(const Scene* scene, const std::string& relativePath, uint32_t id)
+        {
+            ASSERT(scene && scene->allObjList.size() > 0);
+            std::string binPath = PathSettings::ResolveAssetPath(relativePath);
+            std::ofstream out(binPath, std::ios::binary);
+
+            AssetHeader header;
+            header.assetID =id;
+            header.type = 0;
+            StreamHelper::Write(out, header);
+
+            std::vector<SceneSerializedNode> linearNode;
+            std::unordered_map<GameObject*, uint32_t> gameObjectMap;
+            for(int i = 0; i < scene->rootObjList.size(); i++)
+            {
+                GameObject* gameObject = scene->rootObjList[i];
+                
+                SerilizedNode(gameObject, gameObjectMap, linearNode);
+            }
 ```
 
 ### File: `Runtime/Graphics/GeometryManager.h`
@@ -447,8 +494,11 @@ namespace EngineCore
         std::vector<Vertex> vertex;
         std::vector<int> index;
         std::vector<InputLayout> layout;
-        bool isDynamic = false;
-    private:
+        bool isDynamic = true;
+        virtual void OnLoadComplete() override { UploadMeshToGPU(); };
+```
+...
+```cpp
         void ProcessNode(aiNode* node, const aiScene* scene);
         void LoadAiMesh(const string& path);
         void ProcessMesh(aiMesh* aiMesh, const aiScene* scene);
