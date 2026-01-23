@@ -30,6 +30,17 @@ namespace EngineCore
         {
             if(mResourceCache.count(assetPathID) > 0)
             {
+                if (callback != nullptr)
+                {
+                    if (mResourceCache[assetPathID] == nullptr)
+                    {
+                        m_LoadCallbacks[assetPathID].push_back(callback);
+                    }
+                    else
+                    {
+                        callback();
+                    }
+                }
                 return ResourceHandle<T>(assetPathID);
             }
             
@@ -39,7 +50,10 @@ namespace EngineCore
             AssetType fileType = AssetTypeTraits<T>::Type;
             ResourceHandle<T> handle(assetPathID);
             auto* loader = m_Loaders[fileType];
-
+            if (callback != nullptr)
+            {
+                m_LoadCallbacks[assetPathID].push_back(callback);
+            }
             m_WorkThreadQueue.TryPush([=]()
             {
                 Resource* resource = loader->Load(path);
@@ -48,7 +62,18 @@ namespace EngineCore
                     // 主线程访问才对，不然会有线程安全问题
                     mResourceCache[assetPathID] = resource;
                     resource->OnLoadComplete();
-                    if(callback != nullptr)callback();
+                    auto it = m_LoadCallbacks.find(assetPathID);
+                    if (it != m_LoadCallbacks.end())
+                    {
+                        for (auto& loadCallback : it->second)
+                        {
+                            if (loadCallback != nullptr)
+                            {
+                                loadCallback();
+                            }
+                        }
+                        m_LoadCallbacks.erase(it);
+                    }
                 });
             });
 
@@ -217,6 +242,7 @@ namespace EngineCore
         static ResourceManager* sInstance;
         unordered_map<AssetID, Resource*> mResourceCache;
         unordered_map<string, AssetID> mPathToID;
+        unordered_map<AssetID, std::vector<std::function<void()>>> m_LoadCallbacks;
         std::vector<Resource*> mPendingDeleteList;
 
         std::unordered_map<AssetType, IResourceLoader*> m_Loaders;

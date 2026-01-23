@@ -61,14 +61,24 @@ namespace EngineCore {
                             BistroSceneLoader::commonMatHandle = ResourceManager::GetInstance()->CreateResource<Material>(pbrShader);
                         }
 
-                        mr->SetSharedMaterial(BistroSceneLoader::commonMatHandle);
-                        mr->TryAddtoBatchManager();
-                    }
+                    mr->SetSharedMaterial(BistroSceneLoader::commonMatHandle);
+                    mr->TryAddtoBatchManager();
                 }
             }
-
-            return res;
         }
+
+        // 刷新所有Transform的world position，避免父子节点关系建立后的延迟更新问题
+        for (auto& gameObject : res->allObjList) 
+        {
+            if (gameObject != nullptr && gameObject->transform != nullptr)
+            {
+                gameObject->transform->UpdateTransform();
+            }
+            gameObject->transform->isDirty = true;
+        }
+
+        return res;
+    }
 
         BistroSceneLoader loader;
         return loader.LoadInternal(path);
