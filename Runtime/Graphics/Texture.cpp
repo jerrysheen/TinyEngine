@@ -34,10 +34,13 @@ namespace EngineCore
 
     void Texture::OnLoadComplete()
     {
+        // 做保护， 避免外部多次访问
+        if (textureBuffer && cpuData.size() == 0) return;
         textureBuffer = RenderAPI::GetInstance()->CreateTextureBuffer(static_cast<unsigned char*>(cpuData.data()), textureDesc);
         // 似乎还不能清？为什么
-        //cpuData.clear();
-        //cpuData.shrink_to_fit();
+        // 代码逻辑错误。
+        cpuData.clear();
+        cpuData.shrink_to_fit();
     }
 
 }
