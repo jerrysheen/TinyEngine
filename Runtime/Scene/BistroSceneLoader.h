@@ -29,6 +29,7 @@ namespace EngineCore {
         Scene* LoadInternal(const std::string& path);
         void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
         void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
+        void ProcessTexture(const tinygltf::Model& model);
 
         std::map<int, std::vector<ResourceHandle<Mesh>>> m_MeshCache;
     };

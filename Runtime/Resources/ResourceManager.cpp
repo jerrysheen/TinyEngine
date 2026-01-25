@@ -5,6 +5,7 @@
 #include "Graphics/Shader.h"
 #include "Serialization/MeshLoader.h"
 #include "Serialization/SceneLoader.h"
+#include "Serialization/DDSTextureLoader.h"
 
 namespace EngineCore
 {
@@ -15,7 +16,7 @@ namespace EngineCore
     {
         m_Loaders[AssetType::Mesh] = new MeshLoader();
         m_Loaders[AssetType::Scene] = new SceneLoader();
-
+        m_Loaders[AssetType::Texture2D] = new DDSTextureLoader();
         defaultMesh = new Mesh(Primitive::Cube);
         isRuning = true;
     }
@@ -45,6 +46,7 @@ namespace EngineCore
         isRuning = false;
         delete m_Loaders[AssetType::Mesh];
         delete m_Loaders[AssetType::Scene];
+        delete m_Loaders[AssetType::Texture2D];
     }
 
     void ResourceManager::Create()

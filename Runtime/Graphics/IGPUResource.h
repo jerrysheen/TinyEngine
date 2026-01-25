@@ -16,6 +16,13 @@ namespace EngineCore
         R8G8B8A8,
         D24S8,
         EMPTY,
+        DXT1, 
+        DXT2, 
+        DXT3, 
+        DXT4, 
+        DXT5,
+        BC7,
+        BC7_SRGB,
     };
 
 
@@ -35,6 +42,10 @@ namespace EngineCore
         TextureFormat format;
         TextureDimension dimension;
         TextureUsage texUsage;
+
+        uint32_t mipCount = 1;
+        uint32_t arraySize = 1; // Texture Array 用
+        uint32_t mipOffset[16] = {0}; // 最多支持16级mip
     };
 
 

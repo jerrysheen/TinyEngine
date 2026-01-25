@@ -33,52 +33,52 @@ namespace EngineCore {
         std::string fullPath = PathSettings::ResolveAssetPath(binPath);
         
         std::ifstream cacheFile(fullPath, std::ios::binary);
-        if (cacheFile.good()) {
-            cacheFile.close();
-            std::cout << "Loading from cache: " << fullPath << std::endl;
-            Scene* res = static_cast<Scene*>(sceneLoader.Load(binPath));
-            // todo： 这个地方有加载时序问题。。
-            SceneManager::GetInstance()->SetCurrentScene(res);
-            for (auto& gameObject : res->allObjList) 
-            {
-                if (gameObject->GetComponent<MeshFilter>() != nullptr)
-                {
-                    if (gameObject->GetComponent<MeshRenderer>() != nullptr) continue;
+        //if (cacheFile.good()) {
+        //    cacheFile.close();
+        //    std::cout << "Loading from cache: " << fullPath << std::endl;
+        //    Scene* res = static_cast<Scene*>(sceneLoader.Load(binPath));
+        //    // todo： 这个地方有加载时序问题。。
+        //    SceneManager::GetInstance()->SetCurrentScene(res);
+        //    for (auto& gameObject : res->allObjList) 
+        //    {
+        //        if (gameObject->GetComponent<MeshFilter>() != nullptr)
+        //        {
+        //            if (gameObject->GetComponent<MeshRenderer>() != nullptr) continue;
 
-                    MeshRenderer* mr = gameObject->AddComponent<MeshRenderer>();
+        //            MeshRenderer* mr = gameObject->AddComponent<MeshRenderer>();
 
-                    // Re-use common material logic
-                    std::string shaderName = "Shader/StandardPBR.hlsl";
-                    if (RenderSettings::s_EnableVertexPulling)
-                    {
-                        shaderName = "Shader/StandardPBR_VertexPulling.hlsl";
-                    }
-                    ResourceHandle<Shader> pbrShader = ResourceManager::GetInstance()->LoadAsset<Shader>(shaderName);
+        //            // Re-use common material logic
+        //            std::string shaderName = "Shader/StandardPBR.hlsl";
+        //            if (RenderSettings::s_EnableVertexPulling)
+        //            {
+        //                shaderName = "Shader/StandardPBR_VertexPulling.hlsl";
+        //            }
+        //            ResourceHandle<Shader> pbrShader = ResourceManager::GetInstance()->LoadAsset<Shader>(shaderName);
 
-                    if (pbrShader.IsValid()) {
-                        if (!BistroSceneLoader::commonMatHandle.IsValid())
-                        {
-                            BistroSceneLoader::commonMatHandle = ResourceManager::GetInstance()->CreateResource<Material>(pbrShader);
-                        }
+        //            if (pbrShader.IsValid()) {
+        //                if (!BistroSceneLoader::commonMatHandle.IsValid())
+        //                {
+        //                    BistroSceneLoader::commonMatHandle = ResourceManager::GetInstance()->CreateResource<Material>(pbrShader);
+        //                }
 
-                    mr->SetSharedMaterial(BistroSceneLoader::commonMatHandle);
-                    mr->TryAddtoBatchManager();
-                }
-            }
-        }
+        //            mr->SetSharedMaterial(BistroSceneLoader::commonMatHandle);
+        //            mr->TryAddtoBatchManager();
+        //            }
+        //        }
+        //    }
 
-        // 刷新所有Transform的world position，避免父子节点关系建立后的延迟更新问题
-        for (auto& gameObject : res->allObjList) 
-        {
-            if (gameObject != nullptr && gameObject->transform != nullptr)
-            {
-                gameObject->transform->UpdateTransform();
-            }
-            gameObject->transform->isDirty = true;
-        }
+        //    // 刷新所有Transform的world position，避免父子节点关系建立后的延迟更新问题
+        //    for (auto& gameObject : res->allObjList) 
+        //{
+        //    if (gameObject != nullptr && gameObject->transform != nullptr)
+        //    {
+        //        gameObject->transform->UpdateTransform();
+        //    }
+        //    gameObject->transform->isDirty = true;
+        //}
 
-        return res;
-    }
+        //    return res;
+        //}
 
         BistroSceneLoader loader;
         return loader.LoadInternal(path);
@@ -413,6 +413,8 @@ namespace EngineCore {
             ProcessNode(model.nodes[scene.nodes[i]], model, rootGo, newScene);
         }
 
+        ProcessTexture(model);
+
         AssetRegistry::GetInstance()->SaveToDisk("AssetRegistry.bin");
 
         // Save serialized scene
@@ -639,6 +641,40 @@ namespace EngineCore {
                     mr->TryAddtoBatchManager();
                 } 
             }
+        }
+    }
+
+    void BistroSceneLoader::ProcessTexture(const tinygltf::Model &model)
+    {
+        for (size_t i = 0; i < model.images.size(); i++)
+        {
+            const tinygltf::Image& image = model.images[i];
+            
+            // 跳过没有 uri 的图像（可能是嵌入的图像）
+            if (image.uri.empty()) continue;
+            
+            // 转换路径：将相对路径转换为 Assets/Textures/bistro/ 开头的路径
+            std::string texturePath = "Textures/bistro/" + image.uri;
+            
+            // 创建一个临时的 Texture 对象用于注册
+            // 由于 Texture 类继承自 Resource，可以直接使用
+            Texture* tempTexture = new Texture();
+            
+            // 设置路径
+            tempTexture->SetPath(texturePath);
+            
+            // 根据路径生成 AssetID
+            tempTexture->SetAssetID(AssetIDGenerator::NewFromFile(texturePath));
+            
+            // 设置创建方法为序列化
+            tempTexture->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+            
+            // 注册到 AssetRegistry
+            AssetRegistry::GetInstance()->RegisterAsset(tempTexture);
+            
+            // 由于这只是用于注册，创建后可以删除临时对象
+            // 或者保存到一个临时容器中，在函数结束时统一清理
+            delete tempTexture;
         }
     }
 }

@@ -429,6 +429,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Serialization\ComponentFactory.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\DDSTextureLoader.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Serialization\JsonSerializer.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>

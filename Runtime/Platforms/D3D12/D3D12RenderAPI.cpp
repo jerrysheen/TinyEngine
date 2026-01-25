@@ -5,7 +5,6 @@
 #include "Serialization/MetaLoader.h"
 #include "Core/PublicStruct.h"
 #include "D3D12DescManager.h"
-#include "d3dx12.h"  // 确保包含D3D12辅助类
 #include "D3D12PSO.h"
 #include "Renderer/RenderUniforms.h"
 #include "Renderer/RenderStruct.h"
@@ -347,10 +346,42 @@ namespace EngineCore
     {
         D3D12Texture* texture = new D3D12Texture(textureDesc);
 
+        DXGI_FORMAT d3dFormat = ConvertD3D12Format(textureDesc.format);
+        bool isCompressed = IsCompressedFormat(textureDesc.format);
+        
         // 创建默认堆 贴图资源， CPU不可见
         CD3DX12_HEAP_PROPERTIES textureProps(D3D12_HEAP_TYPE_DEFAULT);
-        CD3DX12_RESOURCE_DESC d3D12TextureDesc(CD3DX12_RESOURCE_DESC::Tex2D(mDefaultImageFormat, 
-            textureDesc.width, textureDesc.height, 1, 1));
+        CD3DX12_RESOURCE_DESC d3D12TextureDesc(
+            CD3DX12_RESOURCE_DESC::Tex2D(
+                d3dFormat, 
+                textureDesc.width, 
+                textureDesc.height, 
+                1, 
+                textureDesc.mipCount
+            )
+        );
+
+        std::vector<D3D12_SUBRESOURCE_DATA> subresources(textureDesc.mipCount);
+        for(uint32_t mip = 0; mip < textureDesc.mipCount; ++mip)
+        {
+            uint32_t mipWidth = std::max(1, textureDesc.width >> mip);
+            uint32_t mipHeight = std::max(1, textureDesc.height >> mip);
+
+            subresources[mip].pData = data + textureDesc.mipOffset[mip];
+
+            if(isCompressed)
+            {
+                subresources[mip].RowPitch = CalculateCompressedRowPitch(textureDesc.format, mipWidth);
+                subresources[mip].SlicePitch = CalculateCompressedSlicePitch(textureDesc.format, mipWidth, mipHeight);
+            }
+            else
+            {
+                uint32_t pixelByte = GetBytesPerPixel(textureDesc.format);
+                subresources[mip].RowPitch = mipWidth * pixelByte;
+                subresources[mip].SlicePitch = subresources[mip].RowPitch * mipHeight;
+            }
+        }
+
         ThrowIfFailed(md3dDevice->CreateCommittedResource(
             &textureProps,
             D3D12_HEAP_FLAG_NONE,
@@ -363,7 +394,7 @@ namespace EngineCore
         // 创建上传堆，从CPU拷贝资源， COPY到GPU
         // todo: 这个是不是可以放到帧上传堆里面？
         UINT64 uploadHeapSize;
-        md3dDevice->GetCopyableFootprints(&d3D12TextureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &uploadHeapSize);
+        md3dDevice->GetCopyableFootprints(&d3D12TextureDesc, 0, textureDesc.mipCount, 0, nullptr, nullptr, nullptr, &uploadHeapSize);
         CD3DX12_HEAP_PROPERTIES uploadHeapProps(D3D12_HEAP_TYPE_UPLOAD);
         CD3DX12_RESOURCE_DESC uploadHeapDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadHeapSize);
         ComPtr<ID3D12Resource> uploadHeap;
@@ -379,15 +410,14 @@ namespace EngineCore
         // �ϴ���������
         ImmediatelyExecute([&](ComPtr<ID3D12GraphicsCommandList> cmdList)
             {
-                D3D12_SUBRESOURCE_DATA subresourceData = {};
-                subresourceData.pData = data;
-                subresourceData.RowPitch = static_cast<LONG_PTR>(textureDesc.width * 4);
-                subresourceData.SlicePitch = subresourceData.RowPitch * textureDesc.height;
 
-                UpdateSubresources(cmdList.Get(),
+                UpdateSubresources(
+                    cmdList.Get(),
                     texture->m_Resource.Get(),
                     uploadHeap.Get(),
-                    0, 0, 1, &subresourceData);
+                    0, 0, 
+                    textureDesc.mipCount, 
+                    subresources.data());
 
                 // ת������״̬
                 CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -405,10 +435,10 @@ namespace EngineCore
         WaitForRenderFinish(mImediatelyFence);
 
         D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-        srvDesc.Format = mDefaultImageFormat;
+        srvDesc.Format = d3dFormat;
         srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
         srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-        srvDesc.Texture2D.MipLevels = 1;
+        srvDesc.Texture2D.MipLevels = textureDesc.mipCount;
         srvDesc.Texture2D.MostDetailedMip = 0;
         srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
         
@@ -752,8 +782,21 @@ namespace EngineCore
     {
         return 0;
     }
-    
 
+    DXGI_FORMAT D3D12RenderAPI::ConvertD3D12Format(TextureFormat format)
+    {
+        switch(format)
+        {
+            case TextureFormat::R8G8B8A8: return DXGI_FORMAT_R8G8B8A8_UNORM;
+            case TextureFormat::DXT1: return DXGI_FORMAT_BC1_UNORM;
+            case TextureFormat::DXT3: return DXGI_FORMAT_BC2_UNORM;
+            case TextureFormat::DXT5: return DXGI_FORMAT_BC3_UNORM;
+            case TextureFormat::BC7 : return DXGI_FORMAT_BC7_UNORM;  
+            case TextureFormat::BC7_SRGB : return DXGI_FORMAT_BC7_UNORM_SRGB;
+            case TextureFormat::D24S8: return DXGI_FORMAT_D24_UNORM_S8_UINT;
+            default: ASSERT(false); return DXGI_FORMAT_D24_UNORM_S8_UINT;
+        }
+    }
 
     // DescriptorHandle EngineCore::D3D12RenderAPI::GetTextureSrvHanle(uint32_t textureID)
     // {

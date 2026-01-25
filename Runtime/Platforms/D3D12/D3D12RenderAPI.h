@@ -20,6 +20,8 @@
 #include "Core/PublicEnum.h"
 #include "Graphics/IGPUResource.h"
 #include "D3D12Texture.h"
+#include "d3dx12.h"  // 确保包含D3D12辅助类
+
 
 namespace EngineCore
 {
@@ -128,6 +130,49 @@ namespace EngineCore
 
         int GetNextVAOIndex();
 
+        DXGI_FORMAT ConvertD3D12Format(TextureFormat format);
+        inline bool IsCompressedFormat(TextureFormat format)
+        {
+            return format >= TextureFormat::DXT1 && format <= TextureFormat::BC7_SRGB;
+        }
+        
+        // 获取每像素字节数
+        inline uint32_t GetBytesPerPixel(TextureFormat format)
+        {
+            switch(format)
+            {
+                case TextureFormat::R8G8B8A8: return 4;
+                case TextureFormat::D24S8: return 4;
+                default: ASSERT(false);
+            }
+        }
+
+        // RowPitch计算的是一行像素的字节数
+        // 比如压缩图，4x4块会被压缩成 xxByte 比如8B
+        inline uint32_t CalculateCompressedRowPitch(TextureFormat format, uint32_t width)
+        {
+            uint32_t blockWidth = (width + 3) / 4;  // 4x4 块对齐
+            
+            switch(format)
+            {
+                case TextureFormat::DXT1:  // BC1: 8 bytes per 4x4 block
+                    return blockWidth * 8;
+                case TextureFormat::DXT3:  // BC2: 16 bytes per 4x4 block
+                case TextureFormat::DXT5:  // BC3: 16 bytes per 4x4 block
+                case TextureFormat::BC7:
+                case TextureFormat::BC7_SRGB:
+                    return blockWidth * 16;
+                default:
+                    ASSERT_MSG(false, "Not Implemented yet");
+            }
+        }
+
+        // 计算整个切片/mipmap level的总字节数
+        inline uint32_t CalculateCompressedSlicePitch(TextureFormat format, uint32_t width, uint32_t height)
+        {
+            uint32_t blockHeight = (height + 3) / 4;
+            return CalculateCompressedRowPitch(format, width) * blockHeight;
+        }
 
         Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
         Microsoft::WRL::ComPtr<IDXGIFactory4> mdxgiFactory;

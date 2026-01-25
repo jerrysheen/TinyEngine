@@ -32,5 +32,13 @@ namespace EngineCore
         stbi_image_free(pixels);
     }
 
+    void Texture::OnLoadComplete()
+    {
+        textureBuffer = RenderAPI::GetInstance()->CreateTextureBuffer(static_cast<unsigned char*>(cpuData.data()), textureDesc);
+        // 似乎还不能清？为什么
+        //cpuData.clear();
+        //cpuData.shrink_to_fit();
+    }
+
 }
 

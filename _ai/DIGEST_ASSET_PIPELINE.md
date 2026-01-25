@@ -1,5 +1,5 @@
 # Architecture Digest: ASSET_PIPELINE
-> Auto-generated. Focus: Runtime/Resources, Runtime/Serialization, Meta, Asset, Importer, Texture, Material, Shader, Mesh
+> Auto-generated. Focus: Runtime/Resources, Runtime/Serialization, Asset, Importer, Texture, Material, Shader, Mesh, MeshLoader, StreamHelper
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
@@ -14,51 +14,51 @@
 - 关注资源句柄、依赖管理与加载策略。
 
 ## Key Files Index
-- `[51]` **Runtime/Serialization/MetaData.h** *(Content Included)*
-- `[49]` **Runtime/Serialization/MetaLoader.h** *(Content Included)*
-- `[48]` **Runtime/Serialization/AssetSerialization.h** *(Content Included)*
+- `[69]` **Runtime/Serialization/MeshLoader.h** *(Content Included)*
 - `[46]` **Runtime/Resources/AssetTypeTraits.h** *(Content Included)*
+- `[43]` **Runtime/Serialization/AssetSerialization.h** *(Content Included)*
 - `[42]` **Runtime/Resources/Asset.h** *(Content Included)*
-- `[42]` **Runtime/Serialization/MeshLoader.h** *(Content Included)*
-- `[41]` **Runtime/Graphics/Material.h** *(Content Included)*
-- `[39]` **Assets/Shader/SimpleTestShader.hlsl** *(Content Included)*
-- `[38]` **Runtime/Serialization/MetaFactory.h** *(Content Included)*
+- `[38]` **Assets/Shader/SimpleTestShader.hlsl** *(Content Included)*
+- `[37]` **Runtime/Graphics/Material.h** *(Content Included)*
 - `[37]` **Runtime/Resources/AssetRegistry.h** *(Content Included)*
 - `[36]` **Runtime/Serialization/AssetHeader.h** *(Content Included)*
 - `[36]` **Assets/Shader/BlitShader.hlsl** *(Content Included)*
-- `[35]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
-- `[34]` **Assets/Shader/include/Core.hlsl** *(Content Included)*
-- `[33]` **Runtime/Graphics/Mesh.h** *(Content Included)*
-- `[32]` **Runtime/GameObject/MeshRenderer.h**
-- `[32]` **Runtime/Serialization/TextureLoader.h**
-- `[30]` **Runtime/Graphics/Shader.h**
-- `[30]` **Runtime/Serialization/BaseTypeSerialization.h**
-- `[30]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
+- `[34]` **Runtime/Serialization/StreamHelper.h** *(Content Included)*
+- `[33]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
+- `[32]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
+- `[32]` **Runtime/Serialization/TextureLoader.h** *(Content Included)*
+- `[30]` **Runtime/Graphics/Mesh.h** *(Content Included)*
+- `[30]` **Runtime/Serialization/BaseTypeSerialization.h** *(Content Included)*
+- `[30]` **Assets/Shader/include/Core.hlsl**
 - `[29]` **Runtime/Graphics/MaterialInstance.h**
-- `[29]` **Runtime/Graphics/Texture.h**
-- `[29]` **Assets/Shader/StandardPBR.hlsl**
-- `[28]` **Editor/Panel/EditorMainBar.h**
+- `[29]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
+- `[28]` **Runtime/Serialization/SceneLoader.h**
+- `[28]` **Assets/Shader/StandardPBR.hlsl**
 - `[27]` **Runtime/GameObject/MeshFilter.h**
 - `[27]` **Runtime/Graphics/MeshUtils.h**
 - `[27]` **Runtime/Graphics/RenderTexture.h**
+- `[27]` **Runtime/Graphics/Shader.h**
+- `[27]` **Runtime/Graphics/Texture.h**
 - `[27]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[27]` **Runtime/Platforms/D3D12/D3D12Texture.h**
 - `[26]` **Runtime/Graphics/ComputeShader.h**
-- `[26]` **Runtime/Resources/ResourceManager.h**
+- `[26]` **Runtime/Serialization/MetaData.h**
 - `[25]` **Runtime/Graphics/GPUTexture.h**
-- `[24]` **Runtime/Serialization/SceneLoader.h**
+- `[24]` **Runtime/Serialization/MetaLoader.h**
+- `[23]` **Editor/Panel/EditorMainBar.h**
 - `[22]` **Runtime/Core/PublicStruct.h**
 - `[22]` **Runtime/Renderer/RenderCommand.h**
-- `[22]` **Runtime/Resources/Resource.h**
-- `[20]` **Runtime/Renderer/RenderAPI.h**
+- `[21]` **Runtime/Resources/ResourceManager.h**
 - `[20]` **Assets/Shader/GPUCulling.hlsl**
-- `[19]` **Runtime/Serialization/JsonSerializer.h**
+- `[19]` **Runtime/Renderer/RenderAPI.h**
+- `[17]` **Runtime/Resources/Resource.h**
 - `[17]` **Runtime/Resources/ResourceHandle.h**
-- `[17]` **Runtime/Scene/SceneManager.h**
 - `[17]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
+- `[16]` **Runtime/Scene/SceneManager.h**
+- `[15]` **Runtime/Serialization/MetaFactory.h**
 - `[14]` **Runtime/Renderer/Renderer.h**
+- `[14]` **Runtime/Serialization/JsonSerializer.h**
 - `[13]` **Runtime/Renderer/RenderStruct.h**
-- `[13]` **Runtime/Serialization/StreamHelper.h**
 - `[12]` **Runtime/Resources/IResourceLoader.h**
 - `[12]` **Runtime/Serialization/ComponentFactory.h**
 - `[12]` **Runtime/Platforms/D3D12/d3dx12.h**
@@ -77,78 +77,57 @@
 
 ## Evidence & Implementation Details
 
-### File: `Runtime/Serialization/MetaData.h`
-```cpp
-{
-
-    class Texture;
-    class Material;
-    struct MetaData
-    {
-        string path;
-        AssetType assetType;
-        // k,v = <ResouceName, MetaData>
-        std::unordered_map<std::string, MetaData> dependentMap;
-        MetaData() = default;
-        MetaData(const std::string& path, AssetType type)
-            : path(path), assetType(type) {};
-    };
-```
-...
-```cpp
-    };
-
-    struct MaterialMetaData : MetaData 
-    {
-		string shaderPath;       
-        unordered_map<string, float> floatData;
-        unordered_map<string, Vector2> vec2Data;
-        unordered_map<string, Vector3> vec3Data;
-        unordered_map<string, Matrix4x4> matrix4x4Data;
-        // 无意义的Texture*，只是为了和MaterialData做方便的同步而已。
-        unordered_map<string, Texture*> textureData;
-    };
-```
-
-### File: `Runtime/Serialization/MetaLoader.h`
+### File: `Runtime/Serialization/MeshLoader.h`
 ```cpp
 namespace EngineCore
 {
-    class MetaLoader
+    class MeshLoader : public IResourceLoader
     {
     public:
-        static MaterialMetaData* LoadMaterialMetaData(const std::string& path);
-        static ShaderVariableType GetShaderVaribleType(uint32_t size);
-        static TextureMetaData* LoadTextureMetaData(const std::string& path);
-        static ModelMetaData* LoadModelMetaData(const std::string& path);
-        template<typename T>
-        static MetaData* LoadMetaData(const std::string& path)
+        virtual ~MeshLoader() = default;
+        virtual Resource* Load(const std::string& relativePath) override
         {
-            MetaData* metaData = new MetaData();
-            metaData->path = path;
-            return metaData;
-            // do nothing, for example shader..
-        };
+            std::string path = PathSettings::ResolveAssetPath(relativePath);
+            std::ifstream in(path, std::ios::binary);
+            in.seekg(sizeof(AssetHeader));
 
-        
+            Mesh* mesh = new Mesh();
+            mesh->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+            mesh->SetAssetID(AssetIDGenerator::NewFromFile(path));
+            StreamHelper::Read(in, mesh->bounds);
+            StreamHelper::ReadVector(in, mesh->vertex);
+            StreamHelper::ReadVector(in, mesh->index);
+            return mesh;
+        }
 
-        template<typename T>
-        static T* LoadMeta(const std::string& path)
+        void SaveMeshToBin(const Mesh* mesh, const std::string& relativePath, uint32_t id)
         {
-            std::ifstream file(path);
-            
-            if(!file.is_open())
-            {
-                throw std::runtime_error("Can't open Meta File" + path);
-            }
+            ASSERT(mesh && mesh->vertex.size() > 0 && mesh->index.size() > 0);
+            std::string binPath = PathSettings::ResolveAssetPath(relativePath);
+            std::ofstream out(binPath, std::ios::binary);
 
-            json j = json::parse(file);
-            file.close();
-            
-            return j.get<T>();
+            AssetHeader header;
+            header.assetID =id;
+            header.type = 2;
+            StreamHelper::Write(out, header);
+
+            StreamHelper::Write(out, mesh->bounds);
+            StreamHelper::WriteVector(out, mesh->vertex);
+            StreamHelper::WriteVector(out, mesh->index);
         }
 
     };
+```
+
+### File: `Runtime/Resources/AssetTypeTraits.h`
+```cpp
+namespace EngineCore
+{
+    class Mesh;
+    class Texture;
+    class Material;
+
+    template<typename T> struct AssetTypeTraits { static const AssetType Type = AssetType::Default; };
 ```
 
 ### File: `Runtime/Serialization/AssetSerialization.h`
@@ -215,17 +194,6 @@ namespace EngineCore
     }
 ```
 
-### File: `Runtime/Resources/AssetTypeTraits.h`
-```cpp
-namespace EngineCore
-{
-    class Mesh;
-    class Texture;
-    class Material;
-
-    template<typename T> struct AssetTypeTraits { static const AssetType Type = AssetType::Default; };
-```
-
 ### File: `Runtime/Resources/Asset.h`
 ```cpp
 
@@ -278,46 +246,26 @@ namespace std {
     };
 ```
 
-### File: `Runtime/Serialization/MeshLoader.h`
-```cpp
-namespace EngineCore
+### File: `Assets/Shader/SimpleTestShader.hlsl`
+```hlsl
+
+// 纹理资源
+Texture2D g_Textures[1024] : register(t0, space0);
+
+
+// 采样器
+SamplerState LinearSampler : register(s0, space0);
+SamplerState PointSampler : register(s1, space0);
+SamplerState AnisotropicSampler : register(s2,space0);
+SamplerComparisonState ShadowSampler : register(s3, space0);
+
+// 顶点着色器输入
+struct VertexInput
 {
-    class MeshLoader : public IResourceLoader
-    {
-    public:
-        virtual ~MeshLoader() = default;
-        virtual Resource* Load(const std::string& relativePath) override
-        {
-            std::string path = PathSettings::ResolveAssetPath(relativePath);
-            std::ifstream in(path, std::ios::binary);
-            in.seekg(sizeof(AssetHeader));
-
-            Mesh* mesh = new Mesh();
-            mesh->SetAssetCreateMethod(AssetCreateMethod::Serialization);
-            mesh->SetAssetID(AssetIDGenerator::NewFromFile(path));
-            StreamHelper::Read(in, mesh->bounds);
-            StreamHelper::ReadVector(in, mesh->vertex);
-            StreamHelper::ReadVector(in, mesh->index);
-            return mesh;
-        }
-
-        void SaveMeshToBin(const Mesh* mesh, const std::string& relativePath, uint32_t id)
-        {
-            ASSERT(mesh && mesh->vertex.size() > 0 && mesh->index.size() > 0);
-            std::string binPath = PathSettings::ResolveAssetPath(relativePath);
-            std::ofstream out(binPath, std::ios::binary);
-
-            AssetHeader header;
-            header.assetID =id;
-            header.type = 2;
-            StreamHelper::Write(out, header);
-
-            StreamHelper::Write(out, mesh->bounds);
-            StreamHelper::WriteVector(out, mesh->vertex);
-            StreamHelper::WriteVector(out, mesh->index);
-        }
-
-    };
+    float3 Position : POSITION;
+    float3 Normal : NORMAL;
+    float2 TexCoord : TEXCOORD0;
+};
 ```
 
 ### File: `Runtime/Graphics/Material.h`
@@ -381,92 +329,6 @@ namespace EngineCore
 }
 ```
 
-### File: `Assets/Shader/SimpleTestShader.hlsl`
-```hlsl
-
-// 纹理资源
-Texture2D g_Textures[1024] : register(t0, space0);
-
-
-// 采样器
-SamplerState LinearSampler : register(s0, space0);
-SamplerState PointSampler : register(s1, space0);
-SamplerState AnisotropicSampler : register(s2,space0);
-SamplerComparisonState ShadowSampler : register(s3, space0);
-
-// 顶点着色器输入
-struct VertexInput
-{
-    float3 Position : POSITION;
-    float3 Normal : NORMAL;
-    float2 TexCoord : TEXCOORD0;
-};
-```
-
-### File: `Runtime/Serialization/MetaFactory.h`
-```cpp
-    using json = nlohmann::json;
-
-    class MetaFactory
-    {
-    public:
-        using json = nlohmann::json;
-
-        static GameObject* CreateGameObjectFromMeta(const json& json);
-        static Scene* CreateSceneFromMeta(const json& json);
-
-        // 非特化的转换
-        template<typename T>
-        inline json static ConvertToJson(const T* data)
-        {
-            return *data;
-        }
-
-        template<>
-        inline json static ConvertToJson<GameObject>(const GameObject* obj)
-        {
-
-            json componentsArray = json::array();
-
-            // 遍历所有组件，手动根据类型调用对应的序列化
-            for (const auto& [type, comp] : obj->components)
-            {
-                json compJson;
-                compJson["Type"] = comp->GetScriptName();
-                compJson["Data"] = comp->SerializedFields();
-                componentsArray.push_back(compJson);
-            }
-    
-            // 递归序列化子对象
-            json childrenArray = json::array();
-            for (GameObject* child : obj->GetChildren()) {  // 或 obj->GetChildren()
-                childrenArray.push_back(ConvertToJson<GameObject>(child));  
-            }
-    
-            json j = json{ 
-                {"Enabled", obj->enabled},
-                {"Name", obj->name},
-                {"Component", componentsArray},
-                {"ChildGameObject", childrenArray}
-            };
-
-            return j;
-        }
-
-
-        template<>
-        inline json static ConvertToJson<Scene>(const Scene* scene)
-        {
-            json rootObjectArray = json::array();
-
-            // 遍历所有组件，手动根据类型调用对应的序列化
-            for (const auto& go : scene->rootObjList)
-            {
-                json compJson = ConvertToJson<GameObject>(go);
-                rootObjectArray.push_back(compJson);
-            }
-```
-
 ### File: `Runtime/Resources/AssetRegistry.h`
 ```cpp
 namespace EngineCore
@@ -516,6 +378,70 @@ struct VertexInput
 };
 ```
 
+### File: `Runtime/Serialization/StreamHelper.h`
+```cpp
+namespace EngineCore
+{
+    class StreamHelper
+    {
+    public:
+        // 写pod data
+        template<typename T>
+        static void Write(std::ofstream& out, const T& value)
+        {
+            out.write(reinterpret_cast<const char*>(&value), sizeof(T));
+        }
+
+        // 读pod data
+        template<typename T>
+        static void Read(std::ifstream& in, T& value)
+        {
+            in.read(reinterpret_cast<char*>(&value), sizeof(T));
+        };
+
+        template<typename T>
+        static void WriteVector(std::ofstream& out, const std::vector<T>& vec)
+        {
+            uint32_t size = (uint32_t) vec.size();
+            out.write((char*)&size, sizeof(uint32_t));
+            if(size > 0)out.write((char*)vec.data(), size * sizeof(T));
+        }
+
+        // 直接整段copy
+        template<typename T>
+        static void ReadVector(std::ifstream& in, std::vector<T>& vec)
+        {
+            uint32_t size = 0;
+            in.read((char*)&size, sizeof(uint32_t));
+            vec.resize(size);
+            if(size > 0)in.read((char*)vec.data(), sizeof(T) * size);
+        }
+
+        static void ReadString(std::ifstream& in, std::string& str)
+        {
+            uint32_t len = 0;
+            in.read(reinterpret_cast<char*>(&len), sizeof(uint32_t));
+            if(len > 0)
+            {
+                str.resize(len);
+                in.read(reinterpret_cast<char*>(&str[0]), len);
+            }
+            else
+            {
+                str.clear();
+            }
+        }
+
+        static void WriteString(std::ofstream& out, const std::string& str)
+        {
+            // ASSERT(str.size() > 0); // Allow empty strings
+            uint32_t len = (uint32_t)str.size();
+            out.write((char*)&len, sizeof(uint32_t));
+            if (len > 0) out.write((char*)str.c_str(), len);
+        }
+    };
+```
+
 ### File: `Runtime/Graphics/MaterialLayout.h`
 ```cpp
 namespace EngineCore
@@ -562,50 +488,66 @@ namespace EngineCore
         {
 ```
 
-### File: `Assets/Shader/include/Core.hlsl`
-```hlsl
-#define CORE_HLSLI
-
-cbuffer DrawIndices : register(b0, space0)
+### File: `Runtime/GameObject/MeshRenderer.h`
+```cpp
+namespace EngineCore
 {
-    uint g_InstanceBaseOffset;
+    class MeshRenderer : public Component
+    {
+        class GameObejct;
+    public:
+        MeshRenderer() = default;
+        MeshRenderer(GameObject* gamObject);
+        virtual ~MeshRenderer() override;
+        static ComponentType GetStaticType() { return ComponentType::MeshRenderer; };
+        virtual ComponentType GetType() const override{ return ComponentType::MeshRenderer; };
+
+        virtual const char* GetScriptName() const override { return "MeshRenderer"; }
+        virtual json SerializedFields() const override {
+            return json{
+                {"MatHandle", mShardMatHandler},
+            };
+        }
+        
+        virtual void DeserializedFields(const json& data) override;
+        
+        void SetUpMaterialPropertyBlock();
+
+        inline Material* GetSharedMaterial()
+        { 
+            return mShardMatHandler.IsValid() ? mShardMatHandler.Get() : nullptr;
+        };
+
+        inline void SetSharedMaterial(const ResourceHandle<Material>& mat) 
+        {
+            mShardMatHandler = mat;
+            SetUpMaterialPropertyBlock();
+        }
+
+        // return a new Material Instance;
+        Material* GetOrCreateMatInstance();
+        // 
+        ResourceHandle<Material> GetMaterial();
+        inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
+
+        void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
+        uint32_t lastSyncTransformVersion = 0;
+        bool shouldUpdateMeshRenderer = true;
+
+        AABB worldBounds;
+        uint32_t sceneRenderNodeIndex = UINT32_MAX;
+        bool materialDirty = true;
+		
+        void TryAddtoBatchManager();
+
+        uint32_t renderLayer = 1;
+    private:
+        ResourceHandle<Material> mShardMatHandler;
+        ResourceHandle<Material> mInstanceMatHandler;
+
+    };
+
 }
-```
-...
-```hlsl
-}
-
-cbuffer PerPassData : register(b2, space0)
-{
-    float3 CameraPosition;
-    float4x4 ViewMatrix; 
-    float4x4 ProjectionMatrix;
-}
-```
-...
-```hlsl
-};
-
-struct Vertex
-{
-    float3 Position;
-    float3 Normal;
-    float2 TexCoord;
-};
-```
-...
-```hlsl
-
-
-struct PerMaterialData
-{
-    float4 DiffuseColor;
-    float4 SpecularColor;
-    float Roughness;
-    float Metallic;
-    float2 TilingFactor;
-    uint DiffuseTextureIndex;
-};
 ```
 
 ### File: `Runtime/Graphics/Mesh.h`
@@ -655,4 +597,68 @@ struct PerMaterialData
     };
 
 }
+```
+
+### File: `Runtime/Serialization/BaseTypeSerialization.h`
+```cpp
+#include "Graphics/IGPUResource.h"
+
+namespace EngineCore
+{
+    // // Vector3
+    using json = nlohmann::json;
+    inline void to_json(json& j, const Vector3& v)
+    {
+        j = json{ {"x", v.x}, {"y", v.y}, {"z", v.z} };
+    }
+
+    inline void from_json(const json& j, EngineCore::Vector3& v)
+    {
+        j.at("x").get_to(v.x);
+        j.at("y").get_to(v.y);
+        j.at("z").get_to(v.z);
+    }
+
+    //vector2
+    inline void to_json(json& j, const EngineCore::Vector2& v)
+    {
+        j = json{ {"x", v.x}, {"y", v.y}};
+    }
+
+    inline void from_json(const json& j, EngineCore::Vector2& v)
+    {
+        j.at("x").get_to(v.x);
+        j.at("y").get_to(v.y);
+    }
+
+    // Matrix4x4
+    inline void to_json(json& j, const EngineCore::Matrix4x4& m)
+    {
+        j = json{
+            {"m00", m.m00}, {"m01", m.m01}, {"m02", m.m02},{"m03", m.m03},
+            {"m10", m.m10}, {"m11", m.m11}, {"m12", m.m12}, {"m13", m.m13},
+            {"m20", m.m20}, {"m21", m.m21}, {"m22", m.m22}, {"m23", m.m23},
+            {"m30", m.m30}, {"m31", m.m31}, {"m32", m.m32}, {"m33", m.m33}
+        };
+    }
+
+    inline void from_json(const json& j, EngineCore::Matrix4x4& m)
+    {
+        j.at("m00").get_to(m.m00); j.at("m01").get_to(m.m01); j.at("m02").get_to(m.m02); j.at("m03").get_to(m.m03);
+        j.at("m10").get_to(m.m10); j.at("m11").get_to(m.m11); j.at("m12").get_to(m.m12); j.at("m13").get_to(m.m13);
+        j.at("m20").get_to(m.m20); j.at("m21").get_to(m.m21); j.at("m22").get_to(m.m22); j.at("m23").get_to(m.m23);
+        j.at("m30").get_to(m.m30); j.at("m31").get_to(m.m31); j.at("m32").get_to(m.m32); j.at("m33").get_to(m.m33);
+    }
+
+    // Quaternion
+    inline void to_json(json& j, const EngineCore::Quaternion& m)
+    {
+        j = json{
+            {"x", m.x},
+            {"y", m.y},
+            {"z", m.z},
+            {"w", m.w},
+        };
+    }
+
 ```

@@ -58,6 +58,10 @@
       "PLATFORM_WINDOWING": [
         "窗口、输入与平台层抽象决定跨平台能力。",
         "关注窗口创建、消息循环与输入采样接口。"
+      ],
+      "CONCURRENCY": [
+        "CPU和GPU的同步，渲染线程和主线程的同步，多queue之间的同步",
+        "关注CpuEvent, 各种Waitfor事件, 等待是否合理"
       ]
     },
     "subsystems": {
@@ -70,11 +74,13 @@
       "SHADER_LIB": ["Assets/Shader", "hlsl", "glsl", "include", "Lighting", "Surface"],
       "ENGINE_OVERVIEW": ["Runtime/Entry", "EngineCore", "Game", "RenderEngine", "SceneManager", "Settings", "Application", "Runtime/Utils"],
       "SCENE_SYSTEM": ["Runtime/Scene", "SceneManager", "Scene", "GameObject", "Component", "Transform", "Hierarchy", "MeshFilter", "MeshRenderer", "Transform", "GPUSceneManager", "Game"],
-      "ASSET_PIPELINE": ["Runtime/Resources", "Runtime/Serialization", "Meta", "Asset", "Importer", "Texture", "Material", "Shader", "Mesh"],
+      "ASSET_PIPELINE": ["Runtime/Resources", "Runtime/Serialization", "Asset", "Importer", "Texture", "Material", "Shader", "Mesh","MeshLoader","StreamHelper"],
       "PLATFORM_WINDOWING": ["Runtime/Platforms", "Window", "Input", "Platform", "Win32", "MessageLoop"],
       "SERIALIZATION":["AssetSerialization", "BaseTypeSerialization","ComponentFactory","JsonSerializer","MetaData", "MetaFactory", "MetaLoader","MeshRenderer","MeshFilter","Material","ModelData"],
       "MODEL":["Mesh", "GeometryManager","MeshFilter","Scene","D3D12RenderAPI","RenderAPI", "MetaFactory", "MetaLoader","MeshRenderer","BistroSceneLoader"],
       "GameLogicUpdate":["Game", "SceneManager","Scene","RenderEngine","LagacyRenderPath","GPUSceneRenderPath", "Renderer", "RenderContext","FinalBlitPass","GPUSceneRenderPass","OpaqueRenderPass"],
-      "GPUScene":["GPUSceneRenderPath", "GPUSceneManager", "GeometryManager","Mesh","Texture","IGPUResource","GPUBufferAllocator","ComputeShader", "D3D12RenderAPI","GPUSceneRenderPass","BatchManager"]
+      "GPUScene":["GPUSceneRenderPath", "GPUSceneManager", "GeometryManager","Mesh","Texture","IGPUResource","GPUBufferAllocator","ComputeShader", "D3D12RenderAPI","GPUSceneRenderPass","BatchManager"],
+      "CONCURRENCY":["CpuEvent", "Renderer", "RenderThreadMain","RenderAPI","D3D12RenderAPI","Renderer"],
+      "GPU_ARCHITECTURE":["Runtime/Platforms/D3D12", "Runtime/Graphics", "Runtime/Serialization"]
     }
   }

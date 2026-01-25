@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include "Graphics/IGPUResource.h"
 #include "Resources/Resource.h"
 
@@ -15,9 +16,11 @@ namespace EngineCore
 
         inline int GetWidth() { return textureDesc.width; };
         inline int GetHeight() { return textureDesc.height; };
+        virtual void OnLoadComplete() override;
     public:
         IGPUTexture*  textureBuffer;
         TextureDesc textureDesc;
+        std::vector<uint8_t> cpuData;
     };
 
 }
