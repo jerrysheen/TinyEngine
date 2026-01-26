@@ -6,7 +6,6 @@
 #include "Graphics/MeshUtils.h"
 #include "GameObject/MeshRenderer.h"
 #include "Graphics/Material.h"
-#include "Serialization/MetaData.h"
 #include "Graphics/Shader.h"
 #include "Graphics/Texture.h"
 #include "Resources/ResourceHandle.h"

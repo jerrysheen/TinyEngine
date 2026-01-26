@@ -7,8 +7,6 @@
 #include "GameObject/MeshRenderer.h"
 #include "Scripts/CameraController.h"
 #include "Scene.h"
-#include "Serialization/MetaFactory.h"
-#include "Serialization/JsonSerializer.h"
 
 namespace EngineCore
 {
@@ -44,7 +42,6 @@ namespace EngineCore
         }
     }
 
-    // scene的创建， 不应该这么玩， 应该是空场景， 或者是根据MetaData
     inline Scene* SceneManager::AddNewScene(const std::string& name)
     {
         ASSERT_MSG(mSceneMap.count(name) == 0, "The Same Name Scene Has Been Created");
@@ -102,9 +99,6 @@ namespace EngineCore
 
     void SceneManager::Init() 
     {
-        //json j = EngineCore::JsonSerializer::ReadFromJson("/Scenes/PerformanceTestScene.meta");
-        //json j = EngineCore::JsonSerializer::ReadFromJson("/Scenes/SampleScene.meta");
-        //Scene* scene = MetaFactory::CreateSceneFromMeta(j);
 
         // Load Bistro Scene
         string bistroPath = PathSettings::ResolveAssetPath("/Scenes/niagara_bistro/bistro.gltf"); 
@@ -125,7 +119,6 @@ namespace EngineCore
              scene->Open();
         }
 
-        // todo: 应该能保存序列化 更多的meta， 包括场景中代码创建的， 只要是shader和texture是代码创建的， 应该就可以，而不是像现在这样。
         quadMesh = new Mesh(Primitive::Quad);
         blitShader = ResourceManager::GetInstance()->LoadAsset<Shader>("Shader/BlitShader.hlsl");
         blitMaterial = new Material(blitShader);

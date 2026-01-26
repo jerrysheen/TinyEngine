@@ -2,7 +2,6 @@
 #include "Core/PublicStruct.h"
 #include "Graphics/Texture.h"
 #include "Component.h"
-#include "Serialization/BaseTypeSerialization.h"
 #include "Math/Frustum.h"
 #include "Graphics/RenderTexture.h"
 
@@ -37,25 +36,6 @@ namespace EngineCore
 
 
         virtual const char* GetScriptName() const override { return "Camera"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"Fov", mFov},
-                {"Aspect", mAspect},
-                {"Near", mNear},
-                {"Far", mFar},
-                {"Width", mWidth},
-                {"Height", mHeight}
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override {
-            data.at("Fov").get_to(mFov);
-            data.at("Aspect").get_to(mAspect);
-            data.at("Near").get_to(mNear);
-            data.at("Far").get_to(mFar);
-            data.at("Width").get_to(mWidth);
-            data.at("Height").get_to(mHeight);
-        }
     };
 
 }

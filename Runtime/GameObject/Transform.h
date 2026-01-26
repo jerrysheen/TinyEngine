@@ -3,7 +3,6 @@
 #include "Component.h"
 #include "Math/Math.h"
 #include "Scene/SceneManager.h"
-#include "Serialization/BaseTypeSerialization.h"
 
 namespace EngineCore
 {
@@ -113,21 +112,6 @@ namespace EngineCore
             return "Transform"; 
         }
 
-        virtual json SerializedFields() const override {
-            return json{
-                {"LocalPosition", mLocalPosition},
-                {"LocalQuaternion", mLocalQuaternion},
-                {"LocalScale", mLocalScale},
-            };
-        }
-
-        virtual void DeserializedFields(const json& data) override {
-            data.at("LocalPosition").get_to(mLocalPosition);
-            data.at("LocalQuaternion").get_to(mLocalQuaternion);
-            data.at("LocalScale").get_to(mLocalScale);
-
             //UpdateNow();
-        };
-
     };
 } // namespace EngineCore

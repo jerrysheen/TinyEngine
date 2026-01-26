@@ -8,16 +8,6 @@
 
 namespace EngineCore
 {
-    Mesh::Mesh(MetaData *metaData) : Resource(metaData)
-    {
-		mAssetType = AssetType::Mesh;
-		ASSERT(metaData->dependentMap.size() == 0);
-
-		ModelMetaData* MeshMetaData = static_cast<ModelMetaData*>(metaData);
-		LoadAiMesh(MeshMetaData->path);
-		UploadMeshToGPU();
-    }
-
 
 	void Mesh::LoadAiMesh(const string& path)
 	{

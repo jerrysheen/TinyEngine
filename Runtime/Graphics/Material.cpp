@@ -8,29 +8,6 @@
 
 namespace EngineCore
 {
-    Material::Material(MetaData* metaData) : Resource(metaData)
-    {
-        mAssetType = AssetType::Material;
-
-        MaterialMetaData* matMetaData = static_cast<MaterialMetaData*>(metaData);
-        auto& dependenciesMap = metaData->dependentMap;
-        LoadDependency(dependenciesMap);
-
-        ASSERT(mShader.IsValid());
-        SetUpRenderState();
-        GetTextureInfoFromShaderReflection();
-        MaterialLayout layout = MaterialLayout::GetDefaultPBRLayout();
-        matInstance = std::make_unique<MaterialInstance>(layout);
-        materialAllocation = GPUSceneManager::GetInstance()->GetSinglePerMaterialData();
-        if(textureData.count("DiffuseTexture") > 0)
-        {
-            IGPUTexture* diffuse = textureData["DiffuseTexture"];
-            uint32_t index = diffuse->srvHandle.descriptorIdx;
-            matInstance->SetValue("DiffuseTextureIndex", &index, 4);
-        }
-        UploadDataToGpu();
-
-    }
 
     Material::Material(ResourceHandle<Shader> shader)
         : mShader(shader)
@@ -77,26 +54,6 @@ namespace EngineCore
         
     }
 
-    // 1. 加载ResouceHandle资源
-    // 2. 同步具体的资源到textureData中.
-    void Material::LoadDependency(const std::unordered_map<std::string, MetaData> &dependentMap)
-    {
-        for(const auto& [name, metaData] : dependentMap )
-        {
-            ResourceHandle<Texture> tex;
-            switch (metaData.assetType)
-            {
-            case AssetType::Shader:
-                mShader =  ResourceManager::GetInstance()->LoadAsset<Shader>(metaData.path);
-                break;
-            case AssetType::Texture2D:
-                tex = ResourceManager::GetInstance()->LoadAsset<Texture>(metaData.path);
-                textureHandleMap[name] = tex;
-            default:
-                break;
-            }
-        }
-    }
 
     void Material::SetUpRenderState()
     {

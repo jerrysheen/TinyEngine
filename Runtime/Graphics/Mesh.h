@@ -1,12 +1,13 @@
 #pragma once
 #include "Math/Vector3.h"
 #include "Math/Vector2.h"
-#include "Serialization/MetaData.h"
 #include "Resources/Resource.h"
 #include <assimp/Importer.hpp>      // C++ importer interface
 #include <assimp/scene.h>           // Output data structure
 #include <assimp/postprocess.h>     // Post processing flags
 #include "Math/AABB.h"
+#include "Core/PublicEnum.h"
+#include "Graphics/IGPUResource.h"
 
 namespace EngineCore
 {
@@ -57,7 +58,6 @@ namespace EngineCore
         // todo: 先这么写，后续或许抽成单独Component
 
         Mesh() = default;
-        Mesh(MetaData* metaData);
         Mesh(Primitive primitiveType);
         MeshBufferAllocation* vertexAllocation;
         MeshBufferAllocation* indexAllocation;

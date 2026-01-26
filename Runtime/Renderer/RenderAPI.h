@@ -1,7 +1,6 @@
 #pragma once
 #include "Graphics/Shader.h"
 #include "Graphics/ComputeShader.h"
-#include "Serialization/MetaData.h"
 #include "Core/PublicStruct.h"
 #include "Graphics/Material.h"
 #include "Graphics/Mesh.h"

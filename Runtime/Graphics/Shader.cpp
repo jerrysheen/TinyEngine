@@ -5,14 +5,13 @@
 
 namespace EngineCore
 {
-    Shader::Shader(MetaData* metaFile) : Resource(metaFile)
-    {
-        mAssetType = AssetType::Shader;
-        ASSERT(metaFile->dependentMap.size() == 0);
-        RenderAPI::s_Instance->CompileShader(mPath, this);
-    }
-
     Shader::~Shader()
     {
+    }
+
+    // todo: 后续应该用ShaderLoader，不应该用这个
+    Shader::Shader(const std::string& path) : Resource(AssetType::Shader, path)
+    {
+        RenderAPI::s_Instance->CompileShader(path, this);
     }
 }

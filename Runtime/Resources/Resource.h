@@ -2,7 +2,6 @@
 #include "Core/Object.h"
 #include "Asset.h"
 #include "Utils/HashCombine.h"
-#include "Serialization/MetaData.h"
 
 namespace EngineCore
 {
@@ -36,14 +35,13 @@ namespace EngineCore
         };
         
         Resource(AssetType type, const string& path)
-            :mAssetType(type), mPath(path){}
-
-        Resource(MetaData* metaData) 
-            :mPath(metaData->path), mAssetType(metaData->assetType) 
+            :mAssetType(type), mPath(path)
         {
             SetAssetCreateMethod(AssetCreateMethod::Serialization);
             SetAssetID(AssetIDGenerator::NewFromFile(mPath));
-        };
+        }
+
+
         string mPath ="";
         AssetID mAssetID = {};
         AssetType mAssetType = AssetType::Default;

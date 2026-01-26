@@ -21,8 +21,6 @@ namespace EngineCore
         
         // 每个类需要自己实现序列化和反序列化方法。
         virtual const char* GetScriptName() const = 0;
-        virtual json SerializedFields() { return json::object(); }
-        virtual void DeserializedFields(const json& j)  {};
     protected:
 
 

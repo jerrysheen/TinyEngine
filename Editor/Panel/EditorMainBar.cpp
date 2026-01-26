@@ -3,9 +3,6 @@
 #include "imgui.h"
 #include "EditorSettings.h"
 
-#include "Serialization/MetaData.h"
-#include "Serialization/JsonSerializer.h"
-#include "Serialization/MetaFactory.h"
 #include "Resources/ResourceHandle.h"
 #include "Settings/ProjectSettings.h"
 #include "GameObject/MeshFilter.h"
@@ -18,7 +15,6 @@
 
 namespace EngineEditor
 {
-	using json = nlohmann::json;
 
     void EditorMainBar::DrawGUI()
     {
@@ -105,39 +101,38 @@ namespace EngineEditor
     void EditorMainBar::GenerateSceneMetaFile()
 	{
 		auto* scene = SceneManager::GetInstance()->GetCurrentScene();
-		EngineCore::JsonSerializer::SvaeAsJson<EngineCore::Scene>(scene, "Scenes/" + scene->name);
 	}
 
 	void EditorMainBar::CreateHouseGameObject()
 	{
-		using namespace EngineCore;
+		//using namespace EngineCore;
 
-		auto* scene = SceneManager::GetInstance()->GetCurrentScene();
-		if (!scene)
-		{
-			// 可以弹出错误提示
-			return;
-		}
+		//auto* scene = SceneManager::GetInstance()->GetCurrentScene();
+		//if (!scene)
+		//{
+		//	// 可以弹出错误提示
+		//	return;
+		//}
 
-		// 创建房子GameObject
-		auto* houseObj = scene->CreateGameObject("House");
+		//// 创建房子GameObject
+		//auto* houseObj = scene->CreateGameObject("House");
 
-		// 添加MeshFilter组件
-		auto* meshFilter = houseObj->AddComponent<MeshFilter>();
-		meshFilter->mMeshHandle = ResourceManager::GetInstance()->LoadAsset<Mesh>("Model/viking_room.obj");
+		//// 添加MeshFilter组件
+		//auto* meshFilter = houseObj->AddComponent<MeshFilter>();
+		//meshFilter->mMeshHandle = ResourceManager::GetInstance()->LoadAsset<Mesh>("Model/viking_room.obj");
 
-		// 添加MeshRenderer组件
-		auto* meshRenderer = houseObj->AddComponent<MeshRenderer>();
-		meshRenderer->SetSharedMaterial( ResourceManager::GetInstance()->LoadAsset<Material>("Material/testMat.mat"));
+		//// 添加MeshRenderer组件
+		//auto* meshRenderer = houseObj->AddComponent<MeshRenderer>();
+		//meshRenderer->SetSharedMaterial( ResourceManager::GetInstance()->LoadAsset<Material>("Material/testMat.mat"));
 
-		// 设置Transform
-		auto* transform = houseObj->GetComponent<Transform>();
-		transform->RotateX(90.0f);
-		transform->RotateY(135.0f);
-		//transform->UpdateNow();
+		//// 设置Transform
+		//auto* transform = houseObj->GetComponent<Transform>();
+		//transform->RotateX(90.0f);
+		//transform->RotateY(135.0f);
+		////transform->UpdateNow();
 
-		// 更新材质的世界矩阵
-		//meshRenderer->mMatHandle.Get()->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());
+		//// 更新材质的世界矩阵
+		////meshRenderer->mMatHandle.Get()->SetMatrix4x4("WorldMatrix", transform->GetWorldMatrix());
 	}
 
 }

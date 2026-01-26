@@ -2,8 +2,6 @@
 #include "Asset.h"
 #include "PreCompiledHeader.h"
 #include "ResourceHandle.h"
-#include "Serialization/MetaData.h"
-#include "Serialization/MetaLoader.h"
 #include "Resources/Resource.h"
 #include "Settings/ProjectSettings.h"
 #include "IResourceLoader.h"
@@ -87,6 +85,7 @@ namespace EngineCore
             if(mResourceCache[assetID] != nullptr) return ResourceState::Success;
         }
 
+        // todo 异步加载和同步加载可能会冲突
         template<typename T>
         ResourceHandle<T> LoadAsset(const string& relativePath)
         {
@@ -98,24 +97,16 @@ namespace EngineCore
                 return ResourceHandle<T>(id);
             }
 
-            // 加载meta文件，指向一个具体的MetaData文件
-            // todo： 循环检测
-            // todo: 还没做依赖， prefab的时候做
-            MetaData* metaData = MetaLoader::LoadMetaData<T>(path);
-            
-            // 没必要在这个地方做dependency的加载，而是在具体加载的时候，这样子的话可以知道
-            // 具体的dependency类型
-            
-            // 创建资源的时候生成对应的AssetID
-            Resource* resource = new T(metaData);
+            Resource* resource = new T(path);
             ASSERT(resource != nullptr);
-            
+
             AssetID id = resource->GetAssetID();
             mPathToID[path] = id;
             mResourceCache[id] = resource;
-            delete metaData;
+            AssetRegistry::GetInstance()->RegisterAsset(resource);
             return ResourceHandle<T>(id);
-        }
+            }
+
 
         template<typename T>
         ResourceHandle<T> Instantiate(const ResourceHandle<T>& sourceHandle)
@@ -125,7 +116,6 @@ namespace EngineCore
 
             Resource* resource = new T(*src);
             ASSERT(resource != nullptr);
-            // 将metaData设置填入Resource中
             AssetID id = resource->GetAssetID();
             mResourceCache[id] = resource;
             return ResourceHandle<T>(id);
@@ -213,7 +203,6 @@ namespace EngineCore
             // 创建资源的时候无复用关系 应该是直接创建
             Resource* resource = new T(std::forward<Args>(args)...);
             ASSERT(resource != nullptr);
-            // 将metaData设置填入Resource中
             AssetID id = resource->GetAssetID();
             mResourceCache[id] = resource;
             return ResourceHandle<T>(id);
@@ -238,7 +227,6 @@ namespace EngineCore
 
     // todo: temp public for Editor Test
     public:
-        void LoadDependencies(const std::vector<MetaData>& dependenciesList);
         static ResourceManager* sInstance;
         unordered_map<AssetID, Resource*> mResourceCache;
         unordered_map<string, AssetID> mPathToID;

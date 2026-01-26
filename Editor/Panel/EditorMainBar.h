@@ -1,6 +1,5 @@
 #pragma once
 #include "EditorPanel.h"
-#include "Serialization/JsonSerializer.h"
 #include "Resources/ResourceManager.h"
 #include "Resources/Asset.h"
 #include "Resources/Resource.h"
@@ -23,8 +22,6 @@ namespace EngineEditor
     using Mesh = EngineCore::Mesh;
     using Texture = EngineCore::Texture;
     //using MaterialMetaData = EngineCore::MaterialMetaData;
-    using TextureMetaData = EngineCore::TextureMetaData;
-    using MetaData = EngineCore::MetaData;
     using SceneManager = EngineCore::SceneManager;
     using Scene = EngineCore::Scene;
 

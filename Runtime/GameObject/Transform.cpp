@@ -1,9 +1,7 @@
 ﻿#include "PreCompiledHeader.h"
 #include "Transform.h"
-#include "Serialization/ComponentFactory.h"
 #include "GameObject.h"
 
-REGISTER_SCRIPT(Transform)
 namespace EngineCore
 {
     Transform::Transform()

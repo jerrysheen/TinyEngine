@@ -1,6 +1,5 @@
 #pragma once
 #include "Math.h"
-#include "Serialization/MetaData.h"
 #include "Shader.h"
 #include "Core/Object.h"
 #include "Core/PublicStruct.h"
@@ -23,7 +22,6 @@ namespace EngineCore
 
 
         Material() = default;
-        Material(MetaData* metaData);
         Material(ResourceHandle<Shader> shader);
         Material(const Material& other);
         void UploadDataToGpu();
@@ -62,7 +60,6 @@ namespace EngineCore
         MaterailRenderState mRenderState;
         BufferAllocation materialAllocation;
     private:
-        void LoadDependency(const std::unordered_map<std::string, MetaData>& dependentMap);
         void SetUpRenderState();
         void GetTextureInfoFromShaderReflection();
     };

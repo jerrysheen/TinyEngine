@@ -11,7 +11,6 @@ namespace EngineCore
         Texture() = default;
         Texture(const string& textureID);
 
-        Texture(MetaData* textureMetaData);
         //inline const string GetName() const { return mTextureName; };
 
         inline int GetWidth() { return textureDesc.width; };

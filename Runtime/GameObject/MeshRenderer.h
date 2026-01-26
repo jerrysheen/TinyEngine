@@ -3,7 +3,6 @@
 #include "ComponentType.h"
 #include "Resources/ResourceHandle.h"
 #include "Graphics/Material.h"
-#include "Serialization/BaseTypeSerialization.h"
 #include "GameObject/Transform.h"
 #include "Math/AABB.h"
 #include "Renderer/RenderStruct.h"
@@ -22,13 +21,6 @@ namespace EngineCore
         virtual ComponentType GetType() const override{ return ComponentType::MeshRenderer; };
 
         virtual const char* GetScriptName() const override { return "MeshRenderer"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"MatHandle", mShardMatHandler},
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override;
         
         void SetUpMaterialPropertyBlock();
 

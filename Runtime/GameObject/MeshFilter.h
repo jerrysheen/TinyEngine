@@ -3,7 +3,6 @@
 #include "ComponentType.h"
 #include "Resources/ResourceHandle.h"
 #include "Graphics/Mesh.h"
-#include "Serialization/BaseTypeSerialization.h"
 #include "Math/AABB.h"
 
 namespace EngineCore
@@ -23,13 +22,6 @@ namespace EngineCore
         ResourceHandle<Mesh> mMeshHandle;
         
         virtual const char* GetScriptName() const override { return "MeshFilter"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"MeshHandle", mMeshHandle},
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override;
 
         uint32_t GetHash()
         {

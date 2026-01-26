@@ -5,12 +5,10 @@
 #include "Renderer/RenderPipeline/GPUSceneRenderPass.h"
 #include "GameObject/GameObject.h"
 #include "Transform.h"
-#include "Serialization/ComponentFactory.h"
 #include "Math/Frustum.h"
 #include "Graphics/IGPUResource.h"
 #include "Settings/ProjectSettings.h"
 
-REGISTER_SCRIPT(Camera)
 
 namespace EngineCore
 {
