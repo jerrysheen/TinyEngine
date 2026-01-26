@@ -21,7 +21,6 @@
 - `[38]` **Runtime/Scripts/CameraController.h** *(Content Included)*
 - `[37]` **Runtime/GameObject/Component.h** *(Content Included)*
 - `[37]` **Runtime/Managers/WindowManager.h** *(Content Included)*
-- `[27]` **Runtime/Serialization/ComponentFactory.h** *(Content Included)*
 - `[27]` **Runtime/Platforms/Windows/WindowManagerWindows.h** *(Content Included)*
 - `[26]` **Runtime/GameObject/GameObject.h** *(Content Included)*
 - `[23]` **Runtime/Scene/Scene.h** *(Content Included)*
@@ -30,7 +29,6 @@
 - `[14]` **Runtime/Scene/SceneManager.h**
 - `[12]` **Runtime/Managers/Manager.h**
 - `[12]` **Runtime/Scene/BistroSceneLoader.h**
-- `[10]` **Runtime/Serialization/MetaFactory.h**
 - `[9]` **Runtime/Serialization/SceneLoader.h**
 - `[8]` **Runtime/Graphics/Mesh.h**
 - `[8]` **Editor/Panel/EditorInspectorPanel.h**
@@ -74,6 +72,8 @@
 - `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/GPUTexture.h**
 - `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
+- `[2]` **Runtime/Graphics/IGPUResource.h**
+- `[2]` **Runtime/Graphics/Material.h**
 
 ## Evidence & Implementation Details
 
@@ -110,25 +110,6 @@ namespace EngineCore
 
 
         virtual const char* GetScriptName() const override { return "Camera"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"Fov", mFov},
-                {"Aspect", mAspect},
-                {"Near", mNear},
-                {"Far", mFar},
-                {"Width", mWidth},
-                {"Height", mHeight}
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override {
-            data.at("Fov").get_to(mFov);
-            data.at("Aspect").get_to(mAspect);
-            data.at("Near").get_to(mNear);
-            data.at("Far").get_to(mFar);
-            data.at("Width").get_to(mWidth);
-            data.at("Height").get_to(mHeight);
-        }
     };
 ```
 
@@ -227,8 +208,6 @@ namespace EngineCore
         
         // 每个类需要自己实现序列化和反序列化方法。
         virtual const char* GetScriptName() const = 0;
-        virtual json SerializedFields() { return json::object(); }
-        virtual void DeserializedFields(const json& j)  {};
     protected:
 
 
@@ -251,8 +230,8 @@ namespace EngineCore
 
 ### File: `Runtime/Scripts/CameraController.h`
 ```cpp
+namespace EngineCore
 {
-    using json = nlohmann::json;
     class CameraController : public MonoBehaviour
     {
     public:
@@ -262,8 +241,6 @@ namespace EngineCore
 
         virtual void Update() override;
         virtual const char* GetScriptName() const override;
-        virtual json SerializedFields() const override;
-        virtual void DeserializedFields(const json& j) override;
     public:
         float testVal = 0;
     };
@@ -271,7 +248,7 @@ namespace EngineCore
 
 ### File: `Runtime/GameObject/Component.h`
 ```cpp
-
+{
     class GameObject;
     class Component
     {
@@ -285,8 +262,6 @@ namespace EngineCore
         
         // 每个类需要自己实现序列化和反序列化方法。
         virtual const char* GetScriptName() const = 0;
-        virtual json SerializedFields() const { return json::object(); }
-        virtual void DeserializedFields(const json& j) {};
     };
 ```
 
@@ -319,54 +294,6 @@ namespace EngineCore
         bool mAppPaused = false;
 		bool mMaximized = false;
     };
-```
-
-### File: `Runtime/Serialization/ComponentFactory.h`
-```cpp
-namespace EngineCore
-{
-    class ComponentFactory
-    {
-    public :
-        using CreateFunc = std::function<Component*(GameObject*)>;
-        inline static Component* Create(const std::string& componentName, GameObject* go)
-        {
-            auto& registry = GetRegistry();
-            if(registry.count(componentName) > 0)
-            {
-                return registry[componentName](go);
-            }
-
-            ASSERT_MSG(false, "Can't find this script");
-            return nullptr;
-        }
-
-        inline static void Register(const std::string& componentName, CreateFunc createFunc)
-        {
-            GetRegistry()[componentName] = createFunc;
-        }
-    private :
-
-        // 这样写的好处， 不用在cpp调用， 初次调用的时候创建，一定保证时序
-        static std::unordered_map<std::string, CreateFunc>& GetRegistry()
-        {
-            static std::unordered_map<std::string, CreateFunc> registry;
-            return registry;
-        }
-    };
-```
-...
-```cpp
-#define REGISTER_SCRIPT(ComponentClass)\
-    namespace { \
-        struct ComponentClass##_Register { \
-            ComponentClass##_Register() { \
-                EngineCore::ComponentFactory::Register( #ComponentClass, \
-                    [](EngineCore::GameObject* go) -> EngineCore::Component* {\
-                        return new EngineCore::ComponentClass(go); \
-                    }); \
-            } \
-        } ComponentClass##_instance; \
 ```
 
 ### File: `Runtime/Platforms/Windows/WindowManagerWindows.h`

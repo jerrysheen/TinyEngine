@@ -57,6 +57,7 @@
 - `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/IGPUResource.h**
 - `[2]` **Runtime/Graphics/Material.h**
+- `[2]` **Runtime/Graphics/MaterialData.h**
 - `[2]` **Runtime/Graphics/MaterialInstance.h**
 - `[2]` **Runtime/Graphics/MaterialLayout.h**
 - `[2]` **Runtime/Graphics/Mesh.h**
@@ -73,7 +74,6 @@
 - `[2]` **Runtime/Math/Plane.h**
 - `[2]` **Runtime/Math/Quaternion.h**
 - `[2]` **Runtime/Math/Vector2.h**
-- `[2]` **Runtime/Math/Vector3.h**
 
 ## Evidence & Implementation Details
 
@@ -363,8 +363,6 @@ namespace EngineEditor
     using Mesh = EngineCore::Mesh;
     using Texture = EngineCore::Texture;
     //using MaterialMetaData = EngineCore::MaterialMetaData;
-    using TextureMetaData = EngineCore::TextureMetaData;
-    using MetaData = EngineCore::MetaData;
     using SceneManager = EngineCore::SceneManager;
     using Scene = EngineCore::Scene;
 

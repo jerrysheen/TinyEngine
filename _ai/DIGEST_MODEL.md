@@ -19,9 +19,7 @@
 - `[32]` **Runtime/Graphics/GeometryManager.h** *(Content Included)*
 - `[32]` **Runtime/Graphics/Mesh.h** *(Content Included)*
 - `[32]` **Runtime/Scene/SceneManager.h** *(Content Included)*
-- `[32]` **Runtime/Serialization/MetaFactory.h** *(Content Included)*
-- `[29]` **Runtime/Renderer/RenderAPI.h**
-- `[28]` **Runtime/Serialization/MetaLoader.h**
+- `[29]` **Runtime/Renderer/RenderAPI.h** *(Content Included)*
 - `[27]` **Runtime/Serialization/MeshLoader.h**
 - `[27]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[26]` **Runtime/Graphics/GPUSceneManager.h**
@@ -33,13 +31,12 @@
 - `[11]` **Runtime/GameObject/GameObject.h**
 - `[10]` **Editor/Panel/EditorMainBar.h**
 - `[9]` **Runtime/Renderer/RenderSorter.h**
-- `[8]` **Runtime/Resources/ResourceManager.h**
 - `[7]` **Runtime/Renderer/RenderCommand.h**
 - `[7]` **Runtime/Renderer/RenderEngine.h**
 - `[7]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[6]` **Runtime/GameObject/ComponentType.h**
 - `[6]` **Runtime/Renderer/RenderStruct.h**
-- `[6]` **Runtime/Serialization/BaseTypeSerialization.h**
+- `[6]` **Runtime/Resources/ResourceManager.h**
 - `[5]` **Runtime/Resources/Asset.h**
 - `[5]` **Runtime/Resources/AssetTypeTraits.h**
 - `[4]` **Runtime/EngineCore.h**
@@ -48,7 +45,6 @@
 - `[4]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
 - `[3]` **Editor/EditorGUIManager.h**
-- `[3]` **Runtime/Serialization/JsonSerializer.h**
 - `[3]` **Runtime/Settings/ProjectSettings.h**
 - `[3]` **Runtime/Platforms/D3D12/D3D12Struct.h**
 - `[2]` **Editor/EditorSettings.h**
@@ -69,7 +65,11 @@
 - `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/IGPUResource.h**
 - `[2]` **Runtime/Graphics/Material.h**
+- `[2]` **Runtime/Graphics/MaterialData.h**
 - `[2]` **Runtime/Graphics/MaterialInstance.h**
+- `[2]` **Runtime/Graphics/MaterialLayout.h**
+- `[2]` **Runtime/Graphics/RenderTexture.h**
+- `[2]` **Runtime/Graphics/Shader.h**
 
 ## Evidence & Implementation Details
 
@@ -97,8 +97,12 @@ namespace EngineCore {
         Scene* LoadInternal(const std::string& path);
         void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
         void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
-
-        std::map<int, std::vector<ResourceHandle<Mesh>>> m_MeshCache;
+        void ProcessMaterials(const tinygltf::Model& model);
+        void ProcessTexture(const tinygltf::Model& model);
+        AssetID GetTextureAssetID(const tinygltf::Model& model, int textureIndex);
+        std::map<int, std::vector<std::pair<ResourceHandle<Mesh>, int>>> m_MeshCache;
+        std::vector<AssetID> m_ImageIndexToID;
+        std::vector<ResourceHandle<Material>> m_MaterialMap;
     };
 ```
 
@@ -117,13 +121,6 @@ namespace EngineCore
         virtual ComponentType GetType() const override{ return ComponentType::MeshRenderer; };
 
         virtual const char* GetScriptName() const override { return "MeshRenderer"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"MatHandle", mShardMatHandler},
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override;
         
         void SetUpMaterialPropertyBlock();
 
@@ -160,8 +157,6 @@ namespace EngineCore
         ResourceHandle<Material> mInstanceMatHandler;
 
     };
-
-}
 ```
 
 ### File: `Runtime/Platforms/D3D12/D3D12RenderAPI.h`
@@ -247,13 +242,6 @@ namespace EngineCore
         ResourceHandle<Mesh> mMeshHandle;
         
         virtual const char* GetScriptName() const override { return "MeshFilter"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"MeshHandle", mMeshHandle},
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override;
 
         uint32_t GetHash()
         {
@@ -484,7 +472,6 @@ namespace EngineCore
 ```cpp
 
         Mesh() = default;
-        Mesh(MetaData* metaData);
         Mesh(Primitive primitiveType);
         MeshBufferAllocation* vertexAllocation;
         MeshBufferAllocation* indexAllocation;
@@ -569,66 +556,66 @@ namespace EngineCore
 }
 ```
 
-### File: `Runtime/Serialization/MetaFactory.h`
+### File: `Runtime/Renderer/RenderAPI.h`
 ```cpp
-    using json = nlohmann::json;
-
-    class MetaFactory
+namespace  EngineCore
+{
+    class RenderAPI
     {
     public:
-        using json = nlohmann::json;
+        static RenderAPI* GetInstance(){ return s_Instance.get();}
+        static bool IsInitialized(){return s_Instance != nullptr;};
+       
+        static void Create();
+        virtual void  CompileShader(const string& path, Shader* shader) = 0;
+        virtual void  CompileComputeShader(const string& path, ComputeShader* csShader) = 0;
+        
 
-        static GameObject* CreateGameObjectFromMeta(const json& json);
-        static Scene* CreateSceneFromMeta(const json& json);
-
-        // 非特化的转换
+        virtual IGPUTexture* CreateTextureBuffer(unsigned char* data, const TextureDesc& textureDesc) = 0;
+        virtual IGPUTexture* CreateRenderTexture(const TextureDesc& textureDesc) = 0;
+        
+        //virtual void GetOrCreatePSO(const Material& mat, const RenderPassInfo &passinfo) = 0;
+        inline void AddRenderPassInfo(const RenderPassInfo& renderPassInfo){ mRenderPassInfoList.push_back(renderPassInfo); };
+        inline void ClearRenderPassInfo(){ mRenderPassInfoList.clear(); };
+        
+        virtual void RenderAPIBeginFrame() = 0;
+        virtual void RenderAPIConfigureRT(Payload_ConfigureRT payloadConfigureRT) = 0;
+        virtual void RenderAPIDrawIndexed(Payload_DrawCommand payloadDrawCommand) = 0;
+        virtual void RenderAPISetMaterial(Payload_SetMaterial payloadSetMaterial) = 0;
+        virtual void RenderAPISetBindlessMat(Payload_SetBindlessMat payloadSetBindlessMat) = 0;
+        virtual void RenderAPISetBindLessMeshIB() = 0;
+        virtual void RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState) = 0;
+        virtual void RenderAPISetSissorRect(Payload_SetSissorRect payloadSetSissorrect) = 0;
+        virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) = 0;
+        virtual void RenderAPISetViewPort(Payload_SetViewPort payloadSetViewport) = 0;
+        virtual void RenderAPISubmit() = 0;
+        virtual void RenderAPIWindowResize(Payload_WindowResize payloadWindowResize) = 0;
+        virtual void RenderAPIPresentFrame() = 0;
+        virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) = 0;
+        virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) = 0;
+        virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) = 0;
+        
+        virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) = 0;
+        
+        virtual void RenderAPISetPerDrawData(Payload_SetPerDrawData setPerDrawData) = 0;
+        virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) = 0;
+        
+        virtual IGPUBuffer* CreateBuffer(const BufferDesc& desc, void* data) = 0;
+        virtual void UploadBuffer(IGPUBuffer* buffer, uint32_t offset, void* data, uint32_t size) = 0;
+        virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) = 0;
+        virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) = 0;
+        virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) = 0;
+        virtual RenderTexture* GetCurrentBackBuffer() = 0;
         template<typename T>
-        inline json static ConvertToJson(const T* data)
+        void SetGlobalValue(uint32_t bufferID, uint32_t offset, T* value)
         {
-            return *data;
+            uint32_t size = sizeof(T);
+            SetGlobalDataImpl(bufferID, offset, size, static_cast<void*>(value));
         }
-
-        template<>
-        inline json static ConvertToJson<GameObject>(const GameObject* obj)
-        {
-
-            json componentsArray = json::array();
-
-            // 遍历所有组件，手动根据类型调用对应的序列化
-            for (const auto& [type, comp] : obj->components)
-            {
-                json compJson;
-                compJson["Type"] = comp->GetScriptName();
-                compJson["Data"] = comp->SerializedFields();
-                componentsArray.push_back(compJson);
-            }
-    
-            // 递归序列化子对象
-            json childrenArray = json::array();
-            for (GameObject* child : obj->GetChildren()) {  // 或 obj->GetChildren()
-                childrenArray.push_back(ConvertToJson<GameObject>(child));  
-            }
-    
-            json j = json{ 
-                {"Enabled", obj->enabled},
-                {"Name", obj->name},
-                {"Component", componentsArray},
-                {"ChildGameObject", childrenArray}
-            };
-
-            return j;
-        }
-
-
-        template<>
-        inline json static ConvertToJson<Scene>(const Scene* scene)
-        {
-            json rootObjectArray = json::array();
-
-            // 遍历所有组件，手动根据类型调用对应的序列化
-            for (const auto& go : scene->rootObjList)
-            {
-                json compJson = ConvertToJson<GameObject>(go);
-                rootObjectArray.push_back(compJson);
-            }
+        virtual void WaitForGpuFinished() = 0;
+    public:
+        static std::unique_ptr<RenderAPI> s_Instance;
+    protected:
+        vector<RenderPassInfo> mRenderPassInfoList;
+    private:
 ```

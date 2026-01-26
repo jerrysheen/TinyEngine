@@ -25,11 +25,8 @@
 - `[25]` **Runtime/Renderer/PerDrawAllocator.h** *(Content Included)*
 - `[23]` **Runtime/Graphics/IGPUBufferAllocator.h** *(Content Included)*
 - `[16]` **Runtime/Core/Object.h** *(Content Included)*
-- `[13]` **Runtime/Serialization/BaseTypeSerialization.h** *(Content Included)*
-- `[13]` **Runtime/Serialization/MetaData.h** *(Content Included)*
-- `[13]` **Runtime/Serialization/MetaLoader.h** *(Content Included)*
-- `[12]` **Runtime/CoreAssert.h**
-- `[12]` **Runtime/Core/Game.h**
+- `[12]` **Runtime/CoreAssert.h** *(Content Included)*
+- `[12]` **Runtime/Core/Game.h** *(Content Included)*
 - `[12]` **Runtime/Core/ThreadSafeQueue.h**
 - `[12]` **Runtime/Math/AABB.h**
 - `[12]` **Runtime/Math/Frustum.h**
@@ -41,11 +38,8 @@
 - `[12]` **Runtime/Math/Vector3.h**
 - `[12]` **Runtime/Math/Vector4.h**
 - `[12]` **Runtime/Serialization/AssetHeader.h**
-- `[12]` **Runtime/Serialization/AssetSerialization.h**
-- `[12]` **Runtime/Serialization/ComponentFactory.h**
-- `[12]` **Runtime/Serialization/JsonSerializer.h**
+- `[12]` **Runtime/Serialization/DDSTextureLoader.h**
 - `[12]` **Runtime/Serialization/MeshLoader.h**
-- `[12]` **Runtime/Serialization/MetaFactory.h**
 - `[12]` **Runtime/Serialization/SceneLoader.h**
 - `[12]` **Runtime/Serialization/StreamHelper.h**
 - `[12]` **Runtime/Serialization/TextureLoader.h**
@@ -71,9 +65,15 @@
 - `[3]` **Runtime/Graphics/ComputeShader.h**
 - `[3]` **Runtime/Graphics/Material.h**
 - `[3]` **Runtime/Graphics/MaterialLayout.h**
+- `[3]` **Runtime/Graphics/Mesh.h**
 - `[3]` **Runtime/Graphics/Shader.h**
 - `[3]` **Runtime/Renderer/BatchManager.h**
 - `[3]` **Runtime/Renderer/RenderAPI.h**
+- `[3]` **Runtime/Renderer/RenderContext.h**
+- `[3]` **Runtime/Renderer/RenderSorter.h**
+- `[3]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h**
+- `[3]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
+- `[3]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h**
 
 ## Evidence & Implementation Details
 
@@ -610,170 +610,47 @@ namespace EngineCore
         Object(){ id = InstanceIDGenerator::New();};
 ```
 
-### File: `Runtime/Serialization/BaseTypeSerialization.h`
+### File: `Runtime/CoreAssert.h`
 ```cpp
-#include "Graphics/IGPUResource.h"
-
-namespace EngineCore
-{
-    // // Vector3
-    using json = nlohmann::json;
-    inline void to_json(json& j, const Vector3& v)
-    {
-        j = json{ {"x", v.x}, {"y", v.y}, {"z", v.z} };
-    }
-
-    inline void from_json(const json& j, EngineCore::Vector3& v)
-    {
-        j.at("x").get_to(v.x);
-        j.at("y").get_to(v.y);
-        j.at("z").get_to(v.z);
-    }
-
-    //vector2
-    inline void to_json(json& j, const EngineCore::Vector2& v)
-    {
-        j = json{ {"x", v.x}, {"y", v.y}};
-    }
-
-    inline void from_json(const json& j, EngineCore::Vector2& v)
-    {
-        j.at("x").get_to(v.x);
-        j.at("y").get_to(v.y);
-    }
-
-    // Matrix4x4
-    inline void to_json(json& j, const EngineCore::Matrix4x4& m)
-    {
-        j = json{
-            {"m00", m.m00}, {"m01", m.m01}, {"m02", m.m02},{"m03", m.m03},
-            {"m10", m.m10}, {"m11", m.m11}, {"m12", m.m12}, {"m13", m.m13},
-            {"m20", m.m20}, {"m21", m.m21}, {"m22", m.m22}, {"m23", m.m23},
-            {"m30", m.m30}, {"m31", m.m31}, {"m32", m.m32}, {"m33", m.m33}
-        };
-    }
-
-    inline void from_json(const json& j, EngineCore::Matrix4x4& m)
-    {
-        j.at("m00").get_to(m.m00); j.at("m01").get_to(m.m01); j.at("m02").get_to(m.m02); j.at("m03").get_to(m.m03);
-        j.at("m10").get_to(m.m10); j.at("m11").get_to(m.m11); j.at("m12").get_to(m.m12); j.at("m13").get_to(m.m13);
-        j.at("m20").get_to(m.m20); j.at("m21").get_to(m.m21); j.at("m22").get_to(m.m22); j.at("m23").get_to(m.m23);
-        j.at("m30").get_to(m.m30); j.at("m31").get_to(m.m31); j.at("m32").get_to(m.m32); j.at("m33").get_to(m.m33);
-    }
-
-    // Quaternion
-    inline void to_json(json& j, const EngineCore::Quaternion& m)
-    {
-        j = json{
-            {"x", m.x},
-            {"y", m.y},
-            {"z", m.z},
-            {"w", m.w},
-        };
-    }
-
+    #define ASSERT_MSG(condition, message) \
+        do { \
+            if (!(condition)) { \
+                std::wcout << L"Assert Failed: " << L#condition << L"\n"; \
+                std::wcout << L"Message: " << message << L"\n"; \
+                std::wcout << L"File: " << __FILEW__ << L", Line: " << __LINE__ << L"\n"; \
+                __debugbreak(); \
+            } \
 ```
 
-### File: `Runtime/Serialization/MetaData.h`
+### File: `Runtime/Core/Game.h`
 ```cpp
-#include "Graphics/IGPUResource.h"
+
 
 namespace EngineCore
 {
-
-    class Texture;
-    class Material;
-    struct MetaData
-    {
-        string path;
-        AssetType assetType;
-        // k,v = <ResouceName, MetaData>
-        std::unordered_map<std::string, MetaData> dependentMap;
-        MetaData() = default;
-        MetaData(const std::string& path, AssetType type)
-            : path(path), assetType(type) {};
-    };
-
-
-    struct TextureMetaData : MetaData
-    {
-        TextureDimension dimension;
-        TextureFormat format;
-        int width, height;
-        // todo
-        // warp mode, read write..
-        // enable mipmap...
-    };
-
-    struct MaterialMetaData : MetaData 
-    {
-		string shaderPath;       
-        unordered_map<string, float> floatData;
-        unordered_map<string, Vector2> vec2Data;
-        unordered_map<string, Vector3> vec3Data;
-        unordered_map<string, Matrix4x4> matrix4x4Data;
-        // 无意义的Texture*，只是为了和MaterialData做方便的同步而已。
-        unordered_map<string, Texture*> textureData;
-    };
-
-    struct ModelMetaData : MetaData 
-    {
-        
-    };
-
-}
-```
-
-### File: `Runtime/Serialization/MetaLoader.h`
-```cpp
-#include "Graphics/Mesh.h"
-
-namespace EngineCore
-{
-    class MetaLoader
+    class Game
     {
     public:
-        static MaterialMetaData* LoadMaterialMetaData(const std::string& path);
-        static ShaderVariableType GetShaderVaribleType(uint32_t size);
-        static TextureMetaData* LoadTextureMetaData(const std::string& path);
-        static ModelMetaData* LoadModelMetaData(const std::string& path);
-        template<typename T>
-        static MetaData* LoadMetaData(const std::string& path)
+        static std::unique_ptr<Game> m_Instance;
+        // 回传的是一个对象的引用，所以返回*ptr
+        static Game* GetInstance()
         {
-            MetaData* metaData = new MetaData();
-            metaData->path = path;
-            return metaData;
-            // do nothing, for example shader..
-        };
-
-        
-
-        template<typename T>
-        static T* LoadMeta(const std::string& path)
-        {
-            std::ifstream file(path);
-            
-            if(!file.is_open())
+            if(m_Instance == nullptr)
             {
-                throw std::runtime_error("Can't open Meta File" + path);
+                m_Instance = std::make_unique<Game>();
             }
+            return m_Instance.get();
+        };
+        Game(){};
+        ~Game(){};
 
-            json j = json::parse(file);
-            file.close();
-            
-            return j.get<T>();
-        }
-
+        void Launch();
+    private:
+        void Update();
+        void Render();
+        void EndFrame();
+        void Shutdown();
     };
-    // 只声明特化
-    template<>
-    MetaData* MetaLoader::LoadMetaData<Texture>(const std::string& path);
-    
-    template<>
-    MetaData* MetaLoader::LoadMetaData<Mesh>(const std::string& path);
-
-    template<>
-    MetaData* MetaLoader::LoadMetaData<Material>(const std::string& path);
 
 }
 ```

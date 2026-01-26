@@ -32,19 +32,15 @@
 - `[14]` **Runtime/GameObject/Camera.h**
 - `[13]` **Runtime/Utils/HashCombine.h**
 - `[12]` **Runtime/Serialization/SceneLoader.h**
-- `[11]` **Runtime/Serialization/ComponentFactory.h**
 - `[11]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[11]` **Editor/Panel/EditorMainBar.h**
 - `[9]` **Runtime/Renderer/RenderContext.h**
 - `[9]` **Runtime/Scene/Scene.h**
-- `[9]` **Runtime/Serialization/MetaFactory.h**
 - `[9]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[9]` **Editor/Panel/EditorHierarchyPanel.h**
 - `[8]` **Editor/EditorGUIManager.h**
 - `[8]` **Runtime/Scene/BistroSceneLoader.h**
-- `[8]` **Runtime/Serialization/JsonSerializer.h**
-- `[7]` **Runtime/Serialization/AssetSerialization.h**
-- `[7]` **Runtime/Serialization/BaseTypeSerialization.h**
+- `[8]` **Runtime/Serialization/DDSTextureLoader.h**
 - `[7]` **Runtime/Serialization/MeshLoader.h**
 - `[6]` **Runtime/Resources/ResourceManager.h**
 - `[5]` **Runtime/Core/Profiler.h**
@@ -74,6 +70,10 @@
 - `[3]` **Runtime/Graphics/GPUTexture.h**
 - `[3]` **Runtime/Graphics/IGPUBufferAllocator.h**
 - `[3]` **Runtime/Graphics/IGPUResource.h**
+- `[3]` **Runtime/Graphics/Material.h**
+- `[3]` **Runtime/Graphics/MaterialData.h**
+- `[3]` **Runtime/Graphics/MaterialInstance.h**
+- `[3]` **Runtime/Graphics/MaterialLayout.h**
 
 ## Evidence & Implementation Details
 
@@ -447,7 +447,7 @@ namespace EngineEditor
 
 ### File: `Runtime/GameObject/Transform.h`
 ```cpp
-#include "Serialization/BaseTypeSerialization.h"
+#include "Scene/SceneManager.h"
 
 namespace EngineCore
 {

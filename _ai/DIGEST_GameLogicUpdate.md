@@ -37,7 +37,6 @@
 - `[14]` **Runtime/GameObject/MeshFilter.h**
 - `[14]` **Runtime/GameObject/MonoBehaviour.h**
 - `[14]` **Runtime/Renderer/RenderAPI.h**
-- `[14]` **Runtime/Serialization/MetaFactory.h**
 - `[13]` **Runtime/GameObject/Camera.h**
 - `[13]` **Runtime/GameObject/ComponentType.h**
 - `[13]` **Runtime/Renderer/RenderCommand.h**
@@ -52,7 +51,6 @@
 - `[7]` **Runtime/Core/PublicStruct.h**
 - `[7]` **Runtime/Graphics/Mesh.h**
 - `[7]` **Editor/Panel/EditorHierarchyPanel.h**
-- `[6]` **Runtime/Serialization/ComponentFactory.h**
 - `[5]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
 - `[4]` **Runtime/Scripts/CameraController.h**
 - `[3]` **Runtime/Graphics/GPUBufferAllocator.h**
@@ -61,6 +59,7 @@
 - `[3]` **Runtime/Graphics/MeshUtils.h**
 - `[3]` **Runtime/Resources/Asset.h**
 - `[3]` **Runtime/Serialization/AssetHeader.h**
+- `[3]` **Runtime/Serialization/DDSTextureLoader.h**
 - `[3]` **Runtime/Settings/ProjectSettings.h**
 - `[3]` **Runtime/Platforms/D3D12/D3D12PSO.h**
 - `[3]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
@@ -70,6 +69,7 @@
 - `[2]` **Runtime/PreCompiledHeader.h**
 - `[2]` **Runtime/Core/InstanceID.h**
 - `[2]` **Runtime/Core/Object.h**
+- `[2]` **Runtime/Core/Profiler.h**
 
 ## Evidence & Implementation Details
 
@@ -379,13 +379,6 @@ namespace EngineCore
         virtual ComponentType GetType() const override{ return ComponentType::MeshRenderer; };
 
         virtual const char* GetScriptName() const override { return "MeshRenderer"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"MatHandle", mShardMatHandler},
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override;
         
         void SetUpMaterialPropertyBlock();
 
@@ -422,8 +415,6 @@ namespace EngineCore
         ResourceHandle<Material> mInstanceMatHandler;
 
     };
-
-}
 ```
 
 ### File: `Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h`

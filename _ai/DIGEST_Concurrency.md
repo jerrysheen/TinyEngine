@@ -47,7 +47,6 @@
 - `[4]` **Runtime/Graphics/Material.h**
 - `[4]` **Runtime/Scene/BistroSceneLoader.h**
 - `[4]` **Runtime/Scene/SceneManager.h**
-- `[4]` **Runtime/Serialization/MetaFactory.h**
 - `[4]` **Runtime/Serialization/SceneLoader.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12PSO.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
@@ -71,6 +70,7 @@
 - `[2]` **Runtime/Graphics/GeometryManager.h**
 - `[2]` **Runtime/Graphics/GPUTexture.h**
 - `[2]` **Runtime/Graphics/IGPUResource.h**
+- `[2]` **Runtime/Graphics/MaterialData.h**
 - `[2]` **Runtime/Graphics/MaterialInstance.h**
 - `[2]` **Runtime/Graphics/MaterialLayout.h**
 - `[2]` **Runtime/Graphics/Mesh.h**
@@ -251,13 +251,6 @@ namespace EngineCore
         virtual ComponentType GetType() const override{ return ComponentType::MeshRenderer; };
 
         virtual const char* GetScriptName() const override { return "MeshRenderer"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"MatHandle", mShardMatHandler},
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override;
         
         void SetUpMaterialPropertyBlock();
 
@@ -294,8 +287,6 @@ namespace EngineCore
         ResourceHandle<Material> mInstanceMatHandler;
 
     };
-
-}
 ```
 
 ### File: `Runtime/Renderer/RenderAPI.h`

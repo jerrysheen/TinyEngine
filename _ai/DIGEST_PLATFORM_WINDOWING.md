@@ -69,11 +69,11 @@
 - `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/IGPUResource.h**
 - `[2]` **Runtime/Graphics/Material.h**
+- `[2]` **Runtime/Graphics/MaterialData.h**
 - `[2]` **Runtime/Graphics/MaterialInstance.h**
 - `[2]` **Runtime/Graphics/MaterialLayout.h**
 - `[2]` **Runtime/Graphics/MeshUtils.h**
 - `[2]` **Runtime/Graphics/RenderTexture.h**
-- `[2]` **Runtime/Graphics/Texture.h**
 
 ## Evidence & Implementation Details
 
@@ -215,48 +215,24 @@ namespace EngineCore
 
         int GetNextVAOIndex();
 
+        DXGI_FORMAT ConvertD3D12Format(TextureFormat format);
+        inline bool IsCompressedFormat(TextureFormat format)
+        {
+            return format >= TextureFormat::DXT1 && format <= TextureFormat::BC7_SRGB;
+        }
+```
+...
+```cpp
+                case TextureFormat::R8G8B8A8: return 4;
+                case TextureFormat::D24S8: return 4;
+                default: ASSERT(false);
+            }
+        }
 
-        Microsoft::WRL::ComPtr<IDXGISwapChain3> mSwapChain;
-        Microsoft::WRL::ComPtr<IDXGIFactory4> mdxgiFactory;
-        
-        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDsvHeap;
-        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
-
-
-
-
-        // 屏幕后台缓冲区图像格式
-		DXGI_FORMAT mPresentBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-		// 默认的纹理和FrameBuffer色彩空间
-		const DXGI_FORMAT mDefaultImageFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-		// 4X MSAA质量等级
-		UINT m4xMSAAQuality = 0;
-		UINT msaaSamplesCount = 4;
-
-
-        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mDirectCmdListAlloc;
-        Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
-
-        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mImediatelyCmdListAlloc;
-        Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mImediatelyCommandList;
-        
-        DXGI_FORMAT mDepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-
-        bool      m4xMsaaState = false;    // 4X MSAA enabled
-        UINT      m4xMsaaQuality = 0;      // quality level of 4X MSAA
-        
-        Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencilBuffer;
-
-        D3D12_VIEWPORT mScreenViewport; 
-        D3D12_RECT mScissorRect;
-        int mClientWidth = 1280;
-        int mClientHeight = 720;
-
-        //unordered_map<uint32_t, TD3D12MaterialData> m_DataMap;
-        vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
-        ComPtr<ID3D12CommandSignature> mCommandSignature;
-
-        unordered_map<uint32_t, TD3D12ConstantBuffer> mGlobalConstantBufferMap;
+        // RowPitch计算的是一行像素的字节数
+        // 比如压缩图，4x4块会被压缩成 xxByte 比如8B
+        inline uint32_t CalculateCompressedRowPitch(TextureFormat format, uint32_t width)
+        {
 ```
 
 ### File: `Runtime/Platforms/D3D12/D3D12Struct.h`

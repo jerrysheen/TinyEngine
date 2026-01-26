@@ -62,6 +62,10 @@
       "CONCURRENCY": [
         "CPU和GPU的同步，渲染线程和主线程的同步，多queue之间的同步",
         "关注CpuEvent, 各种Waitfor事件, 等待是否合理"
+      ],
+      "MATERIAL_SYSTEM": [
+        "材质序列化与反序列化，运行时设置的系统",
+        "关注序列化反序列化是否合理"
       ]
     },
     "subsystems": {
@@ -81,6 +85,7 @@
       "GameLogicUpdate":["Game", "SceneManager","Scene","RenderEngine","LagacyRenderPath","GPUSceneRenderPath", "Renderer", "RenderContext","FinalBlitPass","GPUSceneRenderPass","OpaqueRenderPass"],
       "GPUScene":["GPUSceneRenderPath", "GPUSceneManager", "GeometryManager","Mesh","Texture","IGPUResource","GPUBufferAllocator","ComputeShader", "D3D12RenderAPI","GPUSceneRenderPass","BatchManager"],
       "CONCURRENCY":["CpuEvent", "Renderer", "RenderThreadMain","RenderAPI","D3D12RenderAPI","Renderer"],
-      "GPU_ARCHITECTURE":["Runtime/Platforms/D3D12", "Runtime/Graphics", "Runtime/Serialization"]
+      "GPU_ARCHITECTURE":["Runtime/Platforms/D3D12", "Runtime/Graphics", "Runtime/Serialization"],
+      "MATERIAL_SYSTEM":["BistroSceneLoader", "Material", "MaterialInstance", "MaterialLayout"]
     }
   }

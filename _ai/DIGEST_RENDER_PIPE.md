@@ -65,6 +65,7 @@
 - `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/IGPUResource.h**
 - `[2]` **Runtime/Graphics/Material.h**
+- `[2]` **Runtime/Graphics/MaterialData.h**
 - `[2]` **Runtime/Graphics/MaterialInstance.h**
 - `[2]` **Runtime/Graphics/MaterialLayout.h**
 - `[2]` **Runtime/Graphics/Mesh.h**
@@ -73,7 +74,6 @@
 - `[2]` **Runtime/Graphics/Shader.h**
 - `[2]` **Runtime/Graphics/Texture.h**
 - `[2]` **Runtime/Managers/Manager.h**
-- `[2]` **Runtime/Managers/WindowManager.h**
 
 ## Evidence & Implementation Details
 

@@ -18,11 +18,12 @@
 - `[31]` **Runtime/Renderer/BatchManager.h** *(Content Included)*
 - `[28]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
 - `[28]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
+- `[28]` **Runtime/Graphics/Mesh.h** *(Content Included)*
 - `[28]` **Runtime/Graphics/RenderTexture.h** *(Content Included)*
 - `[28]` **Runtime/Graphics/Texture.h** *(Content Included)*
-- `[28]` **Runtime/Platforms/D3D12/D3D12Texture.h** *(Content Included)*
-- `[27]` **Runtime/GameObject/MeshFilter.h** *(Content Included)*
-- `[27]` **Runtime/Graphics/Mesh.h**
+- `[28]` **Runtime/Serialization/DDSTextureLoader.h** *(Content Included)*
+- `[28]` **Runtime/Platforms/D3D12/D3D12Texture.h**
+- `[27]` **Runtime/GameObject/MeshFilter.h**
 - `[27]` **Runtime/Serialization/MeshLoader.h**
 - `[26]` **Runtime/Graphics/GPUTexture.h**
 - `[25]` **Runtime/Graphics/ComputeShader.h**
@@ -32,24 +33,20 @@
 - `[22]` **Runtime/Serialization/TextureLoader.h**
 - `[19]` **Runtime/Renderer/RenderCommand.h**
 - `[15]` **Runtime/Renderer/RenderAPI.h**
-- `[12]` **Runtime/Serialization/BaseTypeSerialization.h**
 - `[11]` **Runtime/Core/PublicStruct.h**
 - `[10]` **Runtime/Renderer/Renderer.h**
+- `[10]` **Runtime/Scene/BistroSceneLoader.h**
 - `[10]` **Runtime/Scene/SceneManager.h**
-- `[10]` **Editor/Panel/EditorMainBar.h**
 - `[8]` **Runtime/Renderer/RenderStruct.h**
 - `[8]` **Runtime/Resources/AssetTypeTraits.h**
-- `[8]` **Runtime/Serialization/MetaData.h**
+- `[8]` **Editor/Panel/EditorMainBar.h**
 - `[7]` **Runtime/Graphics/Material.h**
 - `[7]` **Runtime/Renderer/RenderSorter.h**
-- `[7]` **Runtime/Scene/BistroSceneLoader.h**
 - `[7]` **Runtime/Scene/Scene.h**
-- `[7]` **Runtime/Serialization/MetaLoader.h**
 - `[7]` **Runtime/Serialization/SceneLoader.h**
 - `[7]` **Runtime/Platforms/D3D12/d3dx12.h**
 - `[6]` **Runtime/GameObject/Camera.h**
 - `[6]` **Runtime/Resources/ResourceManager.h**
-- `[6]` **Runtime/Serialization/AssetSerialization.h**
 - `[6]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[6]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
 - `[6]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
@@ -63,13 +60,16 @@
 - `[4]` **Runtime/GameObject/ComponentType.h**
 - `[4]` **Runtime/GameObject/GameObject.h**
 - `[4]` **Runtime/Serialization/AssetHeader.h**
-- `[4]` **Runtime/Serialization/MetaFactory.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12Struct.h**
 - `[4]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[3]` **Runtime/Core/PublicEnum.h**
+- `[3]` **Runtime/Graphics/MaterialData.h**
 - `[3]` **Runtime/Graphics/MaterialLayout.h**
 - `[3]` **Runtime/Platforms/D3D12/D3D12Buffer.h**
+- `[3]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h**
+- `[3]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
+- `[3]` **Runtime/Platforms/D3D12/D3D12PSO.h**
 
 ## Evidence & Implementation Details
 
@@ -229,6 +229,16 @@ namespace EngineCore
         D3D12Texture mBackBuffer[SwapChainBufferCount];
         // 一个壳，上层用，IGPUTexture = mBackBuffer
         RenderTexture mBackBufferProxyRenderTexture;
+```
+...
+```cpp
+        int GetNextVAOIndex();
+
+        DXGI_FORMAT ConvertD3D12Format(TextureFormat format);
+        inline bool IsCompressedFormat(TextureFormat format)
+        {
+            return format >= TextureFormat::DXT1 && format <= TextureFormat::BC7_SRGB;
+        }
 ```
 
 ### File: `Runtime/Graphics/GeometryManager.h`
@@ -431,13 +441,6 @@ namespace EngineCore
         virtual ComponentType GetType() const override{ return ComponentType::MeshRenderer; };
 
         virtual const char* GetScriptName() const override { return "MeshRenderer"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"MatHandle", mShardMatHandler},
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override;
         
         void SetUpMaterialPropertyBlock();
 
@@ -474,8 +477,6 @@ namespace EngineCore
         ResourceHandle<Material> mInstanceMatHandler;
 
     };
-
-}
 ```
 
 ### File: `Runtime/Graphics/GPUBufferAllocator.h`
@@ -526,6 +527,54 @@ namespace EngineCore
     };
 ```
 
+### File: `Runtime/Graphics/Mesh.h`
+```cpp
+    };
+
+    struct MeshBufferAllocation
+    {
+        IGPUBuffer* buffer = nullptr;
+        // 当前数据开始位置， 可以直接绑定
+        uint64_t gpuAddress = 0;
+        uint64_t offset =0;
+        uint64_t size = 0;
+        uint32_t stride = 0;
+        bool isValid = false;
+        struct MeshBufferAllocation() = default;
+        struct MeshBufferAllocation(IGPUBuffer* buffer, uint64_t gpuAddress, uint64_t offset, uint64_t size, uint64_t stride)
+            :buffer(buffer), gpuAddress(gpuAddress), offset(offset), size(size), stride(stride)
+        {
+            isValid = true;
+        }
+    };
+```
+...
+```cpp
+
+        Mesh() = default;
+        Mesh(Primitive primitiveType);
+        MeshBufferAllocation* vertexAllocation;
+        MeshBufferAllocation* indexAllocation;
+        void UploadMeshToGPU();
+
+        AABB bounds;
+        std::vector<Vertex> vertex;
+        std::vector<int> index;
+        std::vector<InputLayout> layout;
+        bool isDynamic = true;
+        virtual void OnLoadComplete() override { UploadMeshToGPU(); };
+```
+...
+```cpp
+        void ProcessNode(aiNode* node, const aiScene* scene);
+        void LoadAiMesh(const string& path);
+        void ProcessMesh(aiMesh* aiMesh, const aiScene* scene);
+
+    };
+
+}
+```
+
 ### File: `Runtime/Graphics/RenderTexture.h`
 ```cpp
 namespace EngineCore
@@ -555,103 +604,202 @@ namespace EngineCore
         Texture() = default;
         Texture(const string& textureID);
 
-        Texture(MetaData* textureMetaData);
         //inline const string GetName() const { return mTextureName; };
 
         inline int GetWidth() { return textureDesc.width; };
         inline int GetHeight() { return textureDesc.height; };
+        virtual void OnLoadComplete() override;
     public:
         IGPUTexture*  textureBuffer;
         TextureDesc textureDesc;
+        std::vector<uint8_t> cpuData;
     };
 ```
 
-### File: `Runtime/Platforms/D3D12/D3D12Texture.h`
+### File: `Runtime/Serialization/DDSTextureLoader.h`
 ```cpp
-{
-    // 只是一个资源的壳，IGPUTexture的实现，持有指针
-    class D3D12Texture : public IGPUTexture
+  HEADER      124
+  HEADER_DX10* 20	(https://msdn.microsoft.com/en-us/library/bb943983(v=vs.85).aspx)
+  PIXELS      fseek(f, 0, SEEK_END); (ftell(f) - 128) - (fourCC == "DX10" ? 17 or 20 : 0)
+* the link tells you that this section isn't written unless its a DX10 file
+Supports DXT1, DXT3, DXT5.
+The problem with supporting DX10 is you need to know what it is used for and how opengl would use it.
+File Byte Order:
+typedef unsigned int DWORD;           // 32bits little endian
+  type   index    attribute           // description
+///////////////////////////////////////////////////////////////////////////////////////////////
+  DWORD  0        file_code;          //. always `DDS `, or 0x20534444
+  DWORD  4        size;               //. size of the header, always 124 (includes PIXELFORMAT)
+  DWORD  8        flags;              //. bitflags that tells you if data is present in the file
+                                      //      CAPS         0x1
+                                      //      HEIGHT       0x2
+                                      //      WIDTH        0x4
+                                      //      PITCH        0x8
+                                      //      PIXELFORMAT  0x1000
+                                      //      MIPMAPCOUNT  0x20000
+                                      //      LINEARSIZE   0x80000
+                                      //      DEPTH        0x800000
+  DWORD  12       height;             //. height of the base image (biggest mipmap)
+  DWORD  16       width;              //. width of the base image (biggest mipmap)
+  DWORD  20       pitchOrLinearSize;  //. bytes per scan line in an uncompressed texture, or bytes in the top level texture for a compressed texture
+                                      //     D3DX11.lib and other similar libraries unreliably or inconsistently provide the pitch, convert with
+                                      //     DX* && BC*: max( 1, ((width+3)/4) ) * block-size
+                                      //     *8*8_*8*8 && UYVY && YUY2: ((width+1) >> 1) * 4
+                                      //     (width * bits-per-pixel + 7)/8 (divide by 8 for byte alignment, whatever that means)
+  DWORD  24       depth;              //. Depth of a volume texture (in pixels), garbage if no volume data
+  DWORD  28       mipMapCount;        //. number of mipmaps, garbage if no pixel data
+  DWORD  32       reserved1[11];      //. unused
+  DWORD  76       Size;               //. size of the following 32 bytes (PIXELFORMAT)
+  DWORD  80       Flags;              //. bitflags that tells you if data is present in the file for following 28 bytes
+                                      //      ALPHAPIXELS  0x1
+                                      //      ALPHA        0x2
+                                      //      FOURCC       0x4
+                                      //      RGB          0x40
+                                      //      YUV          0x200
+                                      //      LUMINANCE    0x20000
+  DWORD  84       FourCC;             //. File format: DXT1, DXT2, DXT3, DXT4, DXT5, DX10. 
+  DWORD  88       RGBBitCount;        //. Bits per pixel
+  DWORD  92       RBitMask;           //. Bit mask for R channel
+  DWORD  96       GBitMask;           //. Bit mask for G channel
+  DWORD  100      BBitMask;           //. Bit mask for B channel
+  DWORD  104      ABitMask;           //. Bit mask for A channel
+  DWORD  108      caps;               //. 0x1000 for a texture w/o mipmaps
+                                      //      0x401008 for a texture w/ mipmaps
+                                      //      0x1008 for a cube map
+  DWORD  112      caps2;              //. bitflags that tells you if data is present in the file
+                                      //      CUBEMAP           0x200     Required for a cube map.
+                                      //      CUBEMAP_POSITIVEX 0x400     Required when these surfaces are stored in a cube map.
+                                      //      CUBEMAP_NEGATIVEX 0x800     ^
+                                      //      CUBEMAP_POSITIVEY 0x1000    ^
+                                      //      CUBEMAP_NEGATIVEY 0x2000    ^
+                                      //      CUBEMAP_POSITIVEZ 0x4000    ^
+                                      //      CUBEMAP_NEGATIVEZ 0x8000    ^
+                                      //      VOLUME            0x200000  Required for a volume texture.
+  DWORD  114      caps3;              //. unused
+  DWORD  116      caps4;              //. unused
+  DWORD  120      reserved2;          //. unused
+```
+...
+```cpp
+
+namespace EngineCore{
+    struct DDSHeader {
+        uint32_t magic;              // 'DDS ' (0x20534444)
+        uint32_t fileSize;               // 124
+        uint32_t flags;
+        uint32_t height;
+        uint32_t width;
+        uint32_t pitchOrLinearSize;
+        uint32_t depth;
+        uint32_t mipMapCount;
+        uint32_t reserved1[11];
+        uint32_t size;           // 应该是32
+        uint32_t flagsData;
+        uint32_t fourCC;
+        uint32_t rgbBitCount;
+        uint32_t rBitMask;
+        uint32_t gBitMask;
+        uint32_t bBitMask;
+        uint32_t aBitMask;
+        uint32_t caps;
+        uint32_t caps2;
+        uint32_t caps3;
+        uint32_t caps4;
+        uint32_t reserved2;
+    };
+```
+...
+```cpp
+    };
+
+    class DDSTextureLoader : public IResourceLoader
     {
     public:
-        D3D12Texture() = default;
-
-        D3D12Texture(const TextureDesc& desc) 
-            : m_Desc(desc)
+        virtual ~DDSTextureLoader() = default;
+        virtual Resource* Load(const std::string& relativePath) override
         {
-        }
-
-        D3D12Texture(ComPtr<ID3D12Resource> resource, const TextureDesc& desc, D3D12_RESOURCE_STATES initialState)
-            : m_Resource(resource), m_Desc(desc) 
-        {
-            switch(initialState)
+            std::string path = PathSettings::ResolveAssetPath(relativePath);
+    
+            Texture* tex = new Texture();
+            tex->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+            tex->SetAssetID(AssetIDGenerator::NewFromFile(path));
+            
+            DDSLoadResult ddsResult = LoadDDSFromFile(relativePath);
+            tex->textureDesc.format = ddsResult.format;
+            tex->textureDesc.width = ddsResult.width;
+            tex->textureDesc.height = ddsResult.height;
+            tex->textureDesc.dimension = TextureDimension::TEXTURE2D;
+            tex->textureDesc.texUsage = TextureUsage::ShaderResource;
+            tex->textureDesc.mipCount = ddsResult.mipMapCount;
+            tex->cpuData = ddsResult.pixelData;
+            // 计算mip Count
+            uint32_t offset = 0;
+            tex->textureDesc.mipOffset[0] = 0;  // 第 0 级从 0 开始
+            int width = ddsResult.width;
+            int height = ddsResult.height;
+            // ++i 和 i++在循环体中区别不大， 因为循环跑完才会走++操作，
+            // 不过针对迭代器，++i更好， 因为i++相当于要返回一个原值，并且在原来的迭代器上叠加
+            for (uint32_t i = 0; i < ddsResult.mipMapCount; ++i)
             {
-                case D3D12_RESOURCE_STATE_COMMON:
-                m_ResourceState = BufferResourceState::STATE_COMMON;
-                break;
-                case D3D12_RESOURCE_STATE_GENERIC_READ:
-                m_ResourceState = BufferResourceState::STATE_GENERIC_READ;
-                break;
-                case D3D12_RESOURCE_STATE_COPY_DEST:
-                m_ResourceState = BufferResourceState::STATE_COPY_DEST;
-                break;
-                default:
-                    ASSERT("Wrong InitialState");
-                break;
+                // 当前 mip level 的尺寸
+                uint32_t mipWidth = std::max(1, width >> i);
+                uint32_t mipHeight = std::max(1, height >> i);
+                
+                // 计算当前 mip level 的字节大小
+                uint32_t mipSize = CalculateDXTMipSize(mipWidth, mipHeight, ddsResult.blockSize);
+                
+                if (i > 0) {
+                    tex->textureDesc.mipOffset[i] = offset;  // 记录当前 mip 的 offset
+                }
+                
+                offset += mipSize;  // 累加到下一个 mip level
             }
-        }
 
-        virtual ~D3D12Texture()
+
+            return tex;
+        }
+    
+        std::vector<uint8_t> LoadMipData(const std::string& realativePath, int mipCount){}
+    
+    
+        int CalculateDXTMipSize(uint32_t width, uint32_t height, uint32_t blockSize)
         {
-        }
-
-        virtual const TextureDesc& GetDesc() const override {return m_Desc;};
-        virtual void* GetNativeHandle() const override {return m_Resource.Get();}
-
-
-        virtual uint64_t GetGPUVirtualAddress() const override
-        {
-            return m_Resource->GetGPUVirtualAddress();
-        }
-
-        virtual void SetName(const wchar_t* name) override {m_Resource->SetName(name);}
-    public:
-        ComPtr<ID3D12Resource> m_Resource;
-        TextureDesc m_Desc;
-    };
+            //DXT1 (BC1)：每 4×4 块占 8 字节
+            //DXT3 (BC2)：每 4×4 块占 16 字节
+            //DXT5 (BC3)：每 4×4 块占 16 字节
+            uint32_t blockWidth = (width + 3) / 4;
+            uint32_t blockHeight = (height + 3) / 4;
+            return blockWidth * blockHeight * blockSize;
 ```
-
-### File: `Runtime/GameObject/MeshFilter.h`
+...
 ```cpp
-namespace EngineCore
-{
-    class MeshFilter : public Component
-    {
-        class GameObejct;
-    public:
-        MeshFilter() = default;
-        MeshFilter(GameObject* gamObject);
-
-        virtual ~MeshFilter() override;
-        static ComponentType GetStaticType() { return ComponentType::MeshFilter; };
-        virtual ComponentType GetType() const override{ return ComponentType::MeshFilter; };
-        void OnLoadResourceFinished();
-    public:
-        ResourceHandle<Mesh> mMeshHandle;
-        
-        virtual const char* GetScriptName() const override { return "MeshFilter"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"MeshHandle", mMeshHandle},
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override;
-
-        uint32_t GetHash()
         {
-            return mMeshHandle->GetInstanceID();
-        }
-    private:
-        uint32_t hash;
-    };
+            std::string path = PathSettings::ResolveAssetPath(relativePath);
+            std::ifstream file(path, std::ios::binary);
+            ASSERT(file.is_open());
+    
+            file.seekg(0, std::ios::end);      // 先移动到文件末尾
+            std::streamsize fileSize = file.tellg();  // 获取文件大小
+            file.seekg(0, std::ios::beg);      // 再移回文件开始
+    
+            ASSERT(fileSize > sizeof(DDSHeader));
+    
+            DDSHeader header;
+            file.read(reinterpret_cast<char*>(&header), sizeof(DDSHeader));
+    
+            if(header.magic != 0x20534444 || header.fileSize != 124)
+            {
+                ASSERT(false);
+            }
+```
+...
+```cpp
+            // 提取fourCC字符串来判断
+            char fourCCStr[5] = {0};
+            std::memcpy(fourCCStr, &fourCC, 4);
+            
+            if (std::memcmp(fourCCStr, "DXT1", 4) == 0) {
+                result.format = TextureFormat::DXT1;  // DXT1
+                result.blockSize = 8;
+            }
 ```

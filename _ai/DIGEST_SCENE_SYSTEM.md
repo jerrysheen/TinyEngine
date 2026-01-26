@@ -26,12 +26,10 @@
 - `[50]` **Runtime/GameObject/ComponentType.h** *(Content Included)*
 - `[49]` **Runtime/Scene/BistroSceneLoader.h** *(Content Included)*
 - `[43]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
-- `[35]` **Runtime/Serialization/ComponentFactory.h**
 - `[34]` **Editor/Panel/EditorHierarchyPanel.h**
 - `[31]` **Runtime/GameObject/MonoBehaviour.h**
 - `[29]` **Runtime/GameObject/Camera.h**
 - `[27]` **Runtime/Core/Game.h**
-- `[27]` **Runtime/Serialization/MetaFactory.h**
 - `[24]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
 - `[24]` **Editor/Panel/EditorGameViewPanel.h**
 - `[18]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
@@ -55,6 +53,7 @@
 - `[3]` **Runtime/Renderer/Renderer.h**
 - `[3]` **Runtime/Resources/Asset.h**
 - `[3]` **Runtime/Serialization/AssetHeader.h**
+- `[3]` **Runtime/Serialization/DDSTextureLoader.h**
 - `[3]` **Runtime/Settings/ProjectSettings.h**
 - `[2]` **Runtime/CoreAssert.h**
 - `[2]` **Runtime/PreCompiledHeader.h**
@@ -70,6 +69,7 @@
 - `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/IGPUResource.h**
 - `[2]` **Runtime/Graphics/Material.h**
+- `[2]` **Runtime/Graphics/MaterialData.h**
 - `[2]` **Runtime/Graphics/MaterialInstance.h**
 - `[2]` **Runtime/Graphics/MaterialLayout.h**
 - `[2]` **Runtime/Graphics/RenderTexture.h**
@@ -427,13 +427,6 @@ namespace EngineCore
         virtual ComponentType GetType() const override{ return ComponentType::MeshRenderer; };
 
         virtual const char* GetScriptName() const override { return "MeshRenderer"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"MatHandle", mShardMatHandler},
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override;
         
         void SetUpMaterialPropertyBlock();
 
@@ -470,8 +463,6 @@ namespace EngineCore
         ResourceHandle<Material> mInstanceMatHandler;
 
     };
-
-}
 ```
 
 ### File: `Runtime/GameObject/MeshFilter.h`
@@ -493,13 +484,6 @@ namespace EngineCore
         ResourceHandle<Mesh> mMeshHandle;
         
         virtual const char* GetScriptName() const override { return "MeshFilter"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"MeshHandle", mMeshHandle},
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override;
 
         uint32_t GetHash()
         {
@@ -583,8 +567,8 @@ namespace EngineCore
 
 ### File: `Runtime/GameObject/Component.h`
 ```cpp
-    using json = nlohmann::json;
-
+namespace EngineCore
+{
     class GameObject;
     class Component
     {
@@ -598,8 +582,6 @@ namespace EngineCore
         
         // 每个类需要自己实现序列化和反序列化方法。
         virtual const char* GetScriptName() const = 0;
-        virtual json SerializedFields() const { return json::object(); }
-        virtual void DeserializedFields(const json& j) {};
     };
 ```
 
@@ -635,7 +617,11 @@ namespace EngineCore {
         Scene* LoadInternal(const std::string& path);
         void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
         void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
-
-        std::map<int, std::vector<ResourceHandle<Mesh>>> m_MeshCache;
+        void ProcessMaterials(const tinygltf::Model& model);
+        void ProcessTexture(const tinygltf::Model& model);
+        AssetID GetTextureAssetID(const tinygltf::Model& model, int textureIndex);
+        std::map<int, std::vector<std::pair<ResourceHandle<Mesh>, int>>> m_MeshCache;
+        std::vector<AssetID> m_ImageIndexToID;
+        std::vector<ResourceHandle<Material>> m_MaterialMap;
     };
 ```

@@ -19,6 +19,7 @@
 - `[48]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
 - `[44]` **Runtime/Graphics/MaterialInstance.h** *(Content Included)*
 - `[42]` **Runtime/Graphics/Material.h** *(Content Included)*
+- `[40]` **Runtime/Graphics/MaterialData.h** *(Content Included)*
 - `[38]` **Assets/Shader/StandardPBR_VertexPulling.hlsl** *(Content Included)*
 - `[37]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/RenderTexture.h** *(Content Included)*
@@ -30,12 +31,14 @@
 - `[33]` **Runtime/Serialization/MeshLoader.h**
 - `[32]` **Runtime/Graphics/GeometryManager.h**
 - `[32]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
+- `[28]` **Runtime/Serialization/DDSTextureLoader.h**
 - `[27]` **Runtime/GameObject/MeshFilter.h**
 - `[27]` **Runtime/Platforms/D3D12/D3D12Texture.h**
 - `[25]` **Runtime/Renderer/RenderCommand.h**
 - `[24]` **Runtime/Renderer/RenderStruct.h**
 - `[24]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
 - `[23]` **Runtime/Graphics/IGPUResource.h**
+- `[23]` **Runtime/Scene/BistroSceneLoader.h**
 - `[22]` **Runtime/Renderer/BatchManager.h**
 - `[22]` **Runtime/Serialization/TextureLoader.h**
 - `[21]` **Runtime/Resources/AssetTypeTraits.h**
@@ -50,22 +53,17 @@
 - `[16]` **Runtime/Scene/Scene.h**
 - `[16]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[15]` **Runtime/Graphics/ComputeShader.h**
-- `[15]` **Runtime/Scene/BistroSceneLoader.h**
-- `[15]` **Editor/Panel/EditorMainBar.h**
 - `[14]` **Runtime/Graphics/Shader.h**
 - `[14]` **Runtime/Renderer/Renderer.h**
 - `[14]` **Runtime/Serialization/SceneLoader.h**
 - `[13]` **Runtime/Scene/SceneManager.h**
-- `[13]` **Runtime/Serialization/BaseTypeSerialization.h**
+- `[13]` **Editor/Panel/EditorMainBar.h**
 - `[12]` **Runtime/Resources/AssetRegistry.h**
 - `[12]` **Runtime/Resources/IResourceLoader.h**
 - `[12]` **Runtime/Resources/Resource.h**
 - `[12]` **Runtime/Resources/ResourceHandle.h**
-- `[12]` **Runtime/Serialization/MetaLoader.h**
-- `[11]` **Runtime/Serialization/MetaData.h**
 - `[10]` **Assets/Shader/BlitShader.hlsl**
 - `[8]` **Runtime/Renderer/RenderSorter.h**
-- `[8]` **Runtime/Serialization/AssetSerialization.h**
 - `[8]` **Assets/Shader/GPUCulling.hlsl**
 - `[7]` **Runtime/Core/Profiler.h**
 - `[7]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
@@ -74,6 +72,8 @@
 - `[6]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[5]` **Runtime/Core/PublicEnum.h**
 - `[5]` **Runtime/Renderer/RenderUniforms.h**
+- `[5]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
+- `[5]` **Runtime/Platforms/D3D12/D3D12Struct.h**
 
 ## Evidence & Implementation Details
 
@@ -153,7 +153,6 @@ namespace EngineCore
 ```cpp
 
         Mesh() = default;
-        Mesh(MetaData* metaData);
         Mesh(Primitive primitiveType);
         MeshBufferAllocation* vertexAllocation;
         MeshBufferAllocation* indexAllocation;
@@ -264,10 +263,11 @@ namespace EngineCore
         ResourceHandle<Shader> mShader;
         unordered_map<string, IGPUTexture*> textureData;
         unordered_map<std::string, ResourceHandle<Texture>> textureHandleMap;
-
+        
+        MaterialData m_MaterialData;
+        void LoadFromMaterialData(const MaterialData& data);
 
         Material() = default;
-        Material(MetaData* metaData);
         Material(ResourceHandle<Shader> shader);
         Material(const Material& other);
         void UploadDataToGpu();
@@ -306,11 +306,26 @@ namespace EngineCore
         MaterailRenderState mRenderState;
         BufferAllocation materialAllocation;
     private:
-        void LoadDependency(const std::unordered_map<std::string, MetaData>& dependentMap);
         void SetUpRenderState();
         void GetTextureInfoFromShaderReflection();
     };
 }
+```
+
+### File: `Runtime/Graphics/MaterialData.h`
+```cpp
+    // 对应 MaterialLayout::GetDefaultPBRLayout 的内存布局
+    // 必须保持 16 字节对齐
+    struct MaterialConstants
+    {
+        Vector4 DiffuseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        Vector4 SpecularColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+        float Roughness = 0.5f;
+        float Metallic = 0.0f;
+        Vector2 TilingFactor = Vector2(1.0f, 1.0f);
+        float DiffuseTextureIndex = 0.0f; 
+        Vector3 Padding = Vector3(0.0f, 0.0f, 0.0f);
+    };
 ```
 
 ### File: `Assets/Shader/StandardPBR_VertexPulling.hlsl`
@@ -402,14 +417,15 @@ namespace EngineCore
         Texture() = default;
         Texture(const string& textureID);
 
-        Texture(MetaData* textureMetaData);
         //inline const string GetName() const { return mTextureName; };
 
         inline int GetWidth() { return textureDesc.width; };
         inline int GetHeight() { return textureDesc.height; };
+        virtual void OnLoadComplete() override;
     public:
         IGPUTexture*  textureBuffer;
         TextureDesc textureDesc;
+        std::vector<uint8_t> cpuData;
     };
 ```
 

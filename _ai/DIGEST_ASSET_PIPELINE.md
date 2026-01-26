@@ -16,7 +16,7 @@
 ## Key Files Index
 - `[69]` **Runtime/Serialization/MeshLoader.h** *(Content Included)*
 - `[46]` **Runtime/Resources/AssetTypeTraits.h** *(Content Included)*
-- `[43]` **Runtime/Serialization/AssetSerialization.h** *(Content Included)*
+- `[45]` **Runtime/Serialization/DDSTextureLoader.h** *(Content Included)*
 - `[42]` **Runtime/Resources/Asset.h** *(Content Included)*
 - `[38]` **Assets/Shader/SimpleTestShader.hlsl** *(Content Included)*
 - `[37]` **Runtime/Graphics/Material.h** *(Content Included)*
@@ -26,9 +26,9 @@
 - `[34]` **Runtime/Serialization/StreamHelper.h** *(Content Included)*
 - `[33]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
 - `[32]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
+- `[32]` **Runtime/Graphics/MaterialData.h** *(Content Included)*
 - `[32]` **Runtime/Serialization/TextureLoader.h** *(Content Included)*
 - `[30]` **Runtime/Graphics/Mesh.h** *(Content Included)*
-- `[30]` **Runtime/Serialization/BaseTypeSerialization.h** *(Content Included)*
 - `[30]` **Assets/Shader/include/Core.hlsl**
 - `[29]` **Runtime/Graphics/MaterialInstance.h**
 - `[29]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
@@ -42,25 +42,21 @@
 - `[27]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[27]` **Runtime/Platforms/D3D12/D3D12Texture.h**
 - `[26]` **Runtime/Graphics/ComputeShader.h**
-- `[26]` **Runtime/Serialization/MetaData.h**
 - `[25]` **Runtime/Graphics/GPUTexture.h**
-- `[24]` **Runtime/Serialization/MetaLoader.h**
-- `[23]` **Editor/Panel/EditorMainBar.h**
 - `[22]` **Runtime/Core/PublicStruct.h**
 - `[22]` **Runtime/Renderer/RenderCommand.h**
 - `[21]` **Runtime/Resources/ResourceManager.h**
+- `[21]` **Editor/Panel/EditorMainBar.h**
 - `[20]` **Assets/Shader/GPUCulling.hlsl**
 - `[19]` **Runtime/Renderer/RenderAPI.h**
+- `[18]` **Runtime/Scene/BistroSceneLoader.h**
 - `[17]` **Runtime/Resources/Resource.h**
 - `[17]` **Runtime/Resources/ResourceHandle.h**
 - `[17]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[16]` **Runtime/Scene/SceneManager.h**
-- `[15]` **Runtime/Serialization/MetaFactory.h**
 - `[14]` **Runtime/Renderer/Renderer.h**
-- `[14]` **Runtime/Serialization/JsonSerializer.h**
 - `[13]` **Runtime/Renderer/RenderStruct.h**
 - `[12]` **Runtime/Resources/IResourceLoader.h**
-- `[12]` **Runtime/Serialization/ComponentFactory.h**
 - `[12]` **Runtime/Platforms/D3D12/d3dx12.h**
 - `[11]` **Runtime/Renderer/BatchManager.h**
 - `[11]` **Runtime/Scene/Scene.h**
@@ -69,11 +65,15 @@
 - `[10]` **Runtime/Graphics/IGPUResource.h**
 - `[10]` **Runtime/Renderer/RenderSorter.h**
 - `[10]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
-- `[9]` **Runtime/Scene/BistroSceneLoader.h**
 - `[8]` **Runtime/Core/PublicEnum.h**
 - `[8]` **Runtime/GameObject/Camera.h**
 - `[7]` **Runtime/Graphics/GeometryManager.h**
 - `[7]` **Runtime/Settings/ProjectSettings.h**
+- `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
+- `[5]` **premake5.lua**
+- `[5]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
+- `[5]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
+- `[4]` **Runtime/GameObject/ComponentType.h**
 
 ## Evidence & Implementation Details
 
@@ -130,68 +130,192 @@ namespace EngineCore
     template<typename T> struct AssetTypeTraits { static const AssetType Type = AssetType::Default; };
 ```
 
-### File: `Runtime/Serialization/AssetSerialization.h`
+### File: `Runtime/Serialization/DDSTextureLoader.h`
+```cpp
+  HEADER      124
+  HEADER_DX10* 20	(https://msdn.microsoft.com/en-us/library/bb943983(v=vs.85).aspx)
+  PIXELS      fseek(f, 0, SEEK_END); (ftell(f) - 128) - (fourCC == "DX10" ? 17 or 20 : 0)
+* the link tells you that this section isn't written unless its a DX10 file
+Supports DXT1, DXT3, DXT5.
+The problem with supporting DX10 is you need to know what it is used for and how opengl would use it.
+File Byte Order:
+typedef unsigned int DWORD;           // 32bits little endian
+  type   index    attribute           // description
+///////////////////////////////////////////////////////////////////////////////////////////////
+  DWORD  0        file_code;          //. always `DDS `, or 0x20534444
+  DWORD  4        size;               //. size of the header, always 124 (includes PIXELFORMAT)
+  DWORD  8        flags;              //. bitflags that tells you if data is present in the file
+                                      //      CAPS         0x1
+                                      //      HEIGHT       0x2
+                                      //      WIDTH        0x4
+                                      //      PITCH        0x8
+                                      //      PIXELFORMAT  0x1000
+                                      //      MIPMAPCOUNT  0x20000
+                                      //      LINEARSIZE   0x80000
+                                      //      DEPTH        0x800000
+  DWORD  12       height;             //. height of the base image (biggest mipmap)
+  DWORD  16       width;              //. width of the base image (biggest mipmap)
+  DWORD  20       pitchOrLinearSize;  //. bytes per scan line in an uncompressed texture, or bytes in the top level texture for a compressed texture
+                                      //     D3DX11.lib and other similar libraries unreliably or inconsistently provide the pitch, convert with
+                                      //     DX* && BC*: max( 1, ((width+3)/4) ) * block-size
+                                      //     *8*8_*8*8 && UYVY && YUY2: ((width+1) >> 1) * 4
+                                      //     (width * bits-per-pixel + 7)/8 (divide by 8 for byte alignment, whatever that means)
+  DWORD  24       depth;              //. Depth of a volume texture (in pixels), garbage if no volume data
+  DWORD  28       mipMapCount;        //. number of mipmaps, garbage if no pixel data
+  DWORD  32       reserved1[11];      //. unused
+  DWORD  76       Size;               //. size of the following 32 bytes (PIXELFORMAT)
+  DWORD  80       Flags;              //. bitflags that tells you if data is present in the file for following 28 bytes
+                                      //      ALPHAPIXELS  0x1
+                                      //      ALPHA        0x2
+                                      //      FOURCC       0x4
+                                      //      RGB          0x40
+                                      //      YUV          0x200
+                                      //      LUMINANCE    0x20000
+  DWORD  84       FourCC;             //. File format: DXT1, DXT2, DXT3, DXT4, DXT5, DX10. 
+  DWORD  88       RGBBitCount;        //. Bits per pixel
+  DWORD  92       RBitMask;           //. Bit mask for R channel
+  DWORD  96       GBitMask;           //. Bit mask for G channel
+  DWORD  100      BBitMask;           //. Bit mask for B channel
+  DWORD  104      ABitMask;           //. Bit mask for A channel
+  DWORD  108      caps;               //. 0x1000 for a texture w/o mipmaps
+                                      //      0x401008 for a texture w/ mipmaps
+                                      //      0x1008 for a cube map
+  DWORD  112      caps2;              //. bitflags that tells you if data is present in the file
+                                      //      CUBEMAP           0x200     Required for a cube map.
+                                      //      CUBEMAP_POSITIVEX 0x400     Required when these surfaces are stored in a cube map.
+                                      //      CUBEMAP_NEGATIVEX 0x800     ^
+                                      //      CUBEMAP_POSITIVEY 0x1000    ^
+                                      //      CUBEMAP_NEGATIVEY 0x2000    ^
+                                      //      CUBEMAP_POSITIVEZ 0x4000    ^
+                                      //      CUBEMAP_NEGATIVEZ 0x8000    ^
+                                      //      VOLUME            0x200000  Required for a volume texture.
+  DWORD  114      caps3;              //. unused
+  DWORD  116      caps4;              //. unused
+  DWORD  120      reserved2;          //. unused
+```
+...
 ```cpp
 
+namespace EngineCore{
+    struct DDSHeader {
+        uint32_t magic;              // 'DDS ' (0x20534444)
+        uint32_t fileSize;               // 124
+        uint32_t flags;
+        uint32_t height;
+        uint32_t width;
+        uint32_t pitchOrLinearSize;
+        uint32_t depth;
+        uint32_t mipMapCount;
+        uint32_t reserved1[11];
+        uint32_t size;           // 应该是32
+        uint32_t flagsData;
+        uint32_t fourCC;
+        uint32_t rgbBitCount;
+        uint32_t rBitMask;
+        uint32_t gBitMask;
+        uint32_t bBitMask;
+        uint32_t aBitMask;
+        uint32_t caps;
+        uint32_t caps2;
+        uint32_t caps3;
+        uint32_t caps4;
+        uint32_t reserved2;
+    };
+```
+...
+```cpp
+    };
 
-namespace EngineCore
-{
-    // Meta
-    inline void to_json(json& j, const EngineCore::MetaData& v)
+    class DDSTextureLoader : public IResourceLoader
     {
-        j = {  
-                {"Path", v.path}, 
-                {"AssetType", v.assetType}, 
-                {"Dependencies", v.dependentMap}, 
-            };
-    }
+    public:
+        virtual ~DDSTextureLoader() = default;
+        virtual Resource* Load(const std::string& relativePath) override
+        {
+            std::string path = PathSettings::ResolveAssetPath(relativePath);
+    
+            Texture* tex = new Texture();
+            tex->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+            tex->SetAssetID(AssetIDGenerator::NewFromFile(path));
+            
+            DDSLoadResult ddsResult = LoadDDSFromFile(relativePath);
+            tex->textureDesc.format = ddsResult.format;
+            tex->textureDesc.width = ddsResult.width;
+            tex->textureDesc.height = ddsResult.height;
+            tex->textureDesc.dimension = TextureDimension::TEXTURE2D;
+            tex->textureDesc.texUsage = TextureUsage::ShaderResource;
+            tex->textureDesc.mipCount = ddsResult.mipMapCount;
+            tex->cpuData = ddsResult.pixelData;
+            // 计算mip Count
+            uint32_t offset = 0;
+            tex->textureDesc.mipOffset[0] = 0;  // 第 0 级从 0 开始
+            int width = ddsResult.width;
+            int height = ddsResult.height;
+            // ++i 和 i++在循环体中区别不大， 因为循环跑完才会走++操作，
+            // 不过针对迭代器，++i更好， 因为i++相当于要返回一个原值，并且在原来的迭代器上叠加
+            for (uint32_t i = 0; i < ddsResult.mipMapCount; ++i)
+            {
+                // 当前 mip level 的尺寸
+                uint32_t mipWidth = std::max(1, width >> i);
+                uint32_t mipHeight = std::max(1, height >> i);
+                
+                // 计算当前 mip level 的字节大小
+                uint32_t mipSize = CalculateDXTMipSize(mipWidth, mipHeight, ddsResult.blockSize);
+                
+                if (i > 0) {
+                    tex->textureDesc.mipOffset[i] = offset;  // 记录当前 mip 的 offset
+                }
+                
+                offset += mipSize;  // 累加到下一个 mip level
+            }
 
-    inline void from_json(const json& j, EngineCore::MetaData& v)
-    {
-        j.at("Path").get_to(v.path);
-        j.at("AssetType").get_to(v.assetType);
-        j.at("Dependencies").get_to(v.dependentMap);
-    }
 
-
-    // TextureMetaData
-    inline void to_json(json& j, const EngineCore::TextureMetaData& v)
-    {
-        j = {  
-                {"Path", v.path}, 
-                {"AssetType", v.assetType}, 
-                {"Dependencies", v.dependentMap}, 
-                {"Dimension", v.dimension}, 
-                {"Format", v.format},
-                {"Width", v.width},
-                {"Height", v.height}
-            };
-    }
-
-    inline void from_json(const json& j, EngineCore::TextureMetaData& v)
-    {
-        j.at("Path").get_to(v.path);
-        j.at("AssetType").get_to(v.assetType);
-        j.at("Dependencies").get_to(v.dependentMap);
-        j.at("Dimension").get_to(v.dimension);
-        j.at("Format").get_to(v.format);
-        j.at("Width").get_to(v.width);
-        j.at("Height").get_to(v.height);
-    }
-
-    // MaterialMetaData
-    inline void to_json(json& j, const EngineCore::MaterialMetaData& v)
-    {
-        j = {  
-                {"Path", v.path}, 
-                {"AssetType", v.assetType}, 
-                {"Dependencies", v.dependentMap}, 
-                {"FloatData", v.floatData}, 
-                {"Vec2Data", v.vec2Data},
-                {"Vec3Data", v.vec3Data},
-                {"Matrix4x4Data", v.matrix4x4Data}
-            };
-    }
+            return tex;
+        }
+    
+        std::vector<uint8_t> LoadMipData(const std::string& realativePath, int mipCount){}
+    
+    
+        int CalculateDXTMipSize(uint32_t width, uint32_t height, uint32_t blockSize)
+        {
+            //DXT1 (BC1)：每 4×4 块占 8 字节
+            //DXT3 (BC2)：每 4×4 块占 16 字节
+            //DXT5 (BC3)：每 4×4 块占 16 字节
+            uint32_t blockWidth = (width + 3) / 4;
+            uint32_t blockHeight = (height + 3) / 4;
+            return blockWidth * blockHeight * blockSize;
+```
+...
+```cpp
+        {
+            std::string path = PathSettings::ResolveAssetPath(relativePath);
+            std::ifstream file(path, std::ios::binary);
+            ASSERT(file.is_open());
+    
+            file.seekg(0, std::ios::end);      // 先移动到文件末尾
+            std::streamsize fileSize = file.tellg();  // 获取文件大小
+            file.seekg(0, std::ios::beg);      // 再移回文件开始
+    
+            ASSERT(fileSize > sizeof(DDSHeader));
+    
+            DDSHeader header;
+            file.read(reinterpret_cast<char*>(&header), sizeof(DDSHeader));
+    
+            if(header.magic != 0x20534444 || header.fileSize != 124)
+            {
+                ASSERT(false);
+            }
+```
+...
+```cpp
+            // 提取fourCC字符串来判断
+            char fourCCStr[5] = {0};
+            std::memcpy(fourCCStr, &fourCC, 4);
+            
+            if (std::memcmp(fourCCStr, "DXT1", 4) == 0) {
+                result.format = TextureFormat::DXT1;  // DXT1
+                result.blockSize = 8;
+            }
 ```
 
 ### File: `Runtime/Resources/Asset.h`
@@ -202,7 +326,7 @@ namespace EngineCore
     {
         uint64_t value = 0;
         explicit operator bool() const {return value != 0;};
-        operator uint32_t() const { return value;}
+        operator uint64_t() const { return value;}
         bool IsValid() const {return value != 0;};
         inline void Reset() { value = 0; };
         AssetID() = default;
@@ -280,10 +404,11 @@ namespace EngineCore
         ResourceHandle<Shader> mShader;
         unordered_map<string, IGPUTexture*> textureData;
         unordered_map<std::string, ResourceHandle<Texture>> textureHandleMap;
-
+        
+        MaterialData m_MaterialData;
+        void LoadFromMaterialData(const MaterialData& data);
 
         Material() = default;
-        Material(MetaData* metaData);
         Material(ResourceHandle<Shader> shader);
         Material(const Material& other);
         void UploadDataToGpu();
@@ -322,7 +447,6 @@ namespace EngineCore
         MaterailRenderState mRenderState;
         BufferAllocation materialAllocation;
     private:
-        void LoadDependency(const std::unordered_map<std::string, MetaData>& dependentMap);
         void SetUpRenderState();
         void GetTextureInfoFromShaderReflection();
     };
@@ -503,13 +627,6 @@ namespace EngineCore
         virtual ComponentType GetType() const override{ return ComponentType::MeshRenderer; };
 
         virtual const char* GetScriptName() const override { return "MeshRenderer"; }
-        virtual json SerializedFields() const override {
-            return json{
-                {"MatHandle", mShardMatHandler},
-            };
-        }
-        
-        virtual void DeserializedFields(const json& data) override;
         
         void SetUpMaterialPropertyBlock();
 
@@ -546,8 +663,22 @@ namespace EngineCore
         ResourceHandle<Material> mInstanceMatHandler;
 
     };
+```
 
-}
+### File: `Runtime/Graphics/MaterialData.h`
+```cpp
+    // 对应 MaterialLayout::GetDefaultPBRLayout 的内存布局
+    // 必须保持 16 字节对齐
+    struct MaterialConstants
+    {
+        Vector4 DiffuseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        Vector4 SpecularColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+        float Roughness = 0.5f;
+        float Metallic = 0.0f;
+        Vector2 TilingFactor = Vector2(1.0f, 1.0f);
+        float DiffuseTextureIndex = 0.0f; 
+        Vector3 Padding = Vector3(0.0f, 0.0f, 0.0f);
+    };
 ```
 
 ### File: `Runtime/Graphics/Mesh.h`
@@ -575,7 +706,6 @@ namespace EngineCore
 ```cpp
 
         Mesh() = default;
-        Mesh(MetaData* metaData);
         Mesh(Primitive primitiveType);
         MeshBufferAllocation* vertexAllocation;
         MeshBufferAllocation* indexAllocation;
@@ -597,68 +727,4 @@ namespace EngineCore
     };
 
 }
-```
-
-### File: `Runtime/Serialization/BaseTypeSerialization.h`
-```cpp
-#include "Graphics/IGPUResource.h"
-
-namespace EngineCore
-{
-    // // Vector3
-    using json = nlohmann::json;
-    inline void to_json(json& j, const Vector3& v)
-    {
-        j = json{ {"x", v.x}, {"y", v.y}, {"z", v.z} };
-    }
-
-    inline void from_json(const json& j, EngineCore::Vector3& v)
-    {
-        j.at("x").get_to(v.x);
-        j.at("y").get_to(v.y);
-        j.at("z").get_to(v.z);
-    }
-
-    //vector2
-    inline void to_json(json& j, const EngineCore::Vector2& v)
-    {
-        j = json{ {"x", v.x}, {"y", v.y}};
-    }
-
-    inline void from_json(const json& j, EngineCore::Vector2& v)
-    {
-        j.at("x").get_to(v.x);
-        j.at("y").get_to(v.y);
-    }
-
-    // Matrix4x4
-    inline void to_json(json& j, const EngineCore::Matrix4x4& m)
-    {
-        j = json{
-            {"m00", m.m00}, {"m01", m.m01}, {"m02", m.m02},{"m03", m.m03},
-            {"m10", m.m10}, {"m11", m.m11}, {"m12", m.m12}, {"m13", m.m13},
-            {"m20", m.m20}, {"m21", m.m21}, {"m22", m.m22}, {"m23", m.m23},
-            {"m30", m.m30}, {"m31", m.m31}, {"m32", m.m32}, {"m33", m.m33}
-        };
-    }
-
-    inline void from_json(const json& j, EngineCore::Matrix4x4& m)
-    {
-        j.at("m00").get_to(m.m00); j.at("m01").get_to(m.m01); j.at("m02").get_to(m.m02); j.at("m03").get_to(m.m03);
-        j.at("m10").get_to(m.m10); j.at("m11").get_to(m.m11); j.at("m12").get_to(m.m12); j.at("m13").get_to(m.m13);
-        j.at("m20").get_to(m.m20); j.at("m21").get_to(m.m21); j.at("m22").get_to(m.m22); j.at("m23").get_to(m.m23);
-        j.at("m30").get_to(m.m30); j.at("m31").get_to(m.m31); j.at("m32").get_to(m.m32); j.at("m33").get_to(m.m33);
-    }
-
-    // Quaternion
-    inline void to_json(json& j, const EngineCore::Quaternion& m)
-    {
-        j = json{
-            {"x", m.x},
-            {"y", m.y},
-            {"z", m.z},
-            {"w", m.w},
-        };
-    }
-
 ```
