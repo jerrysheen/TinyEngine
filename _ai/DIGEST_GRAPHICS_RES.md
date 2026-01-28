@@ -1,11 +1,12 @@
 # Architecture Digest: GRAPHICS_RES
-> Auto-generated. Focus: Runtime/Graphics, Runtime/Resources, Material, Texture, GPUBuffer, Mesh, Model, GpuScene, Vertex, Index, Layout
+> Auto-generated. Focus: Runtime/Graphics, Runtime/Resources, Runtime/MaterialLibrary, Material, MaterialLayout, MaterialInstance, MaterialArchetype, MaterialArchytype, Texture, GPUBuffer, Mesh, Model, GpuScene, Vertex, Index, Layout, Bindless
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
+- 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
 
@@ -14,83 +15,119 @@
 - 提取资源描述、布局、GPU缓冲与材质接口。
 
 ## Key Files Index
-- `[64]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
+- `[87]` **Runtime/MaterialLibrary/MaterialLayout.h** *(Content Included)*
+- `[70]` **Runtime/MaterialLibrary/MaterialInstance.h** *(Content Included)*
+- `[67]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
+- `[62]` **Runtime/Graphics/Material.cpp** *(Content Included)*
+- `[61]` **Runtime/MaterialLibrary/MaterialArchytype.h** *(Content Included)*
+- `[58]` **Runtime/MaterialLibrary/MaterialArchetypeRegistry.h** *(Content Included)*
+- `[55]` **Runtime/Graphics/Mesh.cpp** *(Content Included)*
 - `[52]` **Runtime/Graphics/Mesh.h** *(Content Included)*
+- `[52]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp** *(Content Included)*
 - `[48]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
-- `[44]` **Runtime/Graphics/MaterialInstance.h** *(Content Included)*
-- `[42]` **Runtime/Graphics/Material.h** *(Content Included)*
-- `[40]` **Runtime/Graphics/MaterialData.h** *(Content Included)*
-- `[38]` **Assets/Shader/StandardPBR_VertexPulling.hlsl** *(Content Included)*
+- `[47]` **Runtime/Graphics/MeshUtils.cpp** *(Content Included)*
+- `[44]` **Runtime/Graphics/Material.h** *(Content Included)*
+- `[44]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
+- `[42]` **Assets/Shader/StandardPBR_VertexPulling.hlsl** *(Content Included)*
+- `[39]` **Runtime/MaterialLibrary/StandardPBR.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/RenderTexture.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/Texture.h** *(Content Included)*
 - `[36]` **Runtime/Graphics/MeshUtils.h** *(Content Included)*
-- `[35]` **Runtime/Graphics/GPUTexture.h** *(Content Included)*
-- `[35]` **Runtime/Graphics/IGPUBufferAllocator.h** *(Content Included)*
+- `[35]` **Runtime/Graphics/GPUBufferAllocator.cpp** *(Content Included)*
+- `[35]` **Runtime/Graphics/GPUTexture.h**
+- `[35]` **Runtime/Graphics/IGPUBufferAllocator.h**
+- `[35]` **Runtime/Graphics/RenderTexture.cpp**
+- `[35]` **Runtime/Graphics/Texture.cpp**
+- `[35]` **Runtime/Scene/BistroSceneLoader.cpp**
+- `[33]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[33]` **Runtime/GameObject/MeshRenderer.h**
 - `[33]` **Runtime/Serialization/MeshLoader.h**
 - `[32]` **Runtime/Graphics/GeometryManager.h**
 - `[32]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
+- `[30]` **Runtime/Renderer/RenderCommand.h**
 - `[28]` **Runtime/Serialization/DDSTextureLoader.h**
 - `[27]` **Runtime/GameObject/MeshFilter.h**
+- `[27]` **Runtime/Graphics/GeometryManager.cpp**
 - `[27]` **Runtime/Platforms/D3D12/D3D12Texture.h**
-- `[25]` **Runtime/Renderer/RenderCommand.h**
-- `[24]` **Runtime/Renderer/RenderStruct.h**
+- `[26]` **Runtime/Graphics/IGPUResource.h**
+- `[25]` **Runtime/GameObject/MeshFilter.cpp**
+- `[25]` **Runtime/Renderer/RenderStruct.h**
+- `[24]` **Runtime/Scene/BistroSceneLoader.h**
 - `[24]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
-- `[23]` **Runtime/Graphics/IGPUResource.h**
-- `[23]` **Runtime/Scene/BistroSceneLoader.h**
+- `[23]` **Runtime/Serialization/MaterialLoader.h**
+- `[22]` **Runtime/MaterialLibrary/StandardPBR.cpp**
 - `[22]` **Runtime/Renderer/BatchManager.h**
+- `[22]` **Runtime/Renderer/Renderer.cpp**
 - `[22]` **Runtime/Serialization/TextureLoader.h**
+- `[21]` **Runtime/Renderer/RenderAPI.h**
 - `[21]` **Runtime/Resources/AssetTypeTraits.h**
+- `[21]` **Assets/Shader/SimpleTestShader.hlsl**
+- `[21]` **Assets/Shader/StandardPBR.hlsl**
+- `[20]` **Runtime/Entry.cpp**
+- `[20]` **Runtime/Renderer/Renderer.h**
+- `[20]` **Runtime/Resources/ResourceManager.cpp**
+- `[20]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
+- `[20]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
+- `[20]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp**
+- `[19]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[18]` **Assets/Shader/include/Core.hlsl**
 - `[17]` **Runtime/Core/PublicStruct.h**
-- `[17]` **Runtime/Renderer/RenderAPI.h**
-- `[17]` **Runtime/Platforms/D3D12/d3dx12.h**
-- `[17]` **Assets/Shader/SimpleTestShader.hlsl**
-- `[17]` **Assets/Shader/StandardPBR.hlsl**
-- `[16]` **Runtime/Resources/Asset.h**
-- `[16]` **Runtime/Resources/ResourceManager.h**
-- `[16]` **Runtime/Scene/Scene.h**
-- `[16]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
-- `[15]` **Runtime/Graphics/ComputeShader.h**
-- `[14]` **Runtime/Graphics/Shader.h**
-- `[14]` **Runtime/Renderer/Renderer.h**
-- `[14]` **Runtime/Serialization/SceneLoader.h**
-- `[13]` **Runtime/Scene/SceneManager.h**
-- `[13]` **Editor/Panel/EditorMainBar.h**
-- `[12]` **Runtime/Resources/AssetRegistry.h**
-- `[12]` **Runtime/Resources/IResourceLoader.h**
-- `[12]` **Runtime/Resources/Resource.h**
-- `[12]` **Runtime/Resources/ResourceHandle.h**
-- `[10]` **Assets/Shader/BlitShader.hlsl**
-- `[8]` **Runtime/Renderer/RenderSorter.h**
-- `[8]` **Assets/Shader/GPUCulling.hlsl**
-- `[7]` **Runtime/Core/Profiler.h**
-- `[7]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
-- `[6]` **Runtime/GameObject/Camera.h**
-- `[6]` **Runtime/Renderer/RenderEngine.h**
-- `[6]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
-- `[5]` **Runtime/Core/PublicEnum.h**
-- `[5]` **Runtime/Renderer/RenderUniforms.h**
-- `[5]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
-- `[5]` **Runtime/Platforms/D3D12/D3D12Struct.h**
+- `[17]` **Runtime/Renderer/BatchManager.cpp**
+- `[17]` **Runtime/Renderer/RenderContext.cpp**
 
 ## Evidence & Implementation Details
 
-### File: `Runtime/Graphics/MaterialLayout.h`
+### File: `Runtime/MaterialLibrary/MaterialLayout.h`
 ```cpp
-namespace EngineCore
 {
-    struct MaterialPropertyLayout
+    // 用来存
+    struct TextureAssetInfo
     {
-        std::string name;
-        uint32_t offset;
-        uint32_t size;
-        ShaderVariableType type;
+        // 这个地方直接记录
+        char name[64];
+        uint64_t ASSETID;
     };
 ```
 ...
 ```cpp
+    };
+
+    class MaterialLayout
+    {
+    public:
+
+        void AddProp(const std::string& name, ShaderVariableType type, uint32_t size)
+        {
+            MaterialPropertyLayout prop;
+            prop.name = name;
+            prop.type = type;
+            prop.size = size;
+            prop.offset = currentOffset;
+            layout.m_PropertyLayout[name] = prop;
+            
+            currentOffset += size;
+        }
+        // temp;
+        // 【新增】硬编码构建一个标准布局，模拟未来的 JSON 加载结果
+        // 对应 Shader/SimpleTestShader.hlsl 里的 cbuffer 结构
+        static MaterialLayout GetDefaultPBRLayout()
+        {
+
+            // --- Chunk 0 ---
+            // float4 DiffuseColor
+            AddProp("DiffuseColor", ShaderVariableType::VECTOR4, 16);
+            
+            // float4 SpecularColor
+            AddProp("SpecularColor", ShaderVariableType::VECTOR4, 16);
+
+            // float Roughness
+            AddProp("Roughness", ShaderVariableType::FLOAT, 4);
+            
+            // float Metallic
+            AddProp("Metallic", ShaderVariableType::FLOAT, 4);
+
+            // float2 TilingFactor (8 bytes)
             AddProp("TilingFactor", ShaderVariableType::VECTOR2, 8);
             
             AddProp("DiffuseTextureIndex", ShaderVariableType::FLOAT, 4);
@@ -107,6 +144,121 @@ namespace EngineCore
 
         uint32_t GetPropertyOffset(const std::string& name)
         {
+            ASSERT(m_PropertyLayout.count(name) > 0);
+            return m_PropertyLayout[name].offset;
+        };
+
+        uint32_t GetSize(){ return m_TotalSize;}
+
+    private:
+        std::unordered_map<std::string, MaterialPropertyLayout> m_PropertyLayout;
+        uint32_t m_TotalSize = 0;
+    };
+
+}
+```
+
+### File: `Runtime/MaterialLibrary/MaterialInstance.h`
+```cpp
+namespace EngineCore
+{
+    class MaterialInstance
+    {
+    public:
+        MaterialInstance(const MaterialLayout& layout)
+            :m_Layout(layout)
+        {
+            m_DataBlob.resize(m_Layout.GetSize());    
+        }
+        
+        void SetValue(const std::string& name, void* data, uint32_t size)
+        {
+            uint32_t offset = m_Layout.GetPropertyOffset(name);
+            memcpy(m_DataBlob.data() + offset, data, size);
+        }
+
+        void* GetData(){return m_DataBlob.data();}
+        uint32_t GetSize(){return m_Layout.GetSize();}
+        inline MaterialLayout GetLayout(){return m_Layout;};
+    private:
+        unordered_map<std::string, IGPUTexture*> textureMap;
+        MaterialLayout m_Layout;
+        std::vector<uint8_t> m_DataBlob;
+        bool m_Dirty = true;
+    };
+```
+
+### File: `Runtime/Graphics/GPUSceneManager.cpp`
+```cpp
+    {
+        if(sInstance != nullptr) return sInstance;
+        GPUSceneManager::Create();
+        return sInstance;   
+    }
+
+    void GPUSceneManager::Create()
+    {
+```
+...
+```cpp
+
+        vector<DrawIndirectArgs> drawIndirectArgsList = BatchManager::GetInstance()->GetBatchInfo();
+        UpdateRenderProxyBuffer(renderSceneData.materialDirtyList);
+        UpdateAABBandPerObjectBuffer(renderSceneData.transformDirtyList, renderSceneData.materialDirtyList);
+
+        // 重置visibilityBuffer
+        vector<uint8_t> empty;
+        empty.resize(4 * 10000, 0);
+        visibilityBuffer->UploadBuffer(visiblityAlloc, empty.data(), empty.size());
+        visibilityBuffer->Reset();
+    }
+
+    BufferAllocation GPUSceneManager::GetSinglePerMaterialData()
+    {
+```
+...
+```cpp
+            {
+                // delete: 只处理RenderProxy相关信息。
+                TryFreeRenderProxyBlock(index);
+                perObjectDataBuffer[index].renderProxyStartIndex = 0;
+                perObjectDataBuffer[index].renderProxyCount = 0;
+                perObjectDataBuffer[index].matIndex = 0;
+                perObjectDataBuffer[index].baseVertexLocation = 0;
+            }
+            else
+            {
+```
+
+### File: `Runtime/MaterialLibrary/MaterialArchytype.h`
+```cpp
+    // 对应 MaterialLayout::GetDefaultPBRLayout 的内存布局
+    // 必须保持 16 字节对齐
+    struct MaterialConstants
+    {
+        Vector4 DiffuseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        Vector4 SpecularColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+        float Roughness = 0.5f;
+        float Metallic = 0.0f;
+        Vector2 TilingFactor = Vector2(1.0f, 1.0f);
+        float DiffuseTextureIndex = 0.0f; 
+        Vector3 Padding = Vector3(0.0f, 0.0f, 0.0f);
+    };
+```
+
+### File: `Runtime/MaterialLibrary/MaterialArchetypeRegistry.h`
+```cpp
+namespace EngineCore
+{
+    class MaterialArchetypeRegistry
+    {
+    public:
+        static MaterialArchetypeRegistry& Get()
+        {
+            static MaterialArchetypeRegistry instance;
+            return instance;
+        }
+    };
 ```
 
 ### File: `Runtime/Graphics/Mesh.h`
@@ -221,36 +373,6 @@ namespace EngineCore
     };
 ```
 
-### File: `Runtime/Graphics/MaterialInstance.h`
-```cpp
-namespace EngineCore
-{
-    class MaterialInstance
-    {
-    public:
-        MaterialInstance(const MaterialLayout& layout)
-            :m_Layout(layout)
-        {
-            m_DataBlob.resize(m_Layout.GetSize());    
-        }
-        
-        void SetValue(const std::string& name, void* data, uint32_t size)
-        {
-            uint32_t offset = m_Layout.GetPropertyOffset(name);
-            memcpy(m_DataBlob.data() + offset, data, size);
-        }
-
-        void* GetData(){return m_DataBlob.data();}
-        uint32_t GetSize(){return m_Layout.GetSize();}
-        inline MaterialLayout GetLayout(){return m_Layout;};
-    private:
-        unordered_map<std::string, IGPUTexture*> textureMap;
-        MaterialLayout m_Layout;
-        std::vector<uint8_t> m_DataBlob;
-        bool m_Dirty = true;
-    };
-```
-
 ### File: `Runtime/Graphics/Material.h`
 ```cpp
 namespace EngineCore
@@ -312,22 +434,6 @@ namespace EngineCore
 }
 ```
 
-### File: `Runtime/Graphics/MaterialData.h`
-```cpp
-    // 对应 MaterialLayout::GetDefaultPBRLayout 的内存布局
-    // 必须保持 16 字节对齐
-    struct MaterialConstants
-    {
-        Vector4 DiffuseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-        Vector4 SpecularColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
-        float Roughness = 0.5f;
-        float Metallic = 0.0f;
-        Vector2 TilingFactor = Vector2(1.0f, 1.0f);
-        float DiffuseTextureIndex = 0.0f; 
-        Vector3 Padding = Vector3(0.0f, 0.0f, 0.0f);
-    };
-```
-
 ### File: `Assets/Shader/StandardPBR_VertexPulling.hlsl`
 ```hlsl
 
@@ -337,6 +443,47 @@ struct VertexInput
     float3 Position : POSITION;
     float3 Normal : NORMAL;
     float2 TexCoord : TEXCOORD0;
+};
+```
+
+### File: `Runtime/MaterialLibrary/StandardPBR.h`
+```cpp
+#include "PublicEnum.h"
+
+namespace Mat::StandardPBR
+{
+    using EngineCore::MaterialLayout;
+    using EngineCore::ShaderVariableType;
+
+
+    inline constexpr const char* ArchytypeName =  "Material.PBR";
+
+    inline static uint64_t GetArchetypeID()
+    {
+        return 0;
+    }
+
+    inline MaterialLayout GetMaterialLayout()
+    {   
+        MaterialLayout materialLayout;
+        materialLayout.AddProp("DiffuseColor", ShaderVariableType::VECTOR4, 16);
+            
+        // float4 SpecularColor
+        materialLayout.AddProp("SpecularColor", ShaderVariableType::VECTOR4, 16);
+        // float Roughness
+        materialLayout.AddProp("Roughness", ShaderVariableType::FLOAT, 4);
+        
+        // float Metallic
+        materialLayout.AddProp("Metallic", ShaderVariableType::FLOAT, 4);
+        // float2 TilingFactor (8 bytes)
+        materialLayout.AddProp("TilingFactor", ShaderVariableType::VECTOR2, 8);
+        
+        materialLayout.AddProp("DiffuseTextureIndex", ShaderVariableType::FLOAT, 4);
+        
+        materialLayout.AddProp("PaddingLast", ShaderVariableType::VECTOR3, 12);
+        
+        return materialLayout;
+    }    
 };
 ```
 
@@ -439,31 +586,5 @@ namespace EngineCore
         static void GetFullScreenQuad(Mesh* modelData);
     private:
 
-    };
-```
-
-### File: `Runtime/Graphics/GPUTexture.h`
-```cpp
-namespace EngineCore
-{
-    class GPUTexture
-    {
-    public:
-        IGPUTexture* texture;
-    };
-```
-
-### File: `Runtime/Graphics/IGPUBufferAllocator.h`
-```cpp
-namespace EngineCore
-{
-    class IGPUBufferAllocator
-    {
-        virtual BufferAllocation Allocate(uint32_t size) = 0;
-        virtual void Free(const BufferAllocation& allocation) = 0;
-        virtual void Reset() = 0;
-        virtual uint64_t GetBaseGPUAddress() const = 0; 
-        virtual void UploadBuffer(const BufferAllocation& alloc, void* data, uint32_t size) = 0;
-        virtual IGPUBuffer* GetGPUBuffer() = 0;
     };
 ```

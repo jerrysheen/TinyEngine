@@ -6,6 +6,7 @@
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
+- 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
 
@@ -14,6 +15,7 @@
 - 关注运行时脚本与管理器如何驱动渲染与资源依赖。
 
 ## Key Files Index
+- `[42]` **Runtime/GameObject/Camera.cpp** *(Content Included)*
 - `[42]` **Runtime/GameObject/Camera.h** *(Content Included)*
 - `[42]` **Runtime/GameObject/Transform.h** *(Content Included)*
 - `[41]` **Runtime/GameObject/MonoBehaviour.h** *(Content Included)*
@@ -21,16 +23,45 @@
 - `[38]` **Runtime/Scripts/CameraController.h** *(Content Included)*
 - `[37]` **Runtime/GameObject/Component.h** *(Content Included)*
 - `[37]` **Runtime/Managers/WindowManager.h** *(Content Included)*
+- `[35]` **Runtime/GameObject/Transform.cpp** *(Content Included)*
+- `[35]` **Runtime/Managers/WindowManager.cpp** *(Content Included)*
+- `[35]` **Runtime/Scripts/CameraController.cpp** *(Content Included)*
+- `[33]` **Runtime/GameObject/Component.cpp** *(Content Included)*
+- `[33]` **Runtime/GameObject/MonoBehaviour.cpp** *(Content Included)*
 - `[27]` **Runtime/Platforms/Windows/WindowManagerWindows.h** *(Content Included)*
 - `[26]` **Runtime/GameObject/GameObject.h** *(Content Included)*
+- `[25]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
+- `[25]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp** *(Content Included)*
+- `[24]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
+- `[23]` **Runtime/Scene/Scene.cpp** *(Content Included)*
 - `[23]` **Runtime/Scene/Scene.h** *(Content Included)*
+- `[21]` **Runtime/GameObject/GameObject.cpp**
+- `[20]` **Runtime/Entry.cpp**
 - `[19]` **Runtime/GameObject/MeshRenderer.h**
 - `[17]` **Runtime/GameObject/MeshFilter.h**
+- `[17]` **Runtime/Renderer/RenderEngine.cpp**
+- `[14]` **Runtime/Core/Game.cpp**
 - `[14]` **Runtime/Scene/SceneManager.h**
+- `[13]` **Runtime/Graphics/GPUSceneManager.cpp**
+- `[13]` **Editor/Panel/EditorMainBar.cpp**
+- `[12]` **Runtime/GameObject/MeshFilter.cpp**
+- `[12]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[12]` **Runtime/Managers/Manager.h**
 - `[12]` **Runtime/Scene/BistroSceneLoader.h**
-- `[9]` **Runtime/Serialization/SceneLoader.h**
+- `[12]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
+- `[12]` **Editor/Panel/EditorInspectorPanel.cpp**
+- `[11]` **Runtime/Serialization/SceneLoader.h**
+- `[10]` **Assets/Shader/SimpleTestShader.hlsl**
+- `[10]` **Assets/Shader/StandardPBR.hlsl**
+- `[10]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
+- `[9]` **Runtime/Renderer/Renderer.cpp**
+- `[9]` **Runtime/Renderer/Renderer.h**
+- `[9]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
+- `[9]` **Assets/Shader/BlitShader.hlsl**
+- `[9]` **Assets/Shader/GPUCulling.hlsl**
 - `[8]` **Runtime/Graphics/Mesh.h**
+- `[8]` **Runtime/Platforms/D3D12/d3dUtil.h**
+- `[8]` **Editor/Panel/EditorHierarchyPanel.cpp**
 - `[8]` **Editor/Panel/EditorInspectorPanel.h**
 - `[7]` **Editor/EditorSettings.h**
 - `[7]` **Runtime/PreCompiledHeader.h**
@@ -39,43 +70,25 @@
 - `[6]` **Runtime/Renderer/RenderCommand.h**
 - `[6]` **Runtime/Renderer/RenderContext.h**
 - `[6]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
-- `[6]` **Assets/Shader/SimpleTestShader.hlsl**
-- `[6]` **Assets/Shader/StandardPBR.hlsl**
-- `[6]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
+- `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
+- `[5]` **Runtime/Graphics/Mesh.cpp**
 - `[5]` **Runtime/Renderer/RenderAPI.h**
-- `[5]` **Runtime/Renderer/Renderer.h**
 - `[5]` **Runtime/Settings/ProjectSettings.h**
-- `[5]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
-- `[5]` **Assets/Shader/BlitShader.hlsl**
-- `[5]` **Assets/Shader/GPUCulling.hlsl**
-- `[4]` **premake5.lua**
-- `[4]` **Runtime/Core/PublicStruct.h**
-- `[4]` **Runtime/Graphics/Shader.h**
-- `[4]` **Runtime/Math/AABB.h**
-- `[4]` **Runtime/Renderer/Culling.h**
-- `[4]` **Runtime/Platforms/D3D12/D3D12Struct.h**
-- `[4]` **Runtime/Platforms/D3D12/d3dUtil.h**
-- `[3]` **Runtime/EngineCore.h**
-- `[3]` **Runtime/Graphics/GPUSceneManager.h**
-- `[3]` **Runtime/Renderer/RenderUniforms.h**
-- `[3]` **Editor/D3D12/D3D12EditorGUIManager.h**
-- `[2]` **Editor/EditorGUIManager.h**
-- `[2]` **Runtime/CoreAssert.h**
-- `[2]` **Runtime/Core/Game.h**
-- `[2]` **Runtime/Core/InstanceID.h**
-- `[2]` **Runtime/Core/Object.h**
-- `[2]` **Runtime/Core/Profiler.h**
-- `[2]` **Runtime/Core/PublicEnum.h**
-- `[2]` **Runtime/Core/ThreadSafeQueue.h**
-- `[2]` **Runtime/Graphics/ComputeShader.h**
-- `[2]` **Runtime/Graphics/GeometryManager.h**
-- `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
-- `[2]` **Runtime/Graphics/GPUTexture.h**
-- `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
-- `[2]` **Runtime/Graphics/IGPUResource.h**
-- `[2]` **Runtime/Graphics/Material.h**
+- `[5]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 
 ## Evidence & Implementation Details
+
+### File: `Runtime/GameObject/Camera.cpp`
+```cpp
+        //  0, 0, -0.003, 0.29,
+        //  0.53, -0.40, 0.74, 4.5);
+        UpdateCameraMatrix();
+    }
+
+    // 物体已经在世界坐标系中， 所以只需要用vp矩阵判断， Mvp * p;
+    void Camera::Update()
+    {
+```
 
 ### File: `Runtime/GameObject/Camera.h`
 ```cpp
@@ -175,9 +188,7 @@ namespace EngineCore
 
         friend class GameObject;
         // 外部不能访问修改， 只能访问GameObject.SetParent
-```
-...
-```cpp
+        inline void SetParent(Transform* transform)
         {
             parentTransform = transform; 
             if(transform)transform->AddChild(this);
@@ -185,6 +196,18 @@ namespace EngineCore
 
         inline void DettachParent()
         {
+            if(parentTransform != nullptr) parentTransform->RemoveChild(this);
+            parentTransform = nullptr;
+        }
+
+        inline void AddChild(Transform* transform)
+        {
+            childTransforms.push_back(transform);
+        };
+
+        inline void RemoveChild(Transform* transform)
+        {
+            auto it = std::find(childTransforms.begin(), childTransforms.end(), transform);
 ```
 
 ### File: `Runtime/GameObject/MonoBehaviour.h`

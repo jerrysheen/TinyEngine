@@ -1,11 +1,12 @@
 # Architecture Digest: PLATFORM_WINDOWING
-> Auto-generated. Focus: Runtime/Platforms, Window, Input, Platform, Win32, MessageLoop
+> Auto-generated. Focus: Runtime/Platforms, Runtime/Platforms/Windows, Window, WindowManager, WindowManagerWindows, Input, Platform, Win32, MessageLoop
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
+- 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
 
@@ -14,68 +15,107 @@
 - 关注窗口创建、消息循环与输入采样接口。
 
 ## Key Files Index
-- `[47]` **Runtime/Platforms/Windows/WindowManagerWindows.h** *(Content Included)*
-- `[27]` **Runtime/Managers/WindowManager.h** *(Content Included)*
+- `[109]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp** *(Content Included)*
+- `[103]` **Runtime/Platforms/Windows/WindowManagerWindows.h** *(Content Included)*
+- `[54]` **Runtime/Managers/WindowManager.cpp** *(Content Included)*
+- `[51]` **Runtime/Managers/WindowManager.h** *(Content Included)*
+- `[29]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp** *(Content Included)*
+- `[28]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
+- `[28]` **Runtime/Platforms/D3D12/d3dUtil.h** *(Content Included)*
+- `[26]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h** *(Content Included)*
+- `[25]` **Runtime/Platforms/D3D12/D3D12PSO.cpp** *(Content Included)*
 - `[25]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
 - `[24]` **Runtime/Platforms/D3D12/D3D12Struct.h** *(Content Included)*
-- `[24]` **Runtime/Platforms/D3D12/d3dUtil.h** *(Content Included)*
+- `[24]` **Runtime/Platforms/D3D12/d3dUtil.cpp** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/D3D12Buffer.h** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/D3D12DescManager.h** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/D3D12PSO.h** *(Content Included)*
+- `[22]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/D3D12RootSignature.h** *(Content Included)*
-- `[22]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/D3D12Texture.h** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/d3dx12.h** *(Content Included)*
+- `[20]` **Runtime/Entry.cpp**
+- `[20]` **Runtime/Renderer/RenderEngine.cpp**
+- `[20]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp**
+- `[20]` **Runtime/Platforms/D3D12/D3D12DescManager.cpp**
+- `[17]` **Editor/D3D12/D3D12EditorGUIManager.cpp**
+- `[15]` **Runtime/Core/Game.cpp**
 - `[9]` **Runtime/PreCompiledHeader.h**
+- `[9]` **Runtime/Renderer/Renderer.h**
+- `[9]` **Assets/Shader/BlitShader.hlsl**
+- `[9]` **Assets/Shader/GPUCulling.hlsl**
+- `[9]` **Assets/Shader/SimpleTestShader.hlsl**
+- `[9]` **Assets/Shader/StandardPBR.hlsl**
+- `[9]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
+- `[8]` **Runtime/Graphics/GPUSceneManager.cpp**
+- `[8]` **Runtime/Scene/SceneManager.cpp**
 - `[7]` **Editor/EditorSettings.h**
 - `[7]` **Runtime/Graphics/Mesh.h**
 - `[6]` **Runtime/Renderer/RenderCommand.h**
+- `[6]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[5]` **premake5.lua**
+- `[5]` **WinBuildAndRun.bat**
+- `[5]` **Runtime/Graphics/Mesh.cpp**
 - `[5]` **Runtime/Renderer/RenderAPI.h**
-- `[5]` **Runtime/Renderer/Renderer.h**
+- `[5]` **Runtime/Renderer/Renderer.cpp**
+- `[5]` **Runtime/Scene/BistroSceneLoader.cpp**
 - `[5]` **Runtime/Settings/ProjectSettings.h**
-- `[5]` **Assets/Shader/BlitShader.hlsl**
-- `[5]` **Assets/Shader/GPUCulling.hlsl**
-- `[5]` **Assets/Shader/SimpleTestShader.hlsl**
-- `[5]` **Assets/Shader/StandardPBR.hlsl**
-- `[5]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
+- `[5]` **Editor/Panel/EditorConsolePanel.cpp**
+- `[5]` **Editor/Panel/EditorGameViewPanel.cpp**
+- `[5]` **Editor/Panel/EditorMainBar.cpp**
+- `[4]` **Runtime/EngineCore.h**
 - `[4]` **Runtime/Graphics/Shader.h**
+- `[4]` **Runtime/Settings/ProjectSettings.cpp**
 - `[4]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[4]` **Editor/D3D12/D3D12EditorGUIManager.h**
-- `[3]` **Runtime/EngineCore.h**
+- `[4]` **Editor/Panel/EditorHierarchyPanel.cpp**
+- `[4]` **Editor/Panel/EditorInspectorPanel.cpp**
+- `[4]` **Editor/Panel/EditorProjectPanel.cpp**
+- `[3]` **Runtime/Graphics/MeshUtils.cpp**
 - `[2]` **Editor/EditorGUIManager.h**
 - `[2]` **Runtime/CoreAssert.h**
-- `[2]` **Runtime/Core/Game.h**
-- `[2]` **Runtime/Core/InstanceID.h**
-- `[2]` **Runtime/Core/Object.h**
-- `[2]` **Runtime/Core/Profiler.h**
-- `[2]` **Runtime/Core/PublicEnum.h**
-- `[2]` **Runtime/Core/PublicStruct.h**
-- `[2]` **Runtime/Core/ThreadSafeQueue.h**
-- `[2]` **Runtime/GameObject/Camera.h**
-- `[2]` **Runtime/GameObject/Component.h**
-- `[2]` **Runtime/GameObject/ComponentType.h**
-- `[2]` **Runtime/GameObject/GameObject.h**
-- `[2]` **Runtime/GameObject/MeshFilter.h**
-- `[2]` **Runtime/GameObject/MeshRenderer.h**
-- `[2]` **Runtime/GameObject/MonoBehaviour.h**
-- `[2]` **Runtime/GameObject/Transform.h**
-- `[2]` **Runtime/Graphics/ComputeShader.h**
-- `[2]` **Runtime/Graphics/GeometryManager.h**
-- `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
-- `[2]` **Runtime/Graphics/GPUSceneManager.h**
-- `[2]` **Runtime/Graphics/GPUTexture.h**
-- `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
-- `[2]` **Runtime/Graphics/IGPUResource.h**
-- `[2]` **Runtime/Graphics/Material.h**
-- `[2]` **Runtime/Graphics/MaterialData.h**
-- `[2]` **Runtime/Graphics/MaterialInstance.h**
-- `[2]` **Runtime/Graphics/MaterialLayout.h**
-- `[2]` **Runtime/Graphics/MeshUtils.h**
-- `[2]` **Runtime/Graphics/RenderTexture.h**
 
 ## Evidence & Implementation Details
+
+### File: `Runtime/Platforms/Windows/WindowManagerWindows.cpp`
+```cpp
+		// CreateWindowW传入的窗口大小会包括标题栏和边框，需要根据客户区大小来计算实际窗口大小
+		RECT rc = { 0, 0, static_cast<LONG>(mWindowWidth), static_cast<LONG>(mWindowHeight) };
+		AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
+		int width = static_cast<int>(rc.right - rc.left);
+		int height = static_cast<int>(rc.bottom - rc.top);
+
+		mWindow = CreateWindowW(wndClass.lpszClassName, L"TinyEngine <Direct3D 12>", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
+			width, height, NULL, NULL, wndClass.hInstance, NULL);
+
+    }
+
+    void WindowManagerWindows::Show()
+    {
+```
+...
+```cpp
+		}
+
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+    }
+
+    void WindowManagerWindows::OnResize()
+    {
+```
+...
+```cpp
+		if(RenderAPI::IsInitialized())
+		{
+			RenderEngine::GetInstance()->OnResize(mWindowWidth, mWindowHeight);
+		}
+		std::cout << mWindowHeight << std::endl;
+		std::cout << mWindowWidth << std:: endl;
+    }
+
+}
+```
 
 ### File: `Runtime/Platforms/Windows/WindowManagerWindows.h`
 ```cpp
@@ -96,6 +136,28 @@ namespace EngineCore
         void InitializeWindowsWindow();
         HWND mWindow;
     };
+```
+
+### File: `Runtime/Managers/WindowManager.cpp`
+```cpp
+#include "Platforms/Windows/WindowManagerWindows.h"
+
+namespace EngineCore
+{
+    
+    std::unique_ptr<WindowManager> WindowManager::s_Instance = nullptr;
+
+    void WindowManager::Create()
+    {
+        WindowManager::s_Instance = std::make_unique<WindowManagerWindows>();
+        static_cast<WindowManagerWindows*>(WindowManager::s_Instance.get())->Show();
+    }
+
+    void WindowManager::Update()
+    {
+        
+    }
+}
 ```
 
 ### File: `Runtime/Managers/WindowManager.h`
@@ -127,6 +189,126 @@ namespace EngineCore
         bool mAppPaused = false;
 		bool mMaximized = false;
     };
+```
+
+### File: `Runtime/Platforms/D3D12/d3dUtil.h`
+```cpp
+{
+    WCHAR buffer[512];
+    MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, buffer, 512);
+    return std::wstring(buffer);
+}
+
+/*
+#if defined(_DEBUG)
+    #ifndef Assert
+    #define Assert(x, description)                                  \
+    {                                                               \
+```
+...
+```cpp
+                    else if(result == Debug::AssertBreak)           \
+        {                                                           \
+            __debugbreak();                                         \
+        }                                                           \
+        }                                                           \
+    }
+    #endif
+#else
+    #ifndef Assert
+    #define Assert(x, description) 
+    #endif
+#endif 		
+    */
+
+class d3dUtil
+{
+```
+...
+```cpp
+    static bool IsKeyDown(int vkeyCode);
+
+    static std::string ToString(HRESULT hr);
+
+    static UINT CalcConstantBufferByteSize(UINT byteSize)
+    {
+        // Constant buffers must be a multiple of the minimum hardware
+        // allocation size (usually 256 bytes).  So round up to nearest
+        // multiple of 256.  We do this by adding 255 and then masking off
+        // the lower 2 bytes which store all bits < 256.
+        // Example: Suppose byteSize = 300.
+        // (300 + 255) & ~255
+        // 555 & ~255
+        // 0x022B & ~0x00ff
+        // 0x022B & 0xff00
+        // 0x0200
+        // 512
+        return (byteSize + 255) & ~255;
+    }
+```
+...
+```cpp
+		const std::string& target);
+
+    static D3D12_RESOURCE_DIMENSION GetFBOD3D12Dimesnsion(const EngineCore::TextureDimension& dimension);
+    static DXGI_FORMAT GetFBOD3D12Format(const EngineCore::TextureFormat& format);
+};
+
+class DxException
+{
+```
+...
+```cpp
+    DxException(HRESULT hr, const std::wstring& functionName, const std::wstring& filename, int lineNumber);
+
+    std::wstring ToString()const;
+
+    HRESULT ErrorCode = S_OK;
+    std::wstring FunctionName;
+    std::wstring Filename;
+    int LineNumber = -1;
+};
+
+
+struct D3D12DrawCommand
+{
+```
+
+### File: `Runtime/Platforms/D3D12/D3D12ShaderUtils.h`
+```cpp
+#include "d3dUtil.h"
+
+namespace EngineCore
+{
+    class D3D12ShaderUtils
+    {
+    public:
+        static bool CompileShaderAndGetReflection(const string& path, Shader* shader);
+        static bool CompileShaderStageAndGetReflection(const string& path, string entryPoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob);
+        static bool D3D12ShaderUtils::CompileComputeShaderAndGetReflection(const string& path, ComputeShader* csShader);
+        
+        static Microsoft::WRL::ComPtr<ID3DBlob> GetVSBlob(uint32_t shaderID)
+        {
+            ASSERT(vsBlobMap.count(shaderID) > 0);
+            return vsBlobMap[shaderID];
+        }
+
+        static Microsoft::WRL::ComPtr<ID3DBlob> GetPSBlob(uint32_t shaderID)
+        {
+            ASSERT(psBlobMap.count(shaderID) > 0);
+            return psBlobMap[shaderID];
+        }
+
+        static Microsoft::WRL::ComPtr<ID3DBlob> GetCSBlob(uint32_t shaderID)
+        {
+            ASSERT(csBlobMap.count(shaderID) > 0);
+            return csBlobMap[shaderID];
+        }
+        static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> vsBlobMap;
+        static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> psBlobMap;
+        static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> csBlobMap;
+    };
+}
 ```
 
 ### File: `Runtime/Platforms/D3D12/D3D12RenderAPI.h`
@@ -283,89 +465,6 @@ namespace EngineCore
 } // namespace EngineCore
 ```
 
-### File: `Runtime/Platforms/D3D12/d3dUtil.h`
-```cpp
-{
-    WCHAR buffer[512];
-    MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, buffer, 512);
-    return std::wstring(buffer);
-}
-
-/*
-#if defined(_DEBUG)
-    #ifndef Assert
-    #define Assert(x, description)                                  \
-    {                                                               \
-```
-...
-```cpp
-                    else if(result == Debug::AssertBreak)           \
-        {                                                           \
-            __debugbreak();                                         \
-        }                                                           \
-        }                                                           \
-    }
-    #endif
-#else
-    #ifndef Assert
-    #define Assert(x, description) 
-    #endif
-#endif 		
-    */
-
-class d3dUtil
-{
-```
-...
-```cpp
-    static bool IsKeyDown(int vkeyCode);
-
-    static std::string ToString(HRESULT hr);
-
-    static UINT CalcConstantBufferByteSize(UINT byteSize)
-    {
-        // Constant buffers must be a multiple of the minimum hardware
-        // allocation size (usually 256 bytes).  So round up to nearest
-        // multiple of 256.  We do this by adding 255 and then masking off
-        // the lower 2 bytes which store all bits < 256.
-        // Example: Suppose byteSize = 300.
-        // (300 + 255) & ~255
-        // 555 & ~255
-        // 0x022B & ~0x00ff
-        // 0x022B & 0xff00
-        // 0x0200
-        // 512
-        return (byteSize + 255) & ~255;
-    }
-```
-...
-```cpp
-		const std::string& target);
-
-    static D3D12_RESOURCE_DIMENSION GetFBOD3D12Dimesnsion(const EngineCore::TextureDimension& dimension);
-    static DXGI_FORMAT GetFBOD3D12Format(const EngineCore::TextureFormat& format);
-};
-
-class DxException
-{
-```
-...
-```cpp
-    DxException(HRESULT hr, const std::wstring& functionName, const std::wstring& filename, int lineNumber);
-
-    std::wstring ToString()const;
-
-    HRESULT ErrorCode = S_OK;
-    std::wstring FunctionName;
-    std::wstring Filename;
-    int LineNumber = -1;
-};
-
-
-struct D3D12DrawCommand
-{
-```
-
 ### File: `Runtime/Platforms/D3D12/D3D12Buffer.h`
 ```cpp
 #include "d3dUtil.h"
@@ -428,12 +527,17 @@ namespace EngineCore
             {
                 m_Resource->Unmap(0, nullptr);
                 m_MappedData = nullptr;
-```
-...
-```cpp
+            }
         }
     
         virtual void SetName(const wchar_t* name) override {m_Resource->SetName(name);}
+
+    private:
+        ComPtr<ID3D12Resource> m_Resource;
+        BufferDesc m_Desc;
+        void* m_MappedData = nullptr;
+    };
+}
 ```
 
 ### File: `Runtime/Platforms/D3D12/D3D12DescAllocator.h`
@@ -586,43 +690,6 @@ namespace EngineCore
             ASSERT(mRootSigMap.count(key) > 0);
             return mRootSigMap[key];
         }
-    };
-}
-```
-
-### File: `Runtime/Platforms/D3D12/D3D12ShaderUtils.h`
-```cpp
-#include "d3dUtil.h"
-
-namespace EngineCore
-{
-    class D3D12ShaderUtils
-    {
-    public:
-        static bool CompileShaderAndGetReflection(const string& path, Shader* shader);
-        static bool CompileShaderStageAndGetReflection(const string& path, string entryPoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob);
-        static bool D3D12ShaderUtils::CompileComputeShaderAndGetReflection(const string& path, ComputeShader* csShader);
-        
-        static Microsoft::WRL::ComPtr<ID3DBlob> GetVSBlob(uint32_t shaderID)
-        {
-            ASSERT(vsBlobMap.count(shaderID) > 0);
-            return vsBlobMap[shaderID];
-        }
-
-        static Microsoft::WRL::ComPtr<ID3DBlob> GetPSBlob(uint32_t shaderID)
-        {
-            ASSERT(psBlobMap.count(shaderID) > 0);
-            return psBlobMap[shaderID];
-        }
-
-        static Microsoft::WRL::ComPtr<ID3DBlob> GetCSBlob(uint32_t shaderID)
-        {
-            ASSERT(csBlobMap.count(shaderID) > 0);
-            return csBlobMap[shaderID];
-        }
-        static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> vsBlobMap;
-        static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> psBlobMap;
-        static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> csBlobMap;
     };
 }
 ```
@@ -785,10 +852,78 @@ struct CD3DX12_DEPTH_STENCIL_DESC : public D3D12_DEPTH_STENCIL_DESC
 //------------------------------------------------------------------------------------------------
 struct CD3DX12_BLEND_DESC : public D3D12_BLEND_DESC
 {
+    CD3DX12_BLEND_DESC()
+    {}
+    explicit CD3DX12_BLEND_DESC( const D3D12_BLEND_DESC& o ) :
+        D3D12_BLEND_DESC( o )
+    {}
+    explicit CD3DX12_BLEND_DESC( CD3DX12_DEFAULT )
+    {
+        AlphaToCoverageEnable = FALSE;
+        IndependentBlendEnable = FALSE;
+        const D3D12_RENDER_TARGET_BLEND_DESC defaultRenderTargetBlendDesc =
+        {
+            FALSE,FALSE,
+            D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+            D3D12_BLEND_ONE, D3D12_BLEND_ZERO, D3D12_BLEND_OP_ADD,
+            D3D12_LOGIC_OP_NOOP,
+            D3D12_COLOR_WRITE_ENABLE_ALL,
+        };
+        for (UINT i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)
+            RenderTarget[ i ] = defaultRenderTargetBlendDesc;
+    }
 ```
 ...
 ```cpp
-            RenderTarget[ i ] = defaultRenderTargetBlendDesc;
+
+//------------------------------------------------------------------------------------------------
+struct CD3DX12_RASTERIZER_DESC : public D3D12_RASTERIZER_DESC
+{
+    CD3DX12_RASTERIZER_DESC()
+    {}
+    explicit CD3DX12_RASTERIZER_DESC( const D3D12_RASTERIZER_DESC& o ) :
+        D3D12_RASTERIZER_DESC( o )
+    {}
+    explicit CD3DX12_RASTERIZER_DESC( CD3DX12_DEFAULT )
+    {
+        FillMode = D3D12_FILL_MODE_SOLID;
+        CullMode = D3D12_CULL_MODE_BACK;
+        FrontCounterClockwise = FALSE;
+        DepthBias = D3D12_DEFAULT_DEPTH_BIAS;
+        DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP;
+        SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS;
+        DepthClipEnable = TRUE;
+        MultisampleEnable = FALSE;
+        AntialiasedLineEnable = FALSE;
+        ForcedSampleCount = 0;
+        ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
     }
-    ~CD3DX12_BLEND_DESC() {}
+    explicit CD3DX12_RASTERIZER_DESC(
+        D3D12_FILL_MODE fillMode,
+        D3D12_CULL_MODE cullMode,
+        BOOL frontCounterClockwise,
+        INT depthBias,
+        FLOAT depthBiasClamp,
+        FLOAT slopeScaledDepthBias,
+        BOOL depthClipEnable,
+        BOOL multisampleEnable,
+        BOOL antialiasedLineEnable, 
+        UINT forcedSampleCount, 
+        D3D12_CONSERVATIVE_RASTERIZATION_MODE conservativeRaster)
+    {
+        FillMode = fillMode;
+        CullMode = cullMode;
+        FrontCounterClockwise = frontCounterClockwise;
+        DepthBias = depthBias;
+        DepthBiasClamp = depthBiasClamp;
+        SlopeScaledDepthBias = slopeScaledDepthBias;
+        DepthClipEnable = depthClipEnable;
+        MultisampleEnable = multisampleEnable;
+        AntialiasedLineEnable = antialiasedLineEnable;
+        ForcedSampleCount = forcedSampleCount;
+        ConservativeRaster = conservativeRaster;
+    }
+    ~CD3DX12_RASTERIZER_DESC() {}
+    operator const D3D12_RASTERIZER_DESC&() const { return *this; }
+};
 ```

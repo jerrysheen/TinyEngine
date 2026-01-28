@@ -1,11 +1,12 @@
 # Architecture Digest: ASSET_PIPELINE
-> Auto-generated. Focus: Runtime/Resources, Runtime/Serialization, Asset, Importer, Texture, Material, Shader, Mesh, MeshLoader, StreamHelper
+> Auto-generated. Focus: Runtime/Resources, Runtime/Serialization, Runtime/MaterialLibrary, Asset, AssetRegistry, ResourceManager, Importer, Texture, Material, Shader, Mesh, MeshLoader, TextureLoader, MaterialLoader, SceneLoader, StreamHelper
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
+- 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
 
@@ -15,65 +16,65 @@
 
 ## Key Files Index
 - `[69]` **Runtime/Serialization/MeshLoader.h** *(Content Included)*
+- `[67]` **Runtime/Serialization/DDSTextureLoader.h** *(Content Included)*
+- `[65]` **Runtime/Resources/AssetRegistry.cpp** *(Content Included)*
+- `[63]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
+- `[60]` **Runtime/Resources/AssetRegistry.h** *(Content Included)*
+- `[57]` **Runtime/Resources/ResourceManager.cpp** *(Content Included)*
+- `[57]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
+- `[55]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
+- `[52]` **Runtime/Serialization/TextureLoader.h** *(Content Included)*
+- `[49]` **Runtime/Resources/ResourceManager.h** *(Content Included)*
+- `[46]` **Runtime/MaterialLibrary/MaterialLayout.h** *(Content Included)*
 - `[46]` **Runtime/Resources/AssetTypeTraits.h** *(Content Included)*
-- `[45]` **Runtime/Serialization/DDSTextureLoader.h** *(Content Included)*
+- `[43]` **Runtime/Graphics/Material.cpp** *(Content Included)*
+- `[42]` **Runtime/MaterialLibrary/MaterialArchytype.h** *(Content Included)*
 - `[42]` **Runtime/Resources/Asset.h** *(Content Included)*
-- `[38]` **Assets/Shader/SimpleTestShader.hlsl** *(Content Included)*
+- `[42]` **Assets/Shader/SimpleTestShader.hlsl** *(Content Included)*
+- `[40]` **Runtime/Scene/BistroSceneLoader.h** *(Content Included)*
+- `[40]` **Assets/Shader/BlitShader.hlsl** *(Content Included)*
+- `[39]` **Runtime/MaterialLibrary/MaterialInstance.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/Material.h** *(Content Included)*
-- `[37]` **Runtime/Resources/AssetRegistry.h** *(Content Included)*
-- `[36]` **Runtime/Serialization/AssetHeader.h** *(Content Included)*
-- `[36]` **Assets/Shader/BlitShader.hlsl** *(Content Included)*
-- `[34]` **Runtime/Serialization/StreamHelper.h** *(Content Included)*
-- `[33]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
-- `[32]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
-- `[32]` **Runtime/Graphics/MaterialData.h** *(Content Included)*
-- `[32]` **Runtime/Serialization/TextureLoader.h** *(Content Included)*
-- `[30]` **Runtime/Graphics/Mesh.h** *(Content Included)*
+- `[36]` **Runtime/Serialization/AssetHeader.h**
+- `[35]` **Runtime/MaterialLibrary/MaterialArchetypeRegistry.h**
+- `[34]` **Runtime/Serialization/StreamHelper.h**
+- `[34]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
+- `[33]` **Runtime/MaterialLibrary/StandardPBR.h**
+- `[33]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
+- `[32]` **Runtime/GameObject/MeshRenderer.cpp**
+- `[32]` **Runtime/GameObject/MeshRenderer.h**
+- `[32]` **Runtime/Graphics/Mesh.cpp**
+- `[32]` **Assets/Shader/StandardPBR.hlsl**
+- `[31]` **Runtime/Scene/SceneManager.cpp**
+- `[31]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
+- `[30]` **Runtime/Graphics/Mesh.h**
 - `[30]` **Assets/Shader/include/Core.hlsl**
-- `[29]` **Runtime/Graphics/MaterialInstance.h**
-- `[29]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
-- `[28]` **Runtime/Serialization/SceneLoader.h**
-- `[28]` **Assets/Shader/StandardPBR.hlsl**
 - `[27]` **Runtime/GameObject/MeshFilter.h**
 - `[27]` **Runtime/Graphics/MeshUtils.h**
 - `[27]` **Runtime/Graphics/RenderTexture.h**
+- `[27]` **Runtime/Graphics/Shader.cpp**
 - `[27]` **Runtime/Graphics/Shader.h**
 - `[27]` **Runtime/Graphics/Texture.h**
-- `[27]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[27]` **Runtime/Platforms/D3D12/D3D12Texture.h**
+- `[26]` **Runtime/Graphics/ComputeShader.cpp**
 - `[26]` **Runtime/Graphics/ComputeShader.h**
+- `[26]` **Runtime/Graphics/GPUSceneManager.cpp**
+- `[25]` **Runtime/GameObject/MeshFilter.cpp**
 - `[25]` **Runtime/Graphics/GPUTexture.h**
+- `[25]` **Runtime/Graphics/MeshUtils.cpp**
+- `[25]` **Runtime/Graphics/RenderTexture.cpp**
+- `[25]` **Runtime/Graphics/Texture.cpp**
+- `[24]` **Editor/Panel/EditorMainBar.h**
+- `[24]` **Assets/Shader/GPUCulling.hlsl**
 - `[22]` **Runtime/Core/PublicStruct.h**
 - `[22]` **Runtime/Renderer/RenderCommand.h**
-- `[21]` **Runtime/Resources/ResourceManager.h**
-- `[21]` **Editor/Panel/EditorMainBar.h**
-- `[20]` **Assets/Shader/GPUCulling.hlsl**
+- `[22]` **Runtime/Renderer/Renderer.cpp**
+- `[22]` **Runtime/Resources/ResourceHandle.h**
+- `[21]` **Runtime/Core/Game.cpp**
+- `[21]` **Runtime/MaterialLibrary/StandardPBR.cpp**
+- `[20]` **Runtime/Entry.cpp**
+- `[20]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[19]` **Runtime/Renderer/RenderAPI.h**
-- `[18]` **Runtime/Scene/BistroSceneLoader.h**
-- `[17]` **Runtime/Resources/Resource.h**
-- `[17]` **Runtime/Resources/ResourceHandle.h**
-- `[17]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
-- `[16]` **Runtime/Scene/SceneManager.h**
-- `[14]` **Runtime/Renderer/Renderer.h**
-- `[13]` **Runtime/Renderer/RenderStruct.h**
-- `[12]` **Runtime/Resources/IResourceLoader.h**
-- `[12]` **Runtime/Platforms/D3D12/d3dx12.h**
-- `[11]` **Runtime/Renderer/BatchManager.h**
-- `[11]` **Runtime/Scene/Scene.h**
-- `[11]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
-- `[10]` **Runtime/Graphics/GPUSceneManager.h**
-- `[10]` **Runtime/Graphics/IGPUResource.h**
-- `[10]` **Runtime/Renderer/RenderSorter.h**
-- `[10]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
-- `[8]` **Runtime/Core/PublicEnum.h**
-- `[8]` **Runtime/GameObject/Camera.h**
-- `[7]` **Runtime/Graphics/GeometryManager.h**
-- `[7]` **Runtime/Settings/ProjectSettings.h**
-- `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
-- `[5]` **premake5.lua**
-- `[5]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
-- `[5]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
-- `[4]` **Runtime/GameObject/ComponentType.h**
 
 ## Evidence & Implementation Details
 
@@ -117,17 +118,6 @@ namespace EngineCore
         }
 
     };
-```
-
-### File: `Runtime/Resources/AssetTypeTraits.h`
-```cpp
-namespace EngineCore
-{
-    class Mesh;
-    class Texture;
-    class Material;
-
-    template<typename T> struct AssetTypeTraits { static const AssetType Type = AssetType::Default; };
 ```
 
 ### File: `Runtime/Serialization/DDSTextureLoader.h`
@@ -192,9 +182,7 @@ typedef unsigned int DWORD;           // 32bits little endian
   DWORD  114      caps3;              //. unused
   DWORD  116      caps4;              //. unused
   DWORD  120      reserved2;          //. unused
-```
-...
-```cpp
+*/
 
 namespace EngineCore{
     struct DDSHeader {
@@ -214,12 +202,17 @@ namespace EngineCore{
         uint32_t rBitMask;
         uint32_t gBitMask;
         uint32_t bBitMask;
-        uint32_t aBitMask;
-        uint32_t caps;
-        uint32_t caps2;
-        uint32_t caps3;
-        uint32_t caps4;
-        uint32_t reserved2;
+```
+...
+```cpp
+    };
+
+    struct DDS_HEADER_DXT10 {
+        uint32_t dxgiFormat;      // DXGI_FORMAT枚举值
+        uint32_t resourceDimension; // D3D11_RESOURCE_DIMENSION
+        uint32_t miscFlag;        // D3D11_RESOURCE_MISC_FLAG
+        uint32_t arraySize;       // 数组大小
+        uint32_t miscFlags2;      // 额外标志
     };
 ```
 ...
@@ -284,9 +277,12 @@ namespace EngineCore{
             uint32_t blockWidth = (width + 3) / 4;
             uint32_t blockHeight = (height + 3) / 4;
             return blockWidth * blockHeight * blockSize;
-```
-...
-```cpp
+        }
+    
+    private:
+    
+    
+        DDSLoadResult LoadDDSFromFile(const std::string& relativePath)
         {
             std::string path = PathSettings::ResolveAssetPath(relativePath);
             std::ifstream file(path, std::ios::binary);
@@ -301,10 +297,6 @@ namespace EngineCore{
             DDSHeader header;
             file.read(reinterpret_cast<char*>(&header), sizeof(DDSHeader));
     
-            if(header.magic != 0x20534444 || header.fileSize != 124)
-            {
-                ASSERT(false);
-            }
 ```
 ...
 ```cpp
@@ -316,6 +308,403 @@ namespace EngineCore{
                 result.format = TextureFormat::DXT1;  // DXT1
                 result.blockSize = 8;
             }
+```
+...
+```cpp
+                result.blockSize = 16;
+            }
+            else if (std::memcmp(fourCCStr, "DXT5", 4) == 0) {
+                result.format = TextureFormat::DXT5;  // DXT5
+                result.blockSize = 16;
+            }
+```
+
+### File: `Runtime/Resources/AssetRegistry.cpp`
+```cpp
+        if(assetPathMap.count(assetID) > 0)
+        {
+            ASSERT(assetPathMap[assetID] == path);
+            return;
+        }
+        assetPathMap[assetID] = path;
+    }
+
+    std::string AssetRegistry::GetAssetPath(uint64_t assetID)
+    {
+```
+...
+```cpp
+    void AssetRegistry::SaveToDisk(const std::string& relativePath)
+    {
+        ASSERT(assetPathMap.size() > 0);
+        std::string manifestPath = PathSettings::ResolveAssetPath(relativePath);
+        std::ofstream out(manifestPath, std::ios::binary);
+        uint32_t count = assetPathMap.size();
+        StreamHelper::Write(out, count);
+        for(auto& [key, value] : assetPathMap)
+        {
+            StreamHelper::Write(out, key);
+            StreamHelper::WriteString(out, value);
+        }
+```
+...
+```cpp
+        if (!in.is_open()) {
+            // 严重错误：找不到账本，游戏无法运行
+            ASSERT(false, "Failed to load Asset Manifest!");
+            return;
+        }
+
+        uint32_t count = 0;
+        StreamHelper::Read(in, count);
+        //ASSERT(count != 0);
+        for(int i = 0; i < count; i++)
+        {
+```
+...
+```cpp
+            std::string path;
+            
+            StreamHelper::Read(in, id);
+            StreamHelper::ReadString(in, path);
+            assetPathMap[id] = path;
+        }
+    }
+}
+```
+
+### File: `Runtime/Resources/AssetRegistry.h`
+```cpp
+namespace EngineCore
+{
+    class AssetRegistry
+    {
+    public:
+        static void Create();
+        static void Destroy();
+        static AssetRegistry* GetInstance();
+        void RegisterAsset(Resource* resource);
+        std::string GetAssetPath(uint64_t id);
+        void SaveToDisk(const std::string& manifestPath);
+        void LoadFromDisk(const std::string& manifestPath);
+    private:
+        static AssetRegistry* s_Instacnce;
+        std::unordered_map<uint64_t, std::string> assetPathMap;
+    };
+```
+
+### File: `Runtime/Serialization/SceneLoader.h`
+```cpp
+    };
+
+    class SceneLoader: public IResourceLoader                       
+    {
+    public:
+        virtual ~SceneLoader() = default;
+        virtual Resource* Load(const std::string& relativePath) override
+        {
+            std::string path = PathSettings::ResolveAssetPath(relativePath);
+            std::ifstream in(path, std::ios::binary);
+
+            // todo: 确保进来的文件是Scene类型
+            in.seekg(sizeof(AssetHeader));
+
+            Scene* scene = new Scene();
+            std::vector<SceneSerializedNode> allnode;
+            StreamHelper::ReadVector(in, allnode);
+            std::unordered_map<uint32_t, GameObject*> gameObjectMap;
+            
+            for(int i = 0; i < allnode.size(); i++)
+            {
+                auto& nodeData = allnode[i];
+                
+                std::string nodeName = nodeData.name;
+                GameObject* go = scene->CreateGameObject(nodeName.empty() ? "Node" : nodeName);
+
+                go->transform->SetLocalPosition(nodeData.position);
+                go->transform->SetLocalQuaternion(nodeData.rotation);
+                go->transform->SetLocalScale(nodeData.scale);
+                if(nodeData.parentIndex != -1)
+                {
+                    ASSERT(gameObjectMap.count(nodeData.parentIndex) > 0);
+                    go->SetParent(gameObjectMap[nodeData.parentIndex]);
+                }
+                gameObjectMap[i] = go;
+
+                //todo 加入材质的异步加载：
+                if(nodeData.meshID != 0)
+                {
+                    MeshFilter* filter = go->AddComponent<MeshFilter>();
+                    filter->mMeshHandle = ResourceManager::GetInstance()->LoadAssetAsync<Mesh>(nodeData.meshID, [=]() 
+                        {
+                            filter->OnLoadResourceFinished();
+                        });
+                    
+                    // 加载并设置 Material
+                    if(nodeData.materialID != 0)
+                    {
+                        MeshRenderer* renderer = go->AddComponent<MeshRenderer>();
+                        AssetRegistry::GetInstance()->GetAssetPath(nodeData.materialID);
+                        // todo  还没做
+                        //renderer->SetSharedMaterial(ResourceManager::GetInstance()->LoadAsset<Material>(nodeData.materialID));
+                        //renderer->TryAddtoBatchManager();
+                    }
+                }
+
+            }
+            return scene;
+        }
+
+        void SaveSceneToBin(const Scene* scene, const std::string& relativePath, uint32_t id)
+        {
+            ASSERT(scene && scene->allObjList.size() > 0);
+            std::string binPath = PathSettings::ResolveAssetPath(relativePath);
+            std::ofstream out(binPath, std::ios::binary);
+
+            AssetHeader header;
+            header.assetID =id;
+            header.type = 0;
+            StreamHelper::Write(out, header);
+
+            std::vector<SceneSerializedNode> linearNode;
+            std::unordered_map<GameObject*, uint32_t> gameObjectMap;
+            for(int i = 0; i < scene->rootObjList.size(); i++)
+            {
+                GameObject* gameObject = scene->rootObjList[i];
+                
+                SerilizedNode(gameObject, gameObjectMap, linearNode);
+            }
+            
+```
+
+### File: `Runtime/Serialization/MaterialLoader.h`
+```cpp
+#include "Settings/ProjectSettings.h"
+
+namespace EngineCore
+{
+    
+};
+```
+
+### File: `Runtime/Resources/ResourceManager.h`
+```cpp
+namespace EngineCore
+{
+    class ResourceManager
+    {
+    public:
+        
+        static void Create();
+        void Destroy();
+        ~ResourceManager();
+        ResourceManager();
+
+        void Update();
+        void WorkThreadLoad();
+
+        template<typename T>
+        ResourceHandle<T> LoadAssetAsync(uint64_t assetPathID, std::function<void()> callback)
+        {
+            if(mResourceCache.count(assetPathID) > 0)
+            {
+                if (callback != nullptr)
+                {
+                    if (mResourceCache[assetPathID] == nullptr)
+                    {
+                        m_LoadCallbacks[assetPathID].push_back(callback);
+                    }
+                    else
+                    {
+                        callback();
+                    }
+                }
+                return ResourceHandle<T>(assetPathID);
+            }
+            
+            mResourceCache[assetPathID] = nullptr;
+            string path = AssetRegistry::GetInstance()->GetAssetPath(assetPathID);
+            // 找到对应的Loader：
+            AssetType fileType = AssetTypeTraits<T>::Type;
+            ResourceHandle<T> handle(assetPathID);
+            auto* loader = m_Loaders[fileType];
+            if (callback != nullptr)
+            {
+                m_LoadCallbacks[assetPathID].push_back(callback);
+            }
+            m_WorkThreadQueue.TryPush([=]()
+            {
+                Resource* resource = loader->Load(path);
+                m_MainThreadQueue.TryPush([=]()
+                {
+                    // 主线程访问才对，不然会有线程安全问题
+                    mResourceCache[assetPathID] = resource;
+                    resource->OnLoadComplete();
+                    auto it = m_LoadCallbacks.find(assetPathID);
+                    if (it != m_LoadCallbacks.end())
+                    {
+                        for (auto& loadCallback : it->second)
+                        {
+                            if (loadCallback != nullptr)
+                            {
+                                loadCallback();
+                            }
+                        }
+                        m_LoadCallbacks.erase(it);
+                    }
+                });
+            });
+
+            return handle;
+        }
+
+        ResourceState GetResourceStateByID(uint64_t assetID )
+        {
+            if(mResourceCache.count(assetID) == 0) return ResourceState::NotExits;
+            if(mResourceCache[assetID] == nullptr) return ResourceState::Loading;
+            if(mResourceCache[assetID] != nullptr) return ResourceState::Success;
+        }
+
+        // todo 异步加载和同步加载可能会冲突
+        template<typename T>
+        ResourceHandle<T> LoadAsset(const string& relativePath)
+        {
+```
+...
+```cpp
+            mPathToID[path] = id;
+            mResourceCache[id] = resource;
+            AssetRegistry::GetInstance()->RegisterAsset(resource);
+            return ResourceHandle<T>(id);
+            }
+
+
+        template<typename T>
+        ResourceHandle<T> Instantiate(const ResourceHandle<T>& sourceHandle)
+        {
+```
+...
+```cpp
+        {
+            auto fileType = AssetTypeTraits<T>::Type;
+            ASSERT(fileType != AssetType::Default);
+            AssetID id;
+            switch (fileType)
+            {
+            case AssetType::Mesh:
+                return defaultMesh;
+                break;
+            default:
+                ASSERT(false);
+                break;
+            }
+```
+
+### File: `Runtime/MaterialLibrary/MaterialLayout.h`
+```cpp
+{
+    // 用来存
+    struct TextureAssetInfo
+    {
+        // 这个地方直接记录
+        char name[64];
+        uint64_t ASSETID;
+    };
+```
+...
+```cpp
+    };
+
+    class MaterialLayout
+    {
+    public:
+
+        void AddProp(const std::string& name, ShaderVariableType type, uint32_t size)
+        {
+            MaterialPropertyLayout prop;
+            prop.name = name;
+            prop.type = type;
+            prop.size = size;
+            prop.offset = currentOffset;
+            layout.m_PropertyLayout[name] = prop;
+            
+            currentOffset += size;
+        }
+        // temp;
+        // 【新增】硬编码构建一个标准布局，模拟未来的 JSON 加载结果
+        // 对应 Shader/SimpleTestShader.hlsl 里的 cbuffer 结构
+        static MaterialLayout GetDefaultPBRLayout()
+        {
+
+            // --- Chunk 0 ---
+            // float4 DiffuseColor
+            AddProp("DiffuseColor", ShaderVariableType::VECTOR4, 16);
+            
+            // float4 SpecularColor
+            AddProp("SpecularColor", ShaderVariableType::VECTOR4, 16);
+
+            // float Roughness
+            AddProp("Roughness", ShaderVariableType::FLOAT, 4);
+            
+            // float Metallic
+            AddProp("Metallic", ShaderVariableType::FLOAT, 4);
+
+            // float2 TilingFactor (8 bytes)
+            AddProp("TilingFactor", ShaderVariableType::VECTOR2, 8);
+            
+            AddProp("DiffuseTextureIndex", ShaderVariableType::FLOAT, 4);
+            
+            AddProp("PaddingLast", ShaderVariableType::VECTOR3, 12);
+
+            // 此时 offset = 16+16+4+4+8 = 48 bytes
+            // 还需要补齐到 16 字节对齐吗？HLSL cbuffer 是 16 字节对齐的
+            // 目前 48 刚好是 16 的倍数，完美。
+            
+            layout.m_TotalSize = currentOffset;
+            return layout;
+        }
+
+        uint32_t GetPropertyOffset(const std::string& name)
+        {
+            ASSERT(m_PropertyLayout.count(name) > 0);
+            return m_PropertyLayout[name].offset;
+        };
+
+        uint32_t GetSize(){ return m_TotalSize;}
+
+    private:
+        std::unordered_map<std::string, MaterialPropertyLayout> m_PropertyLayout;
+        uint32_t m_TotalSize = 0;
+    };
+
+}
+```
+
+### File: `Runtime/Resources/AssetTypeTraits.h`
+```cpp
+namespace EngineCore
+{
+    class Mesh;
+    class Texture;
+    class Material;
+
+    template<typename T> struct AssetTypeTraits { static const AssetType Type = AssetType::Default; };
+```
+
+### File: `Runtime/MaterialLibrary/MaterialArchytype.h`
+```cpp
+    // 对应 MaterialLayout::GetDefaultPBRLayout 的内存布局
+    // 必须保持 16 字节对齐
+    struct MaterialConstants
+    {
+        Vector4 DiffuseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        Vector4 SpecularColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+        float Roughness = 0.5f;
+        float Metallic = 0.0f;
+        Vector2 TilingFactor = Vector2(1.0f, 1.0f);
+        float DiffuseTextureIndex = 0.0f; 
+        Vector3 Padding = Vector3(0.0f, 0.0f, 0.0f);
+    };
 ```
 
 ### File: `Runtime/Resources/Asset.h`
@@ -392,6 +781,86 @@ struct VertexInput
 };
 ```
 
+### File: `Runtime/Scene/BistroSceneLoader.h`
+```cpp
+    class Node;
+    class Model;
+    class Mesh;
+}
+
+namespace EngineCore {
+```
+...
+```cpp
+    class Scene;
+
+    class BistroSceneLoader {
+    public:
+        static Scene* Load(const std::string& path);
+        static void SaveToCache(Scene* scene, const std::string& path);
+        static Scene* LoadFromCache(const std::string& path);
+        static ResourceHandle<Material> commonMatHandle;
+        
+    private:
+        Scene* LoadInternal(const std::string& path);
+        void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
+        void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
+        void ProcessMaterials(const tinygltf::Model& model);
+        void ProcessTexture(const tinygltf::Model& model);
+        void AttachMaterialToGameObject(GameObject* gameObject, int materialIndex);
+        AssetID GetTextureAssetID(const tinygltf::Model& model, int textureIndex);
+        std::map<int, std::vector<std::pair<ResourceHandle<Mesh>, int>>> m_MeshCache;
+        std::vector<AssetID> m_ImageIndexToID;
+        std::vector<ResourceHandle<Material>> m_MaterialMap;
+    };
+```
+
+### File: `Assets/Shader/BlitShader.hlsl`
+```hlsl
+
+// BlitShader.hlsl
+Texture2D SrcTexture : register(t0, space0);
+SamplerState LinearSampler : register(s0, space0);
+
+// 使用传统的顶点输入
+struct VertexInput
+{
+    float3 Position : POSITION;
+    float3 Normal : NORMAL;  
+    float2 TexCoord : TEXCOORD0;
+};
+```
+
+### File: `Runtime/MaterialLibrary/MaterialInstance.h`
+```cpp
+namespace EngineCore
+{
+    class MaterialInstance
+    {
+    public:
+        MaterialInstance(const MaterialLayout& layout)
+            :m_Layout(layout)
+        {
+            m_DataBlob.resize(m_Layout.GetSize());    
+        }
+        
+        void SetValue(const std::string& name, void* data, uint32_t size)
+        {
+            uint32_t offset = m_Layout.GetPropertyOffset(name);
+            memcpy(m_DataBlob.data() + offset, data, size);
+        }
+
+        void* GetData(){return m_DataBlob.data();}
+        uint32_t GetSize(){return m_Layout.GetSize();}
+        inline MaterialLayout GetLayout(){return m_Layout;};
+    private:
+        unordered_map<std::string, IGPUTexture*> textureMap;
+        MaterialLayout m_Layout;
+        std::vector<uint8_t> m_DataBlob;
+        bool m_Dirty = true;
+    };
+```
+
 ### File: `Runtime/Graphics/Material.h`
 ```cpp
 namespace EngineCore
@@ -450,281 +919,5 @@ namespace EngineCore
         void SetUpRenderState();
         void GetTextureInfoFromShaderReflection();
     };
-}
-```
-
-### File: `Runtime/Resources/AssetRegistry.h`
-```cpp
-namespace EngineCore
-{
-    class AssetRegistry
-    {
-    public:
-        static void Create();
-        static void Destroy();
-        static AssetRegistry* GetInstance();
-        void RegisterAsset(Resource* resource);
-        std::string GetAssetPath(uint64_t id);
-        void SaveToDisk(const std::string& manifestPath);
-        void LoadFromDisk(const std::string& manifestPath);
-    private:
-        static AssetRegistry* s_Instacnce;
-        std::unordered_map<uint64_t, std::string> assetPathMap;
-    };
-```
-
-### File: `Runtime/Serialization/AssetHeader.h`
-```cpp
-    // type 1 = Texture
-    // type 2 = Mesh
-    struct AssetHeader
-    {
-        char magic[4] = {'E', 'N', 'G', 'N'};
-        uint32_t version = 1;
-        uint32_t assetID = 0;
-        uint32_t type = 0; 
-    };
-```
-
-### File: `Assets/Shader/BlitShader.hlsl`
-```hlsl
-
-// BlitShader.hlsl
-Texture2D SrcTexture : register(t0, space0);
-SamplerState LinearSampler : register(s0, space0);
-
-// 使用传统的顶点输入
-struct VertexInput
-{
-    float3 Position : POSITION;
-    float3 Normal : NORMAL;  
-    float2 TexCoord : TEXCOORD0;
-};
-```
-
-### File: `Runtime/Serialization/StreamHelper.h`
-```cpp
-namespace EngineCore
-{
-    class StreamHelper
-    {
-    public:
-        // 写pod data
-        template<typename T>
-        static void Write(std::ofstream& out, const T& value)
-        {
-            out.write(reinterpret_cast<const char*>(&value), sizeof(T));
-        }
-
-        // 读pod data
-        template<typename T>
-        static void Read(std::ifstream& in, T& value)
-        {
-            in.read(reinterpret_cast<char*>(&value), sizeof(T));
-        };
-
-        template<typename T>
-        static void WriteVector(std::ofstream& out, const std::vector<T>& vec)
-        {
-            uint32_t size = (uint32_t) vec.size();
-            out.write((char*)&size, sizeof(uint32_t));
-            if(size > 0)out.write((char*)vec.data(), size * sizeof(T));
-        }
-
-        // 直接整段copy
-        template<typename T>
-        static void ReadVector(std::ifstream& in, std::vector<T>& vec)
-        {
-            uint32_t size = 0;
-            in.read((char*)&size, sizeof(uint32_t));
-            vec.resize(size);
-            if(size > 0)in.read((char*)vec.data(), sizeof(T) * size);
-        }
-
-        static void ReadString(std::ifstream& in, std::string& str)
-        {
-            uint32_t len = 0;
-            in.read(reinterpret_cast<char*>(&len), sizeof(uint32_t));
-            if(len > 0)
-            {
-                str.resize(len);
-                in.read(reinterpret_cast<char*>(&str[0]), len);
-            }
-            else
-            {
-                str.clear();
-            }
-        }
-
-        static void WriteString(std::ofstream& out, const std::string& str)
-        {
-            // ASSERT(str.size() > 0); // Allow empty strings
-            uint32_t len = (uint32_t)str.size();
-            out.write((char*)&len, sizeof(uint32_t));
-            if (len > 0) out.write((char*)str.c_str(), len);
-        }
-    };
-```
-
-### File: `Runtime/Graphics/MaterialLayout.h`
-```cpp
-namespace EngineCore
-{
-    struct MaterialPropertyLayout
-    {
-        std::string name;
-        uint32_t offset;
-        uint32_t size;
-        ShaderVariableType type;
-    };
-```
-...
-```cpp
-            // --- Chunk 0 ---
-            // float4 DiffuseColor
-            AddProp("DiffuseColor", ShaderVariableType::VECTOR4, 16);
-            
-            // float4 SpecularColor
-            AddProp("SpecularColor", ShaderVariableType::VECTOR4, 16);
-
-            // float Roughness
-            AddProp("Roughness", ShaderVariableType::FLOAT, 4);
-            
-            // float Metallic
-            AddProp("Metallic", ShaderVariableType::FLOAT, 4);
-
-            // float2 TilingFactor (8 bytes)
-            AddProp("TilingFactor", ShaderVariableType::VECTOR2, 8);
-            
-            AddProp("DiffuseTextureIndex", ShaderVariableType::FLOAT, 4);
-            
-            AddProp("PaddingLast", ShaderVariableType::VECTOR3, 12);
-
-            // 此时 offset = 16+16+4+4+8 = 48 bytes
-            // 还需要补齐到 16 字节对齐吗？HLSL cbuffer 是 16 字节对齐的
-            // 目前 48 刚好是 16 的倍数，完美。
-            
-            layout.m_TotalSize = currentOffset;
-            return layout;
-        }
-
-        uint32_t GetPropertyOffset(const std::string& name)
-        {
-```
-
-### File: `Runtime/GameObject/MeshRenderer.h`
-```cpp
-namespace EngineCore
-{
-    class MeshRenderer : public Component
-    {
-        class GameObejct;
-    public:
-        MeshRenderer() = default;
-        MeshRenderer(GameObject* gamObject);
-        virtual ~MeshRenderer() override;
-        static ComponentType GetStaticType() { return ComponentType::MeshRenderer; };
-        virtual ComponentType GetType() const override{ return ComponentType::MeshRenderer; };
-
-        virtual const char* GetScriptName() const override { return "MeshRenderer"; }
-        
-        void SetUpMaterialPropertyBlock();
-
-        inline Material* GetSharedMaterial()
-        { 
-            return mShardMatHandler.IsValid() ? mShardMatHandler.Get() : nullptr;
-        };
-
-        inline void SetSharedMaterial(const ResourceHandle<Material>& mat) 
-        {
-            mShardMatHandler = mat;
-            SetUpMaterialPropertyBlock();
-        }
-
-        // return a new Material Instance;
-        Material* GetOrCreateMatInstance();
-        // 
-        ResourceHandle<Material> GetMaterial();
-        inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
-
-        void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
-        uint32_t lastSyncTransformVersion = 0;
-        bool shouldUpdateMeshRenderer = true;
-
-        AABB worldBounds;
-        uint32_t sceneRenderNodeIndex = UINT32_MAX;
-        bool materialDirty = true;
-		
-        void TryAddtoBatchManager();
-
-        uint32_t renderLayer = 1;
-    private:
-        ResourceHandle<Material> mShardMatHandler;
-        ResourceHandle<Material> mInstanceMatHandler;
-
-    };
-```
-
-### File: `Runtime/Graphics/MaterialData.h`
-```cpp
-    // 对应 MaterialLayout::GetDefaultPBRLayout 的内存布局
-    // 必须保持 16 字节对齐
-    struct MaterialConstants
-    {
-        Vector4 DiffuseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-        Vector4 SpecularColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
-        float Roughness = 0.5f;
-        float Metallic = 0.0f;
-        Vector2 TilingFactor = Vector2(1.0f, 1.0f);
-        float DiffuseTextureIndex = 0.0f; 
-        Vector3 Padding = Vector3(0.0f, 0.0f, 0.0f);
-    };
-```
-
-### File: `Runtime/Graphics/Mesh.h`
-```cpp
-    };
-
-    struct MeshBufferAllocation
-    {
-        IGPUBuffer* buffer = nullptr;
-        // 当前数据开始位置， 可以直接绑定
-        uint64_t gpuAddress = 0;
-        uint64_t offset =0;
-        uint64_t size = 0;
-        uint32_t stride = 0;
-        bool isValid = false;
-        struct MeshBufferAllocation() = default;
-        struct MeshBufferAllocation(IGPUBuffer* buffer, uint64_t gpuAddress, uint64_t offset, uint64_t size, uint64_t stride)
-            :buffer(buffer), gpuAddress(gpuAddress), offset(offset), size(size), stride(stride)
-        {
-            isValid = true;
-        }
-    };
-```
-...
-```cpp
-
-        Mesh() = default;
-        Mesh(Primitive primitiveType);
-        MeshBufferAllocation* vertexAllocation;
-        MeshBufferAllocation* indexAllocation;
-        void UploadMeshToGPU();
-
-        AABB bounds;
-        std::vector<Vertex> vertex;
-        std::vector<int> index;
-        std::vector<InputLayout> layout;
-        bool isDynamic = true;
-        virtual void OnLoadComplete() override { UploadMeshToGPU(); };
-```
-...
-```cpp
-        void ProcessNode(aiNode* node, const aiScene* scene);
-        void LoadAiMesh(const string& path);
-        void ProcessMesh(aiMesh* aiMesh, const aiScene* scene);
-
-    };
-
 }
 ```

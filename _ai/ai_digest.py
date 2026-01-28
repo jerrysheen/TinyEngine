@@ -17,6 +17,12 @@ def load_config():
         "ignore_dirs": ["bin", "build", ".git", "ThirdParty"],
         "max_snippet_lines": 25,
         "index_exclude_ext": [".cpp", ".c", ".cc"],
+        "content_exclude_ext": [".cpp", ".c", ".cc"],
+        "entry_keywords": [
+            "Entry", "Entry.cpp", "WinMain", "main(",
+            "Game::Launch", "RenderEngine::Tick", "RenderEngine::Create",
+            "SceneManager::Update", "SceneManager::Create"
+        ],
         "project_goal": "Build a modern rendering engine with GPU-driven rendering, scalable resources, and tooling support.",
         "digest_guidance": [],
         "subsystem_notes": {},
@@ -36,10 +42,17 @@ CONFIG = load_config()
 # --- Helper Functions ---
 
 def is_ignored(path: Path):
-    parts = path.parts
+    rel_str = path.as_posix().lower()
+    parts = [p.lower() for p in path.parts]
     for ignore in CONFIG["ignore_dirs"]:
-        if ignore in parts:
-            return True
+        ign = str(ignore).lower()
+        if "/" in ign or "\\" in ign:
+            ign_norm = ign.replace("\\", "/")
+            if ign_norm in rel_str:
+                return True
+        else:
+            if ign in parts:
+                return True
     return False
 
 def collect_files():
@@ -85,35 +98,53 @@ def calculate_relevance(file_path: Path, content: str, keywords: list):
             
         # 3. Content match
         # Improve performance: check only first 5k chars for fast filter, or count all
-        count = content_lower.count(kw_lower)
-        if count > 0:
-            score += min(count, 5) # Cap contribution per keyword
+        if len(kw_lower) >= 4:
+            count = content_lower.count(kw_lower)
+            if count > 0:
+                score += min(count, 5) # Cap contribution per keyword
         
     # Boost headers slightly as they define structure
     if file_path.suffix.lower() in ['.h', '.hpp']:
         score += 2
+
+    # Boost likely entry points to recover lifecycle and dataflow
+    for ek in CONFIG.get("entry_keywords", []):
+        ek_lower = ek.lower()
+        if ek_lower in rel_str:
+            score += 8
+        elif ek_lower in content_lower:
+            score += 4
         
     return score
 
-def extract_smart_snippets(content: str, keywords: list, max_lines=20):
+def extract_smart_snippets(content: str, keywords: list, max_lines=20, file_suffix=""):
     """Extracts relevant code blocks (structs, classes, key functions)."""
     lines = content.splitlines()
     snippets = []
     
-    # Regex for interesting definition starts
-    # Matches: class X, struct X, void FunctionName(...)
-    # Added: static/inline, HLSL buffers/textures
-    def_pattern = re.compile(
-        r'^\s*((static|inline|virtual|constexpr|friend)\s+)?(class|struct|enum|namespace|cbuffer)\s+\w+'
-        r'|^\s*(template\s*<[^>]+>\s*)?((static|inline|virtual|constexpr)\s+)?[\w:<>~]+\s+[\w:<>~]+\s*\([^;{]*\)\s*(const)?\s*(override|final)?\s*(;|\{)'
-        r'|^\s*[\w:<>~]+\s*\([^;{]*\)\s*(const)?\s*(override|final)?\s*(;|\{)'
-        r'|^\s*(Texture2D|TextureCube|SamplerState)\s*[<>\w]*\s+\w+',
-        re.MULTILINE,
-    )
+    suffix = file_suffix.lower()
+
+    # Regex for interesting definition starts by file type
+    if suffix in [".py"]:
+        def_pattern = re.compile(r'^\s*(class|def)\s+\w+', re.MULTILINE)
+    elif suffix in [".lua"]:
+        def_pattern = re.compile(r'^\s*(local\s+)?function\s+[\w\.:]+', re.MULTILINE)
+    elif suffix in [".ps1"]:
+        def_pattern = re.compile(r'^\s*function\s+\w+|^\s*(msbuild|python|premake|cmake|dotnet)\b', re.IGNORECASE | re.MULTILINE)
+    elif suffix in [".bat", ".cmd"]:
+        def_pattern = re.compile(r'^\s*(call|set|msbuild|python|premake5?\.exe|cmake|git|dotnet)\b', re.IGNORECASE | re.MULTILINE)
+    else:
+        # C++/HLSL default
+        def_pattern = re.compile(
+            r'^\s*((static|inline|virtual|constexpr|friend)\s+)?(class|struct|enum|namespace|cbuffer)\s+\w+'
+            r'|^\s*(template\s*<[^>]+>\s*)?((static|inline|virtual|constexpr)\s+)?[\w:<>~]+\s+[\w:<>~]+\s*\([^;{]*\)\s*(const)?\s*(override|final)?\s*(;|\{)'
+            r'|^\s*[\w:<>~]+\s*\([^;{]*\)\s*(const)?\s*(override|final)?\s*(;|\{)'
+            r'|^\s*(Texture2D|TextureCube|SamplerState)\s*[<>\w]*\s+\w+',
+            re.MULTILINE,
+        )
     
     # Regex for user manual hints
-
-    hint_pattern = re.compile(r'//\s*@arch', re.IGNORECASE)
+    hint_pattern = re.compile(r'^\s*(//|#|--|::|rem)\s*@arch', re.IGNORECASE)
 
     relevant_indices = []
     
@@ -135,6 +166,8 @@ def extract_smart_snippets(content: str, keywords: list, max_lines=20):
         for i, line in enumerate(lines):
             if def_pattern.match(line):
                 relevant_indices.append((i, 5))
+        if not relevant_indices and suffix in [".bat", ".cmd", ".ps1", ".py", ".lua"]:
+            relevant_indices.append((0, 1))
 
     # Sort by priority and position
     relevant_indices.sort(key=lambda x: x[1], reverse=True)
@@ -204,6 +237,7 @@ def generate_digests():
 
     subsystems = CONFIG["subsystems"]
     index_exclude_ext = set(ext.lower() for ext in CONFIG.get("index_exclude_ext", []))
+    content_exclude_ext = set(ext.lower() for ext in CONFIG.get("content_exclude_ext", []))
     
     for sys_name, keywords in subsystems.items():
         print(f"Generating digest for {sys_name}...")
@@ -259,23 +293,37 @@ def generate_digests():
             
         out_lines.append("\n## Evidence & Implementation Details")
         
+        included_snippets = 0
         for score, f in content_files:
-            # Skip snippets for .cpp/.c/.cc files to focus on interfaces/definitions
-            # Exception: if it's a small file or explicitly requested by logic (future)
-            if f.suffix.lower() in ['.cpp', '.c', '.cc']:
-                 continue
+            # Skip snippets for excluded types to focus on interfaces/definitions.
+            # If too few snippets are found, allow excluded types as fallback.
+            if f.suffix.lower() in content_exclude_ext and included_snippets >= 3:
+                continue
 
             rel_path = f.relative_to(ROOT_DIR).as_posix()
             content = file_contents[f]
-            snippets = extract_smart_snippets(content, keywords, CONFIG["max_snippet_lines"])
+            snippets = extract_smart_snippets(content, keywords, CONFIG["max_snippet_lines"], f.suffix)
             
             if snippets:
                 out_lines.append(f"\n### File: `{rel_path}`")
                 for i, snip in enumerate(snippets):
-                    lang = "hlsl" if f.suffix.lower() == ".hlsl" else "cpp"
+                    suffix = f.suffix.lower()
+                    if suffix in [".hlsl", ".hlsli"]:
+                        lang = "hlsl"
+                    elif suffix in [".py"]:
+                        lang = "python"
+                    elif suffix in [".ps1"]:
+                        lang = "powershell"
+                    elif suffix in [".bat", ".cmd"]:
+                        lang = "bat"
+                    elif suffix in [".lua"]:
+                        lang = "lua"
+                    else:
+                        lang = "cpp"
                     out_lines.append(f"```{lang}\n{snip}\n```")
                     if i < len(snippets) - 1:
                         out_lines.append("...")
+                included_snippets += 1
 
         # 3. Write Output
         out_path = AI_DIR / f"DIGEST_{sys_name}.md"

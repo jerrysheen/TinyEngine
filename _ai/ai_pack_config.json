@@ -1,16 +1,18 @@
 {
     "source_root": ".",
-    "include_ext": [".h", ".hpp", ".inl", ".cpp", ".c", ".cc", ".hlsl", ".lua"],
+    "include_ext": [".h", ".hpp", ".inl", ".cpp", ".c", ".cc", ".hlsl", ".hlsli", ".lua", ".py", ".bat", ".ps1", ".cmd"],
     "ignore_dirs": [
       "bin", "build", "out", ".git", ".vs", ".cursor",
-      "ThirdParty", "Vendor", "Projects", 
-      "Runtime/External", "External", "tools", "Doc", "Docs", "Note"
+      "_ai",
+      "ThirdParty", "Vendor", "Projects",
+      "Runtime/External", "External", "Tools", "tools", "Doc", "Docs", "Note"
     ],
-    "max_snippet_lines": 60,
-    "index_exclude_ext": [".cpp", ".c", ".cc"],
+    "max_snippet_lines": 80,
+    "index_exclude_ext": [".c", ".cc"],
     "project_goal": "目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。",
     "digest_guidance": [
       "优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。",
+      "如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。",
       "突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。",
       "关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。"
     ],
@@ -63,29 +65,50 @@
         "CPU和GPU的同步，渲染线程和主线程的同步，多queue之间的同步",
         "关注CpuEvent, 各种Waitfor事件, 等待是否合理"
       ],
+      "SERIALIZATION": [
+        "序列化涉及AssetHeader、StreamHelper与各类Loader。",
+        "关注二进制格式、版本兼容与加载时的依赖解析。"
+      ],
+      "MODEL": [
+        "模型与几何系统关注Mesh/GeometryManager与GPU上传路径。",
+        "提取网格数据组织、索引/顶点布局与批处理入口。"
+      ],
+      "GameLogicUpdate": [
+        "围绕主循环的Update/Render/EndFrame与场景刷新顺序。",
+        "关注渲染路径选择与关键Pass调用链。"
+      ],
+      "GPUScene": [
+        "GPUScene关注GPU驱动裁剪、批处理与间接绘制数据结构。",
+        "提取GPUSceneManager、BatchManager与相关Buffer布局。"
+      ],
+      "GPU_ARCHITECTURE": [
+        "GPU体系结构聚焦资源布局、绑定方式与跨API抽象。",
+        "关注GPUBuffer、Texture与Bindless/Descriptor策略。"
+      ],
       "MATERIAL_SYSTEM": [
-        "材质序列化与反序列化，运行时设置的系统",
+        "材质序列化与反序列化，运行时设置的系统，生成一个MaterialInstance，对应GPU上一小块内存，已经做了MaterialRawByteBuffer，和BindlessTexture",
         "关注序列化反序列化是否合理"
       ]
     },
     "subsystems": {
-      "CORE_SYSTEM": ["Runtime/Core", "Runtime/Math", "Runtime/Serialization", "PublicStruct", "PublicEnum", "Profiler", "Job", "InstanceID", "Allocator"],
+      "CORE_SYSTEM": ["Runtime/Core", "Runtime/Math", "Runtime/Serialization", "Runtime/Utils", "PublicStruct", "PublicEnum", "Profiler", "Job", "JobSystem", "InstanceID", "Allocator"],
       "GAMEPLAY": ["Runtime/GameObject", "Runtime/Scene", "Runtime/Scripts", "Runtime/Managers", "Window", "Input", "Camera", "Transform", "Component", "MonoBehaviour"],
       "RHI_D3D12": ["Runtime/Platforms/D3D12", "RenderAPI", "Descriptor", "RootSignature", "PSO", "SwapChain", "Barrier", "Command", "Fence", "Context"],
-      "GRAPHICS_RES": ["Runtime/Graphics", "Runtime/Resources", "Material", "Texture", "GPUBuffer", "Mesh", "Model", "GpuScene", "Vertex", "Index", "Layout"],
-      "RENDER_PIPE": ["Runtime/Renderer", "RenderPass", "RenderPath", "RenderContext", "Batch", "Culling", "RenderEngine", "Sort", "FrameGraph", "Blit"],
-      "EDITOR_SYSTEM": ["Editor", "Panel", "Inspector", "Hierarchy", "Gizmo", "GUI", "Widget", "Console"],
-      "SHADER_LIB": ["Assets/Shader", "hlsl", "glsl", "include", "Lighting", "Surface"],
-      "ENGINE_OVERVIEW": ["Runtime/Entry", "EngineCore", "Game", "RenderEngine", "SceneManager", "Settings", "Application", "Runtime/Utils"],
-      "SCENE_SYSTEM": ["Runtime/Scene", "SceneManager", "Scene", "GameObject", "Component", "Transform", "Hierarchy", "MeshFilter", "MeshRenderer", "Transform", "GPUSceneManager", "Game"],
-      "ASSET_PIPELINE": ["Runtime/Resources", "Runtime/Serialization", "Asset", "Importer", "Texture", "Material", "Shader", "Mesh","MeshLoader","StreamHelper"],
-      "PLATFORM_WINDOWING": ["Runtime/Platforms", "Window", "Input", "Platform", "Win32", "MessageLoop"],
-      "SERIALIZATION":["AssetSerialization", "BaseTypeSerialization","ComponentFactory","JsonSerializer","MetaData", "MetaFactory", "MetaLoader","MeshRenderer","MeshFilter","Material","ModelData"],
-      "MODEL":["Mesh", "GeometryManager","MeshFilter","Scene","D3D12RenderAPI","RenderAPI", "MetaFactory", "MetaLoader","MeshRenderer","BistroSceneLoader"],
-      "GameLogicUpdate":["Game", "SceneManager","Scene","RenderEngine","LagacyRenderPath","GPUSceneRenderPath", "Renderer", "RenderContext","FinalBlitPass","GPUSceneRenderPass","OpaqueRenderPass"],
-      "GPUScene":["GPUSceneRenderPath", "GPUSceneManager", "GeometryManager","Mesh","Texture","IGPUResource","GPUBufferAllocator","ComputeShader", "D3D12RenderAPI","GPUSceneRenderPass","BatchManager"],
-      "CONCURRENCY":["CpuEvent", "Renderer", "RenderThreadMain","RenderAPI","D3D12RenderAPI","Renderer"],
-      "GPU_ARCHITECTURE":["Runtime/Platforms/D3D12", "Runtime/Graphics", "Runtime/Serialization"],
-      "MATERIAL_SYSTEM":["BistroSceneLoader", "Material", "MaterialInstance", "MaterialLayout"]
+      "GRAPHICS_RES": ["Runtime/Graphics", "Runtime/Resources", "Runtime/MaterialLibrary", "Material", "MaterialLayout", "MaterialInstance", "MaterialArchetype", "MaterialArchytype", "Texture", "GPUBuffer", "Mesh", "Model", "GpuScene", "Vertex", "Index", "Layout", "Bindless"],
+      "RENDER_PIPE": ["Runtime/Renderer", "Runtime/Renderer/RenderPipeLine", "Runtime/Renderer/RenderPath", "RenderPipeLine", "RenderPass", "RenderPath", "RenderContext", "Batch", "Culling", "RenderEngine", "Sort", "FrameGraph", "Blit"],
+      "EDITOR_SYSTEM": ["Editor", "Editor/Panel", "Editor/D3D12", "Panel", "Inspector", "Hierarchy", "Gizmo", "GUI", "Widget", "Console"],
+      "SHADER_LIB": ["Assets/Shader", "Assets/Shader/include", "hlsl", "glsl", "include", "Lighting", "Surface", "PBR"],
+      "ENGINE_OVERVIEW": ["Runtime/Entry", "EngineCore", "Game", "RenderEngine", "SceneManager", "Settings", "ProjectSettings", "RenderSettings", "Application", "Runtime/Utils"],
+      "SCENE_SYSTEM": ["Runtime/Scene", "SceneManager", "Scene", "SceneLoader", "BistroSceneLoader", "GameObject", "Component", "Transform", "Hierarchy", "MeshFilter", "MeshRenderer", "GPUSceneManager", "Game"],
+      "ASSET_PIPELINE": ["Runtime/Resources", "Runtime/Serialization", "Runtime/MaterialLibrary", "Asset", "AssetRegistry", "ResourceManager", "Importer", "Texture", "Material", "Shader", "Mesh", "MeshLoader", "TextureLoader", "MaterialLoader", "SceneLoader", "StreamHelper"],
+      "PLATFORM_WINDOWING": ["Runtime/Platforms", "Runtime/Platforms/Windows", "Window", "WindowManager", "WindowManagerWindows", "Input", "Platform", "Win32", "MessageLoop"],
+      "SERIALIZATION": ["Runtime/Serialization", "AssetSerialization", "BaseTypeSerialization", "ComponentFactory", "JsonSerializer", "MetaData", "MetaFactory", "MetaLoader", "AssetHeader", "StreamHelper", "MeshRenderer", "MeshFilter", "Material", "ModelData"],
+      "MODEL": ["Runtime/Graphics", "Mesh", "GeometryManager", "MeshFilter", "Scene", "D3D12RenderAPI", "RenderAPI", "MetaFactory", "MetaLoader", "MeshRenderer", "BistroSceneLoader"],
+      "GameLogicUpdate": ["Runtime/Core/Game", "Game", "SceneManager", "Scene", "RenderEngine", "LagacyRenderPath", "GPUSceneRenderPath", "Renderer", "RenderContext", "FinalBlitPass", "GPUSceneRenderPass", "OpaqueRenderPass", "RenderPipeLine"],
+      "GPUScene": ["GPUSceneRenderPath", "GPUSceneManager", "GeometryManager", "Mesh", "Texture", "IGPUResource", "GPUBufferAllocator", "ComputeShader", "D3D12RenderAPI", "GPUSceneRenderPass", "BatchManager", "GPUCulling", "Indirect"],
+      "CONCURRENCY": ["Runtime/Core/Concurrency", "JobSystem", "CpuEvent", "Renderer", "RenderThreadMain", "RenderAPI", "D3D12RenderAPI", "Fence", "Wait"],
+      "GPU_ARCHITECTURE": ["Runtime/Platforms/D3D12", "Runtime/Graphics", "Runtime/Serialization", "GPUBuffer", "Descriptor", "RootSignature", "Bindless", "ResourceState"],
+      "MATERIAL_SYSTEM": ["Runtime/MaterialLibrary", "BistroSceneLoader", "Material", "MaterialInstance", "MaterialLayout", "MaterialArchetypeRegistry", "MaterialArchetype", "MaterialArchytype", "StandardPBR", "BindlessTexture", "MaterialRawByteBuffer"],
+      "BUILD_TOOLING": ["premake5.lua", "WinBuildAndRun", "Win-GenProjects", "msbuild", "Tools/premake"]
     }
   }

@@ -1,77 +1,233 @@
 # Architecture Digest: SERIALIZATION
-> Auto-generated. Focus: AssetSerialization, BaseTypeSerialization, ComponentFactory, JsonSerializer, MetaData, MetaFactory, MetaLoader, MeshRenderer, MeshFilter, Material, ModelData
+> Auto-generated. Focus: Runtime/Serialization, AssetSerialization, BaseTypeSerialization, ComponentFactory, JsonSerializer, MetaData, MetaFactory, MetaLoader, AssetHeader, StreamHelper, MeshRenderer, MeshFilter, Material, ModelData
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
+- 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
 
+## Understanding Notes
+- 序列化涉及AssetHeader、StreamHelper与各类Loader。
+- 关注二进制格式、版本兼容与加载时的依赖解析。
+
 ## Key Files Index
+- `[34]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
+- `[34]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
+- `[34]` **Runtime/Serialization/StreamHelper.h** *(Content Included)*
+- `[33]` **Runtime/Serialization/AssetHeader.h** *(Content Included)*
 - `[32]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
+- `[30]` **Runtime/GameObject/MeshRenderer.cpp** *(Content Included)*
 - `[27]` **Runtime/GameObject/MeshFilter.h** *(Content Included)*
 - `[27]` **Runtime/Graphics/Material.h** *(Content Included)*
-- `[27]` **Runtime/Graphics/MaterialInstance.h** *(Content Included)*
-- `[27]` **Runtime/Graphics/MaterialLayout.h** *(Content Included)*
-- `[26]` **Runtime/Graphics/MaterialData.h** *(Content Included)*
+- `[27]` **Runtime/MaterialLibrary/MaterialInstance.h** *(Content Included)*
+- `[27]` **Runtime/MaterialLibrary/MaterialLayout.h** *(Content Included)*
+- `[26]` **Runtime/GameObject/MeshFilter.cpp** *(Content Included)*
+- `[26]` **Runtime/MaterialLibrary/MaterialArchytype.h** *(Content Included)*
+- `[25]` **Runtime/Graphics/Material.cpp** *(Content Included)*
+- `[25]` **Runtime/MaterialLibrary/MaterialArchetypeRegistry.h** *(Content Included)*
+- `[23]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
+- `[20]` **Runtime/Entry.cpp** *(Content Included)*
+- `[20]` **Runtime/Serialization/MeshLoader.h** *(Content Included)*
+- `[18]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
+- `[17]` **Runtime/MaterialLibrary/StandardPBR.h** *(Content Included)*
 - `[16]` **Runtime/Renderer/BatchManager.h** *(Content Included)*
-- `[16]` **Runtime/Scene/Scene.h** *(Content Included)*
-- `[11]` **Runtime/Core/PublicStruct.h** *(Content Included)*
-- `[10]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
+- `[16]` **Runtime/Scene/Scene.h**
+- `[15]` **Runtime/Scene/Scene.cpp**
+- `[15]` **Runtime/Serialization/DDSTextureLoader.h**
+- `[13]` **Editor/Panel/EditorMainBar.cpp**
+- `[12]` **Runtime/Core/Game.cpp**
+- `[12]` **Runtime/Renderer/BatchManager.cpp**
+- `[12]` **Runtime/Renderer/RenderContext.cpp**
+- `[12]` **Runtime/Renderer/RenderEngine.cpp**
+- `[12]` **Runtime/Renderer/Renderer.h**
+- `[12]` **Runtime/Scene/SceneManager.cpp**
+- `[12]` **Runtime/Serialization/TextureLoader.h**
+- `[11]` **Runtime/Core/PublicStruct.h**
+- `[11]` **Runtime/MaterialLibrary/StandardPBR.cpp**
+- `[9]` **Runtime/Renderer/Culling.cpp**
 - `[9]` **Runtime/Scene/BistroSceneLoader.h**
 - `[9]` **Editor/Panel/EditorMainBar.h**
-- `[8]` **Runtime/Renderer/Renderer.h**
 - `[7]` **Runtime/Graphics/GPUSceneManager.h**
 - `[7]` **Runtime/Renderer/RenderAPI.h**
 - `[7]` **Runtime/Renderer/RenderCommand.h**
 - `[7]` **Runtime/Renderer/RenderStruct.h**
 - `[6]` **Runtime/Scene/SceneManager.h**
+- `[6]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[6]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
+- `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
+- `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
+- `[6]` **Assets/Shader/BlitShader.hlsl**
+- `[6]` **Assets/Shader/SimpleTestShader.hlsl**
+- `[6]` **Assets/Shader/StandardPBR.hlsl**
+- `[6]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
+- `[5]` **Runtime/Renderer/Renderer.cpp**
 - `[5]` **Runtime/Renderer/RenderSorter.h**
+- `[5]` **Runtime/Resources/AssetRegistry.cpp**
 - `[5]` **Runtime/Resources/AssetTypeTraits.h**
+- `[5]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
 - `[5]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
 - `[5]` **Assets/Shader/include/Core.hlsl**
 - `[4]` **Runtime/GameObject/ComponentType.h**
 - `[4]` **Runtime/GameObject/GameObject.h**
-- `[3]` **Runtime/Graphics/MeshUtils.h**
-- `[3]` **Runtime/Resources/Asset.h**
-- `[3]` **Runtime/Platforms/D3D12/D3D12Struct.h**
-- `[2]` **Editor/EditorGUIManager.h**
-- `[2]` **Editor/EditorSettings.h**
-- `[2]` **Runtime/CoreAssert.h**
-- `[2]` **Runtime/EngineCore.h**
-- `[2]` **Runtime/PreCompiledHeader.h**
-- `[2]` **Runtime/Core/Game.h**
-- `[2]` **Runtime/Core/InstanceID.h**
-- `[2]` **Runtime/Core/Object.h**
-- `[2]` **Runtime/Core/Profiler.h**
-- `[2]` **Runtime/Core/PublicEnum.h**
-- `[2]` **Runtime/Core/ThreadSafeQueue.h**
-- `[2]` **Runtime/GameObject/Camera.h**
-- `[2]` **Runtime/GameObject/Component.h**
-- `[2]` **Runtime/GameObject/MonoBehaviour.h**
-- `[2]` **Runtime/GameObject/Transform.h**
-- `[2]` **Runtime/Graphics/ComputeShader.h**
-- `[2]` **Runtime/Graphics/GeometryManager.h**
-- `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
-- `[2]` **Runtime/Graphics/GPUTexture.h**
-- `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
-- `[2]` **Runtime/Graphics/IGPUResource.h**
-- `[2]` **Runtime/Graphics/Mesh.h**
-- `[2]` **Runtime/Graphics/RenderTexture.h**
-- `[2]` **Runtime/Graphics/Shader.h**
-- `[2]` **Runtime/Graphics/Texture.h**
-- `[2]` **Runtime/Managers/Manager.h**
-- `[2]` **Runtime/Managers/WindowManager.h**
-- `[2]` **Runtime/Math/AABB.h**
-- `[2]` **Runtime/Math/Frustum.h**
-- `[2]` **Runtime/Math/Math.h**
-- `[2]` **Runtime/Math/Matrix4x4.h**
-- `[2]` **Runtime/Math/Plane.h**
+- `[4]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
+- `[4]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp**
 
 ## Evidence & Implementation Details
+
+### File: `Runtime/Serialization/MaterialLoader.h`
+```cpp
+#include "Settings/ProjectSettings.h"
+
+namespace EngineCore
+{
+    
+};
+```
+
+### File: `Runtime/Serialization/SceneLoader.h`
+```cpp
+            Scene* scene = new Scene();
+            std::vector<SceneSerializedNode> allnode;
+            StreamHelper::ReadVector(in, allnode);
+            std::unordered_map<uint32_t, GameObject*> gameObjectMap;
+            
+            for(int i = 0; i < allnode.size(); i++)
+            {
+                auto& nodeData = allnode[i];
+                
+                std::string nodeName = nodeData.name;
+                GameObject* go = scene->CreateGameObject(nodeName.empty() ? "Node" : nodeName);
+
+                go->transform->SetLocalPosition(nodeData.position);
+                go->transform->SetLocalQuaternion(nodeData.rotation);
+                go->transform->SetLocalScale(nodeData.scale);
+                if(nodeData.parentIndex != -1)
+                {
+                    ASSERT(gameObjectMap.count(nodeData.parentIndex) > 0);
+                    go->SetParent(gameObjectMap[nodeData.parentIndex]);
+                }
+                gameObjectMap[i] = go;
+
+                //todo 加入材质的异步加载：
+                if(nodeData.meshID != 0)
+                {
+                    MeshFilter* filter = go->AddComponent<MeshFilter>();
+                    filter->mMeshHandle = ResourceManager::GetInstance()->LoadAssetAsync<Mesh>(nodeData.meshID, [=]() 
+                        {
+                            filter->OnLoadResourceFinished();
+                        });
+                    
+                    // 加载并设置 Material
+                    if(nodeData.materialID != 0)
+                    {
+                        MeshRenderer* renderer = go->AddComponent<MeshRenderer>();
+                        AssetRegistry::GetInstance()->GetAssetPath(nodeData.materialID);
+                        // todo  还没做
+                        //renderer->SetSharedMaterial(ResourceManager::GetInstance()->LoadAsset<Material>(nodeData.materialID));
+                        //renderer->TryAddtoBatchManager();
+                    }
+                }
+
+            }
+```
+...
+```cpp
+            header.assetID =id;
+            header.type = 0;
+            StreamHelper::Write(out, header);
+
+            std::vector<SceneSerializedNode> linearNode;
+            std::unordered_map<GameObject*, uint32_t> gameObjectMap;
+            for(int i = 0; i < scene->rootObjList.size(); i++)
+            {
+                GameObject* gameObject = scene->rootObjList[i];
+                
+                SerilizedNode(gameObject, gameObjectMap, linearNode);
+            }
+```
+
+### File: `Runtime/Serialization/StreamHelper.h`
+```cpp
+namespace EngineCore
+{
+    class StreamHelper
+    {
+    public:
+        // 写pod data
+        template<typename T>
+        static void Write(std::ofstream& out, const T& value)
+        {
+            out.write(reinterpret_cast<const char*>(&value), sizeof(T));
+        }
+
+        // 读pod data
+        template<typename T>
+        static void Read(std::ifstream& in, T& value)
+        {
+            in.read(reinterpret_cast<char*>(&value), sizeof(T));
+        };
+
+        template<typename T>
+        static void WriteVector(std::ofstream& out, const std::vector<T>& vec)
+        {
+            uint32_t size = (uint32_t) vec.size();
+            out.write((char*)&size, sizeof(uint32_t));
+            if(size > 0)out.write((char*)vec.data(), size * sizeof(T));
+        }
+
+        // 直接整段copy
+        template<typename T>
+        static void ReadVector(std::ifstream& in, std::vector<T>& vec)
+        {
+            uint32_t size = 0;
+            in.read((char*)&size, sizeof(uint32_t));
+            vec.resize(size);
+            if(size > 0)in.read((char*)vec.data(), sizeof(T) * size);
+        }
+
+        static void ReadString(std::ifstream& in, std::string& str)
+        {
+            uint32_t len = 0;
+            in.read(reinterpret_cast<char*>(&len), sizeof(uint32_t));
+            if(len > 0)
+            {
+                str.resize(len);
+                in.read(reinterpret_cast<char*>(&str[0]), len);
+            }
+            else
+            {
+                str.clear();
+            }
+        }
+
+        static void WriteString(std::ofstream& out, const std::string& str)
+        {
+            // ASSERT(str.size() > 0); // Allow empty strings
+            uint32_t len = (uint32_t)str.size();
+            out.write((char*)&len, sizeof(uint32_t));
+            if (len > 0) out.write((char*)str.c_str(), len);
+        }
+    };
+
+}
+```
+
+### File: `Runtime/Serialization/AssetHeader.h`
+```cpp
+    // type 1 = Texture
+    // type 2 = Mesh
+    struct AssetHeader
+    {
+        char magic[4] = {'E', 'N', 'G', 'N'};
+        uint32_t version = 1;
+        uint32_t assetID = 0;
+        uint32_t type = 0; 
+    };
+```
 
 ### File: `Runtime/GameObject/MeshRenderer.h`
 ```cpp
@@ -216,7 +372,7 @@ namespace EngineCore
 }
 ```
 
-### File: `Runtime/Graphics/MaterialInstance.h`
+### File: `Runtime/MaterialLibrary/MaterialInstance.h`
 ```cpp
 namespace EngineCore
 {
@@ -246,10 +402,10 @@ namespace EngineCore
     };
 ```
 
-### File: `Runtime/Graphics/MaterialLayout.h`
+### File: `Runtime/MaterialLibrary/MaterialLayout.h`
 ```cpp
-namespace EngineCore
-{
+    };
+
     struct MaterialPropertyLayout
     {
         std::string name;
@@ -257,12 +413,6 @@ namespace EngineCore
         uint32_t size;
         ShaderVariableType type;
     };
-```
-...
-```cpp
-    public:
-        // 后续用json加载
-        void BuildFromJson(){};
 ```
 ...
 ```cpp
@@ -304,7 +454,7 @@ namespace EngineCore
         uint32_t GetSize(){ return m_TotalSize;}
 ```
 
-### File: `Runtime/Graphics/MaterialData.h`
+### File: `Runtime/MaterialLibrary/MaterialArchytype.h`
 ```cpp
     // 对应 MaterialLayout::GetDefaultPBRLayout 的内存布局
     // 必须保持 16 字节对齐
@@ -318,6 +468,90 @@ namespace EngineCore
         float DiffuseTextureIndex = 0.0f; 
         Vector3 Padding = Vector3(0.0f, 0.0f, 0.0f);
     };
+```
+
+### File: `Runtime/MaterialLibrary/MaterialArchetypeRegistry.h`
+```cpp
+namespace EngineCore
+{
+    class MaterialArchetypeRegistry
+    {
+    public:
+        static MaterialArchetypeRegistry& Get()
+        {
+            static MaterialArchetypeRegistry instance;
+            return instance;
+        }
+    };
+```
+
+### File: `Runtime/Serialization/MeshLoader.h`
+```cpp
+            mesh->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+            mesh->SetAssetID(AssetIDGenerator::NewFromFile(path));
+            StreamHelper::Read(in, mesh->bounds);
+            StreamHelper::ReadVector(in, mesh->vertex);
+            StreamHelper::ReadVector(in, mesh->index);
+            return mesh;
+        }
+
+        void SaveMeshToBin(const Mesh* mesh, const std::string& relativePath, uint32_t id)
+        {
+```
+...
+```cpp
+            header.assetID =id;
+            header.type = 2;
+            StreamHelper::Write(out, header);
+
+            StreamHelper::Write(out, mesh->bounds);
+            StreamHelper::WriteVector(out, mesh->vertex);
+            StreamHelper::WriteVector(out, mesh->index);
+        }
+
+    };
+}
+```
+
+### File: `Runtime/MaterialLibrary/StandardPBR.h`
+```cpp
+#include "PublicEnum.h"
+
+namespace Mat::StandardPBR
+{
+    using EngineCore::MaterialLayout;
+    using EngineCore::ShaderVariableType;
+
+
+    inline constexpr const char* ArchytypeName =  "Material.PBR";
+
+    inline static uint64_t GetArchetypeID()
+    {
+        return 0;
+    }
+
+    inline MaterialLayout GetMaterialLayout()
+    {   
+        MaterialLayout materialLayout;
+        materialLayout.AddProp("DiffuseColor", ShaderVariableType::VECTOR4, 16);
+            
+        // float4 SpecularColor
+        materialLayout.AddProp("SpecularColor", ShaderVariableType::VECTOR4, 16);
+        // float Roughness
+        materialLayout.AddProp("Roughness", ShaderVariableType::FLOAT, 4);
+        
+        // float Metallic
+        materialLayout.AddProp("Metallic", ShaderVariableType::FLOAT, 4);
+        // float2 TilingFactor (8 bytes)
+        materialLayout.AddProp("TilingFactor", ShaderVariableType::VECTOR2, 8);
+        
+        materialLayout.AddProp("DiffuseTextureIndex", ShaderVariableType::FLOAT, 4);
+        
+        materialLayout.AddProp("PaddingLast", ShaderVariableType::VECTOR3, 12);
+        
+        return materialLayout;
+    }    
+};
 ```
 
 ### File: `Runtime/Renderer/BatchManager.h`
@@ -351,317 +585,4 @@ namespace EngineCore
 
     };
 }
-```
-
-### File: `Runtime/Scene/Scene.h`
-```cpp
-#include "Renderer/RenderStruct.h"
-
-namespace EngineCore
-{
-    struct RenderSceneData
-    {
-        vector<MeshRenderer*> meshRendererList;
-        vector<MeshFilter*> meshFilterList;
-        vector<AABB> aabbList;
-        vector<Matrix4x4> objectToWorldMatrixList;
-        vector<uint32_t> layerList;
-
-        // 每帧重置
-        vector<uint32_t> transformDirtyList;
-        vector<uint32_t> materialDirtyList;
-        struct RenderSceneData() = default;
-        inline void SyncData(MeshRenderer* renderer, uint32_t index)
-        {
-            meshRendererList[index] = renderer;
-            if (renderer && renderer->gameObject)
-            {
-                aabbList[index] = renderer->worldBounds;
-                objectToWorldMatrixList[index] = renderer->gameObject->transform->GetWorldMatrix();
-                auto* meshFilter = renderer->gameObject->GetComponent<MeshFilter>();
-                if(meshFilter != nullptr)
-                {
-                    meshFilterList[index] = meshFilter;
-                }
-                else
-                {
-                    meshFilterList[index] = nullptr;
-                }
-            }
-        }
-
-        inline void PushNewData() 
-        {
-            meshRendererList.emplace_back();
-            meshFilterList.emplace_back();
-            aabbList.emplace_back();
-            objectToWorldMatrixList.emplace_back();
-            layerList.emplace_back();
-        }
-
-
-        inline void DeleteData(uint32_t index)
-        {
-            meshRendererList[index] = nullptr;
-            meshFilterList[index] = nullptr;
-
-            // 后续删除RenderProxy
-        }
-
-        inline void ClearDirtyList()
-        {
-            materialDirtyList.clear();
-            transformDirtyList.clear();
-        }
-
-        inline void UpdateDirtyRenderNode()
-```
-...
-```cpp
-    {
-    public:
-        Scene();
-        ~Scene();
-        Scene(const std::string& name):name(name){};
-```
-...
-```cpp
-        void Close(){};
-        void Update();
-        void EndFrame();
-        GameObject* FindGameObject(const std::string& name);
-        GameObject* CreateGameObject(const std::string& name);
-        void Scene::DestroyGameObject(const std::string& name);
-
-        void AddCamToStack(Camera* cam);
-        inline void SetMainCamera(Camera* cam) { mainCamera = cam; }
-```
-...
-```cpp
-        // todo:
-        // 材质更新的时候， 也需要去调用这个逻辑，比如changeRenderNodeInfo之类的，
-        int AddNewRenderNodeToCurrentScene(MeshRenderer* renderer);
-        void DeleteRenderNodeFromCurrentScene(uint32_t index);
-        
-    public:
-        int m_CurrentSceneRenderNodeIndex = 0;
-        std::queue<uint32_t> m_FreeSceneNode;
-        std::string name;
-        std::vector<GameObject*> allObjList;
-        std::vector<GameObject*> rootObjList;
-        bool enabled = true;
-        Camera* mainCamera = nullptr;
-        RenderSceneData renderSceneData;
-    private:
-    };    
-} // namespace EngineCore
-```
-
-### File: `Runtime/Core/PublicStruct.h`
-```cpp
-
-    // constantbuffer中的变量记录
-    struct ShaderConstantInfo
-    {
-        string variableName;
-        ShaderVariableType type;
-        int bufferIndex;
-        int size;
-        int offset;
-    };
-```
-...
-```cpp
-
-
-    struct ShaderReflectionInfo
-    {
-        RootSignatureKey mRootSigKey;
-
-        // todo: 确定这个地方是用vector还是直接单个对象
-        ShaderStageType type;
-        vector<ShaderBindingInfo > mConstantBufferInfo;
-        vector<ShaderBindingInfo > mTextureInfo;
-        vector<ShaderBindingInfo > mSamplerInfo;
-        vector<ShaderBindingInfo > mUavInfo;
-
-        ShaderReflectionInfo(){};
-
-
-        // 定义偏移量常量 (方便修改)
-        static const int BIT_OFFSET_CBV = 0;
-        static const int BIT_OFFSET_SRV = 16;
-        static const int BIT_OFFSET_UAV = 48;
-        static const int BIT_OFFSET_SAMPLER = 56;
-    };
-```
-...
-```cpp
-    // 前向声明，防止循环引用。
-    class Transform;
-    class MeshRenderer;
-    class MeshFilter;
-
-    struct RenderPacket
-    {
-        // 为了测试，先用直接塞数据的方式。
-        uint64_t sortingKey = 0;
-        MeshRenderer* meshRenderer;
-        MeshFilter* meshFilter;
-        float distanToCamera = 0;
-    };
-```
-...
-```cpp
-
-
-    struct DrawRecord
-    {
-        Material* mat;
-        Mesh* mesh;
-
-        PerDrawHandle perDrawHandle;
-        uint32_t instanceCount = 1;
-
-        DrawRecord(Material* mat, Mesh* mesh)
-            :mat(mat), mesh(mesh), perDrawHandle{0,0}, instanceCount(1) {}
-        DrawRecord(Material* mat, Mesh* mesh, const PerDrawHandle& handle, uint32_t instCount = 1)
-            :mat(mat), mesh(mesh), perDrawHandle(handle), instanceCount(instCount){}
-    };
-```
-...
-```cpp
-    };
-
-    class RenderPass;
-    struct RenderPassAsset
-    {
-        vector<RenderPass*> renderPasses;
-        inline void Clear()
-        {
-             for (RenderPass* pass : renderPasses) 
-                delete pass;
-        };
-    };
-```
-
-### File: `Runtime/Serialization/SceneLoader.h`
-```cpp
-#include "Resources/AssetRegistry.h"
-#include "Settings/ProjectSettings.h"
-namespace EngineCore
-{
-    struct SceneSerializedNode
-    {
-        char name[64];         // 固定长度名字
-        int32_t parentIndex = -1;
-        Vector3 position;
-        Quaternion rotation;
-        Vector3 scale;
-
-        uint64_t meshID = 0;
-        uint32_t materialID = 0;
-
-    };
-
-    class SceneLoader: public IResourceLoader                       
-    {
-    public:
-        virtual ~SceneLoader() = default;
-        virtual Resource* Load(const std::string& relativePath) override
-        {
-            std::string path = PathSettings::ResolveAssetPath(relativePath);
-            std::ifstream in(path, std::ios::binary);
-
-            // todo: 确保进来的文件是Scene类型
-            in.seekg(sizeof(AssetHeader));
-
-            Scene* scene = new Scene();
-            std::vector<SceneSerializedNode> allnode;
-            StreamHelper::ReadVector(in, allnode);
-            std::unordered_map<uint32_t, GameObject*> gameObjectMap;
-            
-            for(int i = 0; i < allnode.size(); i++)
-            {
-                auto& nodeData = allnode[i];
-                
-                std::string nodeName = nodeData.name;
-                GameObject* go = scene->CreateGameObject(nodeName.empty() ? "Node" : nodeName);
-
-                go->transform->SetLocalPosition(nodeData.position);
-                go->transform->SetLocalQuaternion(nodeData.rotation);
-                go->transform->SetLocalScale(nodeData.scale);
-                if(nodeData.parentIndex != -1)
-                {
-                    ASSERT(gameObjectMap.count(nodeData.parentIndex) > 0);
-                    go->SetParent(gameObjectMap[nodeData.parentIndex]);
-                }
-                gameObjectMap[i] = go;
-
-                //todo 加入材质的异步加载：
-                if(nodeData.meshID != 0)
-                {
-                    MeshFilter* filter = go->AddComponent<MeshFilter>();
-                    filter->mMeshHandle = ResourceManager::GetInstance()->LoadAssetAsync<Mesh>(nodeData.meshID, [=]() 
-                        {
-                            filter->OnLoadResourceFinished();
-                        });
-                }
-```
-...
-```cpp
-        void SaveSceneToBin(const Scene* scene, const std::string& relativePath, uint32_t id)
-        {
-            ASSERT(scene && scene->allObjList.size() > 0);
-            std::string binPath = PathSettings::ResolveAssetPath(relativePath);
-            std::ofstream out(binPath, std::ios::binary);
-
-            AssetHeader header;
-            header.assetID =id;
-            header.type = 0;
-            StreamHelper::Write(out, header);
-
-            std::vector<SceneSerializedNode> linearNode;
-            std::unordered_map<GameObject*, uint32_t> gameObjectMap;
-            for(int i = 0; i < scene->rootObjList.size(); i++)
-            {
-                GameObject* gameObject = scene->rootObjList[i];
-                
-                SerilizedNode(gameObject, gameObjectMap, linearNode);
-            }
-```
-...
-```cpp
-
-            // Name Serialization
-            memset(node.name, 0, sizeof(node.name));
-            const std::string& goName = gameObject->name;
-            size_t copyLen = std::min(goName.size(), sizeof(node.name) - 1);
-            memcpy(node.name, goName.c_str(), copyLen);
-
-            Transform* parent = gameObject->transform->parentTransform;
-            uint64_t meshID = 0;
-            MeshFilter* meshfilter = gameObject->GetComponent<MeshFilter>();
-            if (meshfilter != nullptr)
-            {
-                meshID = meshfilter->mMeshHandle->GetAssetID();
-            }
-```
-...
-```cpp
-            else
-            {
-                ASSERT(gameObjectMap.count(parent->gameObject) > 0);
-                node.parentIndex = gameObjectMap[parent->gameObject];
-                gameObjectMap[gameObject] = linearNode.size();
-            }
-            node.materialID = 0;
-            node.meshID = meshID;
-            node.position = gameObject->transform->GetLocalPosition();
-            node.rotation = gameObject->transform->GetLocalQuaternion();
-            node.scale = gameObject->transform->GetLocalScale();
-            linearNode.push_back(node);
-
-            for (auto* child : gameObject->GetChildren()) 
-            {
 ```

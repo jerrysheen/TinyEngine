@@ -1,11 +1,12 @@
 # Architecture Digest: CORE_SYSTEM
-> Auto-generated. Focus: Runtime/Core, Runtime/Math, Runtime/Serialization, PublicStruct, PublicEnum, Profiler, Job, InstanceID, Allocator
+> Auto-generated. Focus: Runtime/Core, Runtime/Math, Runtime/Serialization, Runtime/Utils, PublicStruct, PublicEnum, Profiler, Job, JobSystem, InstanceID, Allocator
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
+- 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
 
@@ -14,19 +15,29 @@
 - 优先记录公开结构体/枚举/Allocator/Profiler接口。
 
 ## Key Files Index
+- `[57]` **Runtime/Core/Concurrency/JobSystem.h** *(Content Included)*
+- `[55]` **Runtime/Core/Concurrency/JobSystem.cpp** *(Content Included)*
 - `[37]` **Runtime/Core/Profiler.h** *(Content Included)*
-- `[37]` **Runtime/Core/Concurrency/JobSystem.h** *(Content Included)*
 - `[36]` **Runtime/Core/InstanceID.h** *(Content Included)*
 - `[34]` **Runtime/Core/Allocator/LinearAllocator.h** *(Content Included)*
 - `[33]` **Runtime/Core/PublicStruct.h** *(Content Included)*
 - `[32]` **Runtime/Core/PublicEnum.h** *(Content Included)*
+- `[31]` **Runtime/Core/PublicEnum.cpp** *(Content Included)*
+- `[31]` **Runtime/Core/PublicStruct.cpp** *(Content Included)*
+- `[28]` **Runtime/Core/Game.cpp** *(Content Included)*
 - `[27]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
 - `[26]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h** *(Content Included)*
+- `[25]` **Runtime/Graphics/GPUBufferAllocator.cpp** *(Content Included)*
 - `[25]` **Runtime/Renderer/PerDrawAllocator.h** *(Content Included)*
+- `[25]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp** *(Content Included)*
 - `[23]` **Runtime/Graphics/IGPUBufferAllocator.h** *(Content Included)*
+- `[20]` **Runtime/Entry.cpp** *(Content Included)*
 - `[16]` **Runtime/Core/Object.h** *(Content Included)*
-- `[12]` **Runtime/CoreAssert.h** *(Content Included)*
-- `[12]` **Runtime/Core/Game.h** *(Content Included)*
+- `[16]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
+- `[13]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
+- `[13]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
+- `[12]` **Runtime/CoreAssert.h**
+- `[12]` **Runtime/Core/Game.h**
 - `[12]` **Runtime/Core/ThreadSafeQueue.h**
 - `[12]` **Runtime/Math/AABB.h**
 - `[12]` **Runtime/Math/Frustum.h**
@@ -37,45 +48,215 @@
 - `[12]` **Runtime/Math/Vector2.h**
 - `[12]` **Runtime/Math/Vector3.h**
 - `[12]` **Runtime/Math/Vector4.h**
+- `[12]` **Runtime/Renderer/Renderer.h**
 - `[12]` **Runtime/Serialization/AssetHeader.h**
 - `[12]` **Runtime/Serialization/DDSTextureLoader.h**
+- `[12]` **Runtime/Serialization/MaterialLoader.h**
 - `[12]` **Runtime/Serialization/MeshLoader.h**
 - `[12]` **Runtime/Serialization/SceneLoader.h**
 - `[12]` **Runtime/Serialization/StreamHelper.h**
 - `[12]` **Runtime/Serialization/TextureLoader.h**
+- `[12]` **Runtime/Utils/HashCombine.h**
 - `[12]` **Runtime/Core/Concurrency/CpuEvent.h**
+- `[10]` **Runtime/Math/AABB.cpp**
+- `[10]` **Runtime/Math/Frustum.cpp**
+- `[10]` **Runtime/Math/Matrix4x4.cpp**
+- `[10]` **Runtime/Math/Plane.cpp**
+- `[10]` **Runtime/Math/Quaternion.cpp**
+- `[10]` **Runtime/Math/Vector2.cpp**
+- `[10]` **Runtime/Math/Vector3.cpp**
+- `[10]` **Runtime/Math/Vector4.cpp**
+- `[10]` **Runtime/Core/Concurrency/CpuEvent.cpp**
 - `[9]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
+- `[9]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[8]` **Runtime/Graphics/GPUSceneManager.h**
 - `[8]` **Runtime/Renderer/RenderCommand.h**
-- `[8]` **Runtime/Renderer/Renderer.h**
+- `[8]` **Runtime/Scene/SceneManager.cpp**
+- `[8]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
 - `[7]` **Runtime/Graphics/GeometryManager.h**
-- `[7]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
-- `[7]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
-- `[6]` **Runtime/Resources/Resource.h**
-- `[6]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
-- `[5]` **premake5.lua**
-- `[5]` **Runtime/Resources/Asset.h**
-- `[5]` **Runtime/Platforms/D3D12/D3D12Struct.h**
-- `[5]` **Runtime/Platforms/D3D12/d3dUtil.h**
-- `[4]` **Editor/D3D12/D3D12EditorGUIManager.h**
-- `[4]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
-- `[3]` **Runtime/PreCompiledHeader.h**
-- `[3]` **Runtime/GameObject/Camera.h**
-- `[3]` **Runtime/GameObject/MeshFilter.h**
-- `[3]` **Runtime/Graphics/ComputeShader.h**
-- `[3]` **Runtime/Graphics/Material.h**
-- `[3]` **Runtime/Graphics/MaterialLayout.h**
-- `[3]` **Runtime/Graphics/Mesh.h**
-- `[3]` **Runtime/Graphics/Shader.h**
-- `[3]` **Runtime/Renderer/BatchManager.h**
-- `[3]` **Runtime/Renderer/RenderAPI.h**
-- `[3]` **Runtime/Renderer/RenderContext.h**
-- `[3]` **Runtime/Renderer/RenderSorter.h**
-- `[3]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h**
-- `[3]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
-- `[3]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h**
+- `[7]` **Runtime/Renderer/RenderContext.cpp**
 
 ## Evidence & Implementation Details
+
+### File: `Runtime/Core/Concurrency/JobSystem.h`
+```cpp
+namespace EngineCore
+{
+    struct JobCounter
+    {
+        std::atomic<int> value;
+    };
+```
+...
+```cpp
+    };
+
+    struct InternalJob
+    {
+        void (*function)(void*, void*);
+        void* JobData;
+        void* rawCounter;
+    };
+```
+...
+```cpp
+    {
+    public:
+        JobSystem();
+        ~JobSystem();
+        static void Create();
+        static void Shutdown();
+        static JobSystem* GetInstance();
+
+        template<typename CallableJob>
+        void KickJob(CallableJob job, JobHandle& handler, JobCounter* counter)
+        {
+            if(counter == nullptr)
+            {
+                counter = GetAvaliableCounter();
+            }
+
+            void* jobData = new CallableJob(job);
+
+            counter->value.fetch_add(1);
+            auto lambda = [](void* jobData, void* rawCounter)
+            {
+                CallableJob* job = (CallableJob*)jobData;
+                job();
+                JobCounter* counter = (JobCounter*)rawCounter;
+                counter->value.fetch_sub(1);
+                delete jobData;
+            }
+            handler.counter = counter;
+            InternalKickJob(lambda, jobData, counter);
+        }
+```
+...
+```cpp
+        std::vector<std::thread> m_Workers;
+
+        void WaitForJob(JobHandle handle);
+
+    private:
+        void InternalKickJob(void (*function)(void*, void*), void* JobData, void* rawCounter);
+        void WorkerThreadLoop(); 
+        bool TryExecuteOneJob();
+        static JobSystem* s_Instance;
+        JobCounter* GetAvaliableCounter();
+        std::deque<JobCounter*> counterQueue;
+    };
+
+};
+```
+
+### File: `Runtime/Core/Concurrency/JobSystem.cpp`
+```cpp
+#include "JobSystem.h"
+
+namespace EngineCore
+{
+    JobSystem* JobSystem::s_Instance = nullptr;
+
+    JobSystem::JobSystem()
+    {
+        isRunning = true;
+
+        unsigned int numThreads = std::thread::hardware_concurrency();
+        ASSERT(numThreads >= 2);
+        numThreads = numThreads - 2;
+
+        // job会优先起在空闲核内， 如果要指定核，要用别的接口
+        for(unsigned int i = 0; i < numThreads; i++)
+        {
+            m_Workers.emplace_back(&JobSystem::WorkerThreadLoop, this);
+        }
+    }
+
+    JobSystem::~JobSystem()
+    {
+        {
+            std::unique_lock<std::mutex> lock(queueMutex);
+            isRunning = false;
+        }
+
+        wakeWorker.notify_all();
+
+        for(std::thread& worker : m_Workers)
+        {
+            if(worker.joinable())
+            {
+                worker.join();
+            }
+        }
+
+        while(!counterQueue.empty())
+        {
+            delete counterQueue.front();
+            counterQueue.pop_front();
+        }
+    }
+
+    void JobSystem::Create()
+    {
+        if(s_Instance != nullptr)
+        {
+            return;
+        }
+        s_Instance = new JobSystem();
+    }
+
+    void JobSystem::Shutdown()
+    {
+    }
+
+    JobSystem *JobSystem::GetInstance()
+    {
+        if(s_Instance == nullptr)
+        {
+            Create();
+        }
+        return s_Instance;
+    }
+
+    void JobSystem::WaitForJob(JobHandle handle)
+    {
+        while(handle.counter->value > 0)
+        {
+            bool executed = TryExecuteOneJob();
+        }
+    }
+
+    void JobSystem::InternalKickJob(void (*function)(void *, void *), void *JobData, void *rawCounter)
+    {
+        {
+            std::unique_lock<std::mutex> lock(queueMutex);
+            jobQueue.push_front({function, JobData, rawCounter});
+```
+...
+```cpp
+            InternalJob job;
+            {
+                std::unique_lock<std::mutex> lock(queueMutex);
+                // wait 为true，就是不sleep，继续走的条件是，
+                // isRunning为false了，需要往下走逻辑， 或者是jobQueue有东西了
+                // 需要往下pop()； 不然这个线程关不掉？
+                wakeWorker.wait(lock, [&]{ return !isRunning || !jobQueue.empty();});
+```
+...
+```cpp
+        InternalJob job;
+        {
+            std::unique_lock<std::mutex> lock(queueMutex);
+            if(jobQueue.empty()) return false;
+            job = jobQueue.front();
+            jobQueue.pop_front();
+        }
+        job.function(job.JobData, job.rawCounter);
+    }
+
+    JobCounter *JobSystem::GetAvaliableCounter()
+    {
+```
 
 ### File: `Runtime/Core/Profiler.h`
 ```cpp
@@ -147,77 +328,6 @@
         uint32_t    m_threadId = 0;
         uint8_t     m_depth = 0;
     };
-```
-
-### File: `Runtime/Core/Concurrency/JobSystem.h`
-```cpp
-namespace EngineCore
-{
-    struct JobCounter
-    {
-        std::atomic<int> value;
-    };
-```
-...
-```cpp
-    };
-
-    struct InternalJob
-    {
-        void (*function)(void*, void*);
-        void* JobData;
-        void* rawCounter;
-    };
-```
-...
-```cpp
-    {
-    public:
-        JobSystem();
-        ~JobSystem();
-        static void Create();
-        static void Shutdown();
-        static JobSystem* GetInstance();
-
-        template<typename CallableJob>
-        void KickJob(CallableJob job, JobHandle& handler, JobCounter* counter)
-        {
-            if(counter == nullptr)
-            {
-                counter = GetAvaliableCounter();
-            }
-
-            void* jobData = new CallableJob(job);
-
-            counter->value.fetch_add(1);
-            auto lambda = [](void* jobData, void* rawCounter)
-            {
-                CallableJob* job = (CallableJob*)jobData;
-                job();
-                JobCounter* counter = (JobCounter*)rawCounter;
-                counter->value.fetch_sub(1);
-                delete jobData;
-            }
-            handler.counter = counter;
-            InternalKickJob(lambda, jobData, counter);
-        }
-```
-...
-```cpp
-        std::vector<std::thread> m_Workers;
-
-        void WaitForJob(JobHandle handle);
-
-    private:
-        void InternalKickJob(void (*function)(void*, void*), void* JobData, void* rawCounter);
-        void WorkerThreadLoop(); 
-        bool TryExecuteOneJob();
-        static JobSystem* s_Instance;
-        JobCounter* GetAvaliableCounter();
-        std::deque<JobCounter*> counterQueue;
-    };
-
-};
 ```
 
 ### File: `Runtime/Core/InstanceID.h`
@@ -342,9 +452,7 @@ namespace EngineCore
     };
 
 
-```
-...
-```cpp
+    // 前向声明，防止循环引用。
     class Transform;
     class MeshRenderer;
     class MeshFilter;
@@ -357,24 +465,19 @@ namespace EngineCore
         MeshFilter* meshFilter;
         float distanToCamera = 0;
     };
+
+    struct PerDrawHandle
+    {
+        uint8_t* destPtr;
+        uint32_t offset;
+        uint32_t size;
+    };
 ```
 ...
 ```cpp
-
-
-    struct DrawRecord
-    {
-        Material* mat;
-        Mesh* mesh;
-
-        PerDrawHandle perDrawHandle;
-        uint32_t instanceCount = 1;
-
-        DrawRecord(Material* mat, Mesh* mesh)
             :mat(mat), mesh(mesh), perDrawHandle{0,0}, instanceCount(1) {}
         DrawRecord(Material* mat, Mesh* mesh, const PerDrawHandle& handle, uint32_t instCount = 1)
             :mat(mat), mesh(mesh), perDrawHandle(handle), instanceCount(instCount){}
-    };
 ```
 ...
 ```cpp
@@ -399,6 +502,12 @@ namespace EngineCore
     {
 
     };
+```
+...
+```cpp
+    {
+        uint32_t perObejectIndex = UINT32_MAX;
+        inline bool isValid() const {return perObejectIndex != UINT32_MAX;}
 ```
 
 ### File: `Runtime/Core/PublicEnum.h`
@@ -463,9 +572,13 @@ namespace EngineCore
             break;
         case 48:
             return ShaderVariableType::VECTOR2;
-```
-...
-```cpp
+            break;
+        case 36:
+            return ShaderVariableType::VECTOR2;
+            break;
+        default:
+            break;
+        }
     }
     
     enum class SortingCriteria
@@ -473,6 +586,7 @@ namespace EngineCore
         ComonOpaque,
         ComonTransparent
     };
+}
 ```
 
 ### File: `Runtime/Graphics/GPUBufferAllocator.h`
@@ -608,49 +722,4 @@ namespace EngineCore
         InstanceID id;
         inline const uint64_t GetInstanceID() const{ return id.v;};
         Object(){ id = InstanceIDGenerator::New();};
-```
-
-### File: `Runtime/CoreAssert.h`
-```cpp
-    #define ASSERT_MSG(condition, message) \
-        do { \
-            if (!(condition)) { \
-                std::wcout << L"Assert Failed: " << L#condition << L"\n"; \
-                std::wcout << L"Message: " << message << L"\n"; \
-                std::wcout << L"File: " << __FILEW__ << L", Line: " << __LINE__ << L"\n"; \
-                __debugbreak(); \
-            } \
-```
-
-### File: `Runtime/Core/Game.h`
-```cpp
-
-
-namespace EngineCore
-{
-    class Game
-    {
-    public:
-        static std::unique_ptr<Game> m_Instance;
-        // 回传的是一个对象的引用，所以返回*ptr
-        static Game* GetInstance()
-        {
-            if(m_Instance == nullptr)
-            {
-                m_Instance = std::make_unique<Game>();
-            }
-            return m_Instance.get();
-        };
-        Game(){};
-        ~Game(){};
-
-        void Launch();
-    private:
-        void Update();
-        void Render();
-        void EndFrame();
-        void Shutdown();
-    };
-
-}
 ```
