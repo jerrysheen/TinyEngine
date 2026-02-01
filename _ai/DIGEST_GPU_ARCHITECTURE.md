@@ -31,7 +31,7 @@
 - `[18]` **Runtime/Platforms/D3D12/D3D12Buffer.h** *(Content Included)*
 - `[17]` **Runtime/Graphics/GeometryManager.h** *(Content Included)*
 - `[17]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
-- `[17]` **Runtime/Graphics/Material.cpp** *(Content Included)*
+- `[17]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
 - `[17]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp** *(Content Included)*
 - `[17]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h** *(Content Included)*
 - `[17]` **Runtime/Platforms/D3D12/D3D12Texture.h** *(Content Included)*
@@ -44,10 +44,10 @@
 - `[14]` **Runtime/Graphics/Mesh.h**
 - `[14]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[14]` **Runtime/Platforms/D3D12/d3dUtil.cpp**
+- `[13]` **Runtime/Graphics/Material.h**
 - `[12]` **Runtime/Core/Game.cpp**
 - `[12]` **Runtime/Graphics/GeometryManager.cpp**
 - `[12]` **Runtime/Graphics/GPUTexture.h**
-- `[12]` **Runtime/Graphics/Material.h**
 - `[12]` **Runtime/Graphics/MeshUtils.h**
 - `[12]` **Runtime/Graphics/RenderTexture.h**
 - `[12]` **Runtime/Graphics/Shader.h**
@@ -55,14 +55,15 @@
 - `[12]` **Runtime/Renderer/RenderEngine.cpp**
 - `[12]` **Runtime/Serialization/AssetHeader.h**
 - `[12]` **Runtime/Serialization/DDSTextureLoader.h**
-- `[12]` **Runtime/Serialization/MaterialLoader.h**
 - `[12]` **Runtime/Serialization/MeshLoader.h**
 - `[12]` **Runtime/Serialization/SceneLoader.h**
+- `[12]` **Runtime/Serialization/ShaderLoader.h**
 - `[12]` **Runtime/Serialization/StreamHelper.h**
 - `[12]` **Runtime/Serialization/TextureLoader.h**
 - `[12]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[12]` **Runtime/Platforms/D3D12/D3D12PSO.h**
 - `[11]` **Runtime/Graphics/ComputeShader.cpp**
+- `[11]` **Runtime/Graphics/Material.cpp**
 - `[11]` **Runtime/Renderer/RenderAPI.h**
 - `[11]` **Runtime/Renderer/Renderer.cpp**
 - `[10]` **Runtime/Graphics/Mesh.cpp**
@@ -74,7 +75,6 @@
 - `[10]` **Runtime/Renderer/RenderStruct.h**
 - `[8]` **Runtime/Scene/SceneManager.cpp**
 - `[7]` **Runtime/Resources/ResourceManager.h**
-- `[7]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
 
 ## Evidence & Implementation Details
 
@@ -623,6 +623,46 @@ namespace EngineCore
     };
 
 }
+```
+
+### File: `Runtime/Serialization/MaterialLoader.h`
+```cpp
+    };
+
+    struct alignas(16) MetaTextureToBindlessBlockIndex
+    {
+        char name[50];
+        uint32_t offset;
+    };
+```
+...
+```cpp
+            in.seekg(sizeof(AssetHeader));
+            bool isBindless = false;
+            StreamHelper::Read(in, isBindless);
+
+            std::string archyTypeName;
+            StreamHelper::ReadString(in, archyTypeName);
+            if (archyTypeName.empty())
+            {
+                archyTypeName = "StandardPBR";
+            }
+```
+...
+```cpp
+            StreamHelper::Write(out, header);
+
+            StreamHelper::Write(out, mat->isBindLessMaterial);
+            StreamHelper::WriteString(out, mat->archyTypeName);
+            std::vector<MetatextureDependency> textureDependencyList;
+            for(auto& [key, value] : mat->textureHandleMap)
+            {
+                MetatextureDependency currTex;
+                std::sprintf(currTex.name, key.c_str(), 50);
+                std::snprintf(currTex.name, sizeof(currTex.name), "%s", key.c_str());
+                currTex.ASSETID = value.GetAssetID();
+                textureDependencyList.push_back(currTex);
+            }
 ```
 
 ### File: `Runtime/Platforms/D3D12/D3D12DescAllocator.h`

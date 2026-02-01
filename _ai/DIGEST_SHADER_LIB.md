@@ -1,5 +1,5 @@
 # Architecture Digest: SHADER_LIB
-> Auto-generated. Focus: Assets/Shader, Assets/Shader/include, hlsl, glsl, include, Lighting, Surface, PBR
+> Auto-generated. Focus: Assets/Shader, Assets/Shader/include, hlsl, include, Lighting, Surface, PBR
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
@@ -22,8 +22,8 @@
 - `[35]` **Assets/Shader/BlitShader.hlsl** *(Content Included)*
 - `[35]` **Assets/Shader/GPUCulling.hlsl** *(Content Included)*
 - `[24]` **Runtime/MaterialLibrary/StandardPBR.h** *(Content Included)*
+- `[23]` **Runtime/MaterialLibrary/StandardPBR.cpp** *(Content Included)*
 - `[22]` **Runtime/Entry.cpp** *(Content Included)*
-- `[22]` **Runtime/MaterialLibrary/StandardPBR.cpp** *(Content Included)*
 - `[17]` **Runtime/Core/Game.cpp** *(Content Included)*
 - `[17]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
 - `[14]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
@@ -32,9 +32,9 @@
 - `[11]` **Runtime/Platforms/D3D12/d3dUtil.h** *(Content Included)*
 - `[10]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
 - `[10]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp** *(Content Included)*
+- `[9]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
 - `[9]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h** *(Content Included)*
 - `[9]` **Runtime/Platforms/D3D12/d3dUtil.cpp** *(Content Included)*
-- `[8]` **Runtime/MaterialLibrary/MaterialLayout.h** *(Content Included)*
 - `[8]` **Runtime/Serialization/DDSTextureLoader.h**
 - `[8]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
 - `[7]` **Runtime/PreCompiledHeader.h**
@@ -55,11 +55,11 @@
 - `[7]` **Runtime/Renderer/RenderAPI.h**
 - `[7]` **Runtime/Renderer/RenderCommand.h**
 - `[7]` **Runtime/Renderer/RenderSorter.h**
+- `[7]` **Runtime/Resources/ResourceManager.cpp**
 - `[7]` **Runtime/Resources/ResourceManager.h**
 - `[7]` **Runtime/Scene/BistroSceneLoader.h**
 - `[7]` **Runtime/Scene/Scene.h**
 - `[7]` **Runtime/Scene/SceneManager.h**
-- `[7]` **Runtime/Serialization/MaterialLoader.h**
 - `[7]` **Runtime/Serialization/MeshLoader.h**
 - `[7]` **Runtime/Serialization/SceneLoader.h**
 - `[7]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
@@ -70,7 +70,7 @@
 - `[6]` **Runtime/GameObject/Transform.h**
 - `[6]` **Runtime/Graphics/MeshUtils.h**
 - `[6]` **Runtime/Graphics/Shader.h**
-- `[6]` **Runtime/MaterialLibrary/MaterialArchytype.h**
+- `[6]` **Runtime/MaterialLibrary/MaterialLayout.h**
 - `[6]` **Runtime/Renderer/RenderEngine.h**
 - `[6]` **Runtime/Renderer/RenderStruct.h**
 - `[6]` **Runtime/Serialization/StreamHelper.h**
@@ -80,6 +80,9 @@
 
 ### File: `Assets/Shader/StandardPBR.hlsl`
 ```hlsl
+// 纹理资源
+//Texture2D g_Textures[1024] : register(t0, space0);
+Texture2D DiffuseTexture : register(t0, space0);
 
 // 采样器
 SamplerState LinearSampler : register(s0, space0);
@@ -253,7 +256,7 @@ struct AABB
 
 ### File: `Runtime/MaterialLibrary/StandardPBR.h`
 ```cpp
-#include "PublicEnum.h"
+#include "Core/PublicEnum.h"
 
 namespace Mat::StandardPBR
 {
@@ -261,29 +264,25 @@ namespace Mat::StandardPBR
     using EngineCore::ShaderVariableType;
 
 
-    inline constexpr const char* ArchytypeName =  "Material.PBR";
-
-    inline static uint64_t GetArchetypeID()
+    inline static const string GetArchetypeName()
     {
-        return 0;
+        return "StandardPBR";
     }
 
     inline MaterialLayout GetMaterialLayout()
     {   
         MaterialLayout materialLayout;
         materialLayout.AddProp("DiffuseColor", ShaderVariableType::VECTOR4, 16);
-            
         // float4 SpecularColor
         materialLayout.AddProp("SpecularColor", ShaderVariableType::VECTOR4, 16);
         // float Roughness
         materialLayout.AddProp("Roughness", ShaderVariableType::FLOAT, 4);
-        
         // float Metallic
         materialLayout.AddProp("Metallic", ShaderVariableType::FLOAT, 4);
         // float2 TilingFactor (8 bytes)
         materialLayout.AddProp("TilingFactor", ShaderVariableType::VECTOR2, 8);
         
-        materialLayout.AddProp("DiffuseTextureIndex", ShaderVariableType::FLOAT, 4);
+        materialLayout.AddProp("DiffuseTextureID", ShaderVariableType::FLOAT, 4);
         
         materialLayout.AddProp("PaddingLast", ShaderVariableType::VECTOR3, 12);
         
@@ -486,6 +485,150 @@ struct D3D12DrawCommand
 {
 ```
 
+### File: `Runtime/Serialization/MaterialLoader.h`
+```cpp
+#include <cstdio>
+
+namespace EngineCore
+{
+    struct alignas(16) MetaMaterialHeader
+    {
+        bool     enable;
+        uint64_t shaderID;
+    };
+
+    struct alignas(16) MetatextureDependency
+    {
+        char name[50];
+        uint64_t ASSETID = 0;
+    };
+
+    struct alignas(16) MetaTextureToBindlessBlockIndex
+    {
+        char name[50];
+        uint32_t offset;
+    };
+
+    class MaterialLoader: public IResourceLoader                       
+    {
+    public:
+        virtual ~MaterialLoader() = default;
+        virtual LoadResult Load(const std::string& relativePath) override
+        {
+            LoadResult result;
+            std::string path = PathSettings::ResolveAssetPath(relativePath);
+            std::ifstream in(path, std::ios::binary);
+            in.seekg(sizeof(AssetHeader));
+            bool isBindless = false;
+            StreamHelper::Read(in, isBindless);
+
+            std::string archyTypeName;
+            StreamHelper::ReadString(in, archyTypeName);
+            if (archyTypeName.empty())
+            {
+                archyTypeName = "StandardPBR";
+            }
+
+            std::string shaderPath;
+            if (archyTypeName == "StandardPBR")
+            {
+                shaderPath = RenderSettings::s_EnableVertexPulling
+                    ? "Shader/StandardPBR_VertexPulling.hlsl"
+                    : "Shader/StandardPBR.hlsl";
+            }
+
+            ASSERT(!shaderPath.empty());
+            uint64_t assetPathID = AssetRegistry::GetInstance()->GetAssetIDFromPath(shaderPath);
+            ResourceHandle<Shader> shaderHandle(assetPathID);
+                result.dependencyList.emplace_back
+                (
+                    assetPathID,
+                    AssetType::Shader,
+                    nullptr
+                );
+
+            Material* mat = new Material(shaderHandle);
+            mat->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+            mat->SetPath(relativePath);
+            mat->SetAssetID(AssetIDGenerator::NewFromFile(relativePath));
+            mat->isBindLessMaterial = isBindless;
+            mat->archyTypeName = archyTypeName;
+
+            std::vector<MetatextureDependency> textureDependencyList;
+            StreamHelper::ReadVector(in, textureDependencyList);
+            for(auto& textureDependency : textureDependencyList)
+            {
+                std::string texName = std::string(textureDependency.name);
+                mat->textureData[texName] = nullptr;
+                result.dependencyList.emplace_back
+                    (
+                        textureDependency.ASSETID, 
+                        AssetType::Texture2D,
+                        [=](){
+                            ResourceHandle<Texture> texID(textureDependency.ASSETID);
+                            mat->SetTexture(texName, texID);
+```
+...
+```cpp
+
+            std::vector<uint8_t> materialInstanceData;
+            StreamHelper::ReadVector(in, materialInstanceData);
+            mat->matInstance->SetInstanceData(materialInstanceData);
+
+            if(mat->isBindLessMaterial)
+            {
+                std::vector<MetaTextureToBindlessBlockIndex> textureToBinlessOffsetList;
+                StreamHelper::ReadVector(in, textureToBinlessOffsetList);
+                for(auto& textureToBindLessBlockIndex : textureToBinlessOffsetList)
+                {
+                    mat->matInstance->GetLayout().textureToBlockIndexMap[textureToBindLessBlockIndex.name] = textureToBindLessBlockIndex.offset; 
+                }
+            }
+```
+...
+```cpp
+        {
+            std::string binPath = PathSettings::ResolveAssetPath(relativePath);
+            std::ofstream out(binPath, std::ios::binary);
+
+            AssetHeader header;
+            header.assetID =id;
+            header.type = 3;
+            StreamHelper::Write(out, header);
+
+            StreamHelper::Write(out, mat->isBindLessMaterial);
+            StreamHelper::WriteString(out, mat->archyTypeName);
+            std::vector<MetatextureDependency> textureDependencyList;
+            for(auto& [key, value] : mat->textureHandleMap)
+            {
+                MetatextureDependency currTex;
+                std::sprintf(currTex.name, key.c_str(), 50);
+                std::snprintf(currTex.name, sizeof(currTex.name), "%s", key.c_str());
+                currTex.ASSETID = value.GetAssetID();
+                textureDependencyList.push_back(currTex);
+            }
+```
+...
+```cpp
+
+            std::vector<uint8_t> materialInstanceData = mat->matInstance->GetInstanceData();
+            StreamHelper::WriteVector(out, materialInstanceData);
+
+            // 记录bindless插槽索引
+            if(mat->isBindLessMaterial)
+            {
+                std::vector<MetaTextureToBindlessBlockIndex> textureToBinlessOffsetList;
+                for(auto& [key, value] : mat->matInstance->GetLayout().textureToBlockIndexMap)
+                {
+                    MetaTextureToBindlessBlockIndex currTextureToIndex;
+                    std::snprintf(currTextureToIndex.name, sizeof(currTextureToIndex.name), "%s", key.c_str());
+                    currTextureToIndex.offset = value;
+                    textureToBinlessOffsetList.push_back(currTextureToIndex);
+                }
+                StreamHelper::WriteVector(out, textureToBinlessOffsetList);
+            }
+```
+
 ### File: `Runtime/Platforms/D3D12/D3D12ShaderUtils.h`
 ```cpp
 #include "d3dUtil.h"
@@ -521,88 +664,4 @@ namespace EngineCore
         static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> csBlobMap;
     };
 }
-```
-
-### File: `Runtime/MaterialLibrary/MaterialLayout.h`
-```cpp
-#include "Assert.h"
-
-namespace EngineCore
-{
-    // 用来存
-    struct TextureAssetInfo
-    {
-        // 这个地方直接记录
-        char name[64];
-        uint64_t ASSETID;
-    };
-
-    struct MaterialPropertyLayout
-    {
-        std::string name;
-        uint32_t offset;
-        uint32_t size;
-        ShaderVariableType type;
-    };
-
-    class MaterialLayout
-    {
-    public:
-
-        void AddProp(const std::string& name, ShaderVariableType type, uint32_t size)
-        {
-            MaterialPropertyLayout prop;
-            prop.name = name;
-            prop.type = type;
-            prop.size = size;
-            prop.offset = currentOffset;
-            layout.m_PropertyLayout[name] = prop;
-            
-            currentOffset += size;
-        }
-        // temp;
-        // 【新增】硬编码构建一个标准布局，模拟未来的 JSON 加载结果
-        // 对应 Shader/SimpleTestShader.hlsl 里的 cbuffer 结构
-        static MaterialLayout GetDefaultPBRLayout()
-        {
-
-            // --- Chunk 0 ---
-            // float4 DiffuseColor
-            AddProp("DiffuseColor", ShaderVariableType::VECTOR4, 16);
-            
-            // float4 SpecularColor
-            AddProp("SpecularColor", ShaderVariableType::VECTOR4, 16);
-
-            // float Roughness
-            AddProp("Roughness", ShaderVariableType::FLOAT, 4);
-            
-            // float Metallic
-            AddProp("Metallic", ShaderVariableType::FLOAT, 4);
-
-            // float2 TilingFactor (8 bytes)
-            AddProp("TilingFactor", ShaderVariableType::VECTOR2, 8);
-            
-            AddProp("DiffuseTextureIndex", ShaderVariableType::FLOAT, 4);
-            
-            AddProp("PaddingLast", ShaderVariableType::VECTOR3, 12);
-
-            // 此时 offset = 16+16+4+4+8 = 48 bytes
-            // 还需要补齐到 16 字节对齐吗？HLSL cbuffer 是 16 字节对齐的
-            // 目前 48 刚好是 16 的倍数，完美。
-            
-            layout.m_TotalSize = currentOffset;
-            return layout;
-        }
-
-        uint32_t GetPropertyOffset(const std::string& name)
-        {
-            ASSERT(m_PropertyLayout.count(name) > 0);
-            return m_PropertyLayout[name].offset;
-        };
-
-        uint32_t GetSize(){ return m_TotalSize;}
-
-    private:
-        std::unordered_map<std::string, MaterialPropertyLayout> m_PropertyLayout;
-        uint32_t m_TotalSize = 0;
 ```

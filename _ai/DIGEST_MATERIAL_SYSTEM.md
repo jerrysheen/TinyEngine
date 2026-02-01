@@ -15,19 +15,18 @@
 - 关注序列化反序列化是否合理
 
 ## Key Files Index
-- `[81]` **Runtime/MaterialLibrary/MaterialArchetypeRegistry.h** *(Content Included)*
-- `[63]` **Runtime/MaterialLibrary/MaterialInstance.h** *(Content Included)*
-- `[59]` **Runtime/MaterialLibrary/MaterialLayout.h** *(Content Included)*
-- `[57]` **Runtime/MaterialLibrary/MaterialArchytype.h** *(Content Included)*
-- `[53]` **Runtime/MaterialLibrary/StandardPBR.h** *(Content Included)*
-- `[45]` **Runtime/MaterialLibrary/StandardPBR.cpp** *(Content Included)*
-- `[35]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
-- `[32]` **Runtime/Graphics/Material.cpp** *(Content Included)*
+- `[87]` **Runtime/MaterialLibrary/MaterialArchetypeRegistry.h** *(Content Included)*
+- `[64]` **Runtime/MaterialLibrary/MaterialInstance.h** *(Content Included)*
+- `[57]` **Runtime/MaterialLibrary/MaterialLayout.h** *(Content Included)*
+- `[54]` **Runtime/MaterialLibrary/StandardPBR.h** *(Content Included)*
+- `[51]` **Runtime/MaterialLibrary/StandardPBR.cpp** *(Content Included)*
+- `[41]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
+- `[37]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
+- `[33]` **Runtime/Graphics/Material.cpp** *(Content Included)*
 - `[29]` **Runtime/Graphics/Material.h** *(Content Included)*
 - `[28]` **Runtime/Scene/BistroSceneLoader.h** *(Content Included)*
 - `[26]` **Assets/Shader/StandardPBR.hlsl** *(Content Included)*
 - `[26]` **Assets/Shader/StandardPBR_VertexPulling.hlsl** *(Content Included)*
-- `[22]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
 - `[13]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
 - `[12]` **Runtime/Core/Game.cpp** *(Content Included)*
@@ -35,10 +34,11 @@
 - `[12]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[11]` **Runtime/Renderer/Renderer.h** *(Content Included)*
 - `[7]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
-- `[7]` **Runtime/Graphics/GPUSceneManager.h**
+- `[7]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
 - `[7]` **Runtime/Renderer/RenderAPI.h**
 - `[7]` **Runtime/Renderer/RenderCommand.h**
 - `[7]` **Runtime/Renderer/RenderStruct.h**
+- `[7]` **Runtime/Resources/ResourceManager.cpp**
 - `[7]` **Runtime/Serialization/SceneLoader.h**
 - `[7]` **Editor/Panel/EditorMainBar.h**
 - `[6]` **Runtime/Renderer/BatchManager.h**
@@ -52,6 +52,7 @@
 - `[5]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[5]` **Runtime/Renderer/Renderer.cpp**
 - `[5]` **Runtime/Resources/AssetTypeTraits.h**
+- `[5]` **Runtime/Resources/ResourceManager.h**
 - `[5]` **Runtime/Scene/Scene.cpp**
 - `[5]` **Runtime/Scene/SceneManager.h**
 - `[5]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
@@ -74,7 +75,6 @@
 - `[2]` **Runtime/CoreAssert.h**
 - `[2]` **Runtime/EngineCore.h**
 - `[2]` **Runtime/PreCompiledHeader.h**
-- `[2]` **Runtime/Core/Game.h**
 
 ## Evidence & Implementation Details
 
@@ -85,11 +85,29 @@ namespace EngineCore
     class MaterialArchetypeRegistry
     {
     public:
-        static MaterialArchetypeRegistry& Get()
+        static MaterialArchetypeRegistry& GetInstance()
         {
             static MaterialArchetypeRegistry instance;
             return instance;
         }
+
+        bool RegisMaterial(const std::string name, const MaterialLayout& layout)
+        {
+            layoutMap[name] = layout;
+            return true;
+        }
+
+        MaterialLayout GetArchytypeLayout(const std::string& name)
+        {
+            if (layoutMap.count(name) > 0) 
+            {
+                return layoutMap[name];
+            }
+            return MaterialLayout();
+        }
+
+        
+        std::unordered_map<std::string, MaterialLayout> layoutMap; 
     };
 ```
 
@@ -112,11 +130,13 @@ namespace EngineCore
             memcpy(m_DataBlob.data() + offset, data, size);
         }
 
-        void* GetData(){return m_DataBlob.data();}
+        std::vector<uint8_t> GetInstanceData(){ return m_DataBlob; }
+        inline void SetInstanceData(const std::vector<uint8_t>& data){ m_DataBlob = data; }
         uint32_t GetSize(){return m_Layout.GetSize();}
         inline MaterialLayout GetLayout(){return m_Layout;};
+        inline void SetLayout(const MaterialLayout& layout){ m_Layout = layout;};
+        
     private:
-        unordered_map<std::string, IGPUTexture*> textureMap;
         MaterialLayout m_Layout;
         std::vector<uint8_t> m_DataBlob;
         bool m_Dirty = true;
@@ -137,32 +157,11 @@ namespace EngineCore
 ```
 ...
 ```cpp
-            // --- Chunk 0 ---
-            // float4 DiffuseColor
-            AddProp("DiffuseColor", ShaderVariableType::VECTOR4, 16);
+        void AddTextureToBlockOffset(const std::string& name, uint32_t offset)
+        {
+            ASSERT(textureToBlockIndexMap.count(name) < 0);
+            textureToBlockIndexMap[name] = offset;
             
-            // float4 SpecularColor
-            AddProp("SpecularColor", ShaderVariableType::VECTOR4, 16);
-
-            // float Roughness
-            AddProp("Roughness", ShaderVariableType::FLOAT, 4);
-            
-            // float Metallic
-            AddProp("Metallic", ShaderVariableType::FLOAT, 4);
-
-            // float2 TilingFactor (8 bytes)
-            AddProp("TilingFactor", ShaderVariableType::VECTOR2, 8);
-            
-            AddProp("DiffuseTextureIndex", ShaderVariableType::FLOAT, 4);
-            
-            AddProp("PaddingLast", ShaderVariableType::VECTOR3, 12);
-
-            // 此时 offset = 16+16+4+4+8 = 48 bytes
-            // 还需要补齐到 16 字节对齐吗？HLSL cbuffer 是 16 字节对齐的
-            // 目前 48 刚好是 16 的倍数，完美。
-            
-            layout.m_TotalSize = currentOffset;
-            return layout;
         }
 
         uint32_t GetPropertyOffset(const std::string& name)
@@ -175,25 +174,9 @@ namespace EngineCore
         uint32_t GetSize(){ return m_TotalSize;}
 ```
 
-### File: `Runtime/MaterialLibrary/MaterialArchytype.h`
-```cpp
-    // 对应 MaterialLayout::GetDefaultPBRLayout 的内存布局
-    // 必须保持 16 字节对齐
-    struct MaterialConstants
-    {
-        Vector4 DiffuseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-        Vector4 SpecularColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
-        float Roughness = 0.5f;
-        float Metallic = 0.0f;
-        Vector2 TilingFactor = Vector2(1.0f, 1.0f);
-        float DiffuseTextureIndex = 0.0f; 
-        Vector3 Padding = Vector3(0.0f, 0.0f, 0.0f);
-    };
-```
-
 ### File: `Runtime/MaterialLibrary/StandardPBR.h`
 ```cpp
-#include "PublicEnum.h"
+#include "Core/PublicEnum.h"
 
 namespace Mat::StandardPBR
 {
@@ -201,35 +184,161 @@ namespace Mat::StandardPBR
     using EngineCore::ShaderVariableType;
 
 
-    inline constexpr const char* ArchytypeName =  "Material.PBR";
-
-    inline static uint64_t GetArchetypeID()
+    inline static const string GetArchetypeName()
     {
-        return 0;
+        return "StandardPBR";
     }
 
     inline MaterialLayout GetMaterialLayout()
     {   
         MaterialLayout materialLayout;
         materialLayout.AddProp("DiffuseColor", ShaderVariableType::VECTOR4, 16);
-            
         // float4 SpecularColor
         materialLayout.AddProp("SpecularColor", ShaderVariableType::VECTOR4, 16);
         // float Roughness
         materialLayout.AddProp("Roughness", ShaderVariableType::FLOAT, 4);
-        
         // float Metallic
         materialLayout.AddProp("Metallic", ShaderVariableType::FLOAT, 4);
         // float2 TilingFactor (8 bytes)
         materialLayout.AddProp("TilingFactor", ShaderVariableType::VECTOR2, 8);
         
-        materialLayout.AddProp("DiffuseTextureIndex", ShaderVariableType::FLOAT, 4);
+        materialLayout.AddProp("DiffuseTextureID", ShaderVariableType::FLOAT, 4);
         
         materialLayout.AddProp("PaddingLast", ShaderVariableType::VECTOR3, 12);
         
         return materialLayout;
     }    
 };
+```
+
+### File: `Runtime/Serialization/MaterialLoader.h`
+```cpp
+namespace EngineCore
+{
+    struct alignas(16) MetaMaterialHeader
+    {
+        bool     enable;
+        uint64_t shaderID;
+    };
+```
+...
+```cpp
+    };
+
+    class MaterialLoader: public IResourceLoader                       
+    {
+    public:
+        virtual ~MaterialLoader() = default;
+        virtual LoadResult Load(const std::string& relativePath) override
+        {
+            LoadResult result;
+            std::string path = PathSettings::ResolveAssetPath(relativePath);
+            std::ifstream in(path, std::ios::binary);
+            in.seekg(sizeof(AssetHeader));
+            bool isBindless = false;
+            StreamHelper::Read(in, isBindless);
+
+            std::string archyTypeName;
+            StreamHelper::ReadString(in, archyTypeName);
+            if (archyTypeName.empty())
+            {
+                archyTypeName = "StandardPBR";
+            }
+
+            std::string shaderPath;
+            if (archyTypeName == "StandardPBR")
+            {
+                shaderPath = RenderSettings::s_EnableVertexPulling
+                    ? "Shader/StandardPBR_VertexPulling.hlsl"
+                    : "Shader/StandardPBR.hlsl";
+            }
+
+            ASSERT(!shaderPath.empty());
+            uint64_t assetPathID = AssetRegistry::GetInstance()->GetAssetIDFromPath(shaderPath);
+            ResourceHandle<Shader> shaderHandle(assetPathID);
+                result.dependencyList.emplace_back
+                (
+                    assetPathID,
+                    AssetType::Shader,
+                    nullptr
+                );
+
+            Material* mat = new Material(shaderHandle);
+            mat->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+            mat->SetPath(relativePath);
+            mat->SetAssetID(AssetIDGenerator::NewFromFile(relativePath));
+            mat->isBindLessMaterial = isBindless;
+            mat->archyTypeName = archyTypeName;
+
+            std::vector<MetatextureDependency> textureDependencyList;
+            StreamHelper::ReadVector(in, textureDependencyList);
+            for(auto& textureDependency : textureDependencyList)
+            {
+                std::string texName = std::string(textureDependency.name);
+                mat->textureData[texName] = nullptr;
+                result.dependencyList.emplace_back
+                    (
+                        textureDependency.ASSETID, 
+                        AssetType::Texture2D,
+                        [=](){
+                            ResourceHandle<Texture> texID(textureDependency.ASSETID);
+                            mat->SetTexture(texName, texID);
+                        }
+                    );
+            }
+
+            mat->matInstance = std::make_unique<MaterialInstance>(MaterialArchetypeRegistry::GetInstance().GetArchytypeLayout(mat->archyTypeName));
+
+            std::vector<uint8_t> materialInstanceData;
+            StreamHelper::ReadVector(in, materialInstanceData);
+            mat->matInstance->SetInstanceData(materialInstanceData);
+
+            if(mat->isBindLessMaterial)
+            {
+                std::vector<MetaTextureToBindlessBlockIndex> textureToBinlessOffsetList;
+                StreamHelper::ReadVector(in, textureToBinlessOffsetList);
+                for(auto& textureToBindLessBlockIndex : textureToBinlessOffsetList)
+                {
+                    mat->matInstance->GetLayout().textureToBlockIndexMap[textureToBindLessBlockIndex.name] = textureToBindLessBlockIndex.offset; 
+                }
+            }
+
+```
+...
+```cpp
+            StreamHelper::Write(out, header);
+
+            StreamHelper::Write(out, mat->isBindLessMaterial);
+            StreamHelper::WriteString(out, mat->archyTypeName);
+            std::vector<MetatextureDependency> textureDependencyList;
+            for(auto& [key, value] : mat->textureHandleMap)
+            {
+                MetatextureDependency currTex;
+                std::sprintf(currTex.name, key.c_str(), 50);
+                std::snprintf(currTex.name, sizeof(currTex.name), "%s", key.c_str());
+                currTex.ASSETID = value.GetAssetID();
+                textureDependencyList.push_back(currTex);
+            }
+```
+...
+```cpp
+
+            std::vector<uint8_t> materialInstanceData = mat->matInstance->GetInstanceData();
+            StreamHelper::WriteVector(out, materialInstanceData);
+
+            // 记录bindless插槽索引
+            if(mat->isBindLessMaterial)
+            {
+                std::vector<MetaTextureToBindlessBlockIndex> textureToBinlessOffsetList;
+                for(auto& [key, value] : mat->matInstance->GetLayout().textureToBlockIndexMap)
+                {
+                    MetaTextureToBindlessBlockIndex currTextureToIndex;
+                    std::snprintf(currTextureToIndex.name, sizeof(currTextureToIndex.name), "%s", key.c_str());
+                    currTextureToIndex.offset = value;
+                    textureToBinlessOffsetList.push_back(currTextureToIndex);
+                }
+                StreamHelper::WriteVector(out, textureToBinlessOffsetList);
+            }
 ```
 
 ### File: `Runtime/Graphics/Material.h`
@@ -240,13 +349,15 @@ namespace EngineCore
     {
     public:
         bool isDirty = true;
+        bool isBindLessMaterial = false;
+        string archyTypeName = "";
         std::unique_ptr<MaterialInstance> matInstance;
         ResourceHandle<Shader> mShader;
         unordered_map<string, IGPUTexture*> textureData;
         unordered_map<std::string, ResourceHandle<Texture>> textureHandleMap;
         
-        MaterialData m_MaterialData;
-        void LoadFromMaterialData(const MaterialData& data);
+        //MaterialData m_MaterialData;
+        //void LoadFromMaterialData(const MaterialData& data);
 
         Material() = default;
         Material(ResourceHandle<Shader> shader);
@@ -283,6 +394,14 @@ namespace EngineCore
             }
         }
 
+        // only for serialization
+        void SetTexture(const string& name, uint64_t asset)
+        {
+            ResourceHandle<Texture> texHandle;
+            texHandle.mAssetID = AssetID(asset);
+            textureHandleMap[name] = texHandle;
+        }
+
         inline MaterailRenderState GetMaterialRenderState() const { return mRenderState;};
         MaterailRenderState mRenderState;
         BufferAllocation materialAllocation;
@@ -309,7 +428,9 @@ namespace EngineCore
         void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
         void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
         void ProcessMaterials(const tinygltf::Model& model);
+        void ProcessShaders();
         void ProcessTexture(const tinygltf::Model& model);
+        void CreateDefaultResources();
         void AttachMaterialToGameObject(GameObject* gameObject, int materialIndex);
         AssetID GetTextureAssetID(const tinygltf::Model& model, int textureIndex);
         std::map<int, std::vector<std::pair<ResourceHandle<Mesh>, int>>> m_MeshCache;
@@ -320,6 +441,9 @@ namespace EngineCore
 
 ### File: `Assets/Shader/StandardPBR.hlsl`
 ```hlsl
+// 纹理资源
+//Texture2D g_Textures[1024] : register(t0, space0);
+Texture2D DiffuseTexture : register(t0, space0);
 
 // 采样器
 SamplerState LinearSampler : register(s0, space0);
@@ -351,16 +475,6 @@ struct VertexInput
     float3 Position : POSITION;
     float3 Normal : NORMAL;
     float2 TexCoord : TEXCOORD0;
-};
-```
-
-### File: `Runtime/Serialization/MaterialLoader.h`
-```cpp
-#include "Settings/ProjectSettings.h"
-
-namespace EngineCore
-{
-    
 };
 ```
 
@@ -461,14 +575,46 @@ namespace EngineCore
 ```
 ...
 ```cpp
-        {
-            mShardMatHandler = mat;
-            SetUpMaterialPropertyBlock();
-        }
-
-        // return a new Material Instance;
         Material* GetOrCreateMatInstance();
         // 
         ResourceHandle<Material> GetMaterial();
         inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
+```
+
+### File: `Runtime/Graphics/GPUSceneManager.h`
+```cpp
+        void Destroy();
+        
+        BufferAllocation GetSinglePerMaterialData();
+        void RemoveSinglePerMaterialData(const BufferAllocation& bufferalloc);
+        void UpdateSinglePerMaterialData(const BufferAllocation& bufferalloc, void* data);
+
+        void TryFreeRenderProxyBlock(uint32_t index);
+        void TryCreateRenderProxyBlock(uint32_t index);
+        BufferAllocation LagacyRenderPathUploadBatch(void *data, uint32_t size);
+        void FlushBatchUploads();
+        void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
+        void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);
+
+        vector<PerObjectData> perObjectDataBuffer;
+
+        LinearAllocator* perFramelinearMemoryAllocator;
+
+        GPUBufferAllocator* allMaterialDataBuffer;
+        GPUBufferAllocator* allObjectDataBuffer;
+        GPUBufferAllocator* perFrameBatchBuffer;
+        GPUBufferAllocator* allAABBBuffer;
+        GPUBufferAllocator* renderProxyBuffer;
+
+
+        BufferAllocation visiblityAlloc;
+        GPUBufferAllocator* visibilityBuffer;
+        
+        ResourceHandle<ComputeShader> GPUCullingShaderHandler;
+    private:
+        static GPUSceneManager* sInstance; 
+        vector<CopyOp> mPendingBatchCopies;
+    };
+
+}
 ```

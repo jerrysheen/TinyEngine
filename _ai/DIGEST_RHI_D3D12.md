@@ -50,7 +50,6 @@
 - `[8]` **Runtime/Scene/SceneManager.cpp**
 - `[8]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[7]` **Runtime/Graphics/IGPUResource.h**
-- `[7]` **Runtime/Graphics/Material.cpp**
 - `[7]` **Runtime/Renderer/BatchManager.h**
 - `[7]` **Runtime/Renderer/RenderEngine.h**
 - `[7]` **Runtime/Renderer/RenderSorter.h**
@@ -75,6 +74,7 @@
 - `[4]` **Assets/Shader/StandardPBR.hlsl**
 - `[4]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
 - `[3]` **run_ai_analysis.bat**
+- `[3]` **Editor/EditorGUIManager.h**
 
 ## Evidence & Implementation Details
 

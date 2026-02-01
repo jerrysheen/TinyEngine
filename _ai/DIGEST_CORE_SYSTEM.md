@@ -54,6 +54,7 @@
 - `[12]` **Runtime/Serialization/MaterialLoader.h**
 - `[12]` **Runtime/Serialization/MeshLoader.h**
 - `[12]` **Runtime/Serialization/SceneLoader.h**
+- `[12]` **Runtime/Serialization/ShaderLoader.h**
 - `[12]` **Runtime/Serialization/StreamHelper.h**
 - `[12]` **Runtime/Serialization/TextureLoader.h**
 - `[12]` **Runtime/Utils/HashCombine.h**
@@ -74,7 +75,6 @@
 - `[8]` **Runtime/Scene/SceneManager.cpp**
 - `[8]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
 - `[7]` **Runtime/Graphics/GeometryManager.h**
-- `[7]` **Runtime/Renderer/RenderContext.cpp**
 
 ## Evidence & Implementation Details
 

@@ -70,11 +70,11 @@
 - `[5]` **Editor/Panel/EditorMainBar.cpp**
 - `[4]` **Runtime/Core/ThreadSafeQueue.h**
 - `[4]` **Runtime/Graphics/GPUBufferAllocator.cpp**
-- `[4]` **Runtime/Graphics/Material.cpp**
 - `[4]` **Runtime/Platforms/D3D12/D3D12DescManager.cpp**
 - `[4]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[4]` **Runtime/Platforms/D3D12/d3dUtil.cpp**
 - `[4]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
+- `[4]` **Assets/Shader/BlitShader.hlsl**
 
 ## Evidence & Implementation Details
 
@@ -569,7 +569,7 @@ namespace EngineCore
         inline void SetSharedMaterial(const ResourceHandle<Material>& mat) 
         {
             mShardMatHandler = mat;
-            SetUpMaterialPropertyBlock();
+            //SetUpMaterialPropertyBlock();
         }
 
         // return a new Material Instance;
@@ -589,6 +589,8 @@ namespace EngineCore
         void TryAddtoBatchManager();
 
         uint32_t renderLayer = 1;
+        void OnLoadResourceFinished();
+
     private:
         ResourceHandle<Material> mShardMatHandler;
         ResourceHandle<Material> mInstanceMatHandler;

@@ -2,10 +2,12 @@
     "source_root": ".",
     "include_ext": [".h", ".hpp", ".inl", ".cpp", ".c", ".cc", ".hlsl", ".hlsli", ".lua", ".py", ".bat", ".ps1", ".cmd"],
     "ignore_dirs": [
-      "bin", "build", "out", ".git", ".vs", ".cursor",
+      "bin", "build", "out", ".git", ".vs", ".vscode", ".cursor",
       "_ai",
-      "ThirdParty", "Vendor", "Projects",
-      "Runtime/External", "External", "Tools", "tools", "Doc", "Docs", "Note"
+      "Vendor", "Projects",
+      "Runtime/External", "Runtime/Docs", "Runtime/Examples",
+      "Tools", "Docs", "Note",
+      "Assets/Temp"
     ],
     "max_snippet_lines": 80,
     "index_exclude_ext": [".c", ".cc"],
@@ -28,6 +30,10 @@
       "RHI_D3D12": [
         "D3D12实现决定现代渲染器能力上限（资源状态、PSO、RootSignature等）。",
         "需要抽取关键API与资源/命令上下文结构。"
+      ],
+      "RHI_OPENGL": [
+        "OpenGL平台层用于探索或备用渲染后端。",
+        "关注上下文创建、资源绑定与状态管理。"
       ],
       "GRAPHICS_RES": [
         "资源层是材质、纹理、模型与GPU缓冲的核心纽带。",
@@ -94,21 +100,22 @@
       "CORE_SYSTEM": ["Runtime/Core", "Runtime/Math", "Runtime/Serialization", "Runtime/Utils", "PublicStruct", "PublicEnum", "Profiler", "Job", "JobSystem", "InstanceID", "Allocator"],
       "GAMEPLAY": ["Runtime/GameObject", "Runtime/Scene", "Runtime/Scripts", "Runtime/Managers", "Window", "Input", "Camera", "Transform", "Component", "MonoBehaviour"],
       "RHI_D3D12": ["Runtime/Platforms/D3D12", "RenderAPI", "Descriptor", "RootSignature", "PSO", "SwapChain", "Barrier", "Command", "Fence", "Context"],
-      "GRAPHICS_RES": ["Runtime/Graphics", "Runtime/Resources", "Runtime/MaterialLibrary", "Material", "MaterialLayout", "MaterialInstance", "MaterialArchetype", "MaterialArchytype", "Texture", "GPUBuffer", "Mesh", "Model", "GpuScene", "Vertex", "Index", "Layout", "Bindless"],
+      "GRAPHICS_RES": ["Runtime/Graphics", "Runtime/Resources", "Runtime/MaterialLibrary", "Material", "MaterialLayout", "MaterialInstance", "MaterialArchetype", "MaterialArchytype", "Texture", "GPUBuffer", "Mesh", "Model", "GPUScene", "Vertex", "Index", "Layout", "Bindless"],
       "RENDER_PIPE": ["Runtime/Renderer", "Runtime/Renderer/RenderPipeLine", "Runtime/Renderer/RenderPath", "RenderPipeLine", "RenderPass", "RenderPath", "RenderContext", "Batch", "Culling", "RenderEngine", "Sort", "FrameGraph", "Blit"],
-      "EDITOR_SYSTEM": ["Editor", "Editor/Panel", "Editor/D3D12", "Panel", "Inspector", "Hierarchy", "Gizmo", "GUI", "Widget", "Console"],
-      "SHADER_LIB": ["Assets/Shader", "Assets/Shader/include", "hlsl", "glsl", "include", "Lighting", "Surface", "PBR"],
-      "ENGINE_OVERVIEW": ["Runtime/Entry", "EngineCore", "Game", "RenderEngine", "SceneManager", "Settings", "ProjectSettings", "RenderSettings", "Application", "Runtime/Utils"],
+      "EDITOR_SYSTEM": ["Editor", "Editor/Panel", "Editor/D3D12", "Editor/EditorSerialization", "Editor/Mac", "Panel", "Inspector", "Hierarchy", "Gizmo", "GUI", "Widget", "Console"],
+      "SHADER_LIB": ["Assets/Shader", "Assets/Shader/include", "hlsl", "include", "Lighting", "Surface", "PBR"],
+      "ENGINE_OVERVIEW": ["Runtime/Entry", "Runtime/Settings", "EngineCore", "Game", "RenderEngine", "SceneManager", "Settings", "ProjectSettings", "RenderSettings", "Application", "Runtime/Utils"],
       "SCENE_SYSTEM": ["Runtime/Scene", "SceneManager", "Scene", "SceneLoader", "BistroSceneLoader", "GameObject", "Component", "Transform", "Hierarchy", "MeshFilter", "MeshRenderer", "GPUSceneManager", "Game"],
       "ASSET_PIPELINE": ["Runtime/Resources", "Runtime/Serialization", "Runtime/MaterialLibrary", "Asset", "AssetRegistry", "ResourceManager", "Importer", "Texture", "Material", "Shader", "Mesh", "MeshLoader", "TextureLoader", "MaterialLoader", "SceneLoader", "StreamHelper"],
       "PLATFORM_WINDOWING": ["Runtime/Platforms", "Runtime/Platforms/Windows", "Window", "WindowManager", "WindowManagerWindows", "Input", "Platform", "Win32", "MessageLoop"],
-      "SERIALIZATION": ["Runtime/Serialization", "AssetSerialization", "BaseTypeSerialization", "ComponentFactory", "JsonSerializer", "MetaData", "MetaFactory", "MetaLoader", "AssetHeader", "StreamHelper", "MeshRenderer", "MeshFilter", "Material", "ModelData"],
+      "RHI_OPENGL": ["Runtime/Platforms/Opengl", "OpenGL", "Opengl"],
+      "SERIALIZATION": ["Runtime/Serialization", "AssetSerialization", "BaseTypeSerialization", "ComponentFactory", "JsonSerializer", "MetaData", "MetaFactory", "MetaLoader", "AssetHeader", "StreamHelper", "MeshRenderer", "MeshFilter", "Material", "ModelData", "MeshLoader", "SceneLoader", "MaterialLoader", "ShaderLoader", "DDSTextureLoader", "IResourceLoader", "ResourceManager", "ResourceHandle"],
       "MODEL": ["Runtime/Graphics", "Mesh", "GeometryManager", "MeshFilter", "Scene", "D3D12RenderAPI", "RenderAPI", "MetaFactory", "MetaLoader", "MeshRenderer", "BistroSceneLoader"],
       "GameLogicUpdate": ["Runtime/Core/Game", "Game", "SceneManager", "Scene", "RenderEngine", "LagacyRenderPath", "GPUSceneRenderPath", "Renderer", "RenderContext", "FinalBlitPass", "GPUSceneRenderPass", "OpaqueRenderPass", "RenderPipeLine"],
       "GPUScene": ["GPUSceneRenderPath", "GPUSceneManager", "GeometryManager", "Mesh", "Texture", "IGPUResource", "GPUBufferAllocator", "ComputeShader", "D3D12RenderAPI", "GPUSceneRenderPass", "BatchManager", "GPUCulling", "Indirect"],
       "CONCURRENCY": ["Runtime/Core/Concurrency", "JobSystem", "CpuEvent", "Renderer", "RenderThreadMain", "RenderAPI", "D3D12RenderAPI", "Fence", "Wait"],
       "GPU_ARCHITECTURE": ["Runtime/Platforms/D3D12", "Runtime/Graphics", "Runtime/Serialization", "GPUBuffer", "Descriptor", "RootSignature", "Bindless", "ResourceState"],
       "MATERIAL_SYSTEM": ["Runtime/MaterialLibrary", "BistroSceneLoader", "Material", "MaterialInstance", "MaterialLayout", "MaterialArchetypeRegistry", "MaterialArchetype", "MaterialArchytype", "StandardPBR", "BindlessTexture", "MaterialRawByteBuffer"],
-      "BUILD_TOOLING": ["premake5.lua", "WinBuildAndRun", "Win-GenProjects", "msbuild", "Tools/premake"]
+      "BUILD_TOOLING": ["premake5.lua", "WinBuildAndRun", "Win-GenProjects", "run_ai_analysis", "msbuild", "Tools/premake"]
     }
   }

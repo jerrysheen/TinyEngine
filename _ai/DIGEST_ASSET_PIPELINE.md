@@ -15,28 +15,28 @@
 - 关注资源句柄、依赖管理与加载策略。
 
 ## Key Files Index
+- `[81]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
+- `[72]` **Runtime/Resources/ResourceManager.cpp** *(Content Included)*
 - `[69]` **Runtime/Serialization/MeshLoader.h** *(Content Included)*
 - `[67]` **Runtime/Serialization/DDSTextureLoader.h** *(Content Included)*
+- `[66]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
 - `[65]` **Runtime/Resources/AssetRegistry.cpp** *(Content Included)*
-- `[63]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
+- `[61]` **Runtime/Resources/ResourceManager.h** *(Content Included)*
 - `[60]` **Runtime/Resources/AssetRegistry.h** *(Content Included)*
-- `[57]` **Runtime/Resources/ResourceManager.cpp** *(Content Included)*
 - `[57]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
-- `[55]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
 - `[52]` **Runtime/Serialization/TextureLoader.h** *(Content Included)*
-- `[49]` **Runtime/Resources/ResourceManager.h** *(Content Included)*
-- `[46]` **Runtime/MaterialLibrary/MaterialLayout.h** *(Content Included)*
-- `[46]` **Runtime/Resources/AssetTypeTraits.h** *(Content Included)*
-- `[43]` **Runtime/Graphics/Material.cpp** *(Content Included)*
-- `[42]` **Runtime/MaterialLibrary/MaterialArchytype.h** *(Content Included)*
+- `[49]` **Runtime/Resources/AssetTypeTraits.h** *(Content Included)*
+- `[45]` **Runtime/MaterialLibrary/MaterialLayout.h** *(Content Included)*
+- `[42]` **Runtime/Graphics/Material.cpp** *(Content Included)*
 - `[42]` **Runtime/Resources/Asset.h** *(Content Included)*
 - `[42]` **Assets/Shader/SimpleTestShader.hlsl** *(Content Included)*
-- `[40]` **Runtime/Scene/BistroSceneLoader.h** *(Content Included)*
+- `[41]` **Runtime/Graphics/Material.h** *(Content Included)*
+- `[41]` **Runtime/Scene/BistroSceneLoader.h** *(Content Included)*
 - `[40]` **Assets/Shader/BlitShader.hlsl** *(Content Included)*
-- `[39]` **Runtime/MaterialLibrary/MaterialInstance.h** *(Content Included)*
-- `[37]` **Runtime/Graphics/Material.h** *(Content Included)*
+- `[38]` **Runtime/Serialization/ShaderLoader.h** *(Content Included)*
+- `[37]` **Runtime/MaterialLibrary/MaterialArchetypeRegistry.h** *(Content Included)*
+- `[37]` **Runtime/MaterialLibrary/MaterialInstance.h**
 - `[36]` **Runtime/Serialization/AssetHeader.h**
-- `[35]` **Runtime/MaterialLibrary/MaterialArchetypeRegistry.h**
 - `[34]` **Runtime/Serialization/StreamHelper.h**
 - `[34]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[33]` **Runtime/MaterialLibrary/StandardPBR.h**
@@ -64,6 +64,7 @@
 - `[25]` **Runtime/Graphics/MeshUtils.cpp**
 - `[25]` **Runtime/Graphics/RenderTexture.cpp**
 - `[25]` **Runtime/Graphics/Texture.cpp**
+- `[24]` **Runtime/MaterialLibrary/StandardPBR.cpp**
 - `[24]` **Editor/Panel/EditorMainBar.h**
 - `[24]` **Assets/Shader/GPUCulling.hlsl**
 - `[22]` **Runtime/Core/PublicStruct.h**
@@ -71,12 +72,189 @@
 - `[22]` **Runtime/Renderer/Renderer.cpp**
 - `[22]` **Runtime/Resources/ResourceHandle.h**
 - `[21]` **Runtime/Core/Game.cpp**
-- `[21]` **Runtime/MaterialLibrary/StandardPBR.cpp**
 - `[20]` **Runtime/Entry.cpp**
 - `[20]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[19]` **Runtime/Renderer/RenderAPI.h**
 
 ## Evidence & Implementation Details
+
+### File: `Runtime/Serialization/MaterialLoader.h`
+```cpp
+namespace EngineCore
+{
+    struct alignas(16) MetaMaterialHeader
+    {
+        bool     enable;
+        uint64_t shaderID;
+    };
+```
+...
+```cpp
+    };
+
+    struct alignas(16) MetaTextureToBindlessBlockIndex
+    {
+        char name[50];
+        uint32_t offset;
+    };
+```
+...
+```cpp
+            in.seekg(sizeof(AssetHeader));
+            bool isBindless = false;
+            StreamHelper::Read(in, isBindless);
+
+            std::string archyTypeName;
+            StreamHelper::ReadString(in, archyTypeName);
+            if (archyTypeName.empty())
+            {
+                archyTypeName = "StandardPBR";
+            }
+```
+...
+```cpp
+            }
+
+            ASSERT(!shaderPath.empty());
+            uint64_t assetPathID = AssetRegistry::GetInstance()->GetAssetIDFromPath(shaderPath);
+            ResourceHandle<Shader> shaderHandle(assetPathID);
+                result.dependencyList.emplace_back
+                (
+                    assetPathID,
+                    AssetType::Shader,
+                    nullptr
+                );
+
+            Material* mat = new Material(shaderHandle);
+            mat->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+            mat->SetPath(relativePath);
+            mat->SetAssetID(AssetIDGenerator::NewFromFile(relativePath));
+            mat->isBindLessMaterial = isBindless;
+            mat->archyTypeName = archyTypeName;
+
+            std::vector<MetatextureDependency> textureDependencyList;
+            StreamHelper::ReadVector(in, textureDependencyList);
+            for(auto& textureDependency : textureDependencyList)
+            {
+                std::string texName = std::string(textureDependency.name);
+                mat->textureData[texName] = nullptr;
+                result.dependencyList.emplace_back
+                    (
+                        textureDependency.ASSETID, 
+                        AssetType::Texture2D,
+                        [=](){
+                            ResourceHandle<Texture> texID(textureDependency.ASSETID);
+                            mat->SetTexture(texName, texID);
+                        }
+                    );
+            }
+```
+...
+```cpp
+
+            std::vector<uint8_t> materialInstanceData;
+            StreamHelper::ReadVector(in, materialInstanceData);
+            mat->matInstance->SetInstanceData(materialInstanceData);
+
+            if(mat->isBindLessMaterial)
+            {
+                std::vector<MetaTextureToBindlessBlockIndex> textureToBinlessOffsetList;
+                StreamHelper::ReadVector(in, textureToBinlessOffsetList);
+                for(auto& textureToBindLessBlockIndex : textureToBinlessOffsetList)
+                {
+                    mat->matInstance->GetLayout().textureToBlockIndexMap[textureToBindLessBlockIndex.name] = textureToBindLessBlockIndex.offset; 
+                }
+            }
+```
+
+### File: `Runtime/Resources/ResourceManager.cpp`
+```cpp
+        m_Loaders[AssetType::Shader] = new ShaderLoader();
+        defaultMesh = new Mesh(Primitive::Cube);
+        EnsureDefaultShader();
+        EnsureDefaultTexture();
+    }
+
+    void ResourceManager::Update()
+    {
+```
+...
+```cpp
+                    {
+                    case AssetType::Texture2D:
+                        ResourceManager::GetInstance()->LoadAssetAsync<Texture>(dependency.id, dependency.onLoaded, loadResult.task);
+                        break;
+                    case AssetType::Shader:
+                        ResourceManager::GetInstance()->LoadAssetAsync<Shader>(dependency.id, dependency.onLoaded, loadResult.task);
+                        break;
+                    default:
+                        ASSERT(false);
+                    }
+                }
+                TryFinalize(task);
+            };
+        }
+    }
+
+    void ResourceManager::WorkThreadLoad()
+    {
+```
+...
+```cpp
+    Resource* ResourceManager::GetDefaultResource(AssetType fileType)
+    {
+        ASSERT(fileType != AssetType::Default);
+        AssetID id;
+        switch (fileType)
+        {
+        case AssetType::Mesh:
+            return defaultMesh;
+            break;
+        case AssetType::Texture2D:
+            return mDefaultTexture;
+            break;
+        case AssetType::Shader:
+            return mDefaultShader;
+            break;
+        case AssetType::Material:
+            EnsureDefaultMaterial();
+            return mDefaultMaterial.IsValid() ? mDefaultMaterial.Get() : nullptr;
+            break;
+        default:
+            ASSERT(false);
+            break;
+        }
+```
+...
+```cpp
+    LoadTask *ResourceManager::GetOrCreateALoadTask(uint64_t assetid, AssetType assetType)
+    {
+        AssetID id(assetid);
+        if(mLoadTaskCache.count(id) > 0) return mLoadTaskCache[id];
+
+        if(freeTaskList.size() > 0)
+        {
+            LoadTask* task = freeTaskList.back();
+            task->Reset();
+            mLoadTaskCache[id] = task;
+            freeTaskList.pop_back();
+            return task;
+        }
+```
+...
+```cpp
+        temp.SetPath(defaultTexturePath);
+        temp.SetAssetID(AssetIDGenerator::NewFromFile(defaultTexturePath));
+        AssetRegistry::GetInstance()->RegisterAsset(&temp);
+
+        mDefaultTexture = static_cast<Texture*>(m_Loaders[AssetType::Texture2D]->Load(defaultTexturePath).resource);
+        mDefaultTexture->OnLoadComplete();
+        mResourceCache[temp.GetAssetID()] = static_cast<Resource*>(mDefaultTexture);
+    }
+
+    void ResourceManager::EnsureDefaultShader()
+    {
+```
 
 ### File: `Runtime/Serialization/MeshLoader.h`
 ```cpp
@@ -86,8 +264,9 @@ namespace EngineCore
     {
     public:
         virtual ~MeshLoader() = default;
-        virtual Resource* Load(const std::string& relativePath) override
+        virtual LoadResult Load(const std::string& relativePath) override
         {
+            LoadResult result;
             std::string path = PathSettings::ResolveAssetPath(relativePath);
             std::ifstream in(path, std::ios::binary);
             in.seekg(sizeof(AssetHeader));
@@ -98,10 +277,11 @@ namespace EngineCore
             StreamHelper::Read(in, mesh->bounds);
             StreamHelper::ReadVector(in, mesh->vertex);
             StreamHelper::ReadVector(in, mesh->index);
-            return mesh;
+            result.resource = mesh; 
+            return result;
         }
 
-        void SaveMeshToBin(const Mesh* mesh, const std::string& relativePath, uint32_t id)
+        void SaveMeshToBin(const Mesh* mesh, const std::string& relativePath, uint64_t id)
         {
             ASSERT(mesh && mesh->vertex.size() > 0 && mesh->index.size() > 0);
             std::string binPath = PathSettings::ResolveAssetPath(relativePath);
@@ -223,8 +403,9 @@ namespace EngineCore{
     {
     public:
         virtual ~DDSTextureLoader() = default;
-        virtual Resource* Load(const std::string& relativePath) override
+        virtual LoadResult Load(const std::string& relativePath) override
         {
+            LoadResult result;
             std::string path = PathSettings::ResolveAssetPath(relativePath);
     
             Texture* tex = new Texture();
@@ -262,8 +443,8 @@ namespace EngineCore{
                 offset += mipSize;  // 累加到下一个 mip level
             }
 
-
-            return tex;
+            result.resource = tex;
+            return result;
         }
     
         std::vector<uint8_t> LoadMipData(const std::string& realativePath, int mipCount){}
@@ -296,80 +477,157 @@ namespace EngineCore{
     
             DDSHeader header;
             file.read(reinterpret_cast<char*>(&header), sizeof(DDSHeader));
-    
 ```
 ...
 ```cpp
+            if(header.magic != 0x20534444 || header.fileSize != 124)
+            {
+                ASSERT(false);
+            }
+    
+            DDSLoadResult result;
+            result.width = header.width;
+            result.height = header.height;
+            result.mipMapCount = header.mipMapCount > 0 ? header.mipMapCount : 1;
+        
+            // 7. 判断压缩格式 (DXT1/DXT3/DXT5)
+            uint32_t fourCC = header.fourCC;
+            
             // 提取fourCC字符串来判断
             char fourCCStr[5] = {0};
-            std::memcpy(fourCCStr, &fourCC, 4);
-            
-            if (std::memcmp(fourCCStr, "DXT1", 4) == 0) {
-                result.format = TextureFormat::DXT1;  // DXT1
+```
+...
+```cpp
                 result.blockSize = 8;
             }
-```
-...
-```cpp
-                result.blockSize = 16;
-            }
-            else if (std::memcmp(fourCCStr, "DXT5", 4) == 0) {
-                result.format = TextureFormat::DXT5;  // DXT5
+            else if (std::memcmp(fourCCStr, "DXT3", 4) == 0) {
+                result.format = TextureFormat::DXT3;  // DXT3
                 result.blockSize = 16;
             }
 ```
 
-### File: `Runtime/Resources/AssetRegistry.cpp`
+### File: `Runtime/Resources/ResourceManager.h`
 ```cpp
-        if(assetPathMap.count(assetID) > 0)
-        {
-            ASSERT(assetPathMap[assetID] == path);
-            return;
-        }
-        assetPathMap[assetID] = path;
-    }
+    };
 
-    std::string AssetRegistry::GetAssetPath(uint64_t assetID)
+    class ResourceManager
     {
-```
-...
-```cpp
-    void AssetRegistry::SaveToDisk(const std::string& relativePath)
-    {
-        ASSERT(assetPathMap.size() > 0);
-        std::string manifestPath = PathSettings::ResolveAssetPath(relativePath);
-        std::ofstream out(manifestPath, std::ios::binary);
-        uint32_t count = assetPathMap.size();
-        StreamHelper::Write(out, count);
-        for(auto& [key, value] : assetPathMap)
+    public:
+        
+        static void Create();
+        void Destroy();
+        ~ResourceManager();
+        ResourceManager();
+
+        void Update();
+        void WorkThreadLoad();
+
+        template<typename T>
+        ResourceHandle<T> LoadAssetAsync(uint64_t assetPathID, std::function<void()> callback, LoadTask* parentTask)
         {
-            StreamHelper::Write(out, key);
-            StreamHelper::WriteString(out, value);
-        }
-```
-...
-```cpp
-        if (!in.is_open()) {
-            // 严重错误：找不到账本，游戏无法运行
-            ASSERT(false, "Failed to load Asset Manifest!");
-            return;
+            LoadTask* currTask = GetOrCreateALoadTask(assetPathID, AssetTypeTraits<T>::Type);
+            // LoadAssetAsync只负责发起异步加载任务，不关心任何比如资源加载完怎么处理
+            if(currTask->loadState == LoadState::Finalized)
+            {
+                if(callback) callback();
+                // 不用TryFinalize Parent，TryFinalize已经在父节点LoadResult的时候调用过了。
+                return ResourceHandle<T>(assetPathID);
+            }
+
+            if(callback != nullptr)
+            {
+                currTask->calllbacks.push_back(callback);
+            }
+            if(parentTask != nullptr)
+            {
+                parentTask->pendingDeps++;
+                currTask->calllbacks.push_back([=]()
+                    {
+                        parentTask->pendingDeps--;
+                        TryFinalize(parentTask);
+                    });
+            }
+
+            if(currTask->loadState == LoadState::None)
+            {
+                currTask->loadState = LoadState::Queue;
+                currTask->id = assetPathID;
+                currTask->type = AssetTypeTraits<T>::Type;
+                mLoadTaskQueue.TryPush(currTask);
+                mResourceCache[assetPathID] = GetDefaultResource(currTask->type);
+            }
+
+            return  ResourceHandle<T>(assetPathID);
         }
 
-        uint32_t count = 0;
-        StreamHelper::Read(in, count);
-        //ASSERT(count != 0);
-        for(int i = 0; i < count; i++)
+        ResourceState GetResourceStateByID(uint64_t assetID )
+        {
+            if(mResourceCache.count(assetID) == 0) return ResourceState::NotExits;
+            if(mResourceCache[assetID] == nullptr) return ResourceState::Loading;
+            if(mResourceCache[assetID] != nullptr) return ResourceState::Success;
+        }
+
+        // todo 异步加载和同步加载可能会冲突
+        // 感觉mResourceCache赋值和取值的一瞬间应该加锁？
+        // 这个地方应该是有问题， task = 不是none 的状态， 这个地方会和Async冲突
+        template<typename T>
+        ResourceHandle<T> LoadAsset(const string& relativePath)
+        {
+            uint64_t assetPathID = AssetRegistry::GetInstance()->GetAssetIDFromPath(relativePath);
+            LoadTask* currTask = GetOrCreateALoadTask(assetPathID, AssetTypeTraits<T>::Type);
+            // LoadAssetAsync只负责发起异步加载任务，不关心任何比如资源加载完怎么处理
+
+            if (currTask->loadState == LoadState::None)
+            {
+                AssetType type = AssetTypeTraits<T>::Type;
+                ASSERT(m_Loaders.count(type) > 0);
+                string path = AssetRegistry::GetInstance()->GetAssetPathFromID(assetPathID);
+                LoadResult result = m_Loaders[type]->Load(path);
+                mResourceCache[assetPathID] = result.resource;
+                mLoadTaskCache[assetPathID] = currTask;
+                currTask->loadState = LoadState::Loaded;
+                currTask->resource = result.resource;
+                for(auto& dependency : result.dependencyList)
+```
+...
+```cpp
+                    {
+                    case AssetType::Texture2D:
+                        LoadAsset<Texture>(dependencyPath);
+                        break;
+                    case AssetType::Shader:
+                        LoadAsset<Shader>(dependencyPath);
+                        break;
+                    default:
+                        ASSERT(false);
+                        break;
+                    }
+
+                    if(dependency.onLoaded)
+                    {
+```
+...
+```cpp
+                TryFinalize(currTask);
+            }
+            return  ResourceHandle<T>(assetPathID);
+        }
+
+
+        template<typename T>
+        ResourceHandle<T> Instantiate(const ResourceHandle<T>& sourceHandle)
         {
 ```
 ...
 ```cpp
-            std::string path;
-            
-            StreamHelper::Read(in, id);
-            StreamHelper::ReadString(in, path);
-            assetPathMap[id] = path;
-        }
-    }
+        LoadTask* GetOrCreateALoadTask(uint64_t assetid, AssetType assetType);
+        void TryFinalize(LoadTask* task);
+        void EnsureDefaultTexture();
+        void EnsureDefaultShader();
+        void EnsureDefaultMaterial();
+
+    };
+
 }
 ```
 
@@ -384,12 +642,16 @@ namespace EngineCore
         static void Destroy();
         static AssetRegistry* GetInstance();
         void RegisterAsset(Resource* resource);
-        std::string GetAssetPath(uint64_t id);
+        std::string GetAssetPathFromID(uint64_t id);
+        uint64_t GetAssetIDFromPath(const std::string& path);
         void SaveToDisk(const std::string& manifestPath);
         void LoadFromDisk(const std::string& manifestPath);
     private:
         static AssetRegistry* s_Instacnce;
-        std::unordered_map<uint64_t, std::string> assetPathMap;
+        std::unordered_map<uint64_t, std::string> assetIDToPathMap;
+        std::unordered_map<std::string, uint64_t> pathToAssetIDMap;
+
+        std::mutex  m_mutex;;
     };
 ```
 
@@ -401,8 +663,11 @@ namespace EngineCore
     {
     public:
         virtual ~SceneLoader() = default;
-        virtual Resource* Load(const std::string& relativePath) override
+
+        // 场景序列化一般在主线程做， 确保数据安全。
+        virtual LoadResult Load(const std::string& relativePath) override
         {
+            LoadResult result;
             std::string path = PathSettings::ResolveAssetPath(relativePath);
             std::ifstream in(path, std::ios::binary);
 
@@ -410,6 +675,7 @@ namespace EngineCore
             in.seekg(sizeof(AssetHeader));
 
             Scene* scene = new Scene();
+            SceneManager::GetInstance()->SetCurrentScene(scene);
             std::vector<SceneSerializedNode> allnode;
             StreamHelper::ReadVector(in, allnode);
             std::unordered_map<uint32_t, GameObject*> gameObjectMap;
@@ -438,21 +704,29 @@ namespace EngineCore
                     filter->mMeshHandle = ResourceManager::GetInstance()->LoadAssetAsync<Mesh>(nodeData.meshID, [=]() 
                         {
                             filter->OnLoadResourceFinished();
-                        });
+                        }, nullptr);
                     
                     // 加载并设置 Material
                     if(nodeData.materialID != 0)
                     {
                         MeshRenderer* renderer = go->AddComponent<MeshRenderer>();
-                        AssetRegistry::GetInstance()->GetAssetPath(nodeData.materialID);
-                        // todo  还没做
-                        //renderer->SetSharedMaterial(ResourceManager::GetInstance()->LoadAsset<Material>(nodeData.materialID));
-                        //renderer->TryAddtoBatchManager();
+                        string path = AssetRegistry::GetInstance()->GetAssetPathFromID(nodeData.materialID);
+                        // --- 添加这块临时调试代码 ---
+                        if (path == "Material/bistro/Material_182.mat") {
+                            int debug_here = 0; // 在这行打一个普通断点（F9）
+                        }
+                        ResourceHandle<Material> handle = ResourceManager::GetInstance()->LoadAsset<Material>(
+                            path
+                            );
+                        renderer->OnLoadResourceFinished();
+                        renderer->SetSharedMaterial(handle);
+
                     }
                 }
 
             }
-            return scene;
+            result.resource = scene;
+            return result;
         }
 
         void SaveSceneToBin(const Scene* scene, const std::string& relativePath, uint32_t id)
@@ -463,141 +737,28 @@ namespace EngineCore
 
             AssetHeader header;
             header.assetID =id;
-            header.type = 0;
-            StreamHelper::Write(out, header);
-
-            std::vector<SceneSerializedNode> linearNode;
-            std::unordered_map<GameObject*, uint32_t> gameObjectMap;
-            for(int i = 0; i < scene->rootObjList.size(); i++)
-            {
-                GameObject* gameObject = scene->rootObjList[i];
-                
-                SerilizedNode(gameObject, gameObjectMap, linearNode);
-            }
-            
-```
-
-### File: `Runtime/Serialization/MaterialLoader.h`
-```cpp
-#include "Settings/ProjectSettings.h"
-
-namespace EngineCore
-{
-    
-};
-```
-
-### File: `Runtime/Resources/ResourceManager.h`
-```cpp
-namespace EngineCore
-{
-    class ResourceManager
-    {
-    public:
-        
-        static void Create();
-        void Destroy();
-        ~ResourceManager();
-        ResourceManager();
-
-        void Update();
-        void WorkThreadLoad();
-
-        template<typename T>
-        ResourceHandle<T> LoadAssetAsync(uint64_t assetPathID, std::function<void()> callback)
-        {
-            if(mResourceCache.count(assetPathID) > 0)
-            {
-                if (callback != nullptr)
-                {
-                    if (mResourceCache[assetPathID] == nullptr)
-                    {
-                        m_LoadCallbacks[assetPathID].push_back(callback);
-                    }
-                    else
-                    {
-                        callback();
-                    }
-                }
-                return ResourceHandle<T>(assetPathID);
-            }
-            
-            mResourceCache[assetPathID] = nullptr;
-            string path = AssetRegistry::GetInstance()->GetAssetPath(assetPathID);
-            // 找到对应的Loader：
-            AssetType fileType = AssetTypeTraits<T>::Type;
-            ResourceHandle<T> handle(assetPathID);
-            auto* loader = m_Loaders[fileType];
-            if (callback != nullptr)
-            {
-                m_LoadCallbacks[assetPathID].push_back(callback);
-            }
-            m_WorkThreadQueue.TryPush([=]()
-            {
-                Resource* resource = loader->Load(path);
-                m_MainThreadQueue.TryPush([=]()
-                {
-                    // 主线程访问才对，不然会有线程安全问题
-                    mResourceCache[assetPathID] = resource;
-                    resource->OnLoadComplete();
-                    auto it = m_LoadCallbacks.find(assetPathID);
-                    if (it != m_LoadCallbacks.end())
-                    {
-                        for (auto& loadCallback : it->second)
-                        {
-                            if (loadCallback != nullptr)
-                            {
-                                loadCallback();
-                            }
-                        }
-                        m_LoadCallbacks.erase(it);
-                    }
-                });
-            });
-
-            return handle;
-        }
-
-        ResourceState GetResourceStateByID(uint64_t assetID )
-        {
-            if(mResourceCache.count(assetID) == 0) return ResourceState::NotExits;
-            if(mResourceCache[assetID] == nullptr) return ResourceState::Loading;
-            if(mResourceCache[assetID] != nullptr) return ResourceState::Success;
-        }
-
-        // todo 异步加载和同步加载可能会冲突
-        template<typename T>
-        ResourceHandle<T> LoadAsset(const string& relativePath)
-        {
 ```
 ...
 ```cpp
-            mPathToID[path] = id;
-            mResourceCache[id] = resource;
-            AssetRegistry::GetInstance()->RegisterAsset(resource);
-            return ResourceHandle<T>(id);
             }
-
-
-        template<typename T>
-        ResourceHandle<T> Instantiate(const ResourceHandle<T>& sourceHandle)
+            
+            StreamHelper::WriteVector(out, linearNode);
+        }
+    private:
+        void SerilizedNode(GameObject* gameObject, std::unordered_map<GameObject*, uint32_t>& gameObjectMap, std::vector<SceneSerializedNode>& linearNode)
         {
 ```
-...
+
+### File: `Runtime/Resources/AssetTypeTraits.h`
 ```cpp
-        {
-            auto fileType = AssetTypeTraits<T>::Type;
-            ASSERT(fileType != AssetType::Default);
-            AssetID id;
-            switch (fileType)
-            {
-            case AssetType::Mesh:
-                return defaultMesh;
-                break;
-            default:
-                ASSERT(false);
-                break;
-            }
+namespace EngineCore
+{
+    class Mesh;
+    class Texture;
+    class Material;
+    class Shader;
+
+    template<typename T> struct AssetTypeTraits { static const AssetType Type = AssetType::Default; };
 ```
 
 ### File: `Runtime/MaterialLibrary/MaterialLayout.h`
@@ -625,43 +786,17 @@ namespace EngineCore
             prop.name = name;
             prop.type = type;
             prop.size = size;
-            prop.offset = currentOffset;
-            layout.m_PropertyLayout[name] = prop;
+            prop.offset = m_TotalSize;
+            m_PropertyLayout[name] = prop;
             
-            currentOffset += size;
+            m_TotalSize += size;
         }
-        // temp;
-        // 【新增】硬编码构建一个标准布局，模拟未来的 JSON 加载结果
-        // 对应 Shader/SimpleTestShader.hlsl 里的 cbuffer 结构
-        static MaterialLayout GetDefaultPBRLayout()
+
+        void AddTextureToBlockOffset(const std::string& name, uint32_t offset)
         {
-
-            // --- Chunk 0 ---
-            // float4 DiffuseColor
-            AddProp("DiffuseColor", ShaderVariableType::VECTOR4, 16);
+            ASSERT(textureToBlockIndexMap.count(name) < 0);
+            textureToBlockIndexMap[name] = offset;
             
-            // float4 SpecularColor
-            AddProp("SpecularColor", ShaderVariableType::VECTOR4, 16);
-
-            // float Roughness
-            AddProp("Roughness", ShaderVariableType::FLOAT, 4);
-            
-            // float Metallic
-            AddProp("Metallic", ShaderVariableType::FLOAT, 4);
-
-            // float2 TilingFactor (8 bytes)
-            AddProp("TilingFactor", ShaderVariableType::VECTOR2, 8);
-            
-            AddProp("DiffuseTextureIndex", ShaderVariableType::FLOAT, 4);
-            
-            AddProp("PaddingLast", ShaderVariableType::VECTOR3, 12);
-
-            // 此时 offset = 16+16+4+4+8 = 48 bytes
-            // 还需要补齐到 16 字节对齐吗？HLSL cbuffer 是 16 字节对齐的
-            // 目前 48 刚好是 16 的倍数，完美。
-            
-            layout.m_TotalSize = currentOffset;
-            return layout;
         }
 
         uint32_t GetPropertyOffset(const std::string& name)
@@ -672,38 +807,10 @@ namespace EngineCore
 
         uint32_t GetSize(){ return m_TotalSize;}
 
-    private:
         std::unordered_map<std::string, MaterialPropertyLayout> m_PropertyLayout;
+        std::unordered_map<std::string, uint32_t> textureToBlockIndexMap;
+    private:
         uint32_t m_TotalSize = 0;
-    };
-
-}
-```
-
-### File: `Runtime/Resources/AssetTypeTraits.h`
-```cpp
-namespace EngineCore
-{
-    class Mesh;
-    class Texture;
-    class Material;
-
-    template<typename T> struct AssetTypeTraits { static const AssetType Type = AssetType::Default; };
-```
-
-### File: `Runtime/MaterialLibrary/MaterialArchytype.h`
-```cpp
-    // 对应 MaterialLayout::GetDefaultPBRLayout 的内存布局
-    // 必须保持 16 字节对齐
-    struct MaterialConstants
-    {
-        Vector4 DiffuseColor = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-        Vector4 SpecularColor = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
-        float Roughness = 0.5f;
-        float Metallic = 0.0f;
-        Vector2 TilingFactor = Vector2(1.0f, 1.0f);
-        float DiffuseTextureIndex = 0.0f; 
-        Vector3 Padding = Vector3(0.0f, 0.0f, 0.0f);
     };
 ```
 
@@ -781,86 +888,6 @@ struct VertexInput
 };
 ```
 
-### File: `Runtime/Scene/BistroSceneLoader.h`
-```cpp
-    class Node;
-    class Model;
-    class Mesh;
-}
-
-namespace EngineCore {
-```
-...
-```cpp
-    class Scene;
-
-    class BistroSceneLoader {
-    public:
-        static Scene* Load(const std::string& path);
-        static void SaveToCache(Scene* scene, const std::string& path);
-        static Scene* LoadFromCache(const std::string& path);
-        static ResourceHandle<Material> commonMatHandle;
-        
-    private:
-        Scene* LoadInternal(const std::string& path);
-        void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
-        void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
-        void ProcessMaterials(const tinygltf::Model& model);
-        void ProcessTexture(const tinygltf::Model& model);
-        void AttachMaterialToGameObject(GameObject* gameObject, int materialIndex);
-        AssetID GetTextureAssetID(const tinygltf::Model& model, int textureIndex);
-        std::map<int, std::vector<std::pair<ResourceHandle<Mesh>, int>>> m_MeshCache;
-        std::vector<AssetID> m_ImageIndexToID;
-        std::vector<ResourceHandle<Material>> m_MaterialMap;
-    };
-```
-
-### File: `Assets/Shader/BlitShader.hlsl`
-```hlsl
-
-// BlitShader.hlsl
-Texture2D SrcTexture : register(t0, space0);
-SamplerState LinearSampler : register(s0, space0);
-
-// 使用传统的顶点输入
-struct VertexInput
-{
-    float3 Position : POSITION;
-    float3 Normal : NORMAL;  
-    float2 TexCoord : TEXCOORD0;
-};
-```
-
-### File: `Runtime/MaterialLibrary/MaterialInstance.h`
-```cpp
-namespace EngineCore
-{
-    class MaterialInstance
-    {
-    public:
-        MaterialInstance(const MaterialLayout& layout)
-            :m_Layout(layout)
-        {
-            m_DataBlob.resize(m_Layout.GetSize());    
-        }
-        
-        void SetValue(const std::string& name, void* data, uint32_t size)
-        {
-            uint32_t offset = m_Layout.GetPropertyOffset(name);
-            memcpy(m_DataBlob.data() + offset, data, size);
-        }
-
-        void* GetData(){return m_DataBlob.data();}
-        uint32_t GetSize(){return m_Layout.GetSize();}
-        inline MaterialLayout GetLayout(){return m_Layout;};
-    private:
-        unordered_map<std::string, IGPUTexture*> textureMap;
-        MaterialLayout m_Layout;
-        std::vector<uint8_t> m_DataBlob;
-        bool m_Dirty = true;
-    };
-```
-
 ### File: `Runtime/Graphics/Material.h`
 ```cpp
 namespace EngineCore
@@ -869,13 +896,15 @@ namespace EngineCore
     {
     public:
         bool isDirty = true;
+        bool isBindLessMaterial = false;
+        string archyTypeName = "";
         std::unique_ptr<MaterialInstance> matInstance;
         ResourceHandle<Shader> mShader;
         unordered_map<string, IGPUTexture*> textureData;
         unordered_map<std::string, ResourceHandle<Texture>> textureHandleMap;
         
-        MaterialData m_MaterialData;
-        void LoadFromMaterialData(const MaterialData& data);
+        //MaterialData m_MaterialData;
+        //void LoadFromMaterialData(const MaterialData& data);
 
         Material() = default;
         Material(ResourceHandle<Shader> shader);
@@ -912,6 +941,14 @@ namespace EngineCore
             }
         }
 
+        // only for serialization
+        void SetTexture(const string& name, uint64_t asset)
+        {
+            ResourceHandle<Texture> texHandle;
+            texHandle.mAssetID = AssetID(asset);
+            textureHandleMap[name] = texHandle;
+        }
+
         inline MaterailRenderState GetMaterialRenderState() const { return mRenderState;};
         MaterailRenderState mRenderState;
         BufferAllocation materialAllocation;
@@ -920,4 +957,110 @@ namespace EngineCore
         void GetTextureInfoFromShaderReflection();
     };
 }
+```
+
+### File: `Runtime/Scene/BistroSceneLoader.h`
+```cpp
+    class Node;
+    class Model;
+    class Mesh;
+}
+
+namespace EngineCore {
+```
+...
+```cpp
+    class Scene;
+
+    class BistroSceneLoader {
+    public:
+        static Scene* Load(const std::string& path);
+        static void SaveToCache(Scene* scene, const std::string& path);
+        static Scene* LoadFromCache(const std::string& path);
+        static ResourceHandle<Material> commonMatHandle;
+        
+    private:
+        Scene* LoadInternal(const std::string& path);
+        void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
+        void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
+        void ProcessMaterials(const tinygltf::Model& model);
+        void ProcessShaders();
+        void ProcessTexture(const tinygltf::Model& model);
+        void CreateDefaultResources();
+        void AttachMaterialToGameObject(GameObject* gameObject, int materialIndex);
+        AssetID GetTextureAssetID(const tinygltf::Model& model, int textureIndex);
+        std::map<int, std::vector<std::pair<ResourceHandle<Mesh>, int>>> m_MeshCache;
+        std::vector<AssetID> m_ImageIndexToID;
+        std::vector<ResourceHandle<Material>> m_MaterialMap;
+    };
+```
+
+### File: `Assets/Shader/BlitShader.hlsl`
+```hlsl
+
+// BlitShader.hlsl
+Texture2D SrcTexture : register(t0, space0);
+SamplerState LinearSampler : register(s0, space0);
+
+// 使用传统的顶点输入
+struct VertexInput
+{
+    float3 Position : POSITION;
+    float3 Normal : NORMAL;  
+    float2 TexCoord : TEXCOORD0;
+};
+```
+
+### File: `Runtime/Serialization/ShaderLoader.h`
+```cpp
+namespace EngineCore
+{
+    class ShaderLoader : public IResourceLoader
+    {
+    public:
+        virtual ~ShaderLoader() = default;
+        virtual LoadResult Load(const std::string& relativePath) override
+        {
+            LoadResult result;
+            std::string path = PathSettings::ResolveAssetPath(relativePath);
+
+            Shader* shader = new Shader(path);
+            result.resource = shader; 
+            return result;
+        }
+
+    };
+```
+
+### File: `Runtime/MaterialLibrary/MaterialArchetypeRegistry.h`
+```cpp
+namespace EngineCore
+{
+    class MaterialArchetypeRegistry
+    {
+    public:
+        static MaterialArchetypeRegistry& GetInstance()
+        {
+            static MaterialArchetypeRegistry instance;
+            return instance;
+        }
+
+        bool RegisMaterial(const std::string name, const MaterialLayout& layout)
+        {
+            layoutMap[name] = layout;
+            return true;
+        }
+
+        MaterialLayout GetArchytypeLayout(const std::string& name)
+        {
+            if (layoutMap.count(name) > 0) 
+            {
+                return layoutMap[name];
+            }
+            return MaterialLayout();
+        }
+
+        
+        std::unordered_map<std::string, MaterialLayout> layoutMap; 
+    };
 ```

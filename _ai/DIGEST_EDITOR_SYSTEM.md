@@ -1,5 +1,5 @@
 # Architecture Digest: EDITOR_SYSTEM
-> Auto-generated. Focus: Editor, Editor/Panel, Editor/D3D12, Panel, Inspector, Hierarchy, Gizmo, GUI, Widget, Console
+> Auto-generated. Focus: Editor, Editor/Panel, Editor/D3D12, Editor/EditorSerialization, Editor/Mac, Panel, Inspector, Hierarchy, Gizmo, GUI, Widget, Console
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。

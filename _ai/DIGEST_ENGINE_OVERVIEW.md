@@ -1,5 +1,5 @@
 # Architecture Digest: ENGINE_OVERVIEW
-> Auto-generated. Focus: Runtime/Entry, EngineCore, Game, RenderEngine, SceneManager, Settings, ProjectSettings, RenderSettings, Application, Runtime/Utils
+> Auto-generated. Focus: Runtime/Entry, Runtime/Settings, EngineCore, Game, RenderEngine, SceneManager, Settings, ProjectSettings, RenderSettings, Application, Runtime/Utils
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
@@ -15,10 +15,10 @@
 - 定位Game/Render/Scene之间的耦合与调度关系。
 
 ## Key Files Index
+- `[63]` **Runtime/Settings/ProjectSettings.cpp** *(Content Included)*
+- `[59]` **Runtime/Settings/ProjectSettings.h** *(Content Included)*
 - `[58]` **Runtime/Core/Game.cpp** *(Content Included)*
-- `[53]` **Runtime/Settings/ProjectSettings.cpp** *(Content Included)*
 - `[50]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
-- `[49]` **Runtime/Settings/ProjectSettings.h** *(Content Included)*
 - `[41]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[37]` **Runtime/Entry.cpp** *(Content Included)*
 - `[35]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
@@ -34,9 +34,9 @@
 - `[24]` **Runtime/EngineCore.h** *(Content Included)*
 - `[24]` **Editor/Panel/EditorGameViewPanel.h** *(Content Included)*
 - `[23]` **Runtime/GameObject/Camera.cpp** *(Content Included)*
-- `[22]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
+- `[23]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
+- `[19]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[19]` **Runtime/GameObject/Transform.h**
-- `[18]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[16]` **Runtime/GameObject/Component.h**
 - `[16]` **Runtime/GameObject/ComponentType.h**
 - `[16]` **Runtime/GameObject/MeshRenderer.h**
@@ -47,8 +47,8 @@
 - `[14]` **Runtime/GameObject/Camera.h**
 - `[14]` **Runtime/GameObject/MonoBehaviour.cpp**
 - `[14]` **Runtime/GameObject/Transform.cpp**
+- `[14]` **Runtime/Serialization/SceneLoader.h**
 - `[13]` **Runtime/Renderer/RenderContext.cpp**
-- `[13]` **Runtime/Serialization/SceneLoader.h**
 - `[13]` **Runtime/Utils/HashCombine.h**
 - `[13]` **Editor/Panel/EditorHierarchyPanel.cpp**
 - `[12]` **Runtime/GameObject/Component.cpp**
@@ -58,6 +58,7 @@
 - `[11]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[11]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[11]` **Editor/Panel/EditorMainBar.h**
+- `[10]` **Runtime/Serialization/MaterialLoader.h**
 - `[10]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.cpp**
 - `[10]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
 - `[9]` **Runtime/Renderer/RenderContext.h**
@@ -74,91 +75,8 @@
 - `[8]` **Editor/Panel/EditorConsolePanel.cpp**
 - `[8]` **Editor/Panel/EditorInspectorPanel.cpp**
 - `[7]` **Runtime/Renderer/Renderer.h**
-- `[7]` **Runtime/Resources/ResourceManager.h**
 
 ## Evidence & Implementation Details
-
-### File: `Runtime/Core/Game.cpp`
-```cpp
-#include "Settings/ProjectSettings.h"
-#include "Resources/AssetRegistry.h"
-namespace EngineCore
-{
-    void Game::Launch()
-    {
-        ProjectSettings::Initialize();
-        // InitManagers Here.
-        RenderEngine::Create();
-        ResourceManager::Create();
-        SceneManager::Create();
-        JobSystem::Create();
-        AssetRegistry::Create();
-        ASSERT(!(RenderSettings::s_EnableVertexPulling == true && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy));
-        //std::cout << "Launch Game" << std::endl;
-        // init Manager...
-        #ifdef EDITOR
-        EngineEditor::EditorGUIManager::Create();
-        #endif
-        while(!WindowManager::GetInstance()->WindowShouldClose())
-        {
-            PROFILER_FRAME_MARK("TinyProfiler");
-            Update();
-
-            Render();
-
-            EndFrame();
-        }
-
-        // 明确的关闭流程（顺序很重要！）
-        Shutdown();
-    }
-
-    void Game::Shutdown()
-    {
-        std::cout << "Game shutting down..." << std::endl;
-
-        // 1. 先停止渲染线程（最重要！）
-        //    必须在销毁任何渲染资源之前停止
-        RenderEngine::Destory();
-        std::cout << "RenderEngine destroyed." << std::endl;
-
-        // 2. 销毁编辑器UI
-        #ifdef EDITOR
-        EngineEditor::EditorGUIManager::OnDestory();
-        std::cout << "EditorGUIManager destroyed." << std::endl;
-        #endif
-
-        // 3. 销毁场景（包含所有GameObject）
-        SceneManager::Destroy();
-        std::cout << "SceneManager destroyed." << std::endl;
-
-        // 4. 最后销毁资源管理器
-        ResourceManager::GetInstance()->Destroy();
-        std::cout << "ResourceManager destroyed." << std::endl;
-
-        std::cout << "Game shutdown complete." << std::endl;
-    }
-
-    void Game::Update()
-    {
-        PROFILER_ZONE("MainThread::GameUpdate");
-        SceneManager::GetInstance()->Update();
-        ResourceManager::GetInstance()->Update();
-    }
-
-    void Game::Render()
-    {
-        PROFILER_ZONE("MainThread::RenderTick");
-        RenderEngine::GetInstance()->Tick();
-    }
-
-    void Game::EndFrame()
-    {
-        SceneManager::GetInstance()->EndFrame();
-    }
-
-}
-```
 
 ### File: `Runtime/Settings/ProjectSettings.cpp`
 ```cpp
@@ -244,90 +162,6 @@ namespace EngineCore
 
 ```
 
-### File: `Runtime/Renderer/RenderEngine.cpp`
-```cpp
-// 【优化】： 其实这个地方可以变成一个Tick操作， 里面包含begin， Render， end，更加简单。
-// RenderEngine不负责直接和RenderAPI沟通，那个在Renderer里面解决
-namespace EngineCore
-{
-    std::unique_ptr<RenderEngine> RenderEngine::s_Instance = nullptr;
-    RenderContext RenderEngine::renderContext;
-    LagacyRenderPath RenderEngine::lagacyRenderPath;
-    GPUSceneRenderPath RenderEngine::gpuSceneRenderPath;
-    void RenderEngine::Create()
-    {
-        s_Instance = std::make_unique<RenderEngine>();
-        WindowManager::Create();
-        RenderAPI::Create();
-        Renderer::Create();
-        GPUSceneManager::Create();
-    }
-
-    void RenderEngine::Update()
-    {
-    }    
-    
-    void RenderEngine::OnResize(int width, int height)
-    {
-        Renderer::GetInstance()->ResizeWindow(width, height);
-    }
-
-    void RenderEngine::Tick()
-    {
-        WaitForLastFrameFinished();
-        PROFILER_EVENT_BEGIN("MainThread::WaitForGpuFinished");
-        RenderAPI::GetInstance()->WaitForGpuFinished();
-        PROFILER_EVENT_END("MainThread::WaitForGpuFinished");
-
-
-        if (RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy)
-        {
-            lagacyRenderPath.Execute(renderContext);
-        }
-        else
-        {
-            gpuSceneRenderPath.Execute(renderContext);
-        }
-
-        SignalMainThreadSubmited();
-
-    }
-
-    void RenderEngine::Destory()
-    {
-        // Renderer 的析构函数会自动停止渲染线程
-        Renderer::Destroy();
-        //RenderAPI::Destroy();
-        WindowManager::Destroy();
-        GPUSceneManager::GetInstance()->Destroy();
-        // 最后销毁 RenderEngine 自己
-        if (s_Instance)
-        {
-            // 先调用析构（智能指针自动管理）
-            s_Instance.reset();
-            // 此时：
-            // 1. 析构函数已完成
-            // 2. 内存已释放
-            // 3. s_Instance 已经是 nullptr
-            // 4. 后续 GetInstance() 不会返回野指针
-        }
-    }
-
-    void RenderEngine::WaitForLastFrameFinished()
-    {
-        PROFILER_EVENT_BEGIN("MainThread::WaitforSignalFromRenderThread");
-        CpuEvent::RenderThreadSubmited().Wait();
-        PROFILER_EVENT_END("MainThread::WaitforSignalFromRenderThread");
-
-    }
-
-    void RenderEngine::SignalMainThreadSubmited()
-    {
-        CpuEvent::MainThreadSubmited().Signal();
-    }
-
-```
-
 ### File: `Runtime/Settings/ProjectSettings.h`
 ```cpp
 #include <iostream>
@@ -380,6 +214,88 @@ namespace EngineCore
         static void Initialize();
         static bool s_Initialized;
     };
+
+}
+```
+
+### File: `Runtime/Core/Game.cpp`
+```cpp
+#include "Settings/ProjectSettings.h"
+#include "Resources/AssetRegistry.h"
+namespace EngineCore
+{
+    void Game::Launch()
+    {
+        ProjectSettings::Initialize();
+        // InitManagers Here.
+        RenderEngine::Create();
+        ResourceManager::Create();
+        SceneManager::Create();
+        JobSystem::Create();
+        AssetRegistry::Create();
+        ASSERT(!(RenderSettings::s_EnableVertexPulling == true && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy));
+        //std::cout << "Launch Game" << std::endl;
+        // init Manager...
+        #ifdef EDITOR
+        EngineEditor::EditorGUIManager::Create();
+        #endif
+        while(!WindowManager::GetInstance()->WindowShouldClose())
+        {
+            PROFILER_FRAME_MARK("TinyProfiler");
+            Update();
+
+            Render();
+
+            EndFrame();
+        }
+
+        // 明确的关闭流程（顺序很重要！）
+        Shutdown();
+    }
+
+    void Game::Shutdown()
+    {
+        std::cout << "Game shutting down..." << std::endl;
+
+        // 1. 先停止渲染线程（最重要！）
+        //    必须在销毁任何渲染资源之前停止
+        RenderEngine::Destory();
+        std::cout << "RenderEngine destroyed." << std::endl;
+
+        // 2. 销毁编辑器UI
+        #ifdef EDITOR
+        EngineEditor::EditorGUIManager::OnDestory();
+        std::cout << "EditorGUIManager destroyed." << std::endl;
+        #endif
+
+        // 3. 销毁场景（包含所有GameObject）
+        SceneManager::Destroy();
+        std::cout << "SceneManager destroyed." << std::endl;
+
+        // 4. 最后销毁资源管理器
+        ResourceManager::GetInstance()->Destroy();
+        std::cout << "ResourceManager destroyed." << std::endl;
+
+        std::cout << "Game shutdown complete." << std::endl;
+    }
+
+    void Game::Update()
+    {
+        PROFILER_ZONE("MainThread::GameUpdate");
+        SceneManager::GetInstance()->Update();
+        ResourceManager::GetInstance()->Update();
+    }
+
+    void Game::Render()
+    {
+        PROFILER_ZONE("MainThread::RenderTick");
+        RenderEngine::GetInstance()->Tick();
+    }
+
+    void Game::EndFrame()
+    {
+        SceneManager::GetInstance()->EndFrame();
+    }
 
 }
 ```

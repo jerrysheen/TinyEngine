@@ -1,5 +1,5 @@
 # Architecture Digest: BUILD_TOOLING
-> Auto-generated. Focus: premake5.lua, WinBuildAndRun, Win-GenProjects, msbuild, Tools/premake
+> Auto-generated. Focus: premake5.lua, WinBuildAndRun, Win-GenProjects, run_ai_analysis, msbuild, Tools/premake
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
@@ -13,6 +13,7 @@
 ## Key Files Index
 - `[22]` **WinBuildAndRun.bat** *(Content Included)*
 - `[21]` **premake5.lua** *(Content Included)*
+- `[20]` **run_ai_analysis.bat** *(Content Included)*
 - `[20]` **Win-GenProjects.bat** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
 - `[12]` **Runtime/Core/Game.cpp** *(Content Included)*
@@ -30,7 +31,7 @@
 - `[4]` **Assets/Shader/StandardPBR.hlsl** *(Content Included)*
 - `[4]` **Assets/Shader/StandardPBR_VertexPulling.hlsl** *(Content Included)*
 - `[2]` **Editor/EditorGUIManager.h** *(Content Included)*
-- `[2]` **Editor/EditorSettings.h** *(Content Included)*
+- `[2]` **Editor/EditorSettings.h**
 - `[2]` **Runtime/CoreAssert.h**
 - `[2]` **Runtime/EngineCore.h**
 - `[2]` **Runtime/PreCompiledHeader.h**
@@ -65,7 +66,6 @@
 - `[2]` **Runtime/Managers/Manager.h**
 - `[2]` **Runtime/Managers/WindowManager.h**
 - `[2]` **Runtime/MaterialLibrary/MaterialArchetypeRegistry.h**
-- `[2]` **Runtime/MaterialLibrary/MaterialArchytype.h**
 - `[2]` **Runtime/MaterialLibrary/MaterialInstance.h**
 - `[2]` **Runtime/MaterialLibrary/MaterialLayout.h**
 - `[2]` **Runtime/MaterialLibrary/StandardPBR.h**
@@ -148,6 +148,51 @@ workspace "TinyEngine"
 		"Release",
 		"Dist"
 	}
+```
+
+### File: `run_ai_analysis.bat`
+```bat
+
+echo [2/3] Generating Architecture Digests (Python)...
+python _ai\ai_digest.py
+if errorlevel 1 (
+    echo Error running Python script. Make sure python is installed.
+    pause
+    exit /b
+)
+
+echo [3/3] Preparing Context for AI...
+
+REM 生成一个“聚合文件”或者提示词模板
+set PROMPT_FILE=_ai\PROMPT_ARCH_REVIEW.txt
+(
+echo I am providing you with the "Architecture Digests" of my current C++ Renderer.
+echo These files contain the key structs, classes, and flow logic for each subsystem.
+echo.
+echo Please review the following contexts:
+echo [1] @_ai/DIGEST_RENDER_FLOW.md (How we execute a frame)
+echo [2] @_ai/DIGEST_MATERIAL.md (How we handle shaders/data)
+echo [3] @_ai/DIGEST_RESOURCE.md (How we handle memory/barriers)
+echo [4] @_ai/DIGEST_RHI.md (Low level abstraction)
+echo.
+echo Based strictly on this evidence:
+echo 1. Describe my current architecture style (e.g., Immediate mode vs FrameGraph, Bindless vs Slot-based).
+echo 2. Identify the top 3 bottlenecks that prevent this from being a "Modern Renderer".
+echo 3. Propose a specific refactoring roadmap for the Material System to support [Insert Goal, e.g., GPU-Driven].
+) > "%PROMPT_FILE%"
+
+type "%PROMPT_FILE%" | clip
+
+echo.
+echo ========================================================
+echo DONE!
+echo.
+echo 1. Digests are in: root/_ai/
+echo 2. A prompt has been COPIED to your clipboard.
+echo.
+echo Just open Cursor/Chat and PASTE (Ctrl+V).
+echo ========================================================
+pause
 ```
 
 ### File: `Win-GenProjects.bat`
@@ -483,6 +528,9 @@ struct VertexInput
 
 ### File: `Assets/Shader/StandardPBR.hlsl`
 ```hlsl
+// 纹理资源
+//Texture2D g_Textures[1024] : register(t0, space0);
+Texture2D DiffuseTexture : register(t0, space0);
 
 // 采样器
 SamplerState LinearSampler : register(s0, space0);
@@ -554,65 +602,6 @@ namespace EngineEditor
     private:
         std::vector<EditorPanel*> mPanelList;
         GameObject* currentSelected = nullptr;
-    };
-
-
-}
-```
-
-### File: `Editor/EditorSettings.h`
-```cpp
-
-
-namespace EngineEditor
-{
-using Vector2 = EngineCore::Vector2;
-    // Editor
-    class EditorSettings
-    {
-    private:
-        // StartPos 和 Size都是0~1的ratio
-        static Vector2  hierarchyStartPos;
-        static Vector2  hierarchySize;
-        static Vector2  consoleStartPos;
-        static Vector2  consoleSize;
-        static Vector2  projectStartPos;
-        static Vector2  projectSize;
-        static Vector2  inspectorStartPos;
-        static Vector2  inspectorSize;
-        static Vector2  mainBarStartPos;
-        static Vector2  mainBarSize;
-        static Vector2  gameViewStartPos;
-        static Vector2  gameViewSize;
-
-        static Vector2 currentWindowSize;
-    public:
-        inline static Vector2 GetHierarchyPanelStartPos(){return hierarchyStartPos * currentWindowSize;};
-        inline static Vector2 GetHierarchyPanelEndPos(){return (hierarchyStartPos + hierarchySize) * currentWindowSize; };
-        inline static Vector2 GetHierarchyPanelSize(){return hierarchySize * currentWindowSize;};
-
-        inline static Vector2 GetConsolePanelStartPos(){return consoleStartPos * currentWindowSize;};
-        inline static Vector2 GetConsolePanelEndPos(){return (consoleStartPos + consoleSize) * currentWindowSize;};
-        inline static Vector2 GetConsolePanelSize(){return consoleSize * currentWindowSize;};
-
-        inline static Vector2 GetProjectPanelStartPos(){return projectStartPos * currentWindowSize;};
-        inline static Vector2 GetProjectPanelEndPos(){return (projectStartPos + projectSize) * currentWindowSize;};
-        inline static Vector2 GetProjectPanelSize(){return projectSize * currentWindowSize;};
-
-        inline static Vector2 GetInspectorPanelStartPos(){return inspectorStartPos * currentWindowSize;};
-        inline static Vector2 GetInspectorPanelEndPos(){return (inspectorStartPos + inspectorSize) * currentWindowSize;};
-        inline static Vector2 GetInspectorPanelSize(){return inspectorSize * currentWindowSize;};
-
-        inline static Vector2 GetMainBarPanelStartPos(){return mainBarStartPos * currentWindowSize;};
-        inline static Vector2 GetMainBarPanelEndPos(){return (mainBarStartPos + mainBarSize) * currentWindowSize;};
-        inline static Vector2 GetMainBarPanelSize(){return mainBarSize * currentWindowSize;};
-
-        inline static Vector2 GetGameViewPanelStartPos(){return gameViewStartPos * currentWindowSize;};
-        inline static Vector2 GetGameViewPanelEndPos(){return (gameViewStartPos + gameViewSize) * currentWindowSize;};
-        inline static Vector2 GetGameViewPanelSize(){return gameViewSize * currentWindowSize;};
-        
-        static void UpdateLayout(){};
-
     };
 
 

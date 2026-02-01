@@ -69,12 +69,12 @@
 - `[10]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
 - `[9]` **Runtime/Graphics/Material.cpp**
 - `[9]` **Runtime/Renderer/RenderContext.cpp**
+- `[9]` **Runtime/Resources/ResourceManager.h**
 - `[9]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.cpp**
 - `[9]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp**
 - `[9]` **Runtime/Platforms/D3D12/d3dUtil.cpp**
 - `[9]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[9]` **Assets/Shader/StandardPBR.hlsl**
-- `[8]` **Runtime/GameObject/Camera.cpp**
 
 ## Evidence & Implementation Details
 
@@ -753,7 +753,7 @@ namespace EngineCore
         inline void SetSharedMaterial(const ResourceHandle<Material>& mat) 
         {
             mShardMatHandler = mat;
-            SetUpMaterialPropertyBlock();
+            //SetUpMaterialPropertyBlock();
         }
 
         // return a new Material Instance;
@@ -773,6 +773,8 @@ namespace EngineCore
         void TryAddtoBatchManager();
 
         uint32_t renderLayer = 1;
+        void OnLoadResourceFinished();
+
     private:
         ResourceHandle<Material> mShardMatHandler;
         ResourceHandle<Material> mInstanceMatHandler;

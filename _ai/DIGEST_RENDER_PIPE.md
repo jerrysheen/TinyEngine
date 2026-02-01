@@ -70,7 +70,7 @@
 - `[3]` **Runtime/Core/PublicEnum.h**
 - `[3]` **Runtime/GameObject/MeshRenderer.h**
 - `[3]` **Runtime/Graphics/GPUBufferAllocator.cpp**
-- `[3]` **Runtime/Serialization/SceneLoader.h**
+- `[3]` **Runtime/Scene/BistroSceneLoader.cpp**
 - `[3]` **Runtime/Settings/ProjectSettings.cpp**
 - `[2]` **Editor/EditorGUIManager.h**
 - `[2]` **Editor/EditorSettings.h**

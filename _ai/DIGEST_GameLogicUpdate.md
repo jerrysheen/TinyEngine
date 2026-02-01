@@ -31,13 +31,13 @@
 - `[51]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h** *(Content Included)*
 - `[50]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h** *(Content Included)*
 - `[49]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h** *(Content Included)*
-- `[47]` **Runtime/GameObject/MeshRenderer.cpp** *(Content Included)*
+- `[48]` **Runtime/GameObject/MeshRenderer.cpp** *(Content Included)*
 - `[41]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
 - `[38]` **Runtime/Renderer/RenderContext.h** *(Content Included)*
 - `[38]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
+- `[38]` **Runtime/Serialization/SceneLoader.h**
 - `[37]` **Runtime/Core/Game.h**
 - `[37]` **Runtime/Scene/Scene.h**
-- `[37]` **Runtime/Serialization/SceneLoader.h**
 - `[35]` **Runtime/Renderer/Renderer.h**
 - `[35]` **Runtime/Scene/Scene.cpp**
 - `[33]` **Runtime/GameObject/GameObject.h**
@@ -562,7 +562,7 @@ namespace EngineCore
         inline void SetSharedMaterial(const ResourceHandle<Material>& mat) 
         {
             mShardMatHandler = mat;
-            SetUpMaterialPropertyBlock();
+            //SetUpMaterialPropertyBlock();
         }
 
         // return a new Material Instance;
@@ -582,6 +582,8 @@ namespace EngineCore
         void TryAddtoBatchManager();
 
         uint32_t renderLayer = 1;
+        void OnLoadResourceFinished();
+
     private:
         ResourceHandle<Material> mShardMatHandler;
         ResourceHandle<Material> mInstanceMatHandler;

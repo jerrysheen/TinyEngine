@@ -80,7 +80,7 @@
 
 ### File: `Runtime/Scene/BistroSceneLoader.cpp`
 ```cpp
-            Scene* res = static_cast<Scene*>(sceneLoader.Load(binPath));
+            Scene* res = static_cast<Scene*>(sceneLoader.Load(binPath).resource);
             // todo： 这个地方有加载时序问题。。
             SceneManager::GetInstance()->SetCurrentScene(res);
 
@@ -242,7 +242,9 @@ namespace EngineCore {
         void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
         void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
         void ProcessMaterials(const tinygltf::Model& model);
+        void ProcessShaders();
         void ProcessTexture(const tinygltf::Model& model);
+        void CreateDefaultResources();
         void AttachMaterialToGameObject(GameObject* gameObject, int materialIndex);
         AssetID GetTextureAssetID(const tinygltf::Model& model, int textureIndex);
         std::map<int, std::vector<std::pair<ResourceHandle<Mesh>, int>>> m_MeshCache;
@@ -277,7 +279,7 @@ namespace EngineCore
         inline void SetSharedMaterial(const ResourceHandle<Material>& mat) 
         {
             mShardMatHandler = mat;
-            SetUpMaterialPropertyBlock();
+            //SetUpMaterialPropertyBlock();
         }
 
         // return a new Material Instance;
@@ -297,6 +299,8 @@ namespace EngineCore
         void TryAddtoBatchManager();
 
         uint32_t renderLayer = 1;
+        void OnLoadResourceFinished();
+
     private:
         ResourceHandle<Material> mShardMatHandler;
         ResourceHandle<Material> mInstanceMatHandler;
@@ -647,6 +651,61 @@ namespace EngineCore
         uint64_t materialID = 0;
 
     };
+```
+...
+```cpp
+
+            Scene* scene = new Scene();
+            SceneManager::GetInstance()->SetCurrentScene(scene);
+            std::vector<SceneSerializedNode> allnode;
+            StreamHelper::ReadVector(in, allnode);
+            std::unordered_map<uint32_t, GameObject*> gameObjectMap;
+            
+            for(int i = 0; i < allnode.size(); i++)
+            {
+                auto& nodeData = allnode[i];
+                
+                std::string nodeName = nodeData.name;
+                GameObject* go = scene->CreateGameObject(nodeName.empty() ? "Node" : nodeName);
+
+                go->transform->SetLocalPosition(nodeData.position);
+                go->transform->SetLocalQuaternion(nodeData.rotation);
+                go->transform->SetLocalScale(nodeData.scale);
+                if(nodeData.parentIndex != -1)
+                {
+                    ASSERT(gameObjectMap.count(nodeData.parentIndex) > 0);
+                    go->SetParent(gameObjectMap[nodeData.parentIndex]);
+                }
+                gameObjectMap[i] = go;
+
+                //todo 加入材质的异步加载：
+                if(nodeData.meshID != 0)
+                {
+                    MeshFilter* filter = go->AddComponent<MeshFilter>();
+                    filter->mMeshHandle = ResourceManager::GetInstance()->LoadAssetAsync<Mesh>(nodeData.meshID, [=]() 
+                        {
+                            filter->OnLoadResourceFinished();
+                        }, nullptr);
+                    
+                    // 加载并设置 Material
+                    if(nodeData.materialID != 0)
+                    {
+                        MeshRenderer* renderer = go->AddComponent<MeshRenderer>();
+                        string path = AssetRegistry::GetInstance()->GetAssetPathFromID(nodeData.materialID);
+                        // --- 添加这块临时调试代码 ---
+                        if (path == "Material/bistro/Material_182.mat") {
+                            int debug_here = 0; // 在这行打一个普通断点（F9）
+                        }
+                        ResourceHandle<Material> handle = ResourceManager::GetInstance()->LoadAsset<Material>(
+                            path
+                            );
+                        renderer->OnLoadResourceFinished();
+                        renderer->SetSharedMaterial(handle);
+
+                    }
+                }
+
+            }
 ```
 ...
 ```cpp
