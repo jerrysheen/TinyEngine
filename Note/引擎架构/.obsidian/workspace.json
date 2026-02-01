@@ -28,14 +28,38 @@
             "id": "b37dfbe50f450bb4",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "关系图谱"
+              "type": "canvas",
+              "state": {
+                "file": "ResourceManager.canvas",
+                "viewState": {
+                  "x": -2565.7927095857567,
+                  "y": 949.3456764482844,
+                  "zoom": -1.9999999999999998
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "ResourceManager"
+            }
+          },
+          {
+            "id": "fc5529cd2bb130de",
+            "type": "leaf",
+            "state": {
+              "type": "canvas",
+              "state": {
+                "file": "ResourceManager.canvas",
+                "viewState": {
+                  "x": -3493.5108188954373,
+                  "y": 4239.434117844909,
+                  "zoom": 0.3153955084892112
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "ResourceManager"
             }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -174,37 +198,39 @@
   },
   "left-ribbon": {
     "hiddenItems": {
+      "bases:新建数据库": false,
       "switcher:打开快速切换": false,
       "graph:查看关系图谱": false,
       "canvas:新建白板": false,
       "daily-notes:打开/创建今天的日记": false,
       "templates:插入模板": false,
-      "command-palette:打开命令面板": false,
-      "bases:创建新数据库": false
+      "command-palette:打开命令面板": false
     }
   },
-  "active": "b37dfbe50f450bb4",
+  "active": "fc5529cd2bb130de",
   "lastOpenFiles": [
     "12_31重构资源.canvas",
-    "未命名.md",
     "12_27 GPUScene 前半段更新.canvas",
-    "12_17GPU Scene大致流程， 和实现方案.canvas",
-    "ComputeShader接入梳理.canvas",
-    "ComputeShader接入梳理：.md",
+    "欢迎.md",
+    "Shader.h.md",
+    "UnitySRPBatch.canvas",
     "Pasted image 20251217230600.png",
-    "12_13重构数据流.canvas",
+    "RenderAPI.h.md",
     "Pasted image 20251213164812.png",
-    "Head to GPU Scene.canvas",
     "Material.h.md",
+    "Head to GPU Scene.canvas",
+    "ComputeShader接入梳理.canvas",
+    "资源初始化.canvas",
+    "ResourceManager.canvas",
+    "未命名.md",
+    "12_17GPU Scene大致流程， 和实现方案.canvas",
+    "ComputeShader接入梳理：.md",
+    "12_13重构数据流.canvas",
     "Head to GPU Scene.md",
     "渲染管线第一版.canvas",
     "Picture/Pasted image 20251128144237.png",
-    "UnitySRPBatch.canvas",
     "Picture",
     "Picture/Pasted image 20251128111249.png",
-    "Picture/Pasted image 20251128103006.png",
-    "渲染流程.canvas",
-    "资源初始化.canvas",
-    "RenderAPI.h.md"
+    "Picture/Pasted image 20251128103006.png"
   ]
 }

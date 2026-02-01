@@ -20,7 +20,7 @@ namespace EngineCore
         Vector3 scale;
 
         uint64_t meshID = 0;
-        uint32_t materialID = 0;
+        uint64_t materialID = 0;
 
     };
 
@@ -28,8 +28,11 @@ namespace EngineCore
     {
     public:
         virtual ~SceneLoader() = default;
-        virtual Resource* Load(const std::string& relativePath) override
+
+        // 场景序列化一般在主线程做， 确保数据安全。
+        virtual LoadResult Load(const std::string& relativePath) override
         {
+            LoadResult result;
             std::string path = PathSettings::ResolveAssetPath(relativePath);
             std::ifstream in(path, std::ios::binary);
 
@@ -37,6 +40,7 @@ namespace EngineCore
             in.seekg(sizeof(AssetHeader));
 
             Scene* scene = new Scene();
+            SceneManager::GetInstance()->SetCurrentScene(scene);
             std::vector<SceneSerializedNode> allnode;
             StreamHelper::ReadVector(in, allnode);
             std::unordered_map<uint32_t, GameObject*> gameObjectMap;
@@ -65,11 +69,29 @@ namespace EngineCore
                     filter->mMeshHandle = ResourceManager::GetInstance()->LoadAssetAsync<Mesh>(nodeData.meshID, [=]() 
                         {
                             filter->OnLoadResourceFinished();
-                        });
+                        }, nullptr);
+                    
+                    // 加载并设置 Material
+                    if(nodeData.materialID != 0)
+                    {
+                        MeshRenderer* renderer = go->AddComponent<MeshRenderer>();
+                        string path = AssetRegistry::GetInstance()->GetAssetPathFromID(nodeData.materialID);
+                        // --- 添加这块临时调试代码 ---
+                        if (path == "Material/bistro/Material_182.mat") {
+                            int debug_here = 0; // 在这行打一个普通断点（F9）
+                        }
+                        ResourceHandle<Material> handle = ResourceManager::GetInstance()->LoadAsset<Material>(
+                            path
+                            );
+                        renderer->OnLoadResourceFinished();
+                        renderer->SetSharedMaterial(handle);
+
+                    }
                 }
 
             }
-            return scene;
+            result.resource = scene;
+            return result;
         }
 
         void SaveSceneToBin(const Scene* scene, const std::string& relativePath, uint32_t id)
@@ -107,10 +129,18 @@ namespace EngineCore
 
             Transform* parent = gameObject->transform->parentTransform;
             uint64_t meshID = 0;
+            uint64_t materialID = 0;
+            
             MeshFilter* meshfilter = gameObject->GetComponent<MeshFilter>();
             if (meshfilter != nullptr)
             {
                 meshID = meshfilter->mMeshHandle->GetAssetID();
+            }
+            
+            MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
+            if (meshRenderer != nullptr && meshRenderer->GetSharedMaterial() != nullptr)
+            {
+                materialID = meshRenderer->GetSharedMaterial()->GetAssetID();
             }
 
             if (parent == nullptr)
@@ -124,7 +154,7 @@ namespace EngineCore
                 node.parentIndex = gameObjectMap[parent->gameObject];
                 gameObjectMap[gameObject] = linearNode.size();
             }
-            node.materialID = 0;
+            node.materialID = materialID;
             node.meshID = meshID;
             node.position = gameObject->transform->GetLocalPosition();
             node.rotation = gameObject->transform->GetLocalQuaternion();

@@ -132,8 +132,9 @@ namespace EngineCore{
     {
     public:
         virtual ~DDSTextureLoader() = default;
-        virtual Resource* Load(const std::string& relativePath) override
+        virtual LoadResult Load(const std::string& relativePath) override
         {
+            LoadResult result;
             std::string path = PathSettings::ResolveAssetPath(relativePath);
     
             Texture* tex = new Texture();
@@ -171,8 +172,8 @@ namespace EngineCore{
                 offset += mipSize;  // 累加到下一个 mip level
             }
 
-
-            return tex;
+            result.resource = tex;
+            return result;
         }
     
         std::vector<uint8_t> LoadMipData(const std::string& realativePath, int mipCount){}

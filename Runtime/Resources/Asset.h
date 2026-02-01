@@ -12,7 +12,7 @@ namespace EngineCore
     {
         uint64_t value = 0;
         explicit operator bool() const {return value != 0;};
-        operator uint32_t() const { return value;}
+        operator uint64_t() const { return value;}
         bool IsValid() const {return value != 0;};
         inline void Reset() { value = 0; };
         AssetID() = default;

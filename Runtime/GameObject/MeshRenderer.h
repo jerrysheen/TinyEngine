@@ -32,7 +32,7 @@ namespace EngineCore
         inline void SetSharedMaterial(const ResourceHandle<Material>& mat) 
         {
             mShardMatHandler = mat;
-            SetUpMaterialPropertyBlock();
+            //SetUpMaterialPropertyBlock();
         }
 
         // return a new Material Instance;
@@ -52,6 +52,8 @@ namespace EngineCore
         void TryAddtoBatchManager();
 
         uint32_t renderLayer = 1;
+        void OnLoadResourceFinished();
+
     private:
         ResourceHandle<Material> mShardMatHandler;
         ResourceHandle<Material> mInstanceMatHandler;

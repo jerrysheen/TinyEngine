@@ -29,8 +29,14 @@ namespace EngineCore {
         Scene* LoadInternal(const std::string& path);
         void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
         void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
+        void ProcessMaterials(const tinygltf::Model& model);
+        void ProcessShaders();
         void ProcessTexture(const tinygltf::Model& model);
-
-        std::map<int, std::vector<ResourceHandle<Mesh>>> m_MeshCache;
+        void CreateDefaultResources();
+        void AttachMaterialToGameObject(GameObject* gameObject, int materialIndex);
+        AssetID GetTextureAssetID(const tinygltf::Model& model, int textureIndex);
+        std::map<int, std::vector<std::pair<ResourceHandle<Mesh>, int>>> m_MeshCache;
+        std::vector<AssetID> m_ImageIndexToID;
+        std::vector<ResourceHandle<Material>> m_MaterialMap;
     };
 }

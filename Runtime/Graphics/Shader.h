@@ -13,6 +13,9 @@ namespace EngineCore
         ShaderReflectionInfo mShaderReflectionInfo;
         vector<InputLayout> mShaderInputLayout;
         Shader(const std::string& path);
+
+        virtual void OnLoadComplete() override;
+
         Shader();
         ~Shader();
         string name;

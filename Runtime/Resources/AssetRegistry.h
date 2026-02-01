@@ -12,11 +12,15 @@ namespace EngineCore
         static void Destroy();
         static AssetRegistry* GetInstance();
         void RegisterAsset(Resource* resource);
-        std::string GetAssetPath(uint64_t id);
+        std::string GetAssetPathFromID(uint64_t id);
+        uint64_t GetAssetIDFromPath(const std::string& path);
         void SaveToDisk(const std::string& manifestPath);
         void LoadFromDisk(const std::string& manifestPath);
     private:
         static AssetRegistry* s_Instacnce;
-        std::unordered_map<uint64_t, std::string> assetPathMap;
+        std::unordered_map<uint64_t, std::string> assetIDToPathMap;
+        std::unordered_map<std::string, uint64_t> pathToAssetIDMap;
+
+        std::mutex  m_mutex;;
     };
 }

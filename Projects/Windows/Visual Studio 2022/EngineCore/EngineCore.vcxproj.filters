@@ -43,6 +43,9 @@
     <Filter Include="Runtime\Managers">
       <UniqueIdentifier>{4659B9CC-3252-D81E-5B84-BDA347DCB72A}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Runtime\MaterialLibrary">
+      <UniqueIdentifier>{DC1B1EAF-4853-6646-515D-CA69BD138D3F}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Runtime\Math">
       <UniqueIdentifier>{C2AF861B-AE12-16C0-5798-4E7643DAE142}</UniqueIdentifier>
     </Filter>
@@ -234,12 +237,6 @@
     <ClInclude Include="..\..\..\..\Runtime\Graphics\Material.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Graphics\MaterialInstance.h">
-      <Filter>Runtime\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Graphics\MaterialLayout.h">
-      <Filter>Runtime\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\Mesh.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
@@ -260,6 +257,21 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Managers\WindowManager.h">
       <Filter>Runtime\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\MaterialLibrary\MaterialArchetypeRegistry.h">
+      <Filter>Runtime\MaterialLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\MaterialLibrary\MaterialArchytype.h">
+      <Filter>Runtime\MaterialLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\MaterialLibrary\MaterialInstance.h">
+      <Filter>Runtime\MaterialLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\MaterialLibrary\MaterialLayout.h">
+      <Filter>Runtime\MaterialLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\MaterialLibrary\StandardPBR.h">
+      <Filter>Runtime\MaterialLibrary</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Math\AABB.h">
       <Filter>Runtime\Math</Filter>
@@ -423,6 +435,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Serialization\DDSTextureLoader.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\MaterialLoader.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Serialization\MeshLoader.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
@@ -562,6 +577,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Managers\WindowManager.cpp">
       <Filter>Runtime\Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\MaterialLibrary\StandardPBR.cpp">
+      <Filter>Runtime\MaterialLibrary</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Math\AABB.cpp">
       <Filter>Runtime\Math</Filter>

@@ -19,8 +19,13 @@
 #include <unordered_map>
 #include "Serialization/MeshLoader.h"
 #include "Serialization/SceneLoader.h"
+#include "Serialization/MaterialLoader.h"
+#include "Serialization/DDSTextureLoader.h"
 #include "Resources/AssetRegistry.h"
 #include "Resources/Asset.h"
+#include <cstring>
+#include "MaterialLibrary/MaterialArchetypeRegistry.h"
+
 
 namespace EngineCore {
     ResourceHandle<Material> BistroSceneLoader::commonMatHandle;
@@ -33,52 +38,25 @@ namespace EngineCore {
         std::string fullPath = PathSettings::ResolveAssetPath(binPath);
         
         std::ifstream cacheFile(fullPath, std::ios::binary);
-        //if (cacheFile.good()) {
-        //    cacheFile.close();
-        //    std::cout << "Loading from cache: " << fullPath << std::endl;
-        //    Scene* res = static_cast<Scene*>(sceneLoader.Load(binPath));
-        //    // todo： 这个地方有加载时序问题。。
-        //    SceneManager::GetInstance()->SetCurrentScene(res);
-        //    for (auto& gameObject : res->allObjList) 
-        //    {
-        //        if (gameObject->GetComponent<MeshFilter>() != nullptr)
-        //        {
-        //            if (gameObject->GetComponent<MeshRenderer>() != nullptr) continue;
+        if (cacheFile.good()) {
+            cacheFile.close();
+            std::cout << "Loading from cache: " << fullPath << std::endl;
+            Scene* res = static_cast<Scene*>(sceneLoader.Load(binPath).resource);
+            // todo： 这个地方有加载时序问题。。
+            SceneManager::GetInstance()->SetCurrentScene(res);
 
-        //            MeshRenderer* mr = gameObject->AddComponent<MeshRenderer>();
-
-        //            // Re-use common material logic
-        //            std::string shaderName = "Shader/StandardPBR.hlsl";
-        //            if (RenderSettings::s_EnableVertexPulling)
-        //            {
-        //                shaderName = "Shader/StandardPBR_VertexPulling.hlsl";
-        //            }
-        //            ResourceHandle<Shader> pbrShader = ResourceManager::GetInstance()->LoadAsset<Shader>(shaderName);
-
-        //            if (pbrShader.IsValid()) {
-        //                if (!BistroSceneLoader::commonMatHandle.IsValid())
-        //                {
-        //                    BistroSceneLoader::commonMatHandle = ResourceManager::GetInstance()->CreateResource<Material>(pbrShader);
-        //                }
-
-        //            mr->SetSharedMaterial(BistroSceneLoader::commonMatHandle);
-        //            mr->TryAddtoBatchManager();
-        //            }
-        //        }
-        //    }
-
-        //    // 刷新所有Transform的world position，避免父子节点关系建立后的延迟更新问题
-        //    for (auto& gameObject : res->allObjList) 
-        //{
-        //    if (gameObject != nullptr && gameObject->transform != nullptr)
-        //    {
-        //        gameObject->transform->UpdateTransform();
-        //    }
-        //    gameObject->transform->isDirty = true;
-        //}
-
-        //    return res;
-        //}
+            // 刷新所有Transform的world position，避免父子节点关系建立后的延迟更新问题
+            for (auto& gameObject : res->allObjList) 
+            {
+                if (gameObject != nullptr && gameObject->transform != nullptr)
+                {
+                    gameObject->transform->UpdateTransform();
+                }
+                gameObject->transform->isDirty = true;
+            }
+        
+            return res;
+        }
 
         BistroSceneLoader loader;
         return loader.LoadInternal(path);
@@ -364,6 +342,9 @@ namespace EngineCore {
     }
 
     Scene* BistroSceneLoader::LoadInternal(const std::string& path) {
+        ProcessShaders();
+        CreateDefaultResources();
+
         tinygltf::Model model;
         tinygltf::TinyGLTF loader;
 
@@ -408,18 +389,21 @@ namespace EngineCore {
         
         // Clear cache before starting
         m_MeshCache.clear();
+        m_ImageIndexToID.clear();
+        m_MaterialMap.clear();
+
+        ProcessTexture(model);
+        ProcessMaterials(model);
+
 
         for (size_t i = 0; i < scene.nodes.size(); i++) {
             ProcessNode(model.nodes[scene.nodes[i]], model, rootGo, newScene);
         }
 
-        ProcessTexture(model);
-
-        AssetRegistry::GetInstance()->SaveToDisk("AssetRegistry.bin");
-
         // Save serialized scene
         EngineCore::SceneLoader sceneLoader;
         // Use a temporary ID for now, or fetch from registry if available
+        AssetRegistry::GetInstance()->SaveToDisk("AssetRegistry.bin");
         sceneLoader.SaveSceneToBin(newScene, "/Scenes/BistroScene.bin", 0);
 
         // Cache is cleared when loader instance is destroyed (end of Load function)
@@ -457,20 +441,20 @@ namespace EngineCore {
     }
 
     void BistroSceneLoader::ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene) {
-        std::vector<ResourceHandle<EngineCore::Mesh>> modelHandles;
+        std::vector<std::pair<ResourceHandle<EngineCore::Mesh>, int>> modelHandles;
 
         // Check Cache
         auto it = m_MeshCache.find(meshIndex);
         if (it != m_MeshCache.end()) {
             modelHandles = it->second;
         } else {
-            const tinygltf::Mesh& mesh = model.meshes[meshIndex];
+            const tinygltf::Mesh& gltfMesh = model.meshes[meshIndex];
 
             // Iterate all Primitives
-            for (const auto& primitive : mesh.primitives) {
+            for (const auto& primitive : gltfMesh.primitives) {
                 ResourceHandle<EngineCore::Mesh> modelHandle = ResourceManager::GetInstance()->CreateResource<EngineCore::Mesh>();
-                EngineCore::Mesh* mesh = modelHandle.Get();
-                mesh->bounds = AABB();
+                EngineCore::Mesh* meshRes = modelHandle.Get();
+                meshRes->bounds = AABB();
 
                 // 1. Get Accessors and Buffers
                 // Indices
@@ -483,13 +467,13 @@ namespace EngineCore {
                     size_t count = indexAccessor.count;
                     int componentType = indexAccessor.componentType; 
 
-                    mesh->index.reserve(count);
+                    meshRes->index.reserve(count);
                     if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
                         const unsigned short* buf = reinterpret_cast<const unsigned short*>(dataStart);
-                        for (size_t i = 0; i < count; i++) mesh->index.push_back(buf[i]);
+                        for (size_t i = 0; i < count; i++) meshRes->index.push_back(buf[i]);
                     } else if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
                         const unsigned int* buf = reinterpret_cast<const unsigned int*>(dataStart);
-                        for (size_t i = 0; i < count; i++) mesh->index.push_back(buf[i]);
+                        for (size_t i = 0; i < count; i++) meshRes->index.push_back(buf[i]);
                     }
                 }
 
@@ -503,11 +487,11 @@ namespace EngineCore {
                     size_t count = accessor.count;
                     int stride = accessor.ByteStride(bufferView); 
 
-                    mesh->vertex.resize(count);
+                    meshRes->vertex.resize(count);
                     for (size_t i = 0; i < count; i++) {
                         const float* buf = reinterpret_cast<const float*>(dataStart + i * stride);
-                        mesh->vertex[i].position = Vector3(buf[0], buf[1], buf[2]);
-                        mesh->bounds.Encapsulate(mesh->vertex[i].position);
+                        meshRes->vertex[i].position = Vector3(buf[0], buf[1], buf[2]);
+                        meshRes->bounds.Encapsulate(meshRes->vertex[i].position);
                     }
                 }
 
@@ -523,7 +507,7 @@ namespace EngineCore {
 
                     for (size_t i = 0; i < count; i++) {
                         const float* buf = reinterpret_cast<const float*>(dataStart + i * stride);
-                        mesh->vertex[i].normal = Vector3(buf[0], buf[1], buf[2]);
+                        meshRes->vertex[i].normal = Vector3(buf[0], buf[1], buf[2]);
                     }
                 }
 
@@ -539,49 +523,41 @@ namespace EngineCore {
 
                     for (size_t i = 0; i < count; i++) {
                         const float* buf = reinterpret_cast<const float*>(dataStart + i * stride);
-                        mesh->vertex[i].uv = Vector2(buf[0], buf[1]);
+                        meshRes->vertex[i].uv = Vector2(buf[0], buf[1]);
                     }
                 }
 
                 // Set Layout
-                mesh->layout.push_back(InputLayout(VertexAttribute::POSITION, 3 * sizeof(float), 3, 8 * sizeof(float), 0));
-                mesh->layout.push_back(InputLayout(VertexAttribute::NORMAL, 3 * sizeof(float), 3, 8 * sizeof(float), 3 * sizeof(float)));
-                mesh->layout.push_back(InputLayout(VertexAttribute::UV0, 2 * sizeof(float), 2, 8 * sizeof(float), 6 * sizeof(float)));
+                meshRes->layout.push_back(InputLayout(VertexAttribute::POSITION, 3 * sizeof(float), 3, 8 * sizeof(float), 0));
+                meshRes->layout.push_back(InputLayout(VertexAttribute::NORMAL, 3 * sizeof(float), 3, 8 * sizeof(float), 3 * sizeof(float)));
+                meshRes->layout.push_back(InputLayout(VertexAttribute::UV0, 2 * sizeof(float), 2, 8 * sizeof(float), 6 * sizeof(float)));
 
                 // Upload to GPU
-                mesh->UploadMeshToGPU();
+                meshRes->UploadMeshToGPU();
 
                  {
                      std::string meshName = "Bistro_Mesh_" + std::to_string(meshIndex) + "_" + std::to_string(modelHandles.size());
                      std::string assetPath = "Mesh/" + meshName + ".bin";
 
-                     AssetID runtimeID = mesh->GetAssetID();
+                     AssetID runtimeID = meshRes->GetAssetID();
                      AssetID newID = AssetIDGenerator::NewFromFile(assetPath);
 
-                     mesh->SetPath(assetPath);
-                     mesh->SetAssetCreateMethod(AssetCreateMethod::Serialization);
-                     mesh->SetAssetID(newID);
+                     meshRes->SetPath(assetPath);
+                     meshRes->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+                     meshRes->SetAssetID(newID);
 
                      ResourceManager::GetInstance()->mResourceCache.erase(runtimeID);
-                     ResourceManager::GetInstance()->mResourceCache[newID] = mesh;
-                     ResourceManager::GetInstance()->mPathToID[assetPath] = newID;
+                     ResourceManager::GetInstance()->mResourceCache[newID] = meshRes;
 
                      modelHandle = ResourceHandle<EngineCore::Mesh>(newID);
 
                      MeshLoader loader;
-                     loader.SaveMeshToBin(mesh, assetPath, (uint32_t)newID);
+                     loader.SaveMeshToBin(meshRes, assetPath, (uint32_t)newID);
 
-                     AssetRegistry::GetInstance()->RegisterAsset(mesh);
+                     AssetRegistry::GetInstance()->RegisterAsset(meshRes);
                  }
 
-                // Optional: If we want to save memory and don't need CPU copy anymore, we could clear vectors here
-                // However, keep it for now as it might be needed for physics/picking
-                // modelData->vertex.clear();
-                // modelData->vertex.shrink_to_fit();
-                // modelData->index.clear();
-                // modelData->index.shrink_to_fit();
-
-                modelHandles.push_back(modelHandle);
+                modelHandles.push_back({modelHandle, primitive.material});
             }
             
             // Add to cache
@@ -590,15 +566,49 @@ namespace EngineCore {
 
         if (modelHandles.empty()) return;
 
+        auto CreateMeshComponents = [&](GameObject* obj, ResourceHandle<EngineCore::Mesh> meshHandle, int materialIndex) {
+            // 添加 MeshFilter 组件
+            MeshFilter* mf = obj->AddComponent<MeshFilter>();
+            mf->mMeshHandle = meshHandle;
+
+            // 添加 MeshRenderer 并绑定 Material
+            AttachMaterialToGameObject(obj, materialIndex);
+        };
+
         // Create GameObject components
         if (modelHandles.size() == 1) {
-            MeshFilter* mf = go->AddComponent<MeshFilter>();
-            mf->mMeshHandle = modelHandles[0];
+            CreateMeshComponents(go, modelHandles[0].first, modelHandles[0].second);
+        } else {
+            // Multiple primitives become child objects
+            for (size_t i = 0; i < modelHandles.size(); i++) {
+                GameObject* subGo = targetScene->CreateGameObject(go->name + "_SubMesh_" + std::to_string(i));
+                subGo->SetParent(go);
+                CreateMeshComponents(subGo, modelHandles[i].first, modelHandles[i].second);
+            }
+        }
+    }
 
-            MeshRenderer* mr = go->AddComponent<MeshRenderer>();
-            
+    void BistroSceneLoader::AttachMaterialToGameObject(GameObject* gameObject, int materialIndex)
+    {
+        ASSERT(gameObject != nullptr);
+
+        // 添加 MeshRenderer 组件
+        MeshRenderer* mr = gameObject->AddComponent<MeshRenderer>();
+        
+        // 尝试从 MaterialMap 中获取对应的 Material
+        bool materialAssigned = false;
+        if (materialIndex >= 0 && materialIndex < m_MaterialMap.size()) {
+            if (m_MaterialMap[materialIndex].IsValid()) {
+                mr->SetSharedMaterial(m_MaterialMap[materialIndex]);
+                materialAssigned = true;
+            }
+        }
+
+        // 如果没有找到对应的 Material，使用默认的 PBR Material
+        if (!materialAssigned) {
+            ASSERT(false);
             std::string shaderName = "Shader/StandardPBR.hlsl";
-            if(RenderSettings::s_EnableVertexPulling)
+            if (RenderSettings::s_EnableVertexPulling)
             {
                 shaderName = "Shader/StandardPBR_VertexPulling.hlsl";
             }
@@ -611,41 +621,17 @@ namespace EngineCore {
                 }
 
                 mr->SetSharedMaterial(commonMatHandle);
-                mr->TryAddtoBatchManager();
-            } 
-        } else {
-            // Multiple primitives become child objects
-            for (size_t i = 0; i < modelHandles.size(); i++) {
-                GameObject* subGo = targetScene->CreateGameObject(go->name + "_SubMesh_" + std::to_string(i));
-                subGo->SetParent(go);
-
-                MeshFilter* mf = subGo->AddComponent<MeshFilter>();
-                mf->mMeshHandle = modelHandles[i];
-
-                MeshRenderer* mr = subGo->AddComponent<MeshRenderer>();
-                
-                std::string shaderName = "Shader/StandardPBR.hlsl";
-            if(RenderSettings::s_EnableVertexPulling)
-            {
-                shaderName = "Shader/StandardPBR_VertexPulling.hlsl";
-            }
-            ResourceHandle<Shader> pbrShader = ResourceManager::GetInstance()->LoadAsset<Shader>(shaderName);
-                
-                if (pbrShader.IsValid()) {
-                    if (!commonMatHandle.IsValid()) 
-                    {
-                        commonMatHandle = ResourceManager::GetInstance()->CreateResource<Material>(pbrShader);
-                    }
-
-                    mr->SetSharedMaterial(commonMatHandle);
-                    mr->TryAddtoBatchManager();
-                } 
             }
         }
+
+        // 注册到批处理管理器
+        mr->TryAddtoBatchManager();
     }
 
     void BistroSceneLoader::ProcessTexture(const tinygltf::Model &model)
     {
+        m_ImageIndexToID.resize(model.images.size());
+
         for (size_t i = 0; i < model.images.size(); i++)
         {
             const tinygltf::Image& image = model.images[i];
@@ -657,7 +643,6 @@ namespace EngineCore {
             std::string texturePath = "Textures/bistro/" + image.uri;
             
             // 创建一个临时的 Texture 对象用于注册
-            // 由于 Texture 类继承自 Resource，可以直接使用
             Texture* tempTexture = new Texture();
             
             // 设置路径
@@ -671,10 +656,298 @@ namespace EngineCore {
             
             // 注册到 AssetRegistry
             AssetRegistry::GetInstance()->RegisterAsset(tempTexture);
+
+            m_ImageIndexToID[i] = tempTexture->GetAssetID();
             
-            // 由于这只是用于注册，创建后可以删除临时对象
-            // 或者保存到一个临时容器中，在函数结束时统一清理
             delete tempTexture;
         }
     }
+    void BistroSceneLoader::ProcessMaterials(const tinygltf::Model& model)
+    {
+        m_MaterialMap.resize(model.materials.size());
+
+        std::string shaderName = "Shader/StandardPBR.hlsl";
+        if (RenderSettings::s_EnableVertexPulling)
+        {
+            shaderName = "Shader/StandardPBR_VertexPulling.hlsl";
+        }
+        ResourceHandle<Shader> pbrShader = ResourceManager::GetInstance()->LoadAsset<Shader>(shaderName);
+
+        pbrShader->name = "StandardPBR";
+        for (size_t i = 0; i < model.materials.size(); i++)
+        {
+            const tinygltf::Material& mat = model.materials[i];
+            
+            // Create Material
+            ResourceHandle<Material> matHandle = ResourceManager::GetInstance()->CreateResource<Material>(pbrShader);
+            Material* material = matHandle.Get();
+
+            // 1. PBR Factors
+            // Metallic-Roughness
+            if (mat.values.find("baseColorFactor") != mat.values.end()) {
+                auto f = mat.values.at("baseColorFactor").ColorFactor();
+                Vector4 baseColorFactor = Vector4((float)f[0], (float)f[1], (float)f[2], (float)f[3]);
+                material->SetValue("DiffuseColor", &baseColorFactor, sizeof(Vector4));
+            }
+            if (mat.values.find("metallicFactor") != mat.values.end()) {
+                float metallicFactor = (float)mat.values.at("metallicFactor").Factor();
+                material->SetValue("Metallic", &metallicFactor, sizeof(float));
+            }
+            if (mat.values.find("roughnessFactor") != mat.values.end()) {
+                float roughnessFactor = (float)mat.values.at("roughnessFactor").Factor();
+                material->SetValue("Roughness", &roughnessFactor, sizeof(float));
+                
+            }
+
+            // KHR_materials_pbrSpecularGlossiness
+            if (mat.extensions.find("KHR_materials_pbrSpecularGlossiness") != mat.extensions.end()) {
+                const auto& ext = mat.extensions.at("KHR_materials_pbrSpecularGlossiness");
+                if (ext.Has("diffuseFactor")) {
+                    auto v = ext.Get("diffuseFactor");
+                    if (v.IsArray() && v.ArrayLen() == 4) {
+                        Vector4 baseColorFactor = Vector4((float)v.Get(0).Get<double>(), (float)v.Get(1).Get<double>(), (float)v.Get(2).Get<double>(), (float)v.Get(3).Get<double>());
+                        material->SetValue("DiffuseColor", &baseColorFactor, sizeof(Vector4));
+                    }
+                }
+                if (ext.Has("specularFactor")) {
+                    auto v = ext.Get("specularFactor");
+                    if (v.IsArray() && v.ArrayLen() == 3) {
+                        float metallic = (float)ext.Get("specularFactor").Get<double>();
+                        material->SetValue("Metallic", &metallic, sizeof(float));
+                    }
+                }
+                if (ext.Has("glossinessFactor")) {
+                    // Approximate Roughness = 1 - Glossiness
+                    float roughness =  1.0f - (float)ext.Get("glossinessFactor").Get<double>();
+                    material->SetValue("Roughness", &roughness, sizeof(float));
+                }
+            }
+
+            // 2. Textures
+            // Diffuse / BaseColor
+            if (mat.values.find("baseColorTexture") != mat.values.end()) {
+                int texIndex = mat.values.at("baseColorTexture").TextureIndex();
+                uint64_t diffuseTextureID = GetTextureAssetID(model, texIndex);
+                material->SetTexture("DiffuseTexture", diffuseTextureID);
+            }
+
+            // KHR_materials_pbrSpecularGlossiness
+            if (mat.extensions.find("KHR_materials_pbrSpecularGlossiness") != mat.extensions.end()) {
+                const auto& ext = mat.extensions.at("KHR_materials_pbrSpecularGlossiness");
+                if (ext.Has("diffuseTexture")) {
+                    int texIndex = ext.Get("diffuseTexture").Get("index").Get<int>();
+                    uint64_t diffuseTextureID = GetTextureAssetID(model, texIndex);
+                    material->SetTexture("DiffuseTexture", diffuseTextureID);
+                }
+                if (ext.Has("specularGlossinessTexture")) {
+                    int texIndex = ext.Get("specularGlossinessTexture").Get("index").Get<int>();
+                    uint64_t metallicTexture = GetTextureAssetID(model, texIndex);
+                    material->SetTexture("MetallicTexture", metallicTexture);
+                }
+            }
+
+            // Normal
+            if (mat.additionalValues.find("normalTexture") != mat.additionalValues.end()) {
+                int texIndex = mat.additionalValues.at("normalTexture").TextureIndex();
+                uint64_t normalTextureIndex = GetTextureAssetID(model, texIndex);
+                material->SetTexture("NormalTexture", normalTextureIndex);
+            }
+
+            // Emissive
+            if (mat.additionalValues.find("emissiveTexture") != mat.additionalValues.end()) {
+                int texIndex = mat.additionalValues.at("emissiveTexture").TextureIndex();
+                uint64_t emissiveTextureIndex = GetTextureAssetID(model, texIndex);
+                material->SetTexture("EmissiveTexture", emissiveTextureIndex);               
+            }
+
+            // 3. 设置 Material 的路径和 AssetID（参考 Mesh 的处理方式）
+            {
+                std::string matFileName = "Material/bistro/Material_" + std::to_string(i) + ".mat";
+                std::string fullPath = PathSettings::ResolveAssetPath(matFileName);
+
+                AssetID runtimeID = material->GetAssetID();
+                AssetID newID = AssetIDGenerator::NewFromFile(matFileName);
+
+                material->SetPath(matFileName);
+                material->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+                material->SetAssetID(newID);
+                //todo：  temp 先跑通
+                material->archyTypeName = "StandardPBR";
+                // 更新 ResourceManager 缓存
+                ResourceManager::GetInstance()->mResourceCache.erase(runtimeID);
+                ResourceManager::GetInstance()->mResourceCache[newID] = material;
+
+                matHandle = ResourceHandle<Material>(newID);
+
+                MaterialLoader loader;
+                loader.SaveMaterialToBin(material, matFileName, newID);
+
+                // 5. 注册到 AssetRegistry
+                AssetRegistry::GetInstance()->RegisterAsset(material);
+            }
+            
+            m_MaterialMap[i] = matHandle;
+        }
+    }
+
+    void BistroSceneLoader::ProcessShaders()
+    {
+        std::string shaderName = "Shader/BlitShader.hlsl";
+        Shader shader;
+        shader.SetAssetCreateMethod(AssetCreateMethod::Serialization);
+        shader.SetPath(shaderName);
+        shader.SetAssetID(AssetIDGenerator::NewFromFile(shader.GetPath()));
+        AssetRegistry::GetInstance()->RegisterAsset(&shader);
+
+        shaderName = "Shader/StandardPBR_VertexPulling.hlsl";
+        shader.SetPath(shaderName);
+        shader.SetAssetID(AssetIDGenerator::NewFromFile(shader.GetPath()));
+        AssetRegistry::GetInstance()->RegisterAsset(&shader);
+
+        shaderName = "Shader/SimpleTestShader.hlsl";
+        shader.SetPath(shaderName);
+        shader.SetAssetID(AssetIDGenerator::NewFromFile(shader.GetPath()));
+        AssetRegistry::GetInstance()->RegisterAsset(&shader);
+
+        shaderName = "Shader/StandardPBR.hlsl";
+        shader.SetPath(shaderName);
+        shader.SetAssetID(AssetIDGenerator::NewFromFile(shader.GetPath()));
+        AssetRegistry::GetInstance()->RegisterAsset(&shader);
+        
+        shaderName = "Shader/StandardPBR_VertexPulling.hlsl";
+        shader.SetPath(shaderName);
+        shader.SetAssetID(AssetIDGenerator::NewFromFile(shader.GetPath()));
+        AssetRegistry::GetInstance()->RegisterAsset(&shader);
+
+    }
+
+    void BistroSceneLoader::CreateDefaultResources()
+    {
+        const std::string defaultTexturePath = "Textures/DefaultWhite.dds";
+        const std::string defaultMaterialPath = "Material/Default.mat";
+
+        std::string textureFullPath = PathSettings::ResolveAssetPath(defaultTexturePath);
+        std::ifstream textureIn(textureFullPath, std::ios::binary);
+        bool textureExists = textureIn.good();
+        textureIn.close();
+
+        if (!textureExists)
+        {
+            DDSHeader header = {};
+            header.magic = 0x20534444; // "DDS "
+            header.fileSize = 124;
+            header.flags = 0x00081007;
+            header.height = 2;
+            header.width = 2;
+            header.pitchOrLinearSize = 8;
+            header.depth = 0;
+            header.mipMapCount = 1;
+            header.size = 32;
+            header.flagsData = 0x4;
+            header.fourCC = 0x31545844; // "DXT1"
+            header.rgbBitCount = 0;
+            header.rBitMask = 0;
+            header.gBitMask = 0;
+            header.bBitMask = 0;
+            header.aBitMask = 0;
+            header.caps = 0x1000;
+            header.caps2 = 0;
+            header.caps3 = 0;
+            header.caps4 = 0;
+            header.reserved2 = 0;
+
+            std::ofstream textureOut(textureFullPath, std::ios::binary);
+            if (textureOut.is_open())
+            {
+                textureOut.write(reinterpret_cast<const char*>(&header), sizeof(header));
+
+                uint16_t color = 0xFFFF;
+                uint32_t indices = 0;
+                textureOut.write(reinterpret_cast<const char*>(&color), sizeof(color));
+                textureOut.write(reinterpret_cast<const char*>(&color), sizeof(color));
+                textureOut.write(reinterpret_cast<const char*>(&indices), sizeof(indices));
+            }
+        }
+
+        {
+            Texture tex;
+            tex.SetAssetCreateMethod(AssetCreateMethod::Serialization);
+            tex.SetPath(defaultTexturePath);
+            tex.SetAssetID(AssetIDGenerator::NewFromFile(defaultTexturePath));
+            AssetRegistry::GetInstance()->RegisterAsset(&tex);
+        }
+
+        std::string materialFullPath = PathSettings::ResolveAssetPath(defaultMaterialPath);
+        std::ifstream materialIn(materialFullPath, std::ios::binary);
+        bool materialExists = materialIn.good();
+        materialIn.close();
+
+        if (!materialExists)
+        {
+            std::string shaderName = "Shader/StandardPBR.hlsl";
+            if (RenderSettings::s_EnableVertexPulling)
+            {
+                shaderName = "Shader/StandardPBR_VertexPulling.hlsl";
+            }
+
+            ResourceHandle<Shader> pbrShader = ResourceManager::GetInstance()->LoadAsset<Shader>(shaderName);
+            if (pbrShader.IsValid())
+            {
+                pbrShader->name = "StandardPBR";
+                AssetID newID = AssetIDGenerator::NewFromFile(defaultMaterialPath);
+
+                Material* material = new Material(pbrShader);
+                material->SetPath(defaultMaterialPath);
+                material->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+                material->SetAssetID(newID);
+                material->archyTypeName = "StandardPBR";
+
+                Vector4 baseColor(1.0f, 1.0f, 1.0f, 1.0f);
+                material->SetValue("DiffuseColor", &baseColor, sizeof(Vector4));
+
+                float metallic = 0.0f;
+                material->SetValue("Metallic", &metallic, sizeof(float));
+
+                float roughness = 1.0f;
+                material->SetValue("Roughness", &roughness, sizeof(float));
+
+                AssetID defaultTexID = AssetIDGenerator::NewFromFile(defaultTexturePath);
+                material->SetTexture("DiffuseTexture", defaultTexID.value);
+
+                MaterialLoader loader;
+                loader.SaveMaterialToBin(material, defaultMaterialPath, (uint64_t)newID);
+                delete material;
+            }
+        }
+
+        {
+            Material mat;
+            mat.SetAssetCreateMethod(AssetCreateMethod::Serialization);
+            mat.SetPath(defaultMaterialPath);
+            mat.SetAssetID(AssetIDGenerator::NewFromFile(defaultMaterialPath));
+            AssetRegistry::GetInstance()->RegisterAsset(&mat);
+        }
+    }
+
+    AssetID BistroSceneLoader::GetTextureAssetID(const tinygltf::Model& model, int textureIndex)
+    {
+        // 从 GLTF texture index 转换到 AssetID
+        // 1. texture index -> image index
+        // 2. image index -> AssetID (通过 m_ImageIndexToID)
+        
+        if (textureIndex < 0 || textureIndex >= model.textures.size()) {
+            ASSERT(false);
+            return AssetID(); // 返回无效ID
+        }
+        
+        int imageIndex = model.textures[textureIndex].source;
+        
+        if (imageIndex < 0 || imageIndex >= m_ImageIndexToID.size()) {
+            ASSERT(false);
+            return AssetID(); // 返回无效ID
+        }
+        
+        return m_ImageIndexToID[imageIndex];
+    }
 }
+

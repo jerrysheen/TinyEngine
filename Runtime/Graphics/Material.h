@@ -7,7 +7,8 @@
 #include "Resources/ResourceHandle.h"
 #include <variant>
 #include "Graphics/Texture.h"
-#include "MaterialInstance.h"
+#include "MaterialLibrary/MaterialInstance.h"
+//#include "MaterialData.h"
 
 namespace EngineCore
 {
@@ -15,11 +16,15 @@ namespace EngineCore
     {
     public:
         bool isDirty = true;
+        bool isBindLessMaterial = false;
+        string archyTypeName = "";
         std::unique_ptr<MaterialInstance> matInstance;
         ResourceHandle<Shader> mShader;
         unordered_map<string, IGPUTexture*> textureData;
         unordered_map<std::string, ResourceHandle<Texture>> textureHandleMap;
-
+        
+        //MaterialData m_MaterialData;
+        //void LoadFromMaterialData(const MaterialData& data);
 
         Material() = default;
         Material(ResourceHandle<Shader> shader);
@@ -54,6 +59,14 @@ namespace EngineCore
             {
                 textureData[name] = texture.Get()->textureBuffer;
             }
+        }
+
+        // only for serialization
+        void SetTexture(const string& name, uint64_t asset)
+        {
+            ResourceHandle<Texture> texHandle;
+            texHandle.mAssetID = AssetID(asset);
+            textureHandleMap[name] = texHandle;
         }
 
         inline MaterailRenderState GetMaterialRenderState() const { return mRenderState;};

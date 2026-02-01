@@ -30,33 +30,45 @@ namespace EngineCore
 
     void AssetRegistry::RegisterAsset(Resource *resource)
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
         ASSERT(resource);
         if(resource->GetAssetCreateMethod() == AssetCreateMethod::Runtime) return;
         std::string path = resource->GetPath();
         uint64_t assetID = resource->GetAssetID();
-        if(assetPathMap.count(assetID) > 0)
+        if(assetIDToPathMap.count(assetID) > 0)
         {
-            ASSERT(assetPathMap[assetID] == path);
+            ASSERT(assetIDToPathMap[assetID] == path);
             return;
         }
-        assetPathMap[assetID] = path;
+        assetIDToPathMap[assetID] = path;
+        pathToAssetIDMap[path] = assetID;
     }
 
-    std::string AssetRegistry::GetAssetPath(uint64_t assetID)
+    std::string AssetRegistry::GetAssetPathFromID(uint64_t assetID)
     {
-        ASSERT(assetPathMap.count(assetID) > 0);
+        std::lock_guard<std::mutex> lock(m_mutex);
+        ASSERT(assetIDToPathMap.count(assetID) > 0);
 
-        return assetPathMap[assetID];
+        return assetIDToPathMap[assetID];
+    }
+
+    uint64_t AssetRegistry::GetAssetIDFromPath(const std::string &path)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        ASSERT(pathToAssetIDMap.count(path) > 0);
+
+        return pathToAssetIDMap[path];
     }
 
     void AssetRegistry::SaveToDisk(const std::string& relativePath)
     {
-        ASSERT(assetPathMap.size() > 0);
+        std::lock_guard<std::mutex> lock(m_mutex);
+        ASSERT(assetIDToPathMap.size() > 0);
         std::string manifestPath = PathSettings::ResolveAssetPath(relativePath);
         std::ofstream out(manifestPath, std::ios::binary);
-        uint32_t count = assetPathMap.size();
+        uint32_t count = assetIDToPathMap.size();
         StreamHelper::Write(out, count);
-        for(auto& [key, value] : assetPathMap)
+        for(auto& [key, value] : assetIDToPathMap)
         {
             StreamHelper::Write(out, key);
             StreamHelper::WriteString(out, value);
@@ -65,6 +77,7 @@ namespace EngineCore
 
     void AssetRegistry::LoadFromDisk(const std::string& relativePath)
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
         std::string manifestPath = PathSettings::ResolveAssetPath(relativePath);
         std::ifstream in(manifestPath, std::ios::binary);
         if (!in.is_open()) {
@@ -75,7 +88,7 @@ namespace EngineCore
 
         uint32_t count = 0;
         StreamHelper::Read(in, count);
-        ASSERT(count != 0);
+        //ASSERT(count != 0);
         for(int i = 0; i < count; i++)
         {
             uint64_t id;
@@ -83,7 +96,8 @@ namespace EngineCore
             
             StreamHelper::Read(in, id);
             StreamHelper::ReadString(in, path);
-            assetPathMap[id] = path;
+            assetIDToPathMap[id] = path;
+            pathToAssetIDMap[path] = id;
         }
     }
 }

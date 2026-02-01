@@ -67,5 +67,9 @@ namespace EngineCore
 		BatchManager::GetInstance()->TryAddBatchCount(this);
 	}
 
-
+    void MeshRenderer::OnLoadResourceFinished()
+    {
+		this->gameObject->transform->transformVersion++;
+		return;
+    }
 }

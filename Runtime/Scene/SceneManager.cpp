@@ -105,7 +105,7 @@ namespace EngineCore
         string fullPath = PathSettings::ResolveAssetPath(bistroPath);
         Scene* scene = BistroSceneLoader::Load(fullPath);
 
-        testTexture = ResourceManager::GetInstance()->LoadAssetAsync<Texture>((uint64_t)1804352735, nullptr);
+        testTexture = ResourceManager::GetInstance()->LoadAssetAsync<Texture>((uint64_t)17377329839595119579, nullptr, nullptr);
         auto* gameObject = scene->CreateGameObject("Camera");
         auto* cam = gameObject->AddComponent<Camera>();
         gameObject->transform->SetLocalPosition(Vector3(-15, 2.5, -3));

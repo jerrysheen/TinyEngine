@@ -70,7 +70,7 @@ namespace EngineCore
         bool enableDepthTest = true;
         bool enableDepthWrite = true;
         DepthComparisonFunc depthComparisonFunc = DepthComparisonFunc::LEQUAL;
-
+        bool isBindLessMaterial = false;
         // blend mode
         bool enableBlend = false;
         BlendState srcBlend = (BlendState)0;

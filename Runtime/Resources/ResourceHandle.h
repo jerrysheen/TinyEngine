@@ -115,7 +115,7 @@ namespace EngineCore
             }
 
             //  释放现在的
-           if(mAssetID.IsValid())
+           if(oldID.IsValid())
            {
                ResourceManager::GetInstance()->DecreaseRef(oldID);
            } 
@@ -152,5 +152,6 @@ namespace EngineCore
         {
             return ResourceManager::GetInstance()->GetResource<T>(mAssetID);
         }
+        ASSERT(false);
     }
 }

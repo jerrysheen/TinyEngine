@@ -11,8 +11,9 @@ namespace EngineCore
     {
     public:
         virtual ~MeshLoader() = default;
-        virtual Resource* Load(const std::string& relativePath) override
+        virtual LoadResult Load(const std::string& relativePath) override
         {
+            LoadResult result;
             std::string path = PathSettings::ResolveAssetPath(relativePath);
             std::ifstream in(path, std::ios::binary);
             in.seekg(sizeof(AssetHeader));
@@ -23,10 +24,11 @@ namespace EngineCore
             StreamHelper::Read(in, mesh->bounds);
             StreamHelper::ReadVector(in, mesh->vertex);
             StreamHelper::ReadVector(in, mesh->index);
-            return mesh;
+            result.resource = mesh; 
+            return result;
         }
 
-        void SaveMeshToBin(const Mesh* mesh, const std::string& relativePath, uint32_t id)
+        void SaveMeshToBin(const Mesh* mesh, const std::string& relativePath, uint64_t id)
         {
             ASSERT(mesh && mesh->vertex.size() > 0 && mesh->index.size() > 0);
             std::string binPath = PathSettings::ResolveAssetPath(relativePath);
