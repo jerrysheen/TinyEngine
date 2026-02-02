@@ -71,14 +71,19 @@ VertexOutput VSMain(VertexInput input, uint instanceID : SV_InstanceID)
 // 像素着色器
 float4 PSMain(VertexOutput input) : SV_Target
 {
-
     // 变换到世界空间
     PerObjectData data = g_InputPerObjectDatas[input.index];
     PerMaterialData matData = LoadPerMaterialData(data.matIndex);
     //float2 uv = input.TexCoord * matData.TilingFactor;
     float2 uv = input.TexCoord;
-    float3 albedo = DiffuseTexture.Sample(LinearSampler, uv).xyz * matData.DiffuseColor.xyz;
+    float4 diffuseSample = DiffuseTexture.Sample(LinearSampler, uv);
+    float3 albedo = diffuseSample.xyz * matData.DiffuseColor.xyz;
     float3 emissive = EmissiveTexture.Sample(LinearSampler, uv).xyz;
+
+    float4 specGlossSample = MetallicTexture.Sample(LinearSampler, uv);
+    float3 specularColor = specGlossSample.rgb * matData.SpecularColor.xyz;
+    float glossiness = saturate(specGlossSample.a * (1.0f - matData.Roughness));
+    float roughness = saturate(1.0f - glossiness);
 
     float3 normalTS = NormalTexture.Sample(LinearSampler, uv).xyz * 2.0f - 1.0f;
     normalTS = normalize(normalTS);
@@ -96,12 +101,8 @@ float4 PSMain(VertexOutput input) : SV_Target
     float NdotL = saturate(dot(normalWS, L));
     float NdotH = saturate(dot(normalWS, H));
 
-    float metallicTex = MetallicTexture.Sample(LinearSampler, uv).x;
-    float metallic = saturate(metallicTex * matData.Metallic);
-    float roughness = saturate(matData.Roughness);
-
-    float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), albedo, metallic);
-    float specPower = lerp(128.0f, 8.0f, roughness);
+    float3 F0 = specularColor;
+    float specPower = lerp(32.0f, 8.0f, roughness);
     float3 specular = F0 * pow(NdotH, specPower);
 
     float3 diffuse = albedo * NdotL;

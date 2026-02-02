@@ -193,6 +193,12 @@ namespace EngineCore
 
             }
 
+            if (meshRenderer->needUpdatePerMaterialData) 
+            {
+                renderSceneData.materialDirtyList.push_back(i);
+                meshRenderer->needUpdatePerMaterialData = false;
+            }
+
         }
     }
 

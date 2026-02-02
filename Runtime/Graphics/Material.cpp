@@ -28,7 +28,10 @@ namespace EngineCore
 
     Material::Material(const Material &other)
         : mShader(other.mShader),
-        mRenderState(other.mRenderState)
+        mRenderState(other.mRenderState),
+        alphaMode(other.alphaMode),
+        alphaCutoff(other.alphaCutoff),
+        transmissionFactor(other.transmissionFactor)
     {
         mAssetType = AssetType::Material;
 

@@ -44,7 +44,6 @@ namespace EngineCore {
             Scene* res = static_cast<Scene*>(sceneLoader.Load(binPath).resource);
             // todo： 这个地方有加载时序问题。。
             SceneManager::GetInstance()->SetCurrentScene(res);
-
             // 刷新所有Transform的world position，避免父子节点关系建立后的延迟更新问题
             for (auto& gameObject : res->allObjList) 
             {
@@ -701,79 +700,141 @@ namespace EngineCore {
             ResourceHandle<Material> matHandle = ResourceManager::GetInstance()->CreateResource<Material>(pbrShader);
             Material* material = matHandle.Get();
 
-            // 1. PBR Factors
-            // Metallic-Roughness
-            if (mat.values.find("baseColorFactor") != mat.values.end()) {
-                auto f = mat.values.at("baseColorFactor").ColorFactor();
-                Vector4 baseColorFactor = Vector4((float)f[0], (float)f[1], (float)f[2], (float)f[3]);
-                material->SetValue("DiffuseColor", &baseColorFactor, sizeof(Vector4));
+            // 1. PBR Factors (统一到 Spec-Gloss 语义)
+            bool useSpecGloss = false;
+            Vector4 baseColorFactor(1.0f, 1.0f, 1.0f, 1.0f);
+            Vector3 specularFactor(1.0f, 1.0f, 1.0f);
+            float glossinessFactor = 1.0f;
+            float metallicFactor = 0.0f;
+            float roughnessFactor = 1.0f;
+
+            if (mat.extensions.find("KHR_materials_pbrSpecularGlossiness") != mat.extensions.end())
+            {
+                useSpecGloss = true;
+                const auto& ext = mat.extensions.at("KHR_materials_pbrSpecularGlossiness");
+                if (ext.Has("diffuseFactor"))
+                {
+                    auto v = ext.Get("diffuseFactor");
+                    if (v.IsArray() && v.ArrayLen() == 4)
+                    {
+                        baseColorFactor = Vector4((float)v.Get(0).Get<double>(),
+                            (float)v.Get(1).Get<double>(),
+                            (float)v.Get(2).Get<double>(),
+                            (float)v.Get(3).Get<double>());
+                    }
+                }
+                if (ext.Has("specularFactor"))
+                {
+                    auto v = ext.Get("specularFactor");
+                    if (v.IsArray() && v.ArrayLen() == 3)
+                    {
+                        specularFactor = Vector3((float)v.Get(0).Get<double>(),
+                            (float)v.Get(1).Get<double>(),
+                            (float)v.Get(2).Get<double>());
+                    }
+                }
+                if (ext.Has("glossinessFactor"))
+                {
+                    glossinessFactor = (float)ext.Get("glossinessFactor").Get<double>();
+                }
             }
-            if (mat.values.find("metallicFactor") != mat.values.end()) {
-                float metallicFactor = (float)mat.values.at("metallicFactor").Factor();
-                material->SetValue("Metallic", &metallicFactor, sizeof(float));
-            }
-            if (mat.values.find("roughnessFactor") != mat.values.end()) {
-                float roughnessFactor = (float)mat.values.at("roughnessFactor").Factor();
-                material->SetValue("Roughness", &roughnessFactor, sizeof(float));
-                
+            else
+            {
+                // pbrMetallicRoughness -> Spec-Gloss 近似转换
+                if (mat.values.find("baseColorFactor") != mat.values.end())
+                {
+                    auto f = mat.values.at("baseColorFactor").ColorFactor();
+                    baseColorFactor = Vector4((float)f[0], (float)f[1], (float)f[2], (float)f[3]);
+                }
+                if (mat.values.find("metallicFactor") != mat.values.end())
+                {
+                    metallicFactor = (float)mat.values.at("metallicFactor").Factor();
+                }
+                if (mat.values.find("roughnessFactor") != mat.values.end())
+                {
+                    roughnessFactor = (float)mat.values.at("roughnessFactor").Factor();
+                }
             }
 
-            // KHR_materials_pbrSpecularGlossiness
-            if (mat.extensions.find("KHR_materials_pbrSpecularGlossiness") != mat.extensions.end()) {
-                const auto& ext = mat.extensions.at("KHR_materials_pbrSpecularGlossiness");
-                if (ext.Has("diffuseFactor")) {
-                    auto v = ext.Get("diffuseFactor");
-                    if (v.IsArray() && v.ArrayLen() == 4) {
-                        Vector4 baseColorFactor = Vector4((float)v.Get(0).Get<double>(), (float)v.Get(1).Get<double>(), (float)v.Get(2).Get<double>(), (float)v.Get(3).Get<double>());
-                        material->SetValue("DiffuseColor", &baseColorFactor, sizeof(Vector4));
-                    }
-                }
-                if (ext.Has("specularFactor")) {
-                    auto v = ext.Get("specularFactor");
-                    if (v.IsArray() && v.ArrayLen() == 3) {
-                        float metallic = (float)ext.Get("specularFactor").Get<double>();
-                        material->SetValue("Metallic", &metallic, sizeof(float));
-                    }
-                }
-                if (ext.Has("glossinessFactor")) {
-                    // Approximate Roughness = 1 - Glossiness
-                    float roughness =  1.0f - (float)ext.Get("glossinessFactor").Get<double>();
-                    material->SetValue("Roughness", &roughness, sizeof(float));
+            Vector4 diffuseColor = baseColorFactor;
+            Vector4 specularColor(1.0f, 1.0f, 1.0f, 1.0f);
+            float roughness = roughnessFactor;
+
+            if (useSpecGloss)
+            {
+                specularColor = Vector4(specularFactor.x, specularFactor.y, specularFactor.z, 1.0f);
+                roughness = 1.0f - glossinessFactor;
+                metallicFactor = 0.0f;
+            }
+            else
+            {
+                float oneMinusMetallic = 1.0f - metallicFactor;
+                diffuseColor = Vector4(baseColorFactor.x * oneMinusMetallic,
+                    baseColorFactor.y * oneMinusMetallic,
+                    baseColorFactor.z * oneMinusMetallic,
+                    baseColorFactor.w);
+
+                const float dielectricF0 = 0.04f;
+                specularColor = Vector4(
+                    dielectricF0 + (baseColorFactor.x - dielectricF0) * metallicFactor,
+                    dielectricF0 + (baseColorFactor.y - dielectricF0) * metallicFactor,
+                    dielectricF0 + (baseColorFactor.z - dielectricF0) * metallicFactor,
+                    1.0f);
+            }
+
+            if (mat.extensions.find("KHR_materials_transmission") != mat.extensions.end())
+            {
+                const auto& transExt = mat.extensions.at("KHR_materials_transmission");
+                if (transExt.Has("transmissionFactor"))
+                {
+                    float transmissionFactor = (float)transExt.Get("transmissionFactor").Get<double>();
+                    diffuseColor.w = diffuseColor.w * (1.0f - transmissionFactor);
                 }
             }
+
+            material->SetValue("DiffuseColor", &diffuseColor, sizeof(Vector4));
+            material->SetValue("SpecularColor", &specularColor, sizeof(Vector4));
+            material->SetValue("Roughness", &roughness, sizeof(float));
+            material->SetValue("Metallic", &metallicFactor, sizeof(float));
 
             // 2. Textures
             // Diffuse / BaseColor
-            if (mat.values.find("baseColorTexture") != mat.values.end()) {
+            if (mat.values.find("baseColorTexture") != mat.values.end())
+            {
                 int texIndex = mat.values.at("baseColorTexture").TextureIndex();
                 uint64_t diffuseTextureID = GetTextureAssetID(model, texIndex);
                 material->SetTexture("DiffuseTexture", diffuseTextureID);
             }
 
             // KHR_materials_pbrSpecularGlossiness
-            if (mat.extensions.find("KHR_materials_pbrSpecularGlossiness") != mat.extensions.end()) {
+            if (mat.extensions.find("KHR_materials_pbrSpecularGlossiness") != mat.extensions.end())
+            {
                 const auto& ext = mat.extensions.at("KHR_materials_pbrSpecularGlossiness");
-                if (ext.Has("diffuseTexture")) {
+                if (ext.Has("diffuseTexture"))
+                {
                     int texIndex = ext.Get("diffuseTexture").Get("index").Get<int>();
                     uint64_t diffuseTextureID = GetTextureAssetID(model, texIndex);
                     material->SetTexture("DiffuseTexture", diffuseTextureID);
                 }
-                if (ext.Has("specularGlossinessTexture")) {
+                if (ext.Has("specularGlossinessTexture"))
+                {
                     int texIndex = ext.Get("specularGlossinessTexture").Get("index").Get<int>();
-                    uint64_t metallicTexture = GetTextureAssetID(model, texIndex);
-                    material->SetTexture("MetallicTexture", metallicTexture);
+                    uint64_t specGlossTexture = GetTextureAssetID(model, texIndex);
+                    material->SetTexture("MetallicTexture", specGlossTexture);
                 }
             }
 
             // Normal
-            if (mat.additionalValues.find("normalTexture") != mat.additionalValues.end()) {
+            if (mat.additionalValues.find("normalTexture") != mat.additionalValues.end())
+            {
                 int texIndex = mat.additionalValues.at("normalTexture").TextureIndex();
                 uint64_t normalTextureIndex = GetTextureAssetID(model, texIndex);
                 material->SetTexture("NormalTexture", normalTextureIndex);
             }
 
             // Emissive
-            if (mat.additionalValues.find("emissiveTexture") != mat.additionalValues.end()) {
+            if (mat.additionalValues.find("emissiveTexture") != mat.additionalValues.end())
+            {
                 int texIndex = mat.additionalValues.at("emissiveTexture").TextureIndex();
                 uint64_t emissiveTextureIndex = GetTextureAssetID(model, texIndex);
                 material->SetTexture("EmissiveTexture", emissiveTextureIndex);               

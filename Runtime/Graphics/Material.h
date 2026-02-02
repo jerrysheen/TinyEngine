@@ -12,11 +12,21 @@
 
 namespace EngineCore
 {
+    enum class AlphaMode : uint8_t
+    {
+        Opaque = 0,
+        Mask = 1,
+        Blend = 2
+    };
+
     class Material : public Resource
     {
     public:
         bool isDirty = true;
         bool isBindLessMaterial = false;
+        AlphaMode alphaMode = AlphaMode::Opaque;
+        float alphaCutoff = 0.5f;
+        float transmissionFactor = 0.0f;
         string archyTypeName = "";
         std::unique_ptr<MaterialInstance> matInstance;
         ResourceHandle<Shader> mShader;

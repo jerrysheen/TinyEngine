@@ -70,6 +70,7 @@ namespace EngineCore
     void MeshRenderer::OnLoadResourceFinished()
     {
 		this->gameObject->transform->transformVersion++;
+		needUpdatePerMaterialData = true;
 		return;
     }
 }

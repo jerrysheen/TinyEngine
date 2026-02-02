@@ -114,6 +114,26 @@ namespace EngineCore
 
 
 
+            {
+                std::streampos currPos = in.tellg();
+                in.seekg(0, std::ios::end);
+                std::streampos endPos = in.tellg();
+                in.seekg(currPos, std::ios::beg);
+                std::streamoff remaining = endPos - currPos;
+                if (remaining >= static_cast<std::streamoff>(sizeof(uint8_t) + sizeof(float) + sizeof(float)))
+                {
+                    uint8_t alphaModeRaw = 0;
+                    float alphaCutoff = 0.5f;
+                    float transmissionFactor = 0.0f;
+                    StreamHelper::Read(in, alphaModeRaw);
+                    StreamHelper::Read(in, alphaCutoff);
+                    StreamHelper::Read(in, transmissionFactor);
+                    mat->alphaMode = static_cast<AlphaMode>(alphaModeRaw);
+                    mat->alphaCutoff = alphaCutoff;
+                    mat->transmissionFactor = transmissionFactor;
+                }
+            }
+
             result.resource = mat;
             return result;
         }
@@ -157,6 +177,11 @@ namespace EngineCore
                 }
                 StreamHelper::WriteVector(out, textureToBinlessOffsetList);
             }
+
+            uint8_t alphaModeRaw = static_cast<uint8_t>(mat->alphaMode);
+            StreamHelper::Write(out, alphaModeRaw);
+            StreamHelper::Write(out, mat->alphaCutoff);
+            StreamHelper::Write(out, mat->transmissionFactor);
         }
     };
 };
