@@ -27,9 +27,11 @@ namespace EngineCore
 		ProcessNode(scene->mRootNode, scene);
 
 		//todo:: 自己判断layout加入
-		layout.push_back(InputLayout(VertexAttribute::POSITION, 3 * sizeof(float), 3, 8 * sizeof(float), 0));
-		layout.push_back(InputLayout(VertexAttribute::NORMAL, 3 * sizeof(float), 3, 8 * sizeof(float), 3 * sizeof(float)));
-		layout.push_back(InputLayout(VertexAttribute::UV0, 2 * sizeof(float), 2, 8 * sizeof(float), 6 * sizeof(float)));
+		const int vertexStride = sizeof(Vertex);
+		layout.push_back(InputLayout(VertexAttribute::POSITION, sizeof(Vector3), 3, vertexStride, 0));
+		layout.push_back(InputLayout(VertexAttribute::NORMAL, sizeof(Vector3), 3, vertexStride, sizeof(Vector3)));
+		layout.push_back(InputLayout(VertexAttribute::UV0, sizeof(Vector2), 2, vertexStride, sizeof(Vector3) * 2));
+		layout.push_back(InputLayout(VertexAttribute::TANGENT, sizeof(Vector4), 4, vertexStride, sizeof(Vector3) * 2 + sizeof(Vector2)));
 
 
 	}
@@ -108,6 +110,17 @@ namespace EngineCore
 			{
 				currVertex.uv.x = 0;
 				currVertex.uv.y = 0;
+			}
+			if (aiMesh->mTangents)
+			{
+				currVertex.tangent.x = (aiMesh->mTangents[i].x);
+				currVertex.tangent.y = (aiMesh->mTangents[i].y);
+				currVertex.tangent.z = (aiMesh->mTangents[i].z);
+				currVertex.tangent.w = 1.0f;
+			}
+			else
+			{
+				currVertex.tangent = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 			}
 			vertexArray.push_back(currVertex);
 		}

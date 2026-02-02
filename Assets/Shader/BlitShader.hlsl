@@ -18,6 +18,8 @@ struct VertexInput
     float3 Position : POSITION;
     float3 Normal : NORMAL;  
     float2 TexCoord : TEXCOORD0;
+    float4 Tangent : TANGENT;
+
 };
 
 struct VertexOutput

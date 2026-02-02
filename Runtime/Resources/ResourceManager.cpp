@@ -110,8 +110,8 @@ namespace EngineCore
         if(task->loadState != LoadState::Loaded) return;
         if(task->pendingDeps > 0) return;
 
-        mResourceCache[task->id] = task->resource;
         task->resource->OnLoadComplete();
+        mResourceCache[task->id] = task->resource;
 
         for(auto& callback : task->calllbacks)
         {

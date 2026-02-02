@@ -155,7 +155,7 @@ namespace EngineCore {
         // Header
         const char* magic = "TINY";
         out.write(magic, 4);
-        int version = 1;
+        int version = 2;
         out.write(reinterpret_cast<const char*>(&version), sizeof(version));
 
         GameObject* root = nullptr;
@@ -286,7 +286,7 @@ namespace EngineCore {
 
         int version;
         in.read(reinterpret_cast<char*>(&version), sizeof(version));
-        if (version != 1) {
+        if (version != 2) {
              std::cout << "Invalid cache file version" << std::endl;
              return nullptr;
         }
@@ -491,6 +491,7 @@ namespace EngineCore {
                     for (size_t i = 0; i < count; i++) {
                         const float* buf = reinterpret_cast<const float*>(dataStart + i * stride);
                         meshRes->vertex[i].position = Vector3(buf[0], buf[1], buf[2]);
+                        meshRes->vertex[i].tangent = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
                         meshRes->bounds.Encapsulate(meshRes->vertex[i].position);
                     }
                 }
@@ -527,10 +528,28 @@ namespace EngineCore {
                     }
                 }
 
+                // Tangent
+                if (primitive.attributes.find("TANGENT") != primitive.attributes.end()) {
+                    const tinygltf::Accessor& accessor = model.accessors[primitive.attributes.find("TANGENT")->second];
+                    const tinygltf::BufferView& bufferView = model.bufferViews[accessor.bufferView];
+                    const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
+
+                    const unsigned char* dataStart = buffer.data.data() + bufferView.byteOffset + accessor.byteOffset;
+                    size_t count = accessor.count;
+                    int stride = accessor.ByteStride(bufferView);
+
+                    for (size_t i = 0; i < count; i++) {
+                        const float* buf = reinterpret_cast<const float*>(dataStart + i * stride);
+                        meshRes->vertex[i].tangent = Vector4(buf[0], buf[1], buf[2], buf[3]);
+                    }
+                }
+
                 // Set Layout
-                meshRes->layout.push_back(InputLayout(VertexAttribute::POSITION, 3 * sizeof(float), 3, 8 * sizeof(float), 0));
-                meshRes->layout.push_back(InputLayout(VertexAttribute::NORMAL, 3 * sizeof(float), 3, 8 * sizeof(float), 3 * sizeof(float)));
-                meshRes->layout.push_back(InputLayout(VertexAttribute::UV0, 2 * sizeof(float), 2, 8 * sizeof(float), 6 * sizeof(float)));
+                const int vertexStride = sizeof(Vertex);
+                meshRes->layout.push_back(InputLayout(VertexAttribute::POSITION, sizeof(Vector3), 3, vertexStride, 0));
+                meshRes->layout.push_back(InputLayout(VertexAttribute::NORMAL, sizeof(Vector3), 3, vertexStride, sizeof(Vector3)));
+                meshRes->layout.push_back(InputLayout(VertexAttribute::UV0, sizeof(Vector2), 2, vertexStride, sizeof(Vector3) * 2));
+                meshRes->layout.push_back(InputLayout(VertexAttribute::TANGENT, sizeof(Vector4), 4, vertexStride, sizeof(Vector3) * 2 + sizeof(Vector2)));
 
                 // Upload to GPU
                 meshRes->UploadMeshToGPU();

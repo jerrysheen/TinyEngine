@@ -8,6 +8,9 @@
 // 纹理资源
 //Texture2D g_Textures[1024] : register(t0, space0);
 Texture2D DiffuseTexture : register(t0, space0);
+Texture2D NormalTexture : register(t1, space0);
+Texture2D MetallicTexture : register(t2, space0);
+Texture2D EmissiveTexture : register(t3, space0);
 
 // 采样器
 SamplerState LinearSampler : register(s0, space0);
@@ -21,6 +24,7 @@ struct VertexInput
     float3 Position : POSITION;
     float3 Normal : NORMAL;
     float2 TexCoord : TEXCOORD0;
+    float4 Tangent : TANGENT;
 };
 
 // 顶点着色器输出/像素着色器输入
@@ -30,6 +34,7 @@ struct VertexOutput
     float3 WorldPos : WORLD_POSITION;
     float3 Normal : NORMAL;
     float2 TexCoord : TEXCOORD0;
+    float4 Tangent : TANGENT;
     nointerpolation int index : TEXCOORD1;
 };
 
@@ -52,8 +57,9 @@ VertexOutput VSMain(VertexInput input, uint instanceID : SV_InstanceID)
     //output.Position = mul(worldPos, VPMatrix);
     output.Position = mul(viewPos, ProjectionMatrix);
     
-    // 变换法向量
+    // 变换法向量/切线到世界空间
     output.Normal = normalize(mul(input.Normal, (float3x3)data.objectToWorld));
+    output.Tangent = float4(normalize(mul(input.Tangent.xyz, (float3x3)data.objectToWorld)), input.Tangent.w);
     
     // 传递纹理坐标和颜色
     //output.TexCoord = input.TexCoord * TilingFactor;
@@ -69,13 +75,44 @@ float4 PSMain(VertexOutput input) : SV_Target
     // 变换到世界空间
     PerObjectData data = g_InputPerObjectDatas[input.index];
     PerMaterialData matData = LoadPerMaterialData(data.matIndex);
-    half4 diffuseColor = matData.DiffuseColor;
-    // todo: 材质属性还没设置
-    diffuseColor.xyz = DiffuseTexture.Sample(LinearSampler, input.TexCoord).xyz *  1 ;
-    //diffuseColor.xyz = g_Textures[matData.DiffuseTextureIndex].Sample(LinearSampler, input.TexCoord).xyz;
-    half4 result = half4(0, 0, 0, 1);
-    result.xyz = diffuseColor.xyz;
-    return result;
+    //float2 uv = input.TexCoord * matData.TilingFactor;
+    float2 uv = input.TexCoord;
+    float3 albedo = DiffuseTexture.Sample(LinearSampler, uv).xyz * matData.DiffuseColor.xyz;
+    float3 emissive = EmissiveTexture.Sample(LinearSampler, uv).xyz;
+
+    float3 normalTS = NormalTexture.Sample(LinearSampler, uv).xyz * 2.0f - 1.0f;
+    normalTS = normalize(normalTS);
+
+    float3 N = normalize(input.Normal);
+    float3 T = normalize(input.Tangent.xyz);
+    T = normalize(T - N * dot(N, T));
+    float3 B = normalize(cross(N, T)) * input.Tangent.w;
+    float3 normalWS = normalize(mul(normalTS, float3x3(T, B, N)));
+
+    float3 L = normalize(-float3(-0.5,-0.5,1));
+    float3 V = normalize(CameraPosition - input.WorldPos);
+    float3 H = normalize(L + V);
+
+    float NdotL = saturate(dot(normalWS, L));
+    float NdotH = saturate(dot(normalWS, H));
+
+    float metallicTex = MetallicTexture.Sample(LinearSampler, uv).x;
+    float metallic = saturate(metallicTex * matData.Metallic);
+    float roughness = saturate(matData.Roughness);
+
+    float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), albedo, metallic);
+    float specPower = lerp(128.0f, 8.0f, roughness);
+    float3 specular = F0 * pow(NdotH, specPower);
+
+    float3 diffuse = albedo * NdotL;
+    //float3 direct = (diffuse + specular) * LightColor * LightIntensity;
+    float3 direct = (diffuse + specular) * 1;
+    //float3 ambient = albedo * AmbientColor * AmbientStrength;
+    float3 ambient = albedo * 1 * 0.3;
+
+    //float3 color = direct + ambient + emissive;
+    float3 color = direct + ambient;
+    return float4(color, 1.0f);
 
     // // 采样纹理
     // float4 diffuseColor = DiffuseTexture.Sample(LinearSampler, input.TexCoord);

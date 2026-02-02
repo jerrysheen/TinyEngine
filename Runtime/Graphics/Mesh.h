@@ -33,6 +33,7 @@ namespace EngineCore
         Vector3 position;
         Vector3 normal;
         Vector2 uv;
+        Vector4 tangent;
     };
 
     struct MeshBufferAllocation

@@ -172,6 +172,11 @@ namespace EngineCore
                     // 目前先比较 TexCoord一个， 没有涉及index
                     shader->mShaderInputLayout.emplace_back(VertexAttribute::UV0);
                 }
+                else if (strcmp(paramDesc.SemanticName, "TANGENT") == 0) 
+                {
+                    // 目前先比较 TexCoord一个， 没有涉及index
+                    shader->mShaderInputLayout.emplace_back(VertexAttribute::TANGENT);
+                }
             }
         }
         return true;

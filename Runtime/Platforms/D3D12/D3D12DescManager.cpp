@@ -27,7 +27,7 @@ namespace EngineCore
         mBindlessAllocator = new D3D12DescAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, false, true);
         mBindlessAllocator->mHeap->SetName(L"Bindless_Global_Heap_CBV_SRV_UAV");
         // 预留前 400,000 个给 Bindless 静态资源，后 100,000 个给每帧动态分配 (Ring Buffer)
-        mBindlessAllocator->SetDynamicStartOffset(1000);
+        mBindlessAllocator->SetDynamicStartOffset(2000);
     }
 
     D3D12DescManager::~D3D12DescManager(){};
