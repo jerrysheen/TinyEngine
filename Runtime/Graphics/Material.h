@@ -22,9 +22,8 @@ namespace EngineCore
         ResourceHandle<Shader> mShader;
         unordered_map<string, IGPUTexture*> textureData;
         unordered_map<std::string, ResourceHandle<Texture>> textureHandleMap;
-        
-        //MaterialData m_MaterialData;
-        //void LoadFromMaterialData(const MaterialData& data);
+        MaterailRenderState mRenderState;
+        BufferAllocation materialAllocation;
 
         Material() = default;
         Material(ResourceHandle<Shader> shader);
@@ -68,10 +67,9 @@ namespace EngineCore
             texHandle.mAssetID = AssetID(asset);
             textureHandleMap[name] = texHandle;
         }
-
-        inline MaterailRenderState GetMaterialRenderState() const { return mRenderState;};
-        MaterailRenderState mRenderState;
-        BufferAllocation materialAllocation;
+        inline MaterailRenderState GetMaterialRenderState() const { return mRenderState; };
+        
+        virtual void OnLoadComplete() override;
     private:
         void SetUpRenderState();
         void GetTextureInfoFromShaderReflection();

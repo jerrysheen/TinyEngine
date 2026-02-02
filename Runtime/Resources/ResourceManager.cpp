@@ -27,40 +27,17 @@ namespace EngineCore
         m_Loaders[AssetType::Texture2D] = new DDSTextureLoader();
         m_Loaders[AssetType::Material] = new MaterialLoader();
         m_Loaders[AssetType::Shader] = new ShaderLoader();
-        defaultMesh = new Mesh(Primitive::Cube);
-        EnsureDefaultShader();
-        EnsureDefaultTexture();
     }
 
     void ResourceManager::Update()
-    {
-        while(mLoadResultQueue.size() > 0)
+    {   
+        int taskCount = maxResourceLoadedInMainThread;
+        while(mLoadResultQueue.size() > 0 && taskCount-- > 0)
         {
             LoadResult loadResult;
-            bool hasWork = mLoadResultQueue.TryPop(loadResult);
-            if(hasWork)
+            if(mLoadResultQueue.TryPop(loadResult))
             {
-                ASSERT(loadResult.resource != nullptr);
-                LoadTask* task = loadResult.task;
-                loadResult.resource->mRefCount = mResourceCache[loadResult.task->id]->mRefCount;
-                mResourceCache[loadResult.task->id] = loadResult.resource;
-                task->loadState = LoadState::Loaded;
-                task->resource = loadResult.resource;
-                for(auto& dependency : loadResult.dependencyList)
-                {
-                    switch (dependency.type) 
-                    {
-                    case AssetType::Texture2D:
-                        ResourceManager::GetInstance()->LoadAssetAsync<Texture>(dependency.id, dependency.onLoaded, loadResult.task);
-                        break;
-                    case AssetType::Shader:
-                        ResourceManager::GetInstance()->LoadAssetAsync<Shader>(dependency.id, dependency.onLoaded, loadResult.task);
-                        break;
-                    default:
-                        ASSERT(false);
-                    }
-                }
-                TryFinalize(task);
+                ApplyLoadResult(loadResult, LoadPolicy::Async);
             };
         }
     }
@@ -86,17 +63,20 @@ namespace EngineCore
         switch (fileType)
         {
         case AssetType::Mesh:
+            ASSERT(defaultMesh != nullptr);
             return defaultMesh;
             break;
         case AssetType::Texture2D:
+            EnsureDefaultTexture();
             return mDefaultTexture;
             break;
         case AssetType::Shader:
+            EnsureDefaultShader();
             return mDefaultShader;
             break;
         case AssetType::Material:
             EnsureDefaultMaterial();
-            return mDefaultMaterial.IsValid() ? mDefaultMaterial.Get() : nullptr;
+            return mDefaultMaterial;
             break;
         default:
             ASSERT(false);
@@ -130,11 +110,13 @@ namespace EngineCore
         if(task->loadState != LoadState::Loaded) return;
         if(task->pendingDeps > 0) return;
 
+        mResourceCache[task->id] = task->resource;
+        task->resource->OnLoadComplete();
+
         for(auto& callback : task->calllbacks)
         {
             callback();
         }
-        task->resource->OnLoadComplete();
         task->loadState = LoadState::Finalized;
     }
 
@@ -170,6 +152,7 @@ namespace EngineCore
     {
         if (sInstance) return;
         sInstance = new ResourceManager();
+        sInstance->InitDefaultResources();
     }
 
 
@@ -218,13 +201,9 @@ namespace EngineCore
 
     void ResourceManager::EnsureDefaultMaterial()
     {
-        if (mDefaultMaterial.IsValid())
-        {
-            return;
-        }
-
         EnsureDefaultTexture();
-
+        EnsureDefaultShader();
+        if (mDefaultMaterial != nullptr) return;
         const char* defaultMaterialPath = "Material/Default.mat";
         Material temp;
         temp.SetAssetCreateMethod(AssetCreateMethod::Serialization);
@@ -232,7 +211,18 @@ namespace EngineCore
         temp.SetAssetID(AssetIDGenerator::NewFromFile(defaultMaterialPath));
         AssetRegistry::GetInstance()->RegisterAsset(&temp);
 
-        mDefaultMaterial = LoadAsset<Material>(defaultMaterialPath);
+        mDefaultMaterial = static_cast<Material*>(m_Loaders[AssetType::Material]->Load(defaultMaterialPath).resource);
+        mDefaultMaterial->mShader = ResourceHandle<Shader>(mDefaultShader->GetAssetID());
+        mDefaultMaterial->OnLoadComplete();
+        mResourceCache[temp.GetAssetID()] = static_cast<Resource*>(mDefaultMaterial);
+    }
+
+    void ResourceManager::InitDefaultResources()
+    {
+        defaultMesh = new Mesh(Primitive::Cube);
+        EnsureDefaultTexture();
+        EnsureDefaultShader();
+        EnsureDefaultMaterial();
     }
 
 

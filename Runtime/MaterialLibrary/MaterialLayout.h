@@ -53,6 +53,7 @@ namespace EngineCore
 
         uint32_t GetSize(){ return m_TotalSize;}
 
+        
         std::unordered_map<std::string, MaterialPropertyLayout> m_PropertyLayout;
         std::unordered_map<std::string, uint32_t> textureToBlockIndexMap;
     private:

@@ -61,21 +61,22 @@ namespace EngineCore
             }
 
             ASSERT(!shaderPath.empty());
-            uint64_t assetPathID = AssetRegistry::GetInstance()->GetAssetIDFromPath(shaderPath);
-            ResourceHandle<Shader> shaderHandle(assetPathID);
-                result.dependencyList.emplace_back
-                (
-                    assetPathID,
-                    AssetType::Shader,
-                    nullptr
-                );
 
-            Material* mat = new Material(shaderHandle);
+            Material* mat = new Material();
             mat->SetAssetCreateMethod(AssetCreateMethod::Serialization);
             mat->SetPath(relativePath);
             mat->SetAssetID(AssetIDGenerator::NewFromFile(relativePath));
             mat->isBindLessMaterial = isBindless;
             mat->archyTypeName = archyTypeName;
+
+            uint64_t assetPathID = AssetRegistry::GetInstance()->GetAssetIDFromPath(shaderPath);
+            result.dependencyList.emplace_back
+            (
+                assetPathID,
+                AssetType::Shader,
+                nullptr
+            );
+            mat->mShader = ResourceHandle<Shader>(assetPathID);
 
             std::vector<MetatextureDependency> textureDependencyList;
             StreamHelper::ReadVector(in, textureDependencyList);
@@ -92,6 +93,7 @@ namespace EngineCore
                             mat->SetTexture(texName, texID);
                         }
                     );
+                mat->SetTexture(texName, ResourceHandle<Texture>(ResourceManager::GetInstance()->mDefaultTexture->GetAssetID()));
             }
 
             mat->matInstance = std::make_unique<MaterialInstance>(MaterialArchetypeRegistry::GetInstance().GetArchytypeLayout(mat->archyTypeName));

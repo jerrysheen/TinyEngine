@@ -21,7 +21,7 @@ namespace EngineCore
         }
 
         std::vector<uint8_t> GetInstanceData(){ return m_DataBlob; }
-        inline void SetInstanceData(const std::vector<uint8_t>& data){ m_DataBlob = data; }
+        inline void SetInstanceData(const std::vector<uint8_t> data){ m_DataBlob = data; }
         uint32_t GetSize(){return m_Layout.GetSize();}
         inline MaterialLayout GetLayout(){return m_Layout;};
         inline void SetLayout(const MaterialLayout& layout){ m_Layout = layout;};

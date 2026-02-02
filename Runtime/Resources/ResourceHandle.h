@@ -57,10 +57,10 @@ namespace EngineCore
             return mAssetID.IsValid() && Get() != nullptr;
         }
 
-        ResourceState GetResourecState()
-        {
-            return ResourceManager::GetInstance()->GetResourceStateByID(mAssetID.value);
-        }
+        // ResourceState GetResourecState()
+        // {
+        //     return ResourceManager::GetInstance()->GetResourceStateByID(mAssetID.value);
+        // }
 
         inline AssetID GetAssetID() const {return mAssetID;};
     // todo : temp data for jason sereilization;

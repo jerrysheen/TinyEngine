@@ -76,16 +76,15 @@ namespace EngineCore
                     {
                         MeshRenderer* renderer = go->AddComponent<MeshRenderer>();
                         string path = AssetRegistry::GetInstance()->GetAssetPathFromID(nodeData.materialID);
-                        // --- 添加这块临时调试代码 ---
-                        if (path == "Material/bistro/Material_182.mat") {
-                            int debug_here = 0; // 在这行打一个普通断点（F9）
-                        }
-                        ResourceHandle<Material> handle = ResourceManager::GetInstance()->LoadAsset<Material>(
-                            path
+                        ResourceHandle<Material> handle = ResourceManager::GetInstance()->LoadAssetAsync<Material>
+                            ( nodeData.materialID,
+                                [=]() 
+                                {
+                                    renderer->OnLoadResourceFinished();
+                                }
+                            ,nullptr
                             );
-                        renderer->OnLoadResourceFinished();
                         renderer->SetSharedMaterial(handle);
-
                     }
                 }
 

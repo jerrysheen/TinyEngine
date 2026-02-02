@@ -17,9 +17,12 @@ namespace EngineCore
     {
         None,
         Queue,
+        Loading,
         Loaded,
         Finalized
     };
+
+    enum class LoadPolicy { Sync, Async };
 
     struct LoadTask
     {
@@ -43,7 +46,7 @@ namespace EngineCore
     class ResourceManager
     {
     public:
-        
+
         static void Create();
         void Destroy();
         ~ResourceManager();
@@ -53,96 +56,116 @@ namespace EngineCore
         void WorkThreadLoad();
 
         template<typename T>
-        ResourceHandle<T> LoadAssetAsync(uint64_t assetPathID, std::function<void()> callback, LoadTask* parentTask)
+        ResourceHandle<T> RequestLoad(uint64_t assetPathID,
+            std::function<void()> callback,
+            LoadTask* parentTask,
+            LoadPolicy policy)
         {
-            LoadTask* currTask = GetOrCreateALoadTask(assetPathID, AssetTypeTraits<T>::Type);
-            // LoadAssetAsync只负责发起异步加载任务，不关心任何比如资源加载完怎么处理
-            if(currTask->loadState == LoadState::Finalized)
+            AssetType type = AssetTypeTraits<T>::Type;
+            LoadTask* task = GetOrCreateALoadTask(assetPathID, type);
+
+            if (task->loadState == LoadState::Finalized)
             {
-                if(callback) callback();
-                // 不用TryFinalize Parent，TryFinalize已经在父节点LoadResult的时候调用过了。
+                if (callback) callback();
+                if (parentTask)
+                {
+                    TryFinalize(parentTask);
+                }
                 return ResourceHandle<T>(assetPathID);
             }
 
-            if(callback != nullptr)
-            {
-                currTask->calllbacks.push_back(callback);
-            }
-            if(parentTask != nullptr)
+            if (callback) task->calllbacks.push_back(callback);
+            if (parentTask)
             {
                 parentTask->pendingDeps++;
-                currTask->calllbacks.push_back([=]()
+                task->calllbacks.push_back([=]()
                     {
                         parentTask->pendingDeps--;
                         TryFinalize(parentTask);
                     });
             }
 
-            if(currTask->loadState == LoadState::None)
+            if (task->loadState == LoadState::None)
             {
-                currTask->loadState = LoadState::Queue;
-                currTask->id = assetPathID;
-                currTask->type = AssetTypeTraits<T>::Type;
-                mLoadTaskQueue.TryPush(currTask);
-                mResourceCache[assetPathID] = GetDefaultResource(currTask->type);
+                task->loadState = LoadState::Queue;
+                task->id = assetPathID;
+                task->type = type;
+
+                if (policy == LoadPolicy::Async)
+                {
+                    mLoadTaskQueue.TryPush(task);
+                }
+                else
+                {
+                    DoLoadSync(task, policy);
+                }
             }
 
-            return  ResourceHandle<T>(assetPathID);
+            if (policy == LoadPolicy::Sync)
+            {
+                WaitForFinalize(task);
+            }
+
+            return ResourceHandle<T>(assetPathID);
         }
 
-        ResourceState GetResourceStateByID(uint64_t assetID )
+        void DoLoadSync(LoadTask* task, LoadPolicy policy)
         {
-            if(mResourceCache.count(assetID) == 0) return ResourceState::NotExits;
-            if(mResourceCache[assetID] == nullptr) return ResourceState::Loading;
-            if(mResourceCache[assetID] != nullptr) return ResourceState::Success;
+            task->loadState = LoadState::Loading;
+
+            string path = AssetRegistry::GetInstance()->GetAssetPathFromID(task->id);
+            LoadResult result = m_Loaders[task->type]->Load(path);
+            result.task = task;
+            ApplyLoadResult(result, policy);
         }
 
-        // todo 异步加载和同步加载可能会冲突
-        // 感觉mResourceCache赋值和取值的一瞬间应该加锁？
-        // 这个地方应该是有问题， task = 不是none 的状态， 这个地方会和Async冲突
+        void ApplyLoadResult(LoadResult& result, LoadPolicy policy)
+        {
+            LoadTask* task = result.task;
+            ASSERT(result.resource != nullptr);
+
+            task->loadState = LoadState::Loaded;
+            task->resource = result.resource;
+            for (auto& dep : result.dependencyList)
+            {
+                switch (dep.type)
+                {
+                case AssetType::Texture2D:
+                    RequestLoad<Texture>(dep.id, dep.onLoaded, task, policy);
+                    break;
+                case AssetType::Shader:
+                    RequestLoad<Shader>(dep.id, dep.onLoaded, task, policy);
+                    break;
+                default:
+                    ASSERT(false);
+                    break;
+                }
+            }
+            TryFinalize(task);
+        }
+        template<typename T>
+        ResourceHandle<T> LoadAssetAsync(uint64_t assetPathID, std::function<void()> callback, LoadTask* parentTask)
+        {
+            LoadTask* currTask = GetOrCreateALoadTask(assetPathID, AssetTypeTraits<T>::Type);
+            return RequestLoad<T>(assetPathID, callback, parentTask, LoadPolicy::Async);
+        }
+
         template<typename T>
         ResourceHandle<T> LoadAsset(const string& relativePath)
         {
             uint64_t assetPathID = AssetRegistry::GetInstance()->GetAssetIDFromPath(relativePath);
             LoadTask* currTask = GetOrCreateALoadTask(assetPathID, AssetTypeTraits<T>::Type);
-            // LoadAssetAsync只负责发起异步加载任务，不关心任何比如资源加载完怎么处理
-
-            if (currTask->loadState == LoadState::None)
-            {
-                AssetType type = AssetTypeTraits<T>::Type;
-                ASSERT(m_Loaders.count(type) > 0);
-                string path = AssetRegistry::GetInstance()->GetAssetPathFromID(assetPathID);
-                LoadResult result = m_Loaders[type]->Load(path);
-                mResourceCache[assetPathID] = result.resource;
-                mLoadTaskCache[assetPathID] = currTask;
-                currTask->loadState = LoadState::Loaded;
-                currTask->resource = result.resource;
-                for(auto& dependency : result.dependencyList)
-                {
-                    string dependencyPath = AssetRegistry::GetInstance()->GetAssetPathFromID(dependency.id);
-                    switch (dependency.type)
-                    {
-                    case AssetType::Texture2D:
-                        LoadAsset<Texture>(dependencyPath);
-                        break;
-                    case AssetType::Shader:
-                        LoadAsset<Shader>(dependencyPath);
-                        break;
-                    default:
-                        ASSERT(false);
-                        break;
-                    }
-
-                    if(dependency.onLoaded)
-                    {
-                        dependency.onLoaded();
-                    }
-                }
-                TryFinalize(currTask);
-            }
-            return  ResourceHandle<T>(assetPathID);
+            return RequestLoad<T>(assetPathID, nullptr, nullptr, LoadPolicy::Sync);
         }
 
+        void WaitForFinalize(LoadTask* task)
+        {
+            if (task->loadState != LoadState::Loaded && task->loadState != LoadState::Finalized)
+            {
+                Update();
+                std::this_thread::yield();
+            }
+        }
 
         template<typename T>
         ResourceHandle<T> Instantiate(const ResourceHandle<T>& sourceHandle)
@@ -157,35 +180,38 @@ namespace EngineCore
             return ResourceHandle<T>(id);
         }
 
+
         inline void AddRef(AssetID id)
         {
-            if(mResourceCache.count(id) > 0)
+            if (mResourceCountMap.count(id) > 0)
             {
-                auto* resource  = mResourceCache[id];
-                if (resource == nullptr) return;
-                resource->mRefCount++;
+                mResourceCountMap[id] = mResourceCountMap[id]++;
+            }
+            else 
+            {
+                mResourceCountMap[id] = 1;
             }
         }
 
         inline void DecreaseRef(AssetID id)
         {
-            //if(mResourceCache.count(id) > 0)
-            //{
-            //    auto* resource  = mResourceCache[id];
-            //    if (resource == nullptr) return;
-            //    if(--resource->mRefCount <= 0)
-            //    {
-            //        mPendingDeleteList.push_back(resource);
-            //        mResourceCache.erase(id);
-            //        freeTaskList.push_back(mLoadTaskCache[id]);
-            //        mLoadTaskCache.erase(id);
-            //    }
-            //}
+            if(mResourceCountMap.count(id) > 0)
+            {
+                mResourceCountMap[id] = mResourceCountMap[id]--;
+                if(mResourceCountMap[id] <= 0)
+                {
+                    mPendingDeleteList.push_back(mResourceCache[id]);
+                    mResourceCache.erase(id);
+                    freeTaskList.push_back(mLoadTaskCache[id]);
+                    mLoadTaskCache.erase(id);
+                    mResourceCountMap.erase(id);
+                }
+            }
         }
 
         static inline ResourceManager* GetInstance()
         {
-            if(sInstance == nullptr)
+            if (sInstance == nullptr)
             {
                 Create();
             }
@@ -193,28 +219,28 @@ namespace EngineCore
         };
 
         template<typename T>
-        inline T* GetResource(AssetID id) 
+        inline T* GetResource(AssetID id)
         {
-            if(!id.IsValid()) return nullptr;
+            if (!id.IsValid()) return nullptr;
 
-            if(mResourceCache.count(id) == 0)
+            if (mResourceCache.count(id) == 0)
             {
                 return static_cast<T*>(GetDefaultResource(AssetTypeTraits<T>::Type));
                 return nullptr;
             }
 
             Resource* res = mResourceCache[id];
-            if(res == nullptr)
+            if (res == nullptr)
             {
                 return static_cast<T*>(GetDefaultResource(AssetTypeTraits<T>::Type));
             }
-            
+
             return static_cast<T*>(res);
         }
 
         inline void GabageColloection()
         {
-            for(int i = 0; i < mPendingDeleteList.size(); i++)
+            for (int i = 0; i < mPendingDeleteList.size(); i++)
             {
                 delete mPendingDeleteList[i];
             }
@@ -223,7 +249,7 @@ namespace EngineCore
 
         void ResgisterResource(Resource* res, AssetID id)
         {
-            if(mResourceCache.count(id) > 0)
+            if (mResourceCache.count(id) > 0)
             {
                 ASSERT(mResourceCache[id] == res);
             }
@@ -243,22 +269,23 @@ namespace EngineCore
 
         Resource* GetDefaultResource(AssetType fileType);
 
-    // todo: temp public for Editor Test
+        // todo: temp public for Editor Test
     public:
         static ResourceManager* sInstance;
-
+        int maxResourceLoadedInMainThread = 100;
         std::vector<Resource*> mPendingDeleteList;
         std::unordered_map<AssetType, IResourceLoader*> m_Loaders;
-        
+
 
         std::thread mLoadThread;
         Mesh* defaultMesh = nullptr;
         Texture* mDefaultTexture = nullptr;
         Shader* mDefaultShader = nullptr;
-        ResourceHandle<Material> mDefaultMaterial;
-        
+        Material* mDefaultMaterial = nullptr;
+
         std::vector<LoadTask*> freeTaskList;
         unordered_map<AssetID, Resource*> mResourceCache;
+        unordered_map<AssetID, int> mResourceCountMap;
         unordered_map<AssetID, LoadTask*> mLoadTaskCache;
         // LoadTask 不回收
         ThreadSafeQueue<LoadTask*> mLoadTaskQueue;
@@ -268,7 +295,8 @@ namespace EngineCore
         void EnsureDefaultTexture();
         void EnsureDefaultShader();
         void EnsureDefaultMaterial();
-
+    private:
+        void InitDefaultResources();
     };
 
 }

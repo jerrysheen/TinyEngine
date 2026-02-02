@@ -43,5 +43,5 @@ float4 PSMain(VertexOutput input) : SV_Target
     float _FlipY = 1.0f;
     float2 uv = input.TexCoord;
     if(_FlipY > 0.1) uv.y = 1.0 - uv.y; 
-    return SrcTexture.Sample(LinearSampler, uv);
+    return pow(SrcTexture.Sample(LinearSampler, uv), 0.45);
 }

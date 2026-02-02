@@ -48,6 +48,22 @@ namespace EngineCore
         
     }
 
+    void Material::OnLoadComplete()
+    {
+        GetTextureInfoFromShaderReflection();
+        if (!matInstance) 
+        {
+            MaterialLayout layout = MaterialArchetypeRegistry::GetInstance().GetArchytypeLayout (archyTypeName);
+            if (layout.GetSize() > 0)
+            {
+                matInstance = std::make_unique<MaterialInstance>(layout);
+            }
+        }
+        materialAllocation = GPUSceneManager::GetInstance()->GetSinglePerMaterialData();
+        SetUpRenderState();
+        if(materialAllocation.isValid)UploadDataToGpu();
+    }
+
     void Material::SetUpRenderState()
     {
         mRenderState.shaderInstanceID = mShader.Get()->GetInstanceID();

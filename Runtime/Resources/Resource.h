@@ -46,6 +46,5 @@ namespace EngineCore
         AssetID mAssetID = {};
         AssetType mAssetType = AssetType::Default;
         AssetCreateMethod mAssetCreateMethod = AssetCreateMethod::Serialization;
-        int mRefCount = 0;
     };
 }
