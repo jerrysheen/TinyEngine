@@ -118,6 +118,20 @@ namespace EngineCore
             callback();
         }
         task->loadState = LoadState::Finalized;
+
+        if (task->pendingUnload && mResourceCountMap[task->id] <= 0) {
+            // 删除 resource + 回收 task
+            mPendingDeleteList.push_back(mResourceCache[task->id]);
+            mResourceCache.erase(task->id);
+            freeTaskList.push_back(mLoadTaskCache[task->id]);
+            mLoadTaskCache.erase(task->id);
+            mResourceCountMap.erase(task->id);
+        }
+        else 
+        {
+            task->pendingUnload = false;
+        }
+
     }
 
     ResourceManager::~ResourceManager()

@@ -107,9 +107,9 @@ float4 PSMain(VertexOutput input) : SV_Target
 
     float3 diffuse = albedo * NdotL;
     //float3 direct = (diffuse + specular) * LightColor * LightIntensity;
-    float3 direct = (diffuse + specular) * 1;
+    float3 direct = (diffuse + specular) * 1.5;
     //float3 ambient = albedo * AmbientColor * AmbientStrength;
-    float3 ambient = albedo * 1 * 0.3;
+    float3 ambient = albedo * 1 * 0.1;
 
     //float3 color = direct + ambient + emissive;
     float3 color = direct + ambient;

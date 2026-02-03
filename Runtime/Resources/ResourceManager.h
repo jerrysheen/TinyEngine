@@ -32,6 +32,7 @@ namespace EngineCore
         int pendingDeps = 0;
         std::vector<function<void()>> calllbacks;
         LoadState loadState = LoadState::None;
+        bool pendingUnload = false;
         void Reset()
         {
             id = 0;
@@ -183,9 +184,11 @@ namespace EngineCore
 
         inline void AddRef(AssetID id)
         {
+            std::lock_guard<std::mutex> lock(m_Mutex);
+
             if (mResourceCountMap.count(id) > 0)
             {
-                mResourceCountMap[id] = mResourceCountMap[id]++;
+                mResourceCountMap[id] = ++mResourceCountMap[id];
             }
             else 
             {
@@ -195,16 +198,17 @@ namespace EngineCore
 
         inline void DecreaseRef(AssetID id)
         {
+            std::lock_guard<std::mutex> lock(m_Mutex);
             if(mResourceCountMap.count(id) > 0)
             {
-                mResourceCountMap[id] = mResourceCountMap[id]--;
+                mResourceCountMap[id] = --mResourceCountMap[id];
                 if(mResourceCountMap[id] <= 0)
                 {
-                    mPendingDeleteList.push_back(mResourceCache[id]);
-                    mResourceCache.erase(id);
-                    freeTaskList.push_back(mLoadTaskCache[id]);
-                    mLoadTaskCache.erase(id);
-                    mResourceCountMap.erase(id);
+                    auto* task = mLoadTaskCache[id];
+                    if (task && task->loadState != LoadState::Finalized) {
+                        task->pendingUnload = true;
+                        return;
+                    }
                 }
             }
         }
@@ -283,6 +287,7 @@ namespace EngineCore
         Shader* mDefaultShader = nullptr;
         Material* mDefaultMaterial = nullptr;
 
+        std::mutex m_Mutex;
         std::vector<LoadTask*> freeTaskList;
         unordered_map<AssetID, Resource*> mResourceCache;
         unordered_map<AssetID, int> mResourceCountMap;

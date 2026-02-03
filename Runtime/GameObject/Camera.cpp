@@ -30,8 +30,8 @@ namespace EngineCore
         TextureDesc colorAttachmentDesc;
         colorAttachmentDesc.name = "CameraColorAttachment";
         colorAttachmentDesc.dimension = TextureDimension::TEXTURE2D;
-        colorAttachmentDesc.width = 800;
-        colorAttachmentDesc.height = 600;
+        colorAttachmentDesc.width = 1920;
+        colorAttachmentDesc.height = 1080;
         colorAttachmentDesc.format = TextureFormat::R8G8B8A8;
         colorAttachmentDesc.texUsage = TextureUsage::RenderTarget;
         colorAttachment = new RenderTexture(colorAttachmentDesc);
@@ -39,8 +39,8 @@ namespace EngineCore
         TextureDesc depthAttachmentDesc;
         depthAttachmentDesc.name = "CameraDepthAttachment";
         depthAttachmentDesc.dimension = TextureDimension::TEXTURE2D;
-        depthAttachmentDesc.width = 800;
-        depthAttachmentDesc.height = 600;
+        depthAttachmentDesc.width = 1920;
+        depthAttachmentDesc.height = 1080;
         depthAttachmentDesc.format = TextureFormat::D24S8;
         depthAttachmentDesc.texUsage = TextureUsage::DepthStencil;
         depthAttachment = new RenderTexture(depthAttachmentDesc);

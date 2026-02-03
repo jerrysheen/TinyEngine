@@ -124,9 +124,9 @@ namespace EngineCore
         for (int i = 0; i < materialDirtyList.size(); i++)
         {
             uint32_t index = materialDirtyList[i];
-            MeshFilter* meshFilter = renderSceneData.meshFilterList[i];
+            MeshFilter* meshFilter = renderSceneData.meshFilterList[index];
             MeshRenderer* meshRenderer = renderSceneData.meshRendererList[index];
-            if (meshFilter == nullptr) return;
+            if (meshFilter == nullptr) continue;
             if (meshRenderer == nullptr)
             {
                 // delete: 只处理RenderProxy相关信息。
@@ -230,7 +230,7 @@ namespace EngineCore
                 currCopyPerObjectOPPtr->dstOffset = index * sizeof(PerObjectData);
                 currCopyPerObjectOPPtr->size = sizeof(PerObjectData);
                 currCopyPerObjectOPPtr++;
-                perObjectDataBuffer[i].objectToWorld = renderSceneData.objectToWorldMatrixList[i];
+                perObjectDataBuffer[index].objectToWorld = renderSceneData.objectToWorldMatrixList[index];
                 perObjectTempData.push_back(perObjectDataBuffer[index]);
             }
         }

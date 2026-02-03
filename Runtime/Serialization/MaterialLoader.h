@@ -74,9 +74,11 @@ namespace EngineCore
             (
                 assetPathID,
                 AssetType::Shader,
-                nullptr
+                [=](){
+                    mat->mShader = ResourceHandle<Shader>(assetPathID);
+                }
             );
-            mat->mShader = ResourceHandle<Shader>(assetPathID);
+            
 
             std::vector<MetatextureDependency> textureDependencyList;
             StreamHelper::ReadVector(in, textureDependencyList);
@@ -93,7 +95,7 @@ namespace EngineCore
                             mat->SetTexture(texName, texID);
                         }
                     );
-                mat->SetTexture(texName, ResourceHandle<Texture>(ResourceManager::GetInstance()->mDefaultTexture->GetAssetID()));
+                //mat->SetTexture(texName, ResourceHandle<Texture>(ResourceManager::GetInstance()->mDefaultTexture->GetAssetID()));
             }
 
             mat->matInstance = std::make_unique<MaterialInstance>(MaterialArchetypeRegistry::GetInstance().GetArchytypeLayout(mat->archyTypeName));
