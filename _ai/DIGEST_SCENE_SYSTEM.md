@@ -57,10 +57,10 @@
 - `[22]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[18]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[16]` **Runtime/Renderer/BatchManager.h**
+- `[15]` **Runtime/Graphics/Material.cpp**
 - `[13]` **Editor/EditorSettings.cpp**
 - `[12]` **Editor/EditorGUIManager.h**
 - `[12]` **Editor/EditorSettings.h**
-- `[12]` **Runtime/Graphics/Material.cpp**
 - `[12]` **Editor/Panel/EditorMainBar.h**
 - `[10]` **Editor/Panel/EditorInspectorPanel.h**
 - `[9]` **Runtime/Core/PublicStruct.h**
@@ -83,7 +83,6 @@
             Scene* res = static_cast<Scene*>(sceneLoader.Load(binPath).resource);
             // todo： 这个地方有加载时序问题。。
             SceneManager::GetInstance()->SetCurrentScene(res);
-
             // 刷新所有Transform的world position，避免父子节点关系建立后的延迟更新问题
             for (auto& gameObject : res->allObjList) 
             {
@@ -145,7 +144,7 @@
         // Header
         const char* magic = "TINY";
         out.write(magic, 4);
-        int version = 1;
+        int version = 2;
         out.write(reinterpret_cast<const char*>(&version), sizeof(version));
 
         GameObject* root = nullptr;
@@ -290,7 +289,7 @@
                 currCopyPerObjectOPPtr->dstOffset = index * sizeof(PerObjectData);
                 currCopyPerObjectOPPtr->size = sizeof(PerObjectData);
                 currCopyPerObjectOPPtr++;
-                perObjectDataBuffer[i].objectToWorld = renderSceneData.objectToWorldMatrixList[i];
+                perObjectDataBuffer[index].objectToWorld = renderSceneData.objectToWorldMatrixList[index];
                 perObjectTempData.push_back(perObjectDataBuffer[index]);
             }
         }
@@ -383,16 +382,15 @@ namespace EngineCore
                     {
                         MeshRenderer* renderer = go->AddComponent<MeshRenderer>();
                         string path = AssetRegistry::GetInstance()->GetAssetPathFromID(nodeData.materialID);
-                        // --- 添加这块临时调试代码 ---
-                        if (path == "Material/bistro/Material_182.mat") {
-                            int debug_here = 0; // 在这行打一个普通断点（F9）
-                        }
-                        ResourceHandle<Material> handle = ResourceManager::GetInstance()->LoadAsset<Material>(
-                            path
+                        ResourceHandle<Material> handle = ResourceManager::GetInstance()->LoadAssetAsync<Material>
+                            ( nodeData.materialID,
+                                [=]() 
+                                {
+                                    renderer->OnLoadResourceFinished();
+                                }
+                            ,nullptr
                             );
-                        renderer->OnLoadResourceFinished();
                         renderer->SetSharedMaterial(handle);
-
                     }
                 }
 
@@ -833,7 +831,7 @@ namespace EngineCore
         void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
         uint32_t lastSyncTransformVersion = 0;
         bool shouldUpdateMeshRenderer = true;
-
+        bool needUpdatePerMaterialData = false;
         AABB worldBounds;
         uint32_t sceneRenderNodeIndex = UINT32_MAX;
         bool materialDirty = true;

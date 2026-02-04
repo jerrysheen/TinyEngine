@@ -1,5 +1,5 @@
 # Architecture Digest: MATERIAL_SYSTEM
-> Auto-generated. Focus: Runtime/MaterialLibrary, BistroSceneLoader, Material, MaterialInstance, MaterialLayout, MaterialArchetypeRegistry, MaterialArchetype, MaterialArchytype, StandardPBR, BindlessTexture, MaterialRawByteBuffer
+> Auto-generated. Focus: Runtime/MaterialLibrary, Runtime/MaterialLibrary/MaterialLayout.h, Runtime/MaterialLibrary/MaterialInstance.h, Runtime/MaterialLibrary/MaterialArchetypeRegistry.h, BistroSceneLoader, Material, MaterialInstance, MaterialLayout, MaterialArchetypeRegistry, StandardPBR, Bindless
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
@@ -11,52 +11,55 @@
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
 
 ## Understanding Notes
-- 材质序列化与反序列化，运行时设置的系统，生成一个MaterialInstance，对应GPU上一小块内存，已经做了MaterialRawByteBuffer，和BindlessTexture
+- 材质序列化与反序列化，运行时设置系统，生成MaterialInstance/MaterialLayout，并配合Bindless材质绑定。
 - 关注序列化反序列化是否合理
 
 ## Key Files Index
-- `[87]` **Runtime/MaterialLibrary/MaterialArchetypeRegistry.h** *(Content Included)*
-- `[64]` **Runtime/MaterialLibrary/MaterialInstance.h** *(Content Included)*
-- `[57]` **Runtime/MaterialLibrary/MaterialLayout.h** *(Content Included)*
+- `[74]` **Runtime/MaterialLibrary/MaterialArchetypeRegistry.h** *(Content Included)*
+- `[74]` **Runtime/MaterialLibrary/MaterialInstance.h** *(Content Included)*
+- `[67]` **Runtime/MaterialLibrary/MaterialLayout.h** *(Content Included)*
 - `[54]` **Runtime/MaterialLibrary/StandardPBR.h** *(Content Included)*
-- `[51]` **Runtime/MaterialLibrary/StandardPBR.cpp** *(Content Included)*
-- `[41]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
-- `[37]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
-- `[33]` **Runtime/Graphics/Material.cpp** *(Content Included)*
-- `[29]` **Runtime/Graphics/Material.h** *(Content Included)*
+- `[49]` **Runtime/MaterialLibrary/StandardPBR.cpp** *(Content Included)*
+- `[44]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
+- `[36]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
+- `[34]` **Runtime/Graphics/Material.cpp** *(Content Included)*
+- `[30]` **Runtime/Graphics/Material.h** *(Content Included)*
 - `[28]` **Runtime/Scene/BistroSceneLoader.h** *(Content Included)*
 - `[26]` **Assets/Shader/StandardPBR.hlsl** *(Content Included)*
 - `[26]` **Assets/Shader/StandardPBR_VertexPulling.hlsl** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
 - `[13]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
+- `[13]` **Runtime/Renderer/Renderer.h** *(Content Included)*
 - `[12]` **Runtime/Core/Game.cpp** *(Content Included)*
+- `[12]` **Runtime/Renderer/RenderCommand.h** *(Content Included)*
 - `[12]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
 - `[12]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
-- `[11]` **Runtime/Renderer/Renderer.h** *(Content Included)*
-- `[7]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
-- `[7]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
-- `[7]` **Runtime/Renderer/RenderAPI.h**
-- `[7]` **Runtime/Renderer/RenderCommand.h**
-- `[7]` **Runtime/Renderer/RenderStruct.h**
+- `[11]` **Runtime/Renderer/RenderAPI.h** *(Content Included)*
+- `[10]` **Runtime/Renderer/Renderer.cpp**
+- `[10]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
+- `[10]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
+- `[8]` **Runtime/Renderer/RenderStruct.h**
+- `[8]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
+- `[7]` **Runtime/GameObject/MeshRenderer.h**
+- `[7]` **Runtime/Graphics/GPUSceneManager.h**
 - `[7]` **Runtime/Resources/ResourceManager.cpp**
 - `[7]` **Runtime/Serialization/SceneLoader.h**
+- `[7]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
 - `[7]` **Editor/Panel/EditorMainBar.h**
 - `[6]` **Runtime/Renderer/BatchManager.h**
 - `[6]` **Runtime/Scene/Scene.h**
-- `[6]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[6]` **Assets/Shader/BlitShader.hlsl**
 - `[6]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[5]` **Runtime/Core/PublicStruct.h**
 - `[5]` **Runtime/GameObject/MeshRenderer.cpp**
-- `[5]` **Runtime/Renderer/Renderer.cpp**
+- `[5]` **Runtime/Graphics/IGPUResource.h**
 - `[5]` **Runtime/Resources/AssetTypeTraits.h**
 - `[5]` **Runtime/Resources/ResourceManager.h**
 - `[5]` **Runtime/Scene/Scene.cpp**
 - `[5]` **Runtime/Scene/SceneManager.h**
-- `[5]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
-- `[5]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
+- `[5]` **Runtime/Platforms/D3D12/D3D12DescManager.cpp**
 - `[5]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
 - `[5]` **Editor/Panel/EditorMainBar.cpp**
 - `[5]` **Assets/Shader/include/Core.hlsl**
@@ -65,16 +68,13 @@
 - `[4]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[4]` **Runtime/Platforms/D3D12/d3dUtil.cpp**
 - `[4]` **Assets/Shader/GPUCulling.hlsl**
+- `[3]` **run_ai_analysis.bat**
 - `[3]` **Runtime/Renderer/RenderContext.cpp**
 - `[3]` **Runtime/Renderer/RenderSorter.h**
 - `[3]` **Runtime/Resources/Asset.h**
 - `[3]` **Runtime/Platforms/D3D12/D3D12Struct.h**
-- `[2]` **run_ai_analysis.bat**
 - `[2]` **Editor/EditorGUIManager.h**
 - `[2]` **Editor/EditorSettings.h**
-- `[2]` **Runtime/CoreAssert.h**
-- `[2]` **Runtime/EngineCore.h**
-- `[2]` **Runtime/PreCompiledHeader.h**
 
 ## Evidence & Implementation Details
 
@@ -131,7 +131,7 @@ namespace EngineCore
         }
 
         std::vector<uint8_t> GetInstanceData(){ return m_DataBlob; }
-        inline void SetInstanceData(const std::vector<uint8_t>& data){ m_DataBlob = data; }
+        inline void SetInstanceData(const std::vector<uint8_t> data){ m_DataBlob = data; }
         uint32_t GetSize(){return m_Layout.GetSize();}
         inline MaterialLayout GetLayout(){return m_Layout;};
         inline void SetLayout(const MaterialLayout& layout){ m_Layout = layout;};
@@ -225,15 +225,14 @@ namespace EngineCore
 ```cpp
     };
 
-    class MaterialLoader: public IResourceLoader                       
+    struct alignas(16) MetaTextureToBindlessBlockIndex
     {
-    public:
-        virtual ~MaterialLoader() = default;
-        virtual LoadResult Load(const std::string& relativePath) override
-        {
-            LoadResult result;
-            std::string path = PathSettings::ResolveAssetPath(relativePath);
-            std::ifstream in(path, std::ios::binary);
+        char name[50];
+        uint32_t offset;
+    };
+```
+...
+```cpp
             in.seekg(sizeof(AssetHeader));
             bool isBindless = false;
             StreamHelper::Read(in, isBindless);
@@ -244,50 +243,9 @@ namespace EngineCore
             {
                 archyTypeName = "StandardPBR";
             }
-
-            std::string shaderPath;
-            if (archyTypeName == "StandardPBR")
-            {
-                shaderPath = RenderSettings::s_EnableVertexPulling
-                    ? "Shader/StandardPBR_VertexPulling.hlsl"
-                    : "Shader/StandardPBR.hlsl";
-            }
-
-            ASSERT(!shaderPath.empty());
-            uint64_t assetPathID = AssetRegistry::GetInstance()->GetAssetIDFromPath(shaderPath);
-            ResourceHandle<Shader> shaderHandle(assetPathID);
-                result.dependencyList.emplace_back
-                (
-                    assetPathID,
-                    AssetType::Shader,
-                    nullptr
-                );
-
-            Material* mat = new Material(shaderHandle);
-            mat->SetAssetCreateMethod(AssetCreateMethod::Serialization);
-            mat->SetPath(relativePath);
-            mat->SetAssetID(AssetIDGenerator::NewFromFile(relativePath));
-            mat->isBindLessMaterial = isBindless;
-            mat->archyTypeName = archyTypeName;
-
-            std::vector<MetatextureDependency> textureDependencyList;
-            StreamHelper::ReadVector(in, textureDependencyList);
-            for(auto& textureDependency : textureDependencyList)
-            {
-                std::string texName = std::string(textureDependency.name);
-                mat->textureData[texName] = nullptr;
-                result.dependencyList.emplace_back
-                    (
-                        textureDependency.ASSETID, 
-                        AssetType::Texture2D,
-                        [=](){
-                            ResourceHandle<Texture> texID(textureDependency.ASSETID);
-                            mat->SetTexture(texName, texID);
-                        }
-                    );
-            }
-
-            mat->matInstance = std::make_unique<MaterialInstance>(MaterialArchetypeRegistry::GetInstance().GetArchytypeLayout(mat->archyTypeName));
+```
+...
+```cpp
 
             std::vector<uint8_t> materialInstanceData;
             StreamHelper::ReadVector(in, materialInstanceData);
@@ -302,7 +260,6 @@ namespace EngineCore
                     mat->matInstance->GetLayout().textureToBlockIndexMap[textureToBindLessBlockIndex.name] = textureToBindLessBlockIndex.offset; 
                 }
             }
-
 ```
 ...
 ```cpp
@@ -320,44 +277,26 @@ namespace EngineCore
                 textureDependencyList.push_back(currTex);
             }
 ```
-...
-```cpp
-
-            std::vector<uint8_t> materialInstanceData = mat->matInstance->GetInstanceData();
-            StreamHelper::WriteVector(out, materialInstanceData);
-
-            // 记录bindless插槽索引
-            if(mat->isBindLessMaterial)
-            {
-                std::vector<MetaTextureToBindlessBlockIndex> textureToBinlessOffsetList;
-                for(auto& [key, value] : mat->matInstance->GetLayout().textureToBlockIndexMap)
-                {
-                    MetaTextureToBindlessBlockIndex currTextureToIndex;
-                    std::snprintf(currTextureToIndex.name, sizeof(currTextureToIndex.name), "%s", key.c_str());
-                    currTextureToIndex.offset = value;
-                    textureToBinlessOffsetList.push_back(currTextureToIndex);
-                }
-                StreamHelper::WriteVector(out, textureToBinlessOffsetList);
-            }
-```
 
 ### File: `Runtime/Graphics/Material.h`
 ```cpp
-namespace EngineCore
-{
+    };
+
     class Material : public Resource
     {
     public:
         bool isDirty = true;
         bool isBindLessMaterial = false;
+        AlphaMode alphaMode = AlphaMode::Opaque;
+        float alphaCutoff = 0.5f;
+        float transmissionFactor = 0.0f;
         string archyTypeName = "";
         std::unique_ptr<MaterialInstance> matInstance;
         ResourceHandle<Shader> mShader;
         unordered_map<string, IGPUTexture*> textureData;
         unordered_map<std::string, ResourceHandle<Texture>> textureHandleMap;
-        
-        //MaterialData m_MaterialData;
-        //void LoadFromMaterialData(const MaterialData& data);
+        MaterailRenderState mRenderState;
+        BufferAllocation materialAllocation;
 
         Material() = default;
         Material(ResourceHandle<Shader> shader);
@@ -401,10 +340,9 @@ namespace EngineCore
             texHandle.mAssetID = AssetID(asset);
             textureHandleMap[name] = texHandle;
         }
-
-        inline MaterailRenderState GetMaterialRenderState() const { return mRenderState;};
-        MaterailRenderState mRenderState;
-        BufferAllocation materialAllocation;
+        inline MaterailRenderState GetMaterialRenderState() const { return mRenderState; };
+        
+        virtual void OnLoadComplete() override;
     private:
         void SetUpRenderState();
         void GetTextureInfoFromShaderReflection();
@@ -444,6 +382,9 @@ namespace EngineCore
 // 纹理资源
 //Texture2D g_Textures[1024] : register(t0, space0);
 Texture2D DiffuseTexture : register(t0, space0);
+Texture2D NormalTexture : register(t1, space0);
+Texture2D MetallicTexture : register(t2, space0);
+Texture2D EmissiveTexture : register(t3, space0);
 
 // 采样器
 SamplerState LinearSampler : register(s0, space0);
@@ -457,7 +398,51 @@ struct VertexInput
     float3 Position : POSITION;
     float3 Normal : NORMAL;
     float2 TexCoord : TEXCOORD0;
+    float4 Tangent : TANGENT;
 };
+```
+...
+```hlsl
+    //float3 color = direct + ambient + emissive;
+    float3 color = direct + ambient;
+    return float4(color, 1.0f);
+
+    // // 采样纹理
+    // float4 diffuseColor = DiffuseTexture.Sample(LinearSampler, input.TexCoord);
+    // float3 normalMap = NormalTexture.Sample(AnisotropicSampler, input.TexCoord).xyz;
+    // float specularValue = SpecularTexture.Sample(PointSampler, input.TexCoord).r;
+    
+    // // 基础颜色
+    // float3 albedo = diffuseColor.rgb * DiffuseColor.rgb;
+    
+    // // 简单光照计算
+    // float3 normal = normalize(input.Normal);
+    // float3 lightDir = normalize(-LightDirection);
+    // float3 viewDir = normalize(CameraPosition - input.WorldPos);
+    
+    // // 漫反射
+    // float NdotL = saturate(dot(normal, lightDir));
+    // float3 diffuse = albedo * LightColor * LightIntensity * NdotL;
+    
+    // // 高光反射
+    // float3 reflectDir = reflect(-lightDir, normal);
+    // float spec = pow(saturate(dot(viewDir, reflectDir)), (1.0f - Roughness) * 128.0f);
+    // float3 specular = SpecularColor.rgb * specularValue * spec * LightColor * LightIntensity;
+    
+    // // 环境光
+    // float3 ambient = albedo * AmbientColor * AmbientStrength;
+    
+    // // 环境反射
+    // float3 envReflect = reflect(-viewDir, normal);
+    // float3 envColor = EnvironmentMap.Sample(LinearSampler, envReflect).rgb;
+    // float3 fresnel = lerp(float3(0.04, 0.04, 0.04), albedo, Metallic);
+    // float3 reflection = envColor * fresnel * (1.0f - Roughness);
+    
+    // // 最终颜色
+    // float3 finalColor = ambient + diffuse + specular + reflection;
+    
+    // return float4(finalColor, diffuseColor.a);
+}
 ```
 
 ### File: `Assets/Shader/StandardPBR_VertexPulling.hlsl`
@@ -562,59 +547,94 @@ struct VertexInput
         SPSCRingBuffer<16384> mRenderBuffer;
 ```
 
-### File: `Runtime/GameObject/MeshRenderer.h`
+### File: `Runtime/Renderer/RenderCommand.h`
 ```cpp
-        virtual const char* GetScriptName() const override { return "MeshRenderer"; }
-        
-        void SetUpMaterialPropertyBlock();
-
-        inline Material* GetSharedMaterial()
-        { 
-            return mShardMatHandler.IsValid() ? mShardMatHandler.Get() : nullptr;
-        };
+    // 绑定渲染材质，
+    class Shader;
+    struct Payload_SetMaterial 
+    {
+        Material* mat;
+        Shader* shader;
+    };
 ```
 ...
 ```cpp
-        Material* GetOrCreateMatInstance();
-        // 
-        ResourceHandle<Material> GetMaterial();
-        inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
-```
-
-### File: `Runtime/Graphics/GPUSceneManager.h`
-```cpp
-        void Destroy();
-        
-        BufferAllocation GetSinglePerMaterialData();
-        void RemoveSinglePerMaterialData(const BufferAllocation& bufferalloc);
-        void UpdateSinglePerMaterialData(const BufferAllocation& bufferalloc, void* data);
-
-        void TryFreeRenderProxyBlock(uint32_t index);
-        void TryCreateRenderProxyBlock(uint32_t index);
-        BufferAllocation LagacyRenderPathUploadBatch(void *data, uint32_t size);
-        void FlushBatchUploads();
-        void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
-        void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);
-
-        vector<PerObjectData> perObjectDataBuffer;
-
-        LinearAllocator* perFramelinearMemoryAllocator;
-
-        GPUBufferAllocator* allMaterialDataBuffer;
-        GPUBufferAllocator* allObjectDataBuffer;
-        GPUBufferAllocator* perFrameBatchBuffer;
-        GPUBufferAllocator* allAABBBuffer;
-        GPUBufferAllocator* renderProxyBuffer;
-
-
-        BufferAllocation visiblityAlloc;
-        GPUBufferAllocator* visibilityBuffer;
-        
-        ResourceHandle<ComputeShader> GPUCullingShaderHandler;
-    private:
-        static GPUSceneManager* sInstance; 
-        vector<CopyOp> mPendingBatchCopies;
     };
 
-}
+    struct Payload_SetBindlessMat
+    {
+        Material* mat;
+    };
+```
+
+### File: `Runtime/Renderer/RenderAPI.h`
+```cpp
+
+
+namespace  EngineCore
+{
+    class RenderAPI
+    {
+    public:
+        static RenderAPI* GetInstance(){ return s_Instance.get();}
+        static bool IsInitialized(){return s_Instance != nullptr;};
+       
+        static void Create();
+        virtual void  CompileShader(const string& path, Shader* shader) = 0;
+        virtual void  CompileComputeShader(const string& path, ComputeShader* csShader) = 0;
+        
+
+        virtual IGPUTexture* CreateTextureBuffer(unsigned char* data, const TextureDesc& textureDesc) = 0;
+        virtual IGPUTexture* CreateRenderTexture(const TextureDesc& textureDesc) = 0;
+        
+        //virtual void GetOrCreatePSO(const Material& mat, const RenderPassInfo &passinfo) = 0;
+        inline void AddRenderPassInfo(const RenderPassInfo& renderPassInfo){ mRenderPassInfoList.push_back(renderPassInfo); };
+        inline void ClearRenderPassInfo(){ mRenderPassInfoList.clear(); };
+        
+        virtual void RenderAPIBeginFrame() = 0;
+        virtual void RenderAPIConfigureRT(Payload_ConfigureRT payloadConfigureRT) = 0;
+        virtual void RenderAPIDrawIndexed(Payload_DrawCommand payloadDrawCommand) = 0;
+        virtual void RenderAPISetMaterial(Payload_SetMaterial payloadSetMaterial) = 0;
+        virtual void RenderAPISetBindlessMat(Payload_SetBindlessMat payloadSetBindlessMat) = 0;
+        virtual void RenderAPISetBindLessMeshIB() = 0;
+        virtual void RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState) = 0;
+        virtual void RenderAPISetSissorRect(Payload_SetSissorRect payloadSetSissorrect) = 0;
+        virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) = 0;
+        virtual void RenderAPISetViewPort(Payload_SetViewPort payloadSetViewport) = 0;
+        virtual void RenderAPISubmit() = 0;
+        virtual void RenderAPIWindowResize(Payload_WindowResize payloadWindowResize) = 0;
+        virtual void RenderAPIPresentFrame() = 0;
+        virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) = 0;
+        virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) = 0;
+        virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) = 0;
+        
+        virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) = 0;
+        
+        virtual void RenderAPISetPerDrawData(Payload_SetPerDrawData setPerDrawData) = 0;
+        virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) = 0;
+        
+        virtual IGPUBuffer* CreateBuffer(const BufferDesc& desc, void* data) = 0;
+        virtual void UploadBuffer(IGPUBuffer* buffer, uint32_t offset, void* data, uint32_t size) = 0;
+        virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) = 0;
+        virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) = 0;
+        virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) = 0;
+        virtual RenderTexture* GetCurrentBackBuffer() = 0;
+        template<typename T>
+        void SetGlobalValue(uint32_t bufferID, uint32_t offset, T* value)
+        {
+            uint32_t size = sizeof(T);
+            SetGlobalDataImpl(bufferID, offset, size, static_cast<void*>(value));
+        }
+        virtual void WaitForGpuFinished() = 0;
+    public:
+        static std::unique_ptr<RenderAPI> s_Instance;
+    protected:
+        vector<RenderPassInfo> mRenderPassInfoList;
+    private:
+        virtual void SetGlobalDataImpl(uint32_t bufferID, uint32_t offset, uint32_t size, const void* value) = 0;
+
+    };
+    
+} // namespace  EngineCore
+
 ```

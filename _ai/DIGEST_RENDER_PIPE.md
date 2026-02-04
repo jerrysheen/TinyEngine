@@ -1,5 +1,5 @@
 # Architecture Digest: RENDER_PIPE
-> Auto-generated. Focus: Runtime/Renderer, Runtime/Renderer/RenderPipeLine, Runtime/Renderer/RenderPath, RenderPipeLine, RenderPass, RenderPath, RenderContext, Batch, Culling, RenderEngine, Sort, FrameGraph, Blit
+> Auto-generated. Focus: Runtime/Renderer, Runtime/Renderer/RenderPipeLine, Runtime/Renderer/RenderPath, RenderPipeLine, RenderPass, RenderPath, RenderContext, Batch, Culling, RenderEngine, Sort, Blit
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。

@@ -1,5 +1,5 @@
 # Architecture Digest: GRAPHICS_RES
-> Auto-generated. Focus: Runtime/Graphics, Runtime/Resources, Runtime/MaterialLibrary, Material, MaterialLayout, MaterialInstance, MaterialArchetype, MaterialArchytype, Texture, GPUBuffer, Mesh, Model, GPUScene, Vertex, Index, Layout, Bindless
+> Auto-generated. Focus: Runtime/Graphics, Runtime/Resources, Runtime/MaterialLibrary, Runtime/MaterialLibrary/MaterialLayout.h, Runtime/MaterialLibrary/MaterialInstance.h, Runtime/MaterialLibrary/MaterialArchetypeRegistry.h, Material, MaterialLayout, MaterialInstance, MaterialArchetypeRegistry, Texture, GPUBuffer, Mesh, GPUScene, Vertex, Index, Layout, Bindless
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
@@ -15,29 +15,28 @@
 - 提取资源描述、布局、GPU缓冲与材质接口。
 
 ## Key Files Index
-- `[90]` **Runtime/MaterialLibrary/MaterialLayout.h** *(Content Included)*
-- `[69]` **Runtime/MaterialLibrary/MaterialArchetypeRegistry.h** *(Content Included)*
-- `[69]` **Runtime/MaterialLibrary/MaterialInstance.h** *(Content Included)*
+- `[100]` **Runtime/MaterialLibrary/MaterialLayout.h** *(Content Included)*
+- `[79]` **Runtime/MaterialLibrary/MaterialArchetypeRegistry.h** *(Content Included)*
+- `[79]` **Runtime/MaterialLibrary/MaterialInstance.h** *(Content Included)*
 - `[67]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
+- `[59]` **Runtime/Graphics/Material.cpp** *(Content Included)*
 - `[56]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
-- `[55]` **Runtime/Graphics/Material.cpp** *(Content Included)*
-- `[55]` **Runtime/Graphics/Mesh.cpp** *(Content Included)*
-- `[52]` **Runtime/Graphics/Mesh.h** *(Content Included)*
+- `[53]` **Runtime/Graphics/Mesh.cpp** *(Content Included)*
 - `[52]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp** *(Content Included)*
+- `[51]` **Runtime/Graphics/Mesh.h** *(Content Included)*
 - `[48]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
 - `[47]` **Runtime/Graphics/MeshUtils.cpp** *(Content Included)*
 - `[45]` **Runtime/Graphics/Material.h** *(Content Included)*
-- `[44]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
+- `[43]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[42]` **Assets/Shader/StandardPBR_VertexPulling.hlsl** *(Content Included)*
 - `[38]` **Runtime/MaterialLibrary/StandardPBR.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/RenderTexture.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/Texture.h** *(Content Included)*
-- `[36]` **Runtime/Graphics/MeshUtils.h** *(Content Included)*
-- `[36]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
-- `[35]` **Runtime/Graphics/GPUBufferAllocator.cpp**
-- `[35]` **Runtime/Graphics/GPUTexture.h**
+- `[35]` **Runtime/Graphics/GPUBufferAllocator.cpp** *(Content Included)*
+- `[35]` **Runtime/Graphics/GPUTexture.h** *(Content Included)*
 - `[35]` **Runtime/Graphics/IGPUBufferAllocator.h**
+- `[35]` **Runtime/Graphics/MeshUtils.h**
 - `[35]` **Runtime/Graphics/RenderTexture.cpp**
 - `[35]` **Runtime/Graphics/Texture.cpp**
 - `[33]` **Runtime/GameObject/MeshRenderer.cpp**
@@ -45,6 +44,7 @@
 - `[33]` **Runtime/Serialization/MeshLoader.h**
 - `[32]` **Runtime/Graphics/GeometryManager.h**
 - `[32]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
+- `[31]` **Runtime/Scene/BistroSceneLoader.cpp**
 - `[30]` **Runtime/Renderer/RenderCommand.h**
 - `[28]` **Runtime/MaterialLibrary/StandardPBR.cpp**
 - `[28]` **Runtime/Serialization/DDSTextureLoader.h**
@@ -55,7 +55,6 @@
 - `[26]` **Runtime/Graphics/IGPUResource.h**
 - `[25]` **Runtime/GameObject/MeshFilter.cpp**
 - `[25]` **Runtime/Renderer/RenderStruct.h**
-- `[24]` **Runtime/Scene/BistroSceneLoader.h**
 - `[24]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
 - `[22]` **Runtime/Renderer/BatchManager.h**
 - `[22]` **Runtime/Renderer/Renderer.cpp**
@@ -63,18 +62,19 @@
 - `[22]` **Runtime/Serialization/TextureLoader.h**
 - `[21]` **Runtime/Renderer/RenderAPI.h**
 - `[21]` **Runtime/Resources/AssetTypeTraits.h**
+- `[21]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[21]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[21]` **Assets/Shader/StandardPBR.hlsl**
 - `[20]` **Runtime/Entry.cpp**
 - `[20]` **Runtime/Renderer/Renderer.h**
-- `[20]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[20]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[20]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp**
-- `[19]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
+- `[19]` **Runtime/Scene/BistroSceneLoader.h**
 - `[18]` **Assets/Shader/include/Core.hlsl**
 - `[17]` **Runtime/Core/PublicStruct.h**
 - `[17]` **Runtime/Renderer/BatchManager.cpp**
 - `[17]` **Runtime/Renderer/RenderContext.cpp**
+- `[17]` **Runtime/Renderer/RenderEngine.cpp**
 
 ## Evidence & Implementation Details
 
@@ -124,6 +124,7 @@
 
         uint32_t GetSize(){ return m_TotalSize;}
 
+        
         std::unordered_map<std::string, MaterialPropertyLayout> m_PropertyLayout;
         std::unordered_map<std::string, uint32_t> textureToBlockIndexMap;
     private:
@@ -184,7 +185,7 @@ namespace EngineCore
         }
 
         std::vector<uint8_t> GetInstanceData(){ return m_DataBlob; }
-        inline void SetInstanceData(const std::vector<uint8_t>& data){ m_DataBlob = data; }
+        inline void SetInstanceData(const std::vector<uint8_t> data){ m_DataBlob = data; }
         uint32_t GetSize(){return m_Layout.GetSize();}
         inline MaterialLayout GetLayout(){return m_Layout;};
         inline void SetLayout(const MaterialLayout& layout){ m_Layout = layout;};
@@ -247,6 +248,7 @@ namespace EngineCore
                             mat->SetTexture(texName, texID);
                         }
                     );
+                //mat->SetTexture(texName, ResourceHandle<Texture>(ResourceManager::GetInstance()->mDefaultTexture->GetAssetID()));
             }
 ```
 ...
@@ -381,21 +383,23 @@ namespace EngineCore
 
 ### File: `Runtime/Graphics/Material.h`
 ```cpp
-namespace EngineCore
-{
+    };
+
     class Material : public Resource
     {
     public:
         bool isDirty = true;
         bool isBindLessMaterial = false;
+        AlphaMode alphaMode = AlphaMode::Opaque;
+        float alphaCutoff = 0.5f;
+        float transmissionFactor = 0.0f;
         string archyTypeName = "";
         std::unique_ptr<MaterialInstance> matInstance;
         ResourceHandle<Shader> mShader;
         unordered_map<string, IGPUTexture*> textureData;
         unordered_map<std::string, ResourceHandle<Texture>> textureHandleMap;
-        
-        //MaterialData m_MaterialData;
-        //void LoadFromMaterialData(const MaterialData& data);
+        MaterailRenderState mRenderState;
+        BufferAllocation materialAllocation;
 
         Material() = default;
         Material(ResourceHandle<Shader> shader);
@@ -439,10 +443,9 @@ namespace EngineCore
             texHandle.mAssetID = AssetID(asset);
             textureHandleMap[name] = texHandle;
         }
-
-        inline MaterailRenderState GetMaterialRenderState() const { return mRenderState;};
-        MaterailRenderState mRenderState;
-        BufferAllocation materialAllocation;
+        inline MaterailRenderState GetMaterialRenderState() const { return mRenderState; };
+        
+        virtual void OnLoadComplete() override;
     private:
         void SetUpRenderState();
         void GetTextureInfoFromShaderReflection();
@@ -588,15 +591,13 @@ namespace EngineCore
     };
 ```
 
-### File: `Runtime/Graphics/MeshUtils.h`
+### File: `Runtime/Graphics/GPUTexture.h`
 ```cpp
 namespace EngineCore
 {
-    class MeshUtils
+    class GPUTexture
     {
     public:
-        static void GetFullScreenQuad(Mesh* modelData);
-    private:
-
+        IGPUTexture* texture;
     };
 ```

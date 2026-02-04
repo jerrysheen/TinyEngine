@@ -70,11 +70,11 @@
 - `[5]` **Editor/Panel/EditorMainBar.cpp**
 - `[4]` **Runtime/Core/ThreadSafeQueue.h**
 - `[4]` **Runtime/Graphics/GPUBufferAllocator.cpp**
+- `[4]` **Runtime/Resources/ResourceManager.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12DescManager.cpp**
 - `[4]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[4]` **Runtime/Platforms/D3D12/d3dUtil.cpp**
 - `[4]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
-- `[4]` **Assets/Shader/BlitShader.hlsl**
 
 ## Evidence & Implementation Details
 
@@ -581,7 +581,7 @@ namespace EngineCore
         void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
         uint32_t lastSyncTransformVersion = 0;
         bool shouldUpdateMeshRenderer = true;
-
+        bool needUpdatePerMaterialData = false;
         AABB worldBounds;
         uint32_t sceneRenderNodeIndex = UINT32_MAX;
         bool materialDirty = true;

@@ -62,12 +62,12 @@
 - `[12]` **Runtime/Core/Game.cpp**
 - `[12]` **Runtime/Core/PublicStruct.h**
 - `[12]` **Runtime/Scene/BistroSceneLoader.cpp**
+- `[10]` **Runtime/Graphics/Material.cpp**
 - `[10]` **Runtime/Resources/ResourceManager.cpp**
 - `[10]` **Runtime/Scene/BistroSceneLoader.h**
 - `[10]` **Runtime/Scene/SceneManager.h**
 - `[10]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[10]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
-- `[9]` **Runtime/Graphics/Material.cpp**
 - `[9]` **Runtime/Renderer/RenderContext.cpp**
 - `[9]` **Runtime/Resources/ResourceManager.h**
 - `[9]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.cpp**
@@ -765,7 +765,7 @@ namespace EngineCore
         void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
         uint32_t lastSyncTransformVersion = 0;
         bool shouldUpdateMeshRenderer = true;
-
+        bool needUpdatePerMaterialData = false;
         AABB worldBounds;
         uint32_t sceneRenderNodeIndex = UINT32_MAX;
         bool materialDirty = true;

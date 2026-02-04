@@ -1,5 +1,5 @@
 # Architecture Digest: MODEL
-> Auto-generated. Focus: Runtime/Graphics, Mesh, GeometryManager, MeshFilter, Scene, D3D12RenderAPI, RenderAPI, MetaFactory, MetaLoader, MeshRenderer, BistroSceneLoader
+> Auto-generated. Focus: Runtime/Graphics, Mesh, MeshUtils, GeometryManager, MeshFilter, Scene, D3D12RenderAPI, RenderAPI, MeshRenderer, BistroSceneLoader
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
@@ -18,25 +18,25 @@
 - `[66]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
 - `[64]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[59]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
+- `[59]` **Runtime/Graphics/MeshUtils.cpp** *(Content Included)*
+- `[57]` **Runtime/Graphics/MeshUtils.h** *(Content Included)*
 - `[55]` **Runtime/GameObject/MeshRenderer.cpp** *(Content Included)*
 - `[55]` **Runtime/Scene/BistroSceneLoader.h** *(Content Included)*
 - `[53]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
 - `[53]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
 - `[52]` **Runtime/GameObject/MeshFilter.h** *(Content Included)*
 - `[51]` **Runtime/GameObject/MeshFilter.cpp** *(Content Included)*
+- `[46]` **Runtime/Graphics/Mesh.cpp** *(Content Included)*
 - `[44]` **Runtime/Graphics/GeometryManager.cpp** *(Content Included)*
-- `[44]` **Runtime/Graphics/Mesh.cpp** *(Content Included)*
 - `[42]` **Runtime/Graphics/GeometryManager.h** *(Content Included)*
 - `[42]` **Runtime/Graphics/Mesh.h** *(Content Included)*
 - `[42]` **Runtime/Scene/Scene.h** *(Content Included)*
 - `[42]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
 - `[41]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[40]` **Runtime/Scene/Scene.cpp** *(Content Included)*
-- `[37]` **Runtime/Graphics/MeshUtils.cpp** *(Content Included)*
 - `[36]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
-- `[36]` **Runtime/Graphics/MeshUtils.h** *(Content Included)*
+- `[33]` **Runtime/Scene/SceneManager.h**
 - `[33]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
-- `[32]` **Runtime/Scene/SceneManager.h**
 - `[29]` **Runtime/Renderer/RenderAPI.h**
 - `[27]` **Runtime/Renderer/RenderAPI.cpp**
 - `[27]` **Runtime/Serialization/MeshLoader.h**
@@ -50,7 +50,7 @@
 - `[17]` **Runtime/Core/Game.cpp**
 - `[17]` **Runtime/Renderer/BatchManager.h**
 - `[17]` **Runtime/Renderer/Renderer.h**
-- `[15]` **Runtime/Graphics/Material.cpp**
+- `[16]` **Runtime/Graphics/Material.cpp**
 - `[15]` **Runtime/Renderer/BatchManager.cpp**
 - `[13]` **Runtime/Core/PublicStruct.h**
 - `[13]` **Runtime/Graphics/GPUBufferAllocator.cpp**
@@ -83,7 +83,6 @@
             Scene* res = static_cast<Scene*>(sceneLoader.Load(binPath).resource);
             // todo： 这个地方有加载时序问题。。
             SceneManager::GetInstance()->SetCurrentScene(res);
-
             // 刷新所有Transform的world position，避免父子节点关系建立后的延迟更新问题
             for (auto& gameObject : res->allObjList) 
             {
@@ -217,6 +216,19 @@
     {
 ```
 
+### File: `Runtime/Graphics/MeshUtils.h`
+```cpp
+namespace EngineCore
+{
+    class MeshUtils
+    {
+    public:
+        static void GetFullScreenQuad(Mesh* modelData);
+    private:
+
+    };
+```
+
 ### File: `Runtime/Scene/BistroSceneLoader.h`
 ```cpp
     class Node;
@@ -291,7 +303,7 @@ namespace EngineCore
         void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
         uint32_t lastSyncTransformVersion = 0;
         bool shouldUpdateMeshRenderer = true;
-
+        bool needUpdatePerMaterialData = false;
         AABB worldBounds;
         uint32_t sceneRenderNodeIndex = UINT32_MAX;
         bool materialDirty = true;
@@ -692,16 +704,15 @@ namespace EngineCore
                     {
                         MeshRenderer* renderer = go->AddComponent<MeshRenderer>();
                         string path = AssetRegistry::GetInstance()->GetAssetPathFromID(nodeData.materialID);
-                        // --- 添加这块临时调试代码 ---
-                        if (path == "Material/bistro/Material_182.mat") {
-                            int debug_here = 0; // 在这行打一个普通断点（F9）
-                        }
-                        ResourceHandle<Material> handle = ResourceManager::GetInstance()->LoadAsset<Material>(
-                            path
+                        ResourceHandle<Material> handle = ResourceManager::GetInstance()->LoadAssetAsync<Material>
+                            ( nodeData.materialID,
+                                [=]() 
+                                {
+                                    renderer->OnLoadResourceFinished();
+                                }
+                            ,nullptr
                             );
-                        renderer->OnLoadResourceFinished();
                         renderer->SetSharedMaterial(handle);
-
                     }
                 }
 
@@ -772,18 +783,5 @@ namespace EngineCore
     private:
         static GPUSceneManager* sInstance; 
         vector<CopyOp> mPendingBatchCopies;
-    };
-```
-
-### File: `Runtime/Graphics/MeshUtils.h`
-```cpp
-namespace EngineCore
-{
-    class MeshUtils
-    {
-    public:
-        static void GetFullScreenQuad(Mesh* modelData);
-    private:
-
     };
 ```

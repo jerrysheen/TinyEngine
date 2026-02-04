@@ -448,7 +448,16 @@ struct VertexInput
     float3 Position : POSITION;
     float3 Normal : NORMAL;  
     float2 TexCoord : TEXCOORD0;
+    float4 Tangent : TANGENT;
+
 };
+```
+...
+```hlsl
+    float2 uv = input.TexCoord;
+    if(_FlipY > 0.1) uv.y = 1.0 - uv.y; 
+    return pow(SrcTexture.Sample(LinearSampler, uv), 0.45);
+}
 ```
 
 ### File: `Assets/Shader/GPUCulling.hlsl`
@@ -531,6 +540,9 @@ struct VertexInput
 // 纹理资源
 //Texture2D g_Textures[1024] : register(t0, space0);
 Texture2D DiffuseTexture : register(t0, space0);
+Texture2D NormalTexture : register(t1, space0);
+Texture2D MetallicTexture : register(t2, space0);
+Texture2D EmissiveTexture : register(t3, space0);
 
 // 采样器
 SamplerState LinearSampler : register(s0, space0);
@@ -544,7 +556,51 @@ struct VertexInput
     float3 Position : POSITION;
     float3 Normal : NORMAL;
     float2 TexCoord : TEXCOORD0;
+    float4 Tangent : TANGENT;
 };
+```
+...
+```hlsl
+    //float3 color = direct + ambient + emissive;
+    float3 color = direct + ambient;
+    return float4(color, 1.0f);
+
+    // // 采样纹理
+    // float4 diffuseColor = DiffuseTexture.Sample(LinearSampler, input.TexCoord);
+    // float3 normalMap = NormalTexture.Sample(AnisotropicSampler, input.TexCoord).xyz;
+    // float specularValue = SpecularTexture.Sample(PointSampler, input.TexCoord).r;
+    
+    // // 基础颜色
+    // float3 albedo = diffuseColor.rgb * DiffuseColor.rgb;
+    
+    // // 简单光照计算
+    // float3 normal = normalize(input.Normal);
+    // float3 lightDir = normalize(-LightDirection);
+    // float3 viewDir = normalize(CameraPosition - input.WorldPos);
+    
+    // // 漫反射
+    // float NdotL = saturate(dot(normal, lightDir));
+    // float3 diffuse = albedo * LightColor * LightIntensity * NdotL;
+    
+    // // 高光反射
+    // float3 reflectDir = reflect(-lightDir, normal);
+    // float spec = pow(saturate(dot(viewDir, reflectDir)), (1.0f - Roughness) * 128.0f);
+    // float3 specular = SpecularColor.rgb * specularValue * spec * LightColor * LightIntensity;
+    
+    // // 环境光
+    // float3 ambient = albedo * AmbientColor * AmbientStrength;
+    
+    // // 环境反射
+    // float3 envReflect = reflect(-viewDir, normal);
+    // float3 envColor = EnvironmentMap.Sample(LinearSampler, envReflect).rgb;
+    // float3 fresnel = lerp(float3(0.04, 0.04, 0.04), albedo, Metallic);
+    // float3 reflection = envColor * fresnel * (1.0f - Roughness);
+    
+    // // 最终颜色
+    // float3 finalColor = ambient + diffuse + specular + reflection;
+    
+    // return float4(finalColor, diffuseColor.a);
+}
 ```
 
 ### File: `Assets/Shader/StandardPBR_VertexPulling.hlsl`

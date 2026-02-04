@@ -1,5 +1,5 @@
 # Architecture Digest: GameLogicUpdate
-> Auto-generated. Focus: Runtime/Core/Game, Game, SceneManager, Scene, RenderEngine, LagacyRenderPath, GPUSceneRenderPath, Renderer, RenderContext, FinalBlitPass, GPUSceneRenderPass, OpaqueRenderPass, RenderPipeLine
+> Auto-generated. Focus: Runtime/Core/Game.h, Game, SceneManager, Scene, RenderEngine, LagacyRenderPath, GPUSceneRenderPath, Renderer, RenderContext, FinalBlitPass, GPUSceneRenderPass, OpaqueRenderPass, RenderPipeLine
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
@@ -22,11 +22,11 @@
 - `[64]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
 - `[64]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[63]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp** *(Content Included)*
-- `[61]` **Runtime/Core/Game.cpp** *(Content Included)*
 - `[58]` **Runtime/Scene/SceneManager.h** *(Content Included)*
 - `[55]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.cpp** *(Content Included)*
 - `[53]` **Runtime/Renderer/RenderContext.cpp** *(Content Included)*
 - `[52]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
+- `[51]` **Runtime/Core/Game.cpp** *(Content Included)*
 - `[51]` **Runtime/Renderer/RenderEngine.h** *(Content Included)*
 - `[51]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h** *(Content Included)*
 - `[50]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h** *(Content Included)*
@@ -69,12 +69,12 @@
 - `[13]` **Runtime/GameObject/MonoBehaviour.cpp**
 - `[13]` **Runtime/GameObject/Transform.cpp**
 - `[13]` **Runtime/Renderer/RenderCommand.h**
+- `[12]` **Runtime/Graphics/Material.cpp**
 - `[12]` **Runtime/Renderer/PerDrawAllocator.h**
 - `[12]` **Runtime/Renderer/RenderStruct.h**
 - `[12]` **Runtime/Renderer/RenderUniforms.h**
 - `[12]` **Runtime/Renderer/SPSCRingBuffer.h**
 - `[12]` **Editor/Panel/EditorHierarchyPanel.cpp**
-- `[11]` **Runtime/GameObject/Component.cpp**
 
 ## Evidence & Implementation Details
 
@@ -574,7 +574,7 @@ namespace EngineCore
         void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
         uint32_t lastSyncTransformVersion = 0;
         bool shouldUpdateMeshRenderer = true;
-
+        bool needUpdatePerMaterialData = false;
         AABB worldBounds;
         uint32_t sceneRenderNodeIndex = UINT32_MAX;
         bool materialDirty = true;

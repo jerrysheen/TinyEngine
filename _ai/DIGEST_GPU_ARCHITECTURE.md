@@ -74,7 +74,7 @@
 - `[10]` **Runtime/Renderer/Renderer.h**
 - `[10]` **Runtime/Renderer/RenderStruct.h**
 - `[8]` **Runtime/Scene/SceneManager.cpp**
-- `[7]` **Runtime/Resources/ResourceManager.h**
+- `[7]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
 
 ## Evidence & Implementation Details
 

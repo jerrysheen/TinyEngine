@@ -1,5 +1,5 @@
 # Architecture Digest: CORE_SYSTEM
-> Auto-generated. Focus: Runtime/Core, Runtime/Math, Runtime/Serialization, Runtime/Utils, PublicStruct, PublicEnum, Profiler, Job, JobSystem, InstanceID, Allocator
+> Auto-generated. Focus: Runtime/Core, Runtime/Core/Allocator, Runtime/Core/Concurrency, Runtime/Math, Runtime/Serialization, Runtime/Utils, PublicStruct, PublicEnum, Profiler, Job, JobSystem, InstanceID, Allocator
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
@@ -15,11 +15,11 @@
 - 优先记录公开结构体/枚举/Allocator/Profiler接口。
 
 ## Key Files Index
-- `[57]` **Runtime/Core/Concurrency/JobSystem.h** *(Content Included)*
-- `[55]` **Runtime/Core/Concurrency/JobSystem.cpp** *(Content Included)*
+- `[67]` **Runtime/Core/Concurrency/JobSystem.h** *(Content Included)*
+- `[65]` **Runtime/Core/Concurrency/JobSystem.cpp** *(Content Included)*
+- `[44]` **Runtime/Core/Allocator/LinearAllocator.h** *(Content Included)*
 - `[37]` **Runtime/Core/Profiler.h** *(Content Included)*
 - `[36]` **Runtime/Core/InstanceID.h** *(Content Included)*
-- `[34]` **Runtime/Core/Allocator/LinearAllocator.h** *(Content Included)*
 - `[33]` **Runtime/Core/PublicStruct.h** *(Content Included)*
 - `[32]` **Runtime/Core/PublicEnum.h** *(Content Included)*
 - `[31]` **Runtime/Core/PublicEnum.cpp** *(Content Included)*
@@ -31,10 +31,12 @@
 - `[25]` **Runtime/Renderer/PerDrawAllocator.h** *(Content Included)*
 - `[25]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp** *(Content Included)*
 - `[23]` **Runtime/Graphics/IGPUBufferAllocator.h** *(Content Included)*
+- `[22]` **Runtime/Core/Concurrency/CpuEvent.h** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
+- `[20]` **Runtime/Core/Concurrency/CpuEvent.cpp** *(Content Included)*
 - `[16]` **Runtime/Core/Object.h** *(Content Included)*
-- `[16]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
-- `[13]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
+- `[16]` **Runtime/Renderer/RenderEngine.cpp**
+- `[13]` **Runtime/Graphics/GPUSceneManager.cpp**
 - `[13]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[12]` **Runtime/CoreAssert.h**
 - `[12]` **Runtime/Core/Game.h**
@@ -58,7 +60,6 @@
 - `[12]` **Runtime/Serialization/StreamHelper.h**
 - `[12]` **Runtime/Serialization/TextureLoader.h**
 - `[12]` **Runtime/Utils/HashCombine.h**
-- `[12]` **Runtime/Core/Concurrency/CpuEvent.h**
 - `[10]` **Runtime/Math/AABB.cpp**
 - `[10]` **Runtime/Math/Frustum.cpp**
 - `[10]` **Runtime/Math/Matrix4x4.cpp**
@@ -67,7 +68,6 @@
 - `[10]` **Runtime/Math/Vector2.cpp**
 - `[10]` **Runtime/Math/Vector3.cpp**
 - `[10]` **Runtime/Math/Vector4.cpp**
-- `[10]` **Runtime/Core/Concurrency/CpuEvent.cpp**
 - `[9]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[9]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[8]` **Runtime/Graphics/GPUSceneManager.h**
@@ -258,6 +258,54 @@ namespace EngineCore
     {
 ```
 
+### File: `Runtime/Core/Allocator/LinearAllocator.h`
+```cpp
+namespace EngineCore
+{
+    class LinearAllocator
+    {
+    public:
+        LinearAllocator(uint32_t size)
+        {
+            buffer.resize(size);
+            currentOffset = 0;
+        }
+
+        void Reset()
+        {
+            currentOffset = 0;
+        }
+
+        // align of 得到当前class/struct的对齐方式
+        void* allocate(uint32_t size, size_t align = alignof(std::max_align_t))
+        {
+            // 补齐空位， 下一个位置从当前struct align倍数开始，避免出错
+            size_t alignedOffset = (currentOffset + align - 1) & ~(align - 1);
+            ASSERT(alignedOffset + size <= buffer.size());
+            // 这个地方错的， buffer.resize 会导致前面分配的失效。
+            // if(alignedOffset + size > buffer.size())
+            // {
+            //     size_t newSize = buffer.size() * 2;
+            //     while (alignedOffset + size > newSize) newSize *= 2;
+            //     buffer.resize(newSize);
+            // }
+
+            void* ptr = buffer.data() + alignedOffset;
+            currentOffset = alignedOffset + size;
+            return ptr;
+        }
+
+        template<typename T>
+        T* allocArray(int size)
+        {
+            return (T*)allocate(size * sizeof(T), alignof(T));
+        }
+    private:
+        std::vector<uint8_t> buffer;
+        size_t currentOffset = 0;
+    };
+```
+
 ### File: `Runtime/Core/Profiler.h`
 ```cpp
 {
@@ -339,54 +387,6 @@ namespace EngineCore
         uint64_t v{0};
         explicit operator bool() const { return v != 0; };
     public:
-    };
-```
-
-### File: `Runtime/Core/Allocator/LinearAllocator.h`
-```cpp
-namespace EngineCore
-{
-    class LinearAllocator
-    {
-    public:
-        LinearAllocator(uint32_t size)
-        {
-            buffer.resize(size);
-            currentOffset = 0;
-        }
-
-        void Reset()
-        {
-            currentOffset = 0;
-        }
-
-        // align of 得到当前class/struct的对齐方式
-        void* allocate(uint32_t size, size_t align = alignof(std::max_align_t))
-        {
-            // 补齐空位， 下一个位置从当前struct align倍数开始，避免出错
-            size_t alignedOffset = (currentOffset + align - 1) & ~(align - 1);
-            ASSERT(alignedOffset + size <= buffer.size());
-            // 这个地方错的， buffer.resize 会导致前面分配的失效。
-            // if(alignedOffset + size > buffer.size())
-            // {
-            //     size_t newSize = buffer.size() * 2;
-            //     while (alignedOffset + size > newSize) newSize *= 2;
-            //     buffer.resize(newSize);
-            // }
-
-            void* ptr = buffer.data() + alignedOffset;
-            currentOffset = alignedOffset + size;
-            return ptr;
-        }
-
-        template<typename T>
-        T* allocArray(int size)
-        {
-            return (T*)allocate(size * sizeof(T), alignof(T));
-        }
-    private:
-        std::vector<uint8_t> buffer;
-        size_t currentOffset = 0;
     };
 ```
 
@@ -715,6 +715,45 @@ namespace EngineCore
         virtual void UploadBuffer(const BufferAllocation& alloc, void* data, uint32_t size) = 0;
         virtual IGPUBuffer* GetGPUBuffer() = 0;
     };
+```
+
+### File: `Runtime/Core/Concurrency/CpuEvent.h`
+```cpp
+#include <condition_variable>
+
+namespace EngineCore
+{
+    class CpuEvent
+    {
+    public:
+        static CpuEvent& RenderThreadSubmited();
+        static CpuEvent& MainThreadSubmited();
+
+        CpuEvent(bool startCondition = false)
+            : m_signaled(startCondition){}
+
+        void Signal()
+        {
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                m_signaled = true;
+            }
+            m_cv.notify_all();
+        }
+
+        void Wait()
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            m_cv.wait(lock, [&]{ return m_signaled;});
+            m_signaled = false;
+        }
+
+    private:
+        std::mutex  m_mutex;
+        std::condition_variable m_cv;
+        bool    m_signaled = false;
+    };
+}
 ```
 
 ### File: `Runtime/Core/Object.h`

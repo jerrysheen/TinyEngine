@@ -1,5 +1,5 @@
 # Architecture Digest: ENGINE_OVERVIEW
-> Auto-generated. Focus: Runtime/Entry, Runtime/Settings, EngineCore, Game, RenderEngine, SceneManager, Settings, ProjectSettings, RenderSettings, Application, Runtime/Utils
+> Auto-generated. Focus: Runtime/Entry.cpp, Runtime/Core/Game.h, Runtime/Settings, EngineCore, Game, RenderEngine, SceneManager, Settings, ProjectSettings, RenderSettings, Runtime/Utils
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
@@ -20,6 +20,7 @@
 - `[58]` **Runtime/Core/Game.cpp** *(Content Included)*
 - `[50]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
 - `[41]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
+- `[38]` **Runtime/Core/Game.h** *(Content Included)*
 - `[37]` **Runtime/Entry.cpp** *(Content Included)*
 - `[35]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
 - `[35]` **Editor/Panel/EditorGameViewPanel.cpp** *(Content Included)*
@@ -27,7 +28,6 @@
 - `[30]` **Editor/EditorSettings.cpp** *(Content Included)*
 - `[29]` **Editor/EditorSettings.h** *(Content Included)*
 - `[29]` **Runtime/GameObject/GameObject.cpp** *(Content Included)*
-- `[28]` **Runtime/Core/Game.h** *(Content Included)*
 - `[28]` **Runtime/GameObject/GameObject.h** *(Content Included)*
 - `[28]` **Runtime/Renderer/RenderEngine.h** *(Content Included)*
 - `[27]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
@@ -60,7 +60,6 @@
 - `[11]` **Editor/Panel/EditorMainBar.h**
 - `[10]` **Runtime/Serialization/MaterialLoader.h**
 - `[10]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.cpp**
-- `[10]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
 - `[9]` **Runtime/Renderer/RenderContext.h**
 - `[9]` **Runtime/Scene/Scene.h**
 - `[9]` **Runtime/Serialization/DDSTextureLoader.h**
@@ -72,6 +71,7 @@
 - `[8]` **Runtime/Scene/BistroSceneLoader.h**
 - `[8]` **Runtime/Serialization/MeshLoader.h**
 - `[8]` **Runtime/Platforms/D3D12/d3dUtil.h**
+- `[8]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
 - `[8]` **Editor/Panel/EditorConsolePanel.cpp**
 - `[8]` **Editor/Panel/EditorInspectorPanel.cpp**
 - `[7]` **Runtime/Renderer/Renderer.h**
@@ -300,6 +300,39 @@ namespace EngineCore
 }
 ```
 
+### File: `Runtime/Core/Game.h`
+```cpp
+
+
+namespace EngineCore
+{
+    class Game
+    {
+    public:
+        static std::unique_ptr<Game> m_Instance;
+        // 回传的是一个对象的引用，所以返回*ptr
+        static Game* GetInstance()
+        {
+            if(m_Instance == nullptr)
+            {
+                m_Instance = std::make_unique<Game>();
+            }
+            return m_Instance.get();
+        };
+        Game(){};
+        ~Game(){};
+
+        void Launch();
+    private:
+        void Update();
+        void Render();
+        void EndFrame();
+        void Shutdown();
+    };
+
+}
+```
+
 ### File: `Runtime/Scene/SceneManager.h`
 ```cpp
 
@@ -413,39 +446,6 @@ using Vector2 = EngineCore::Vector2;
         static void UpdateLayout(){};
 
     };
-```
-
-### File: `Runtime/Core/Game.h`
-```cpp
-
-
-namespace EngineCore
-{
-    class Game
-    {
-    public:
-        static std::unique_ptr<Game> m_Instance;
-        // 回传的是一个对象的引用，所以返回*ptr
-        static Game* GetInstance()
-        {
-            if(m_Instance == nullptr)
-            {
-                m_Instance = std::make_unique<Game>();
-            }
-            return m_Instance.get();
-        };
-        Game(){};
-        ~Game(){};
-
-        void Launch();
-    private:
-        void Update();
-        void Render();
-        void EndFrame();
-        void Shutdown();
-    };
-
-}
 ```
 
 ### File: `Runtime/GameObject/GameObject.h`
