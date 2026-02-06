@@ -47,15 +47,15 @@
             "state": {
               "type": "canvas",
               "state": {
-                "file": "ResourceManager.canvas",
+                "file": "资源加载系统.canvas",
                 "viewState": {
-                  "x": -3493.5108188954373,
-                  "y": 4239.434117844909,
-                  "zoom": 0.3153955084892112
+                  "x": 2512.513617812618,
+                  "y": 353.2811712074921,
+                  "zoom": -1
                 }
               },
               "icon": "lucide-layout-dashboard",
-              "title": "ResourceManager"
+              "title": "资源加载系统"
             }
           }
         ],
@@ -209,6 +209,9 @@
   },
   "active": "fc5529cd2bb130de",
   "lastOpenFiles": [
+    "未命名.md",
+    "资源加载系统.canvas",
+    "ResourceManager.canvas",
     "12_31重构资源.canvas",
     "12_27 GPUScene 前半段更新.canvas",
     "欢迎.md",
@@ -221,13 +224,10 @@
     "Head to GPU Scene.canvas",
     "ComputeShader接入梳理.canvas",
     "资源初始化.canvas",
-    "ResourceManager.canvas",
-    "未命名.md",
     "12_17GPU Scene大致流程， 和实现方案.canvas",
     "ComputeShader接入梳理：.md",
     "12_13重构数据流.canvas",
     "Head to GPU Scene.md",
-    "渲染管线第一版.canvas",
     "Picture/Pasted image 20251128144237.png",
     "Picture",
     "Picture/Pasted image 20251128111249.png",
