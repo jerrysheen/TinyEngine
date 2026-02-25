@@ -28,53 +28,53 @@
 - `[26]` **Assets/Shader/StandardPBR.hlsl** *(Content Included)*
 - `[26]` **Assets/Shader/StandardPBR_VertexPulling.hlsl** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
-- `[13]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
 - `[13]` **Runtime/Renderer/Renderer.h** *(Content Included)*
 - `[12]` **Runtime/Core/Game.cpp** *(Content Included)*
 - `[12]` **Runtime/Renderer/RenderCommand.h** *(Content Included)*
-- `[12]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
 - `[12]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[11]` **Runtime/Renderer/RenderAPI.h** *(Content Included)*
-- `[10]` **Runtime/Renderer/Renderer.cpp**
-- `[10]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
+- `[10]` **Runtime/Renderer/Renderer.cpp** *(Content Included)*
+- `[10]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[10]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
+- `[8]` **Runtime/Renderer/RenderEngine.cpp**
 - `[8]` **Runtime/Renderer/RenderStruct.h**
 - `[8]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
 - `[7]` **Runtime/GameObject/MeshRenderer.h**
-- `[7]` **Runtime/Graphics/GPUSceneManager.h**
+- `[7]` **Runtime/Renderer/BatchManager.h**
 - `[7]` **Runtime/Resources/ResourceManager.cpp**
+- `[7]` **Runtime/Scene/SceneStruct.h**
 - `[7]` **Runtime/Serialization/SceneLoader.h**
 - `[7]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
 - `[7]` **Editor/Panel/EditorMainBar.h**
-- `[6]` **Runtime/Renderer/BatchManager.h**
-- `[6]` **Runtime/Scene/Scene.h**
+- `[6]` **Runtime/Core/PublicStruct.h**
+- `[6]` **Runtime/Scene/GPUScene.h**
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[6]` **Assets/Shader/BlitShader.hlsl**
 - `[6]` **Assets/Shader/SimpleTestShader.hlsl**
-- `[5]` **Runtime/Core/PublicStruct.h**
 - `[5]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[5]` **Runtime/Graphics/IGPUResource.h**
+- `[5]` **Runtime/Renderer/BatchManager.cpp**
+- `[5]` **Runtime/Renderer/RenderContext.cpp**
 - `[5]` **Runtime/Resources/AssetTypeTraits.h**
 - `[5]` **Runtime/Resources/ResourceManager.h**
+- `[5]` **Runtime/Scene/CPUScene.cpp**
+- `[5]` **Runtime/Scene/GPUScene.cpp**
 - `[5]` **Runtime/Scene/Scene.cpp**
 - `[5]` **Runtime/Scene/SceneManager.h**
 - `[5]` **Runtime/Platforms/D3D12/D3D12DescManager.cpp**
 - `[5]` **Runtime/Platforms/D3D12/D3D12RootSignature.h**
 - `[5]` **Editor/Panel/EditorMainBar.cpp**
 - `[5]` **Assets/Shader/include/Core.hlsl**
+- `[4]` **Runtime/Renderer/Culling.cpp**
+- `[4]` **Runtime/Renderer/FrameContext.cpp**
+- `[4]` **Runtime/Scene/CPUScene.h**
 - `[4]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[4]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp**
 - `[4]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[4]` **Runtime/Platforms/D3D12/d3dUtil.cpp**
 - `[4]` **Assets/Shader/GPUCulling.hlsl**
 - `[3]` **run_ai_analysis.bat**
-- `[3]` **Runtime/Renderer/RenderContext.cpp**
-- `[3]` **Runtime/Renderer/RenderSorter.h**
-- `[3]` **Runtime/Resources/Asset.h**
-- `[3]` **Runtime/Platforms/D3D12/D3D12Struct.h**
-- `[2]` **Editor/EditorGUIManager.h**
-- `[2]` **Editor/EditorSettings.h**
 
 ## Evidence & Implementation Details
 
@@ -576,7 +576,14 @@ namespace  EngineCore
     class RenderAPI
     {
     public:
-        static RenderAPI* GetInstance(){ return s_Instance.get();}
+        inline static RenderAPI* GetInstance()
+        {
+            if (s_Instance == nullptr) 
+            {   
+                Create();
+            }
+            return s_Instance.get();
+        }
         static bool IsInitialized(){return s_Instance != nullptr;};
        
         static void Create();

@@ -42,39 +42,39 @@
 - `[14]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[14]` **Assets/Shader/StandardPBR.hlsl**
 - `[14]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
-- `[12]` **Runtime/Renderer/RenderEngine.cpp**
 - `[11]` **Runtime/Graphics/Material.h**
-- `[10]` **Runtime/Graphics/GPUSceneManager.cpp**
+- `[10]` **Runtime/Renderer/BatchManager.cpp**
 - `[10]` **Editor/Panel/EditorMainBar.cpp**
 - `[10]` **Editor/Panel/EditorMainBar.h**
 - `[10]` **Assets/Shader/include/Core.hlsl**
+- `[8]` **Runtime/Core/PublicStruct.h**
 - `[8]` **Runtime/Graphics/Material.cpp**
+- `[8]` **Runtime/Renderer/RenderEngine.cpp**
 - `[7]` **Runtime/GameObject/MeshRenderer.h**
+- `[7]` **Runtime/Renderer/BatchManager.h**
+- `[7]` **Runtime/Scene/SceneStruct.h**
 - `[7]` **Runtime/Settings/ProjectSettings.h**
-- `[6]` **Runtime/Core/PublicStruct.h**
+- `[6]` **Runtime/Renderer/RenderContext.cpp**
 - `[6]` **Runtime/Renderer/Renderer.h**
 - `[6]` **Runtime/Scene/SceneManager.h**
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[5]` **premake5.lua**
+- `[5]` **Runtime/GameObject/MeshRenderer.cpp**
+- `[5]` **Runtime/Scene/GPUScene.h**
+- `[5]` **Runtime/Scene/Scene.cpp**
 - `[5]` **Runtime/Settings/ProjectSettings.cpp**
-- `[5]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[4]` **Runtime/GameObject/Camera.h**
 - `[4]` **Runtime/GameObject/MeshFilter.h**
-- `[4]` **Runtime/GameObject/MeshRenderer.cpp**
-- `[4]` **Runtime/Graphics/GPUSceneManager.h**
 - `[4]` **Runtime/MaterialLibrary/MaterialLayout.h**
-- `[4]` **Runtime/Renderer/RenderSorter.h**
+- `[4]` **Runtime/Scene/CPUScene.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[4]` **Runtime/Platforms/D3D12/d3dUtil.cpp**
 - `[3]` **Editor/EditorSettings.cpp**
 - `[3]` **Runtime/GameObject/Camera.cpp**
 - `[3]` **Runtime/Graphics/Mesh.cpp**
 - `[3]` **Runtime/Graphics/Shader.cpp**
-- `[3]` **Runtime/Utils/HashCombine.h**
-- `[2]` **Editor/EditorGUIManager.h**
-- `[2]` **Editor/EditorSettings.h**
-- `[2]` **Runtime/CoreAssert.h**
+- `[3]` **Runtime/Renderer/FrameContext.cpp**
 
 ## Evidence & Implementation Details
 
@@ -568,15 +568,15 @@ namespace EngineCore
                 
                 std::string nodeName = nodeData.name;
                 GameObject* go = scene->CreateGameObject(nodeName.empty() ? "Node" : nodeName);
-
-                go->transform->SetLocalPosition(nodeData.position);
-                go->transform->SetLocalQuaternion(nodeData.rotation);
-                go->transform->SetLocalScale(nodeData.scale);
                 if(nodeData.parentIndex != -1)
                 {
                     ASSERT(gameObjectMap.count(nodeData.parentIndex) > 0);
                     go->SetParent(gameObjectMap[nodeData.parentIndex]);
                 }
+                go->transform->SetLocalPosition(nodeData.position);
+                go->transform->SetLocalQuaternion(nodeData.rotation);
+                go->transform->SetLocalScale(nodeData.scale);
+
                 gameObjectMap[i] = go;
 
                 //todo 加入材质的异步加载：
@@ -796,7 +796,7 @@ namespace EngineCore
 
             Mesh* mesh = new Mesh();
             mesh->SetAssetCreateMethod(AssetCreateMethod::Serialization);
-            mesh->SetAssetID(AssetIDGenerator::NewFromFile(path));
+            mesh->SetAssetID(AssetIDGenerator::NewFromFile(relativePath));
             StreamHelper::Read(in, mesh->bounds);
             StreamHelper::ReadVector(in, mesh->vertex);
             StreamHelper::ReadVector(in, mesh->index);
@@ -989,6 +989,7 @@ namespace EngineCore
         explicit operator bool() const {return value != 0;};
         operator uint64_t() const { return value;}
         bool IsValid() const {return value != 0;};
+        inline void SetInValid() { value = 0; } 
         inline void Reset() { value = 0; };
         AssetID() = default;
         AssetID(uint64_t value) :value(value) {};

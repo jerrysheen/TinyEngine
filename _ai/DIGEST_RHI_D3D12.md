@@ -15,7 +15,7 @@
 - 需要抽取关键API与资源/命令上下文结构。
 
 ## Key Files Index
-- `[65]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
+- `[70]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[62]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
 - `[40]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp** *(Content Included)*
 - `[39]` **Runtime/Platforms/D3D12/D3D12RootSignature.h** *(Content Included)*
@@ -25,16 +25,18 @@
 - `[30]` **Runtime/Renderer/RenderCommand.h** *(Content Included)*
 - `[27]` **Runtime/Renderer/RenderContext.h** *(Content Included)*
 - `[27]` **Runtime/Platforms/D3D12/d3dx12.h** *(Content Included)*
+- `[26]` **Runtime/Renderer/FrameContext.h** *(Content Included)*
+- `[25]` **Runtime/Renderer/FrameContext.cpp** *(Content Included)*
 - `[25]` **Runtime/Renderer/RenderAPI.cpp** *(Content Included)*
 - `[25]` **Runtime/Renderer/RenderContext.cpp** *(Content Included)*
 - `[24]` **Runtime/Platforms/D3D12/D3D12Struct.h** *(Content Included)*
 - `[24]` **Runtime/Platforms/D3D12/d3dUtil.cpp** *(Content Included)*
 - `[23]` **Editor/D3D12/D3D12EditorGUIManager.cpp** *(Content Included)*
 - `[22]` **Runtime/Renderer/Renderer.h** *(Content Included)*
-- `[21]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
 - `[21]` **Runtime/Platforms/D3D12/d3dUtil.h** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
-- `[20]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp** *(Content Included)*
+- `[20]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp**
+- `[17]` **Runtime/Renderer/RenderEngine.cpp**
 - `[17]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h**
 - `[17]` **Runtime/Platforms/D3D12/D3D12DescManager.cpp**
 - `[17]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
@@ -45,16 +47,15 @@
 - `[12]` **Runtime/Platforms/D3D12/D3D12Buffer.h**
 - `[12]` **Runtime/Platforms/D3D12/D3D12Texture.h**
 - `[12]` **Editor/D3D12/D3D12EditorGUIManager.h**
-- `[10]` **Runtime/Graphics/GPUSceneManager.cpp**
 - `[9]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
 - `[8]` **Runtime/Scene/SceneManager.cpp**
-- `[8]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[7]` **Runtime/Graphics/IGPUResource.h**
 - `[7]` **Runtime/Renderer/BatchManager.h**
 - `[7]` **Runtime/Renderer/RenderEngine.h**
 - `[7]` **Runtime/Renderer/RenderSorter.h**
 - `[7]` **Runtime/Renderer/RenderStruct.h**
-- `[7]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
+- `[7]` **Runtime/Scene/GPUScene.cpp**
+- `[7]` **Runtime/Scene/GPUScene.h**
 - `[7]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h**
 - `[7]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
 - `[7]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
@@ -62,19 +63,18 @@
 - `[7]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h**
 - `[6]` **Runtime/Core/PublicStruct.h**
 - `[6]` **Runtime/Renderer/SPSCRingBuffer.h**
+- `[6]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[6]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[5]` **Runtime/Renderer/Culling.h**
+- `[5]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
 - `[5]` **Runtime/Renderer/RenderPath/IRenderPath.h**
+- `[5]` **Runtime/Renderer/RenderPath/LagacyRenderPath.cpp**
 - `[5]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
 - `[4]` **Runtime/Graphics/GeometryManager.cpp**
 - `[4]` **Runtime/Renderer/BatchManager.cpp**
+- `[4]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[4]` **Assets/Shader/BlitShader.hlsl**
 - `[4]` **Assets/Shader/GPUCulling.hlsl**
-- `[4]` **Assets/Shader/SimpleTestShader.hlsl**
-- `[4]` **Assets/Shader/StandardPBR.hlsl**
-- `[4]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
-- `[3]` **run_ai_analysis.bat**
-- `[3]` **Editor/EditorGUIManager.h**
 
 ## Evidence & Implementation Details
 
@@ -106,7 +106,7 @@
 
         ThrowIfFailed(md3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE,
 		IID_PPV_ARGS(&mImediatelyFence->mFence)));
-        mFrameFence->mCurrentFence = 0;
+        mImediatelyFence->mCurrentFence = 0;
 
     }
     
@@ -464,7 +464,14 @@ namespace  EngineCore
     class RenderAPI
     {
     public:
-        static RenderAPI* GetInstance(){ return s_Instance.get();}
+        inline static RenderAPI* GetInstance()
+        {
+            if (s_Instance == nullptr) 
+            {   
+                Create();
+            }
+            return s_Instance.get();
+        }
         static bool IsInitialized(){return s_Instance != nullptr;};
        
         static void Create();
@@ -779,6 +786,46 @@ struct CD3DX12_ROOT_DESCRIPTOR : public D3D12_ROOT_DESCRIPTOR
         table.RegisterSpace = registerSpace;
     }
 };
+```
+
+### File: `Runtime/Renderer/FrameContext.h`
+```cpp
+namespace EngineCore
+{
+    class FrameContext
+    {
+    public:
+        FrameContext();
+        GPUBufferAllocator* allObjectDataBuffer;
+        GPUBufferAllocator* allAABBBuffer;
+        GPUBufferAllocator* renderProxyBuffer;
+        //GPUBufferAllocator* perFrameBatchBuffer;
+        GPUBufferAllocator* perFrameUploadBuffer;
+        GPUBufferAllocator* visibilityBuffer;
+
+
+        vector<uint32_t> mDirtyFlags;
+        vector<PerObjectData> mPerObjectDatas;
+        void EnsureCapacity(uint32_t renderID);
+        BufferAllocation UploadDrawBatch(void *data, uint32_t size);
+
+        void Reset();
+        void UpdateShadowData(uint32_t renderID, CPUSceneView& cpuScene);
+        void UpdatePerFrameDirtyNode(CPUSceneView& cpuScene);
+        ~FrameContext();
+        void UpdateDirtyFlags(uint32_t renderID, uint32_t flags);
+        void UploadCopyOp();
+    private:
+        void TryFreeRenderProxyByRenderIndex(uint32_t renderID);
+        void TryFreePerObjectDataAndAABBData(uint32_t renderID);
+        
+        vector<uint32_t> mPerFrameDirtyID;   
+        vector<CopyOp> mCopyOpsObject;
+        vector<CopyOp> mCopyOpsAABB;
+        vector<CopyOp> mCopyOpsProxy;
+        vector<CopyOp> mCopyOpsVisibility;
+
+    };
 ```
 
 ### File: `Runtime/Platforms/D3D12/D3D12Struct.h`

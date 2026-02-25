@@ -16,47 +16,54 @@
 
 ## Key Files Index
 - `[85]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp** *(Content Included)*
-- `[75]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
-- `[73]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h** *(Content Included)*
+- `[75]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp** *(Content Included)*
 - `[72]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h** *(Content Included)*
-- `[64]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
+- `[69]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
+- `[66]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h** *(Content Included)*
 - `[64]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[63]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp** *(Content Included)*
 - `[58]` **Runtime/Scene/SceneManager.h** *(Content Included)*
 - `[55]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.cpp** *(Content Included)*
-- `[53]` **Runtime/Renderer/RenderContext.cpp** *(Content Included)*
-- `[52]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
-- `[51]` **Runtime/Core/Game.cpp** *(Content Included)*
-- `[51]` **Runtime/Renderer/RenderEngine.h** *(Content Included)*
-- `[51]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h** *(Content Included)*
+- `[53]` **Runtime/Renderer/RenderEngine.h** *(Content Included)*
+- `[52]` **Runtime/Core/Game.cpp** *(Content Included)*
 - `[50]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h** *(Content Included)*
+- `[49]` **Runtime/Renderer/RenderContext.cpp** *(Content Included)*
 - `[49]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h** *(Content Included)*
-- `[48]` **Runtime/GameObject/MeshRenderer.cpp** *(Content Included)*
-- `[41]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
+- `[48]` **Runtime/Renderer/RenderPath/LagacyRenderPath.cpp** *(Content Included)*
+- `[46]` **Runtime/GameObject/MeshRenderer.cpp** *(Content Included)*
+- `[43]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h** *(Content Included)*
+- `[40]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
 - `[38]` **Runtime/Renderer/RenderContext.h** *(Content Included)*
 - `[38]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
 - `[38]` **Runtime/Serialization/SceneLoader.h**
 - `[37]` **Runtime/Core/Game.h**
 - `[37]` **Runtime/Scene/Scene.h**
+- `[36]` **Runtime/Scene/Scene.cpp**
 - `[35]` **Runtime/Renderer/Renderer.h**
-- `[35]` **Runtime/Scene/Scene.cpp**
 - `[33]` **Runtime/GameObject/GameObject.h**
 - `[33]` **Runtime/Scene/BistroSceneLoader.h**
 - `[32]` **Runtime/GameObject/GameObject.cpp**
+- `[31]` **Runtime/Scene/GPUScene.cpp**
 - `[30]` **Runtime/GameObject/Camera.cpp**
+- `[30]` **Runtime/Scene/CPUScene.h**
 - `[30]` **Runtime/Renderer/RenderPipeLine/RenderPass.h**
+- `[29]` **Runtime/Scene/CPUScene.cpp**
+- `[29]` **Runtime/Scene/GPUScene.h**
 - `[28]` **Runtime/Renderer/Renderer.cpp**
+- `[28]` **Runtime/Scene/SceneStruct.h**
 - `[28]` **Editor/Panel/EditorGameViewPanel.cpp**
-- `[27]` **Runtime/Renderer/Culling.cpp**
+- `[25]` **Runtime/Renderer/Culling.cpp**
 - `[24]` **Runtime/Entry.cpp**
 - `[24]` **Editor/Panel/EditorGameViewPanel.h**
+- `[22]` **Runtime/GameObject/MeshFilter.cpp**
+- `[20]` **Runtime/GameObject/Transform.cpp**
+- `[20]` **Runtime/Renderer/FrameContext.cpp**
 - `[20]` **Runtime/Renderer/RenderPipeLine/RenderPass.cpp**
 - `[19]` **Runtime/GameObject/Transform.h**
-- `[19]` **Runtime/Renderer/BatchManager.cpp**
-- `[19]` **Runtime/Renderer/BatchManager.h**
+- `[19]` **Runtime/Renderer/FrameContext.h**
+- `[18]` **Runtime/Renderer/BatchManager.h**
 - `[18]` **Editor/Panel/EditorMainBar.cpp**
-- `[17]` **Runtime/Renderer/RenderSorter.h**
-- `[16]` **Runtime/GameObject/MeshFilter.cpp**
+- `[16]` **Runtime/Renderer/RenderSorter.h**
 - `[16]` **Runtime/Renderer/RenderPath/IRenderPath.h**
 - `[15]` **Runtime/GameObject/Component.h**
 - `[15]` **Runtime/Renderer/Culling.h**
@@ -67,14 +74,7 @@
 - `[13]` **Runtime/GameObject/Camera.h**
 - `[13]` **Runtime/GameObject/ComponentType.h**
 - `[13]` **Runtime/GameObject/MonoBehaviour.cpp**
-- `[13]` **Runtime/GameObject/Transform.cpp**
-- `[13]` **Runtime/Renderer/RenderCommand.h**
-- `[12]` **Runtime/Graphics/Material.cpp**
-- `[12]` **Runtime/Renderer/PerDrawAllocator.h**
-- `[12]` **Runtime/Renderer/RenderStruct.h**
-- `[12]` **Runtime/Renderer/RenderUniforms.h**
-- `[12]` **Runtime/Renderer/SPSCRingBuffer.h**
-- `[12]` **Editor/Panel/EditorHierarchyPanel.cpp**
+- `[13]` **Runtime/Graphics/Material.cpp**
 
 ## Evidence & Implementation Details
 
@@ -140,155 +140,58 @@
     {
 ```
 
-### File: `Runtime/Renderer/RenderEngine.cpp`
+### File: `Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp`
 ```cpp
-        WindowManager::Create();
-        RenderAPI::Create();
-        Renderer::Create();
-        GPUSceneManager::Create();
-    }
+        //todo:
+        // 这个地方要把ResourceState切换一下
+        Renderer::GetInstance()->BeginFrame();
 
-    void RenderEngine::Update()
-    {
-```
-...
-```cpp
-    void RenderEngine::OnResize(int width, int height)
-    {
-        Renderer::GetInstance()->ResizeWindow(width, height);
-    }
+        FrameContext* currentFrame = RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameContexts();
+        auto* visibilityBuffer = currentFrame->visibilityBuffer;
+        Renderer::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
+        Renderer::GetInstance()->SetResourceState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
 
-    void RenderEngine::Tick()
-    {
-```
-...
-```cpp
-    {
-        // Renderer 的析构函数会自动停止渲染线程
-        Renderer::Destroy();
-        //RenderAPI::Destroy();
-        WindowManager::Destroy();
-        GPUSceneManager::GetInstance()->Destroy();
-        // 最后销毁 RenderEngine 自己
-        if (s_Instance)
+
+        Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->mainCamera;
+        int gameObjectCount = SceneManager::GetInstance()->GetCurrentScene()->allObjList.size();
+
+        GPUCullingParam cullingParam;
+        cullingParam.frustum = cam->mFrustum;
+        cullingParam.totalItem = gameObjectCount;
+        cullingParamBuffer->UploadBuffer(cullingParamAlloc, &cullingParam, sizeof(GPUCullingParam));
+
+        PROFILER_EVENT_BEGIN("MainThread::GPUSceneManagerTick");
+        RenderEngine::GetInstance()->GetGPUScene().Tick();
+        PROFILER_EVENT_END("MainThread::GPUSceneManagerTick");
+
+        
+        // Get Current BatchInfo:
+        vector<DrawIndirectArgs> batchInfo = BatchManager::GetInstance()->GetBatchInfo();
+        if (batchInfo.size() != 0) 
         {
-            // 先调用析构（智能指针自动管理）
-            s_Instance.reset();
-            // 此时：
-            // 1. 析构函数已完成
-            // 2. 内存已释放
-            // 3. s_Instance 已经是 nullptr
-            // 4. 后续 GetInstance() 不会返回野指针
+            indirectDrawArgsBuffer->UploadBuffer(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
         }
 ```
-
-### File: `Runtime/Renderer/RenderPath/GPUSceneRenderPath.h`
-```cpp
-namespace EngineCore
-{
-    class GPUSceneRenderPath : public IRenderPath
-    {
-    public:
-        virtual ~GPUSceneRenderPath() override 
-        {
-            delete cullingParamBuffer;
-            delete indirectDrawArgsBuffer;
-        };
-
-        virtual void Execute(RenderContext& context) override
-        {
-            if (!hasSetUpBuffer) 
-            {
-                hasSetUpBuffer = true;
-
-                BufferDesc desc;
-
-                desc.debugName = L"CullingParamBuffer";
-                desc.memoryType = BufferMemoryType::Upload;
-                desc.size = sizeof(GPUCullingParam);
-                desc.stride = sizeof(GPUCullingParam);
-                desc.usage = BufferUsage::ConstantBuffer;
-                cullingParamBuffer = new GPUBufferAllocator(desc);
-                cullingParamAlloc = cullingParamBuffer->Allocate(sizeof(Frustum));
-                
-                
-                desc.debugName = L"IndirectDrawArgsBuffer";
-                desc.memoryType = BufferMemoryType::Default;
-                desc.size = sizeof(DrawIndirectArgs) * 3000;
-                desc.stride = sizeof(DrawIndirectArgs);
-                desc.usage = BufferUsage::StructuredBuffer;
-                indirectDrawArgsBuffer = new GPUBufferAllocator(desc);
-                indirectDrawArgsAlloc = indirectDrawArgsBuffer->Allocate(sizeof(DrawIndirectArgs) * 3000);
-            }
-
-            //todo:
-            // 这个地方要把ResourceState切换一下
-            Renderer::GetInstance()->BeginFrame();
-            auto* visibilityBuffer = GPUSceneManager::GetInstance()->visibilityBuffer;
-            Renderer::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
-            Renderer::GetInstance()->SetResourceState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
-
-
-            Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->mainCamera;
-            int gameObjectCount = SceneManager::GetInstance()->GetCurrentScene()->allObjList.size();
-
-            GPUCullingParam cullingParam;
-            cullingParam.frustum = cam->mFrustum;
-            cullingParam.totalItem = gameObjectCount;
-            cullingParamBuffer->UploadBuffer(cullingParamAlloc, &cullingParam, sizeof(GPUCullingParam));
-
-            PROFILER_EVENT_BEGIN("MainThread::GPUSceneManagerTick");
-            GPUSceneManager::GetInstance()->Tick();
-            PROFILER_EVENT_END("MainThread::GPUSceneManagerTick");
-
-            
-            // Get Current BatchInfo:
-            vector<DrawIndirectArgs> batchInfo = BatchManager::GetInstance()->GetBatchInfo();
-            if (batchInfo.size() != 0) 
-            {
-                indirectDrawArgsBuffer->UploadBuffer(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
-            }
-
-            ComputeShader* csShader = GPUSceneManager::GetInstance()->GPUCullingShaderHandler.Get();
-            csShader->SetBuffer("CullingParams", cullingParamBuffer->GetGPUBuffer());
-            csShader->SetBuffer("g_InputAABBs", GPUSceneManager::GetInstance()->allAABBBuffer->GetGPUBuffer());
-            csShader->SetBuffer("g_InputPerObjectDatas", GPUSceneManager::GetInstance()->allObjectDataBuffer->GetGPUBuffer());
-            csShader->SetBuffer("g_RenderProxies", GPUSceneManager::GetInstance()->renderProxyBuffer->GetGPUBuffer());
-            csShader->SetBuffer("g_VisibleInstanceIndices", GPUSceneManager::GetInstance()->visibilityBuffer->GetGPUBuffer());
-            csShader->SetBuffer("g_IndirectDrawCallArgs", indirectDrawArgsBuffer->GetGPUBuffer());
-
-            
-            Payload_DispatchComputeShader payload;
-            payload.csShader = GPUSceneManager::GetInstance()->GPUCullingShaderHandler.Get();
-            payload.groupX = gameObjectCount / 64 + 1;
-            payload.groupY = 1;
-            payload.groupZ = 1;
-            Renderer::GetInstance()->DispatchComputeShader(payload);
-```
 ...
 ```cpp
+        payload.groupY = 1;
+        payload.groupZ = 1;
+        Renderer::GetInstance()->DispatchComputeShader(payload);
+        // 先把shader跑起来， 渲染到RT上， 后续blit啥的接入后面再说
 
-            // 这个地方简单跑个绑定测试？
-            Renderer::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_SHADER_RESOURCE);
-            Renderer::GetInstance()->SetResourceState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_INDIRECT_ARGUMENT);
+        // 这个地方简单跑个绑定测试？
+        Renderer::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_SHADER_RESOURCE);
+        Renderer::GetInstance()->SetResourceState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_INDIRECT_ARGUMENT);
 
-            context.Reset();
-            context.camera = cam;
-            Renderer::GetInstance()->Render(context);
+        context.Reset();
+        context.camera = cam;
+        Renderer::GetInstance()->Render(context);
 #ifdef EDITOR
-            Renderer::GetInstance()->OnDrawGUI();
+        Renderer::GetInstance()->OnDrawGUI();
 #endif
 
-            Renderer::GetInstance()->EndFrame();
-        }
-
-        bool hasSetUpBuffer = false;
-        BufferAllocation cullingParamAlloc;
-        GPUBufferAllocator* cullingParamBuffer;
-        BufferAllocation indirectDrawArgsAlloc;
-        GPUBufferAllocator* indirectDrawArgsBuffer;
-
-    };
+        Renderer::GetInstance()->EndFrame();
+    }
 }
 ```
 
@@ -318,6 +221,31 @@ namespace EngineCore
     };
 ```
 
+### File: `Runtime/Renderer/RenderPath/GPUSceneRenderPath.h`
+```cpp
+namespace EngineCore
+{
+    class GPUSceneRenderPath : public IRenderPath
+    {
+    public:
+        virtual ~GPUSceneRenderPath() override 
+        {
+            delete cullingParamBuffer;
+            delete indirectDrawArgsBuffer;
+        };
+
+        virtual void Execute(RenderContext& context) override;
+
+
+        bool hasSetUpBuffer = false;
+        BufferAllocation cullingParamAlloc;
+        GPUBufferAllocator* cullingParamBuffer;
+        BufferAllocation indirectDrawArgsAlloc;
+        GPUBufferAllocator* indirectDrawArgsBuffer;
+
+    };
+```
+
 ### File: `Runtime/Scene/SceneManager.h`
 ```cpp
 namespace EngineCore
@@ -333,7 +261,7 @@ namespace EngineCore
         GameObject* FindGameObject(const std::string& name);
 
         void RemoveScene(const std::string& name);
-        static void Update();
+        static void Update(uint32_t frameIndex);
         static void Create();
         static void Destroy();
         static void EndFrame();
@@ -379,51 +307,6 @@ namespace EngineCore
 }
 ```
 
-### File: `Runtime/Graphics/GPUSceneManager.h`
-```cpp
-{
-
-    class GPUSceneManager
-    {
-    public:
-        static GPUSceneManager* GetInstance();
-        GPUSceneManager();
-        static void Create();
-        void Tick();
-        void Destroy();
-        
-        BufferAllocation GetSinglePerMaterialData();
-        void RemoveSinglePerMaterialData(const BufferAllocation& bufferalloc);
-        void UpdateSinglePerMaterialData(const BufferAllocation& bufferalloc, void* data);
-
-        void TryFreeRenderProxyBlock(uint32_t index);
-        void TryCreateRenderProxyBlock(uint32_t index);
-        BufferAllocation LagacyRenderPathUploadBatch(void *data, uint32_t size);
-        void FlushBatchUploads();
-        void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
-        void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);
-
-        vector<PerObjectData> perObjectDataBuffer;
-
-        LinearAllocator* perFramelinearMemoryAllocator;
-
-        GPUBufferAllocator* allMaterialDataBuffer;
-        GPUBufferAllocator* allObjectDataBuffer;
-        GPUBufferAllocator* perFrameBatchBuffer;
-        GPUBufferAllocator* allAABBBuffer;
-        GPUBufferAllocator* renderProxyBuffer;
-
-
-        BufferAllocation visiblityAlloc;
-        GPUBufferAllocator* visibilityBuffer;
-        
-        ResourceHandle<ComputeShader> GPUCullingShaderHandler;
-    private:
-        static GPUSceneManager* sInstance; 
-        vector<CopyOp> mPendingBatchCopies;
-    };
-```
-
 ### File: `Runtime/Renderer/RenderEngine.h`
 ```cpp
     // render: 执行场景渲染，不同管线进行渲染等。
@@ -433,59 +316,32 @@ namespace EngineCore
     public:
         static RenderEngine* GetInstance(){return s_Instance.get();};
         static bool IsInitialized(){return s_Instance != nullptr;};
-        static void Update();
+        void Update(uint32_t frameID);
         static void Create();
+        void Tick();
+        void EndFrame();
         
         static void OnResize(int width, int height);
         static void OnDrawGUI();
-        static void Tick();
-
         static void Destory();
         RenderEngine(){};
         ~RenderEngine(){};
         static void WaitForLastFrameFinished();
         static void SignalMainThreadSubmited();
+        inline CPUScene& GetCPUScene(){return mCPUScene;}
+        inline GPUScene& GetGPUScene(){return mGPUScene;}
         static GPUSceneRenderPath gpuSceneRenderPath;
+        static LagacyRenderPath lagacyRenderPath;
+
     private:
         static std::unique_ptr<RenderEngine> s_Instance;
         static RenderContext renderContext;
-        static LagacyRenderPath lagacyRenderPath;
-    };
-```
 
-### File: `Runtime/Renderer/RenderPath/LagacyRenderPath.h`
-```cpp
-namespace EngineCore
-{
-    class LagacyRenderPath : public IRenderPath
-    {
-    public:
-        virtual ~LagacyRenderPath() override {};
-        virtual void Execute(RenderContext& context) override
-        {
-            Renderer::GetInstance()->BeginFrame();
-            
-            PROFILER_EVENT_BEGIN("MainThread::GPUSceneManagerTick");
-            GPUSceneManager::GetInstance()->Tick();
-            PROFILER_EVENT_END("MainThread::GPUSceneManagerTick");
+        GPUScene mGPUScene;
+        CPUScene mCPUScene;
 
-            context.Reset();
-
-            // todo： 这个地方culling逻辑是不是应该放到Update
-            Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->mainCamera;
-            context.camera = cam;
-            PROFILER_EVENT_BEGIN("MainThread::Culling::Run");
-            Culling::Run(cam, context);
-            PROFILER_EVENT_END("MainThread::Culling::Run");
-
-            Renderer::GetInstance()->Render(context);
-
-#ifdef EDITOR
-            Renderer::GetInstance()->OnDrawGUI();
-#endif
-
-            Renderer::GetInstance()->EndFrame();
-        }
+        void ComsumeDirtySceneRenderNode();
+        void ComsumeDirtyCPUSceneRenderNode();
     };
 ```
 
@@ -536,6 +392,18 @@ namespace EngineCore
     };
 ```
 
+### File: `Runtime/Renderer/RenderPath/LagacyRenderPath.h`
+```cpp
+namespace EngineCore
+{
+    class LagacyRenderPath : public IRenderPath
+    {
+    public:
+        virtual ~LagacyRenderPath() override {};
+        virtual void Execute(RenderContext& context) override;
+    };
+```
+
 ### File: `Runtime/GameObject/MeshRenderer.h`
 ```cpp
 namespace EngineCore
@@ -559,11 +427,7 @@ namespace EngineCore
             return mShardMatHandler.IsValid() ? mShardMatHandler.Get() : nullptr;
         };
 
-        inline void SetSharedMaterial(const ResourceHandle<Material>& mat) 
-        {
-            mShardMatHandler = mat;
-            //SetUpMaterialPropertyBlock();
-        }
+        void SetSharedMaterial(const ResourceHandle<Material>& mat);
 
         // return a new Material Instance;
         Material* GetOrCreateMatInstance();
@@ -572,22 +436,20 @@ namespace EngineCore
         inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
 
         void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
-        uint32_t lastSyncTransformVersion = 0;
+
         bool shouldUpdateMeshRenderer = true;
-        bool needUpdatePerMaterialData = false;
         AABB worldBounds;
-        uint32_t sceneRenderNodeIndex = UINT32_MAX;
         bool materialDirty = true;
 		
-        void TryAddtoBatchManager();
-
         uint32_t renderLayer = 1;
         void OnLoadResourceFinished();
-
+        inline uint32_t GetCPUWorldIndex() { return mCPUWorldIndex;}
+        inline void SetCPUWorldIndex(uint32_t index) { mCPUWorldIndex = index;}
     private:
         ResourceHandle<Material> mShardMatHandler;
         ResourceHandle<Material> mInstanceMatHandler;
 
+        uint32_t mCPUWorldIndex = UINT32_MAX;
     };
 ```
 

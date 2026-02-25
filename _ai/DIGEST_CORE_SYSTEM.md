@@ -35,8 +35,6 @@
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
 - `[20]` **Runtime/Core/Concurrency/CpuEvent.cpp** *(Content Included)*
 - `[16]` **Runtime/Core/Object.h** *(Content Included)*
-- `[16]` **Runtime/Renderer/RenderEngine.cpp**
-- `[13]` **Runtime/Graphics/GPUSceneManager.cpp**
 - `[13]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[12]` **Runtime/CoreAssert.h**
 - `[12]` **Runtime/Core/Game.h**
@@ -50,6 +48,7 @@
 - `[12]` **Runtime/Math/Vector2.h**
 - `[12]` **Runtime/Math/Vector3.h**
 - `[12]` **Runtime/Math/Vector4.h**
+- `[12]` **Runtime/Renderer/RenderEngine.cpp**
 - `[12]` **Runtime/Renderer/Renderer.h**
 - `[12]` **Runtime/Serialization/AssetHeader.h**
 - `[12]` **Runtime/Serialization/DDSTextureLoader.h**
@@ -68,13 +67,14 @@
 - `[10]` **Runtime/Math/Vector2.cpp**
 - `[10]` **Runtime/Math/Vector3.cpp**
 - `[10]` **Runtime/Math/Vector4.cpp**
-- `[9]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[9]` **Runtime/Platforms/D3D12/d3dUtil.h**
-- `[8]` **Runtime/Graphics/GPUSceneManager.h**
-- `[8]` **Runtime/Renderer/RenderCommand.h**
+- `[8]` **Runtime/Scene/GPUScene.h**
 - `[8]` **Runtime/Scene/SceneManager.cpp**
 - `[8]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
 - `[7]` **Runtime/Graphics/GeometryManager.h**
+- `[7]` **Runtime/Renderer/FrameContext.h**
+- `[7]` **Runtime/Renderer/RenderCommand.h**
+- `[7]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
 
 ## Evidence & Implementation Details
 
@@ -461,8 +461,9 @@ namespace EngineCore
     {
         // 为了测试，先用直接塞数据的方式。
         uint64_t sortingKey = 0;
-        MeshRenderer* meshRenderer;
-        MeshFilter* meshFilter;
+        AssetID meshID;
+        AssetID materialID;
+        uint32_t objectIndex;
         float distanToCamera = 0;
     };
 
@@ -471,13 +472,24 @@ namespace EngineCore
         uint8_t* destPtr;
         uint32_t offset;
         uint32_t size;
-    };
 ```
 ...
 ```cpp
+
+
+    struct DrawRecord
+    {
+        Material* mat;
+        Mesh* mesh;
+
+        PerDrawHandle perDrawHandle;
+        uint32_t instanceCount = 1;
+
+        DrawRecord(Material* mat, Mesh* mesh)
             :mat(mat), mesh(mesh), perDrawHandle{0,0}, instanceCount(1) {}
         DrawRecord(Material* mat, Mesh* mesh, const PerDrawHandle& handle, uint32_t instCount = 1)
             :mat(mat), mesh(mesh), perDrawHandle(handle), instanceCount(instCount){}
+    };
 ```
 ...
 ```cpp

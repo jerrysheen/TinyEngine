@@ -17,8 +17,8 @@
 ## Key Files Index
 - `[109]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp** *(Content Included)*
 - `[103]` **Runtime/Platforms/Windows/WindowManagerWindows.h** *(Content Included)*
-- `[54]` **Runtime/Managers/WindowManager.cpp** *(Content Included)*
-- `[51]` **Runtime/Managers/WindowManager.h** *(Content Included)*
+- `[55]` **Runtime/Managers/WindowManager.cpp** *(Content Included)*
+- `[52]` **Runtime/Managers/WindowManager.h** *(Content Included)*
 - `[29]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp** *(Content Included)*
 - `[28]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[28]` **Runtime/Platforms/D3D12/d3dUtil.h** *(Content Included)*
@@ -36,10 +36,10 @@
 - `[22]` **Runtime/Platforms/D3D12/D3D12Texture.h** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/d3dx12.h** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp**
-- `[20]` **Runtime/Renderer/RenderEngine.cpp**
 - `[20]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp**
 - `[20]` **Runtime/Platforms/D3D12/D3D12DescManager.cpp**
 - `[17]` **Editor/D3D12/D3D12EditorGUIManager.cpp**
+- `[16]` **Runtime/Renderer/RenderEngine.cpp**
 - `[15]` **Runtime/Core/Game.cpp**
 - `[9]` **Runtime/PreCompiledHeader.h**
 - `[9]` **Runtime/Renderer/Renderer.h**
@@ -48,7 +48,6 @@
 - `[9]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[9]` **Assets/Shader/StandardPBR.hlsl**
 - `[9]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
-- `[8]` **Runtime/Graphics/GPUSceneManager.cpp**
 - `[8]` **Runtime/Scene/SceneManager.cpp**
 - `[7]` **Editor/EditorSettings.h**
 - `[7]` **Runtime/Graphics/Mesh.h**
@@ -56,6 +55,7 @@
 - `[6]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[5]` **premake5.lua**
 - `[5]` **WinBuildAndRun.bat**
+- `[5]` **Editor/EditorSettings.cpp**
 - `[5]` **Runtime/Graphics/Mesh.cpp**
 - `[5]` **Runtime/Renderer/RenderAPI.h**
 - `[5]` **Runtime/Renderer/Renderer.cpp**
@@ -68,13 +68,13 @@
 - `[4]` **Runtime/Graphics/MeshUtils.cpp**
 - `[4]` **Runtime/Graphics/Shader.h**
 - `[4]` **Runtime/Settings/ProjectSettings.cpp**
-- `[4]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[4]` **Editor/D3D12/D3D12EditorGUIManager.h**
 - `[4]` **Editor/Panel/EditorHierarchyPanel.cpp**
 - `[4]` **Editor/Panel/EditorInspectorPanel.cpp**
 - `[4]` **Editor/Panel/EditorProjectPanel.cpp**
 - `[2]` **Editor/EditorGUIManager.h**
 - `[2]` **Runtime/CoreAssert.h**
+- `[2]` **Runtime/Core/Game.h**
 
 ## Evidence & Implementation Details
 
@@ -89,7 +89,7 @@
 		mWindow = CreateWindowW(wndClass.lpszClassName, L"TinyEngine <Direct3D 12>", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
 			width, height, NULL, NULL, wndClass.hInstance, NULL);
 
-    }
+	}
 
     void WindowManagerWindows::Show()
     {
@@ -106,15 +106,15 @@
 ```
 ...
 ```cpp
+
+#ifdef EDITOR
+        EngineEditor::EditorSettings::UpdateLayout(static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
+#endif
+
 		if(RenderAPI::IsInitialized())
 		{
 			RenderEngine::GetInstance()->OnResize(mWindowWidth, mWindowHeight);
 		}
-		std::cout << mWindowHeight << std::endl;
-		std::cout << mWindowWidth << std:: endl;
-    }
-
-}
 ```
 
 ### File: `Runtime/Platforms/Windows/WindowManagerWindows.h`
@@ -125,7 +125,7 @@ namespace EngineCore
     {
     public :
         static void Update();
-        static void Create();
+        void Create();
         virtual bool WindowShouldClose() override;
         virtual void OnResize() override;
         WindowManagerWindows();
@@ -149,13 +149,19 @@ namespace EngineCore
 
     void WindowManager::Create()
     {
+        if (s_Instance) return;
         WindowManager::s_Instance = std::make_unique<WindowManagerWindows>();
+        static_cast<WindowManagerWindows*>(WindowManager::s_Instance.get())->Create();
         static_cast<WindowManagerWindows*>(WindowManager::s_Instance.get())->Show();
     }
 
     void WindowManager::Update()
     {
         
+    }
+
+    void WindowManager::Destroy() 
+    {
     }
 }
 ```
@@ -164,11 +170,20 @@ namespace EngineCore
 ```cpp
 namespace EngineCore
 {
-    class  WindowManager : public Manager<WindowManager>
+    class  WindowManager
     {
     public:
+        inline static WindowManager* GetInstance() 
+        {
+            if (s_Instance == nullptr)
+            {
+                Create();
+            };
+            return s_Instance.get();
+        }
         static void Update();
         static void Create();
+        static void Destroy();
         virtual bool WindowShouldClose() = 0;
         virtual void OnResize() = 0;
         virtual void* GetWindow() = 0;
@@ -178,8 +193,9 @@ namespace EngineCore
         {
             return {mWindowWidth, mWindowHeight};
         }
-        ~WindowManager() override {};
+        ~WindowManager(){};
         WindowManager(){};
+
     protected:
         int mWindowWidth;
         int mWindowHeight;
@@ -188,6 +204,7 @@ namespace EngineCore
         bool mResized = false;
         bool mAppPaused = false;
 		bool mMaximized = false;
+        static std::unique_ptr<WindowManager> s_Instance;
     };
 ```
 

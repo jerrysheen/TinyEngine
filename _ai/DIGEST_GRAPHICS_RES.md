@@ -18,18 +18,18 @@
 - `[100]` **Runtime/MaterialLibrary/MaterialLayout.h** *(Content Included)*
 - `[79]` **Runtime/MaterialLibrary/MaterialArchetypeRegistry.h** *(Content Included)*
 - `[79]` **Runtime/MaterialLibrary/MaterialInstance.h** *(Content Included)*
-- `[67]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
 - `[59]` **Runtime/Graphics/Material.cpp** *(Content Included)*
 - `[56]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
 - `[53]` **Runtime/Graphics/Mesh.cpp** *(Content Included)*
 - `[52]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp** *(Content Included)*
 - `[51]` **Runtime/Graphics/Mesh.h** *(Content Included)*
-- `[48]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
 - `[47]` **Runtime/Graphics/MeshUtils.cpp** *(Content Included)*
 - `[45]` **Runtime/Graphics/Material.h** *(Content Included)*
 - `[43]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[42]` **Assets/Shader/StandardPBR_VertexPulling.hlsl** *(Content Included)*
 - `[38]` **Runtime/MaterialLibrary/StandardPBR.h** *(Content Included)*
+- `[38]` **Runtime/Scene/GPUScene.cpp** *(Content Included)*
+- `[37]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/RenderTexture.h** *(Content Included)*
 - `[37]` **Runtime/Graphics/Texture.h** *(Content Included)*
@@ -39,15 +39,16 @@
 - `[35]` **Runtime/Graphics/MeshUtils.h**
 - `[35]` **Runtime/Graphics/RenderTexture.cpp**
 - `[35]` **Runtime/Graphics/Texture.cpp**
-- `[33]` **Runtime/GameObject/MeshRenderer.cpp**
-- `[33]` **Runtime/GameObject/MeshRenderer.h**
 - `[33]` **Runtime/Serialization/MeshLoader.h**
+- `[32]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[32]` **Runtime/Graphics/GeometryManager.h**
-- `[32]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
+- `[32]` **Runtime/Scene/GPUScene.h**
 - `[31]` **Runtime/Scene/BistroSceneLoader.cpp**
 - `[30]` **Runtime/Renderer/RenderCommand.h**
+- `[30]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
 - `[28]` **Runtime/MaterialLibrary/StandardPBR.cpp**
 - `[28]` **Runtime/Serialization/DDSTextureLoader.h**
+- `[28]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[27]` **Runtime/GameObject/MeshFilter.h**
 - `[27]` **Runtime/Graphics/GeometryManager.cpp**
 - `[27]` **Runtime/Resources/ResourceManager.cpp**
@@ -56,25 +57,24 @@
 - `[25]` **Runtime/GameObject/MeshFilter.cpp**
 - `[25]` **Runtime/Renderer/RenderStruct.h**
 - `[24]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
-- `[22]` **Runtime/Renderer/BatchManager.h**
+- `[23]` **Runtime/Renderer/BatchManager.h**
 - `[22]` **Runtime/Renderer/Renderer.cpp**
 - `[22]` **Runtime/Resources/ResourceManager.h**
 - `[22]` **Runtime/Serialization/TextureLoader.h**
+- `[21]` **Runtime/Renderer/FrameContext.cpp**
 - `[21]` **Runtime/Renderer/RenderAPI.h**
 - `[21]` **Runtime/Resources/AssetTypeTraits.h**
 - `[21]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[21]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[21]` **Assets/Shader/StandardPBR.hlsl**
 - `[20]` **Runtime/Entry.cpp**
+- `[20]` **Runtime/Renderer/BatchManager.cpp**
 - `[20]` **Runtime/Renderer/Renderer.h**
 - `[20]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[20]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp**
+- `[19]` **Runtime/Core/PublicStruct.h**
 - `[19]` **Runtime/Scene/BistroSceneLoader.h**
-- `[18]` **Assets/Shader/include/Core.hlsl**
-- `[17]` **Runtime/Core/PublicStruct.h**
-- `[17]` **Runtime/Renderer/BatchManager.cpp**
-- `[17]` **Runtime/Renderer/RenderContext.cpp**
-- `[17]` **Runtime/Renderer/RenderEngine.cpp**
+- `[19]` **Runtime/Scene/SceneManager.cpp**
 
 ## Evidence & Implementation Details
 
@@ -336,51 +336,6 @@ namespace EngineCore
 }
 ```
 
-### File: `Runtime/Graphics/GPUSceneManager.h`
-```cpp
-{
-
-    class GPUSceneManager
-    {
-    public:
-        static GPUSceneManager* GetInstance();
-        GPUSceneManager();
-        static void Create();
-        void Tick();
-        void Destroy();
-        
-        BufferAllocation GetSinglePerMaterialData();
-        void RemoveSinglePerMaterialData(const BufferAllocation& bufferalloc);
-        void UpdateSinglePerMaterialData(const BufferAllocation& bufferalloc, void* data);
-
-        void TryFreeRenderProxyBlock(uint32_t index);
-        void TryCreateRenderProxyBlock(uint32_t index);
-        BufferAllocation LagacyRenderPathUploadBatch(void *data, uint32_t size);
-        void FlushBatchUploads();
-        void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
-        void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);
-
-        vector<PerObjectData> perObjectDataBuffer;
-
-        LinearAllocator* perFramelinearMemoryAllocator;
-
-        GPUBufferAllocator* allMaterialDataBuffer;
-        GPUBufferAllocator* allObjectDataBuffer;
-        GPUBufferAllocator* perFrameBatchBuffer;
-        GPUBufferAllocator* allAABBBuffer;
-        GPUBufferAllocator* renderProxyBuffer;
-
-
-        BufferAllocation visiblityAlloc;
-        GPUBufferAllocator* visibilityBuffer;
-        
-        ResourceHandle<ComputeShader> GPUCullingShaderHandler;
-    private:
-        static GPUSceneManager* sInstance; 
-        vector<CopyOp> mPendingBatchCopies;
-    };
-```
-
 ### File: `Runtime/Graphics/Material.h`
 ```cpp
     };
@@ -500,6 +455,55 @@ namespace Mat::StandardPBR
         return materialLayout;
     }    
 };
+```
+
+### File: `Runtime/GameObject/MeshRenderer.h`
+```cpp
+namespace EngineCore
+{
+    class MeshRenderer : public Component
+    {
+        class GameObejct;
+    public:
+        MeshRenderer() = default;
+        MeshRenderer(GameObject* gamObject);
+        virtual ~MeshRenderer() override;
+        static ComponentType GetStaticType() { return ComponentType::MeshRenderer; };
+        virtual ComponentType GetType() const override{ return ComponentType::MeshRenderer; };
+
+        virtual const char* GetScriptName() const override { return "MeshRenderer"; }
+        
+        void SetUpMaterialPropertyBlock();
+
+        inline Material* GetSharedMaterial()
+        { 
+            return mShardMatHandler.IsValid() ? mShardMatHandler.Get() : nullptr;
+        };
+
+        void SetSharedMaterial(const ResourceHandle<Material>& mat);
+
+        // return a new Material Instance;
+        Material* GetOrCreateMatInstance();
+        // 
+        ResourceHandle<Material> GetMaterial();
+        inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
+
+        void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
+
+        bool shouldUpdateMeshRenderer = true;
+        AABB worldBounds;
+        bool materialDirty = true;
+		
+        uint32_t renderLayer = 1;
+        void OnLoadResourceFinished();
+        inline uint32_t GetCPUWorldIndex() { return mCPUWorldIndex;}
+        inline void SetCPUWorldIndex(uint32_t index) { mCPUWorldIndex = index;}
+    private:
+        ResourceHandle<Material> mShardMatHandler;
+        ResourceHandle<Material> mInstanceMatHandler;
+
+        uint32_t mCPUWorldIndex = UINT32_MAX;
+    };
 ```
 
 ### File: `Runtime/Graphics/GPUBufferAllocator.h`

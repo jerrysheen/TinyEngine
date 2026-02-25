@@ -15,30 +15,29 @@
 - 提取GPUSceneManager、BatchManager与相关Buffer布局。
 
 ## Key Files Index
-- `[56]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
-- `[55]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
-- `[50]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h** *(Content Included)*
+- `[51]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[48]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp** *(Content Included)*
 - `[42]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
+- `[39]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp** *(Content Included)*
 - `[36]` **Runtime/Renderer/BatchManager.h** *(Content Included)*
 - `[35]` **Runtime/Graphics/GeometryManager.h** *(Content Included)*
-- `[35]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
 - `[35]` **Runtime/Renderer/BatchManager.cpp** *(Content Included)*
 - `[34]` **Runtime/Graphics/IGPUResource.h** *(Content Included)*
 - `[32]` **Runtime/Graphics/GeometryManager.cpp** *(Content Included)*
+- `[32]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h** *(Content Included)*
 - `[31]` **Runtime/Graphics/Mesh.cpp** *(Content Included)*
-- `[30]` **Runtime/GameObject/MeshRenderer.cpp** *(Content Included)*
 - `[29]` **Assets/Shader/GPUCulling.hlsl** *(Content Included)*
-- `[28]` **Runtime/GameObject/MeshFilter.cpp** *(Content Included)*
-- `[28]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
 - `[28]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
 - `[28]` **Runtime/Graphics/Mesh.h** *(Content Included)*
 - `[28]` **Runtime/Graphics/RenderTexture.h** *(Content Included)*
 - `[28]` **Runtime/Graphics/Texture.h** *(Content Included)*
-- `[28]` **Runtime/Serialization/DDSTextureLoader.h**
-- `[28]` **Runtime/Platforms/D3D12/D3D12Texture.h**
-- `[27]` **Runtime/GameObject/MeshFilter.h**
+- `[28]` **Runtime/Serialization/DDSTextureLoader.h** *(Content Included)*
+- `[28]` **Runtime/Platforms/D3D12/D3D12Texture.h** *(Content Included)*
+- `[27]` **Runtime/GameObject/MeshFilter.h** *(Content Included)*
+- `[27]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
 - `[27]` **Runtime/Serialization/MeshLoader.h**
+- `[26]` **Runtime/GameObject/MeshFilter.cpp**
+- `[26]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[26]` **Runtime/Graphics/ComputeShader.cpp**
 - `[26]` **Runtime/Graphics/GPUTexture.h**
 - `[26]` **Runtime/Graphics/MeshUtils.cpp**
@@ -53,7 +52,6 @@
 - `[22]` **Runtime/Renderer/Renderer.cpp**
 - `[22]` **Runtime/Serialization/TextureLoader.h**
 - `[20]` **Runtime/Entry.cpp**
-- `[19]` **Runtime/Renderer/RenderEngine.cpp**
 - `[18]` **Runtime/Renderer/RenderAPI.h**
 - `[16]` **Runtime/Renderer/Renderer.h**
 - `[15]` **Runtime/Scene/SceneManager.cpp**
@@ -61,14 +59,16 @@
 - `[13]` **Runtime/Renderer/RenderStruct.h**
 - `[12]` **Runtime/Core/Game.cpp**
 - `[12]` **Runtime/Core/PublicStruct.h**
-- `[12]` **Runtime/Scene/BistroSceneLoader.cpp**
-- `[10]` **Runtime/Graphics/Material.cpp**
+- `[12]` **Runtime/Renderer/FrameContext.cpp**
+- `[12]` **Runtime/Renderer/RenderEngine.cpp**
+- `[11]` **Runtime/Scene/GPUScene.h**
 - `[10]` **Runtime/Resources/ResourceManager.cpp**
+- `[10]` **Runtime/Scene/BistroSceneLoader.cpp**
 - `[10]` **Runtime/Scene/BistroSceneLoader.h**
+- `[10]` **Runtime/Scene/CPUScene.cpp**
 - `[10]` **Runtime/Scene/SceneManager.h**
 - `[10]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[10]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
-- `[9]` **Runtime/Renderer/RenderContext.cpp**
 - `[9]` **Runtime/Resources/ResourceManager.h**
 - `[9]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.cpp**
 - `[9]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp**
@@ -190,189 +190,48 @@
             }
 ```
 
-### File: `Runtime/Graphics/GPUSceneManager.cpp`
+### File: `Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp`
 ```cpp
-    {
-        if(sInstance != nullptr) return sInstance;
-        GPUSceneManager::Create();
-        return sInstance;   
-    }
-
-    void GPUSceneManager::Create()
-    {
-```
-...
-```cpp
-
-        vector<DrawIndirectArgs> drawIndirectArgsList = BatchManager::GetInstance()->GetBatchInfo();
-        UpdateRenderProxyBuffer(renderSceneData.materialDirtyList);
-        UpdateAABBandPerObjectBuffer(renderSceneData.transformDirtyList, renderSceneData.materialDirtyList);
-
-        // 重置visibilityBuffer
-        vector<uint8_t> empty;
-        empty.resize(4 * 10000, 0);
-        visibilityBuffer->UploadBuffer(visiblityAlloc, empty.data(), empty.size());
-        visibilityBuffer->Reset();
-    }
-
-    BufferAllocation GPUSceneManager::GetSinglePerMaterialData()
-    {
-```
-...
-```cpp
-        copyRegionCmd.copyList = mPendingBatchCopies.data();
-        copyRegionCmd.count = mPendingBatchCopies.size();
-        Renderer::GetInstance()->CopyBufferRegion(copyRegionCmd);
-        mPendingBatchCopies.clear();
-    }
-
-    void GPUSceneManager::UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList)
-    {
-```
-...
-```cpp
-            {
-                // delete: 只处理RenderProxy相关信息。
-                TryFreeRenderProxyBlock(index);
-                perObjectDataBuffer[index].renderProxyStartIndex = 0;
-                perObjectDataBuffer[index].renderProxyCount = 0;
-                perObjectDataBuffer[index].matIndex = 0;
-                perObjectDataBuffer[index].baseVertexLocation = 0;
+                Renderer::GetInstance()->SetBindlessMat(mat);
+                // bind mesh vertexbuffer and indexbuffer.
+                Renderer::GetInstance()->SetMeshData(mesh);
+                Payload_DrawIndirect indirectPayload;
+                // temp:
+                GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
+                ASSERT(indirectDrawArgsBuffer != nullptr);
+                indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
+                indirectPayload.count = 1;
+                indirectPayload.startIndex = batchID;
+                indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
+                Renderer::GetInstance()->DrawIndirect(indirectPayload);
             }
-            else
-            {
+        }
+        else
+        {
 ```
 ...
 ```cpp
-            copyRegionCmd.copyList = copyAABBOP;
-            copyRegionCmd.count = transformDirtyCount;
-            Renderer::GetInstance()->CopyBufferRegion(copyRegionCmd);
+                    Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
+                    Renderer::GetInstance()->SetBindlessMat(mat);
+                    Renderer::GetInstance()->SetBindLessMeshIB(0);
+                }
+
+                Payload_DrawIndirect indirectPayload;
+                // temp:
+                GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
+                ASSERT(indirectDrawArgsBuffer != nullptr);
+                indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
+                indirectPayload.count = 1;
+                indirectPayload.startIndex = batchID;
+                indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
+                Renderer::GetInstance()->DrawIndirect(indirectPayload);
+            }
         }
 
+    }
 
-        // 更新所有dirty的PerObjectData，来自于 tranformdirty + materialDirty
-        std::set<uint32_t> s(transformDirtyList.begin(), transformDirtyList.end());
-        s.insert(materialDirtyList.begin(), materialDirtyList.end());
-        vector<uint32_t> dirtyList = std::vector<uint32_t>(s.begin(), s.end());
-        int perObjectDataCount = dirtyList.size();
-
-        uint32_t perObjectBufferSize = perObjectDataCount * sizeof(PerObjectData);
-        auto& perObjectAllocation = perFrameBatchBuffer->Allocate(perObjectBufferSize);
-        CopyOp* copyPerObjectOP = perFramelinearMemoryAllocator->allocArray<CopyOp>(perObjectDataCount);
-        CopyOp* currCopyPerObjectOPPtr = copyPerObjectOP;
-        vector<PerObjectData> perObjectTempData;
-
-        for (int i = 0; i < perObjectDataCount; i++)
-        {
-```
-
-### File: `Runtime/Renderer/RenderPath/GPUSceneRenderPath.h`
-```cpp
-namespace EngineCore
-{
-    class GPUSceneRenderPath : public IRenderPath
+    void GPUSceneRenderPass::Filter(const RenderContext &context)
     {
-    public:
-        virtual ~GPUSceneRenderPath() override 
-        {
-            delete cullingParamBuffer;
-            delete indirectDrawArgsBuffer;
-        };
-
-        virtual void Execute(RenderContext& context) override
-        {
-            if (!hasSetUpBuffer) 
-            {
-                hasSetUpBuffer = true;
-
-                BufferDesc desc;
-
-                desc.debugName = L"CullingParamBuffer";
-                desc.memoryType = BufferMemoryType::Upload;
-                desc.size = sizeof(GPUCullingParam);
-                desc.stride = sizeof(GPUCullingParam);
-                desc.usage = BufferUsage::ConstantBuffer;
-                cullingParamBuffer = new GPUBufferAllocator(desc);
-                cullingParamAlloc = cullingParamBuffer->Allocate(sizeof(Frustum));
-                
-                
-                desc.debugName = L"IndirectDrawArgsBuffer";
-                desc.memoryType = BufferMemoryType::Default;
-                desc.size = sizeof(DrawIndirectArgs) * 3000;
-                desc.stride = sizeof(DrawIndirectArgs);
-                desc.usage = BufferUsage::StructuredBuffer;
-                indirectDrawArgsBuffer = new GPUBufferAllocator(desc);
-                indirectDrawArgsAlloc = indirectDrawArgsBuffer->Allocate(sizeof(DrawIndirectArgs) * 3000);
-            }
-
-            //todo:
-            // 这个地方要把ResourceState切换一下
-            Renderer::GetInstance()->BeginFrame();
-            auto* visibilityBuffer = GPUSceneManager::GetInstance()->visibilityBuffer;
-            Renderer::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
-            Renderer::GetInstance()->SetResourceState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
-
-
-            Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->mainCamera;
-            int gameObjectCount = SceneManager::GetInstance()->GetCurrentScene()->allObjList.size();
-
-            GPUCullingParam cullingParam;
-            cullingParam.frustum = cam->mFrustum;
-            cullingParam.totalItem = gameObjectCount;
-            cullingParamBuffer->UploadBuffer(cullingParamAlloc, &cullingParam, sizeof(GPUCullingParam));
-
-            PROFILER_EVENT_BEGIN("MainThread::GPUSceneManagerTick");
-            GPUSceneManager::GetInstance()->Tick();
-            PROFILER_EVENT_END("MainThread::GPUSceneManagerTick");
-
-            
-            // Get Current BatchInfo:
-            vector<DrawIndirectArgs> batchInfo = BatchManager::GetInstance()->GetBatchInfo();
-            if (batchInfo.size() != 0) 
-            {
-                indirectDrawArgsBuffer->UploadBuffer(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
-            }
-
-            ComputeShader* csShader = GPUSceneManager::GetInstance()->GPUCullingShaderHandler.Get();
-            csShader->SetBuffer("CullingParams", cullingParamBuffer->GetGPUBuffer());
-            csShader->SetBuffer("g_InputAABBs", GPUSceneManager::GetInstance()->allAABBBuffer->GetGPUBuffer());
-            csShader->SetBuffer("g_InputPerObjectDatas", GPUSceneManager::GetInstance()->allObjectDataBuffer->GetGPUBuffer());
-            csShader->SetBuffer("g_RenderProxies", GPUSceneManager::GetInstance()->renderProxyBuffer->GetGPUBuffer());
-            csShader->SetBuffer("g_VisibleInstanceIndices", GPUSceneManager::GetInstance()->visibilityBuffer->GetGPUBuffer());
-            csShader->SetBuffer("g_IndirectDrawCallArgs", indirectDrawArgsBuffer->GetGPUBuffer());
-
-            
-            Payload_DispatchComputeShader payload;
-            payload.csShader = GPUSceneManager::GetInstance()->GPUCullingShaderHandler.Get();
-            payload.groupX = gameObjectCount / 64 + 1;
-            payload.groupY = 1;
-            payload.groupZ = 1;
-            Renderer::GetInstance()->DispatchComputeShader(payload);
-```
-...
-```cpp
-            // 这个地方简单跑个绑定测试？
-            Renderer::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_SHADER_RESOURCE);
-            Renderer::GetInstance()->SetResourceState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_INDIRECT_ARGUMENT);
-
-            context.Reset();
-            context.camera = cam;
-            Renderer::GetInstance()->Render(context);
-#ifdef EDITOR
-            Renderer::GetInstance()->OnDrawGUI();
-#endif
-
-            Renderer::GetInstance()->EndFrame();
-        }
-
-        bool hasSetUpBuffer = false;
-        BufferAllocation cullingParamAlloc;
-        GPUBufferAllocator* cullingParamBuffer;
-        BufferAllocation indirectDrawArgsAlloc;
-        GPUBufferAllocator* indirectDrawArgsBuffer;
-
-    };
-}
 ```
 
 ### File: `Runtime/Platforms/D3D12/D3D12RenderAPI.h`
@@ -510,23 +369,18 @@ namespace EngineCore
             }
             return s_Instance;
         }
-
-        void TryAddBatchCount(MeshRenderer* meshRenderer);
-        void TryDecreaseBatchCount(MeshRenderer* meshRenderer);
-
-        void TryAddBatchCount(MeshFilter* meshFilter);
-        void TryDecreaseBatchCount(MeshFilter* meshFilter);
-        static std::unordered_map<uint64_t, int> BatchMap;
+        void TryAddBatches(AssetID meshID, AssetID materialID, uint32_t layer); 
+        void TryDecreaseBatches(AssetID meshID, AssetID materialID, uint32_t layer);
         static std::unordered_map<uint64_t, DrawIndirectParam> drawIndirectParamMap;
         static std::unordered_map<uint64_t, DrawIndirectContext> drawIndirectContextMap;
-
-        std::vector<RenderProxy> GetAvaliableRenderProxyList(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 
-        static uint64_t GetBatchHash(MeshRenderer* meshRenderer, MeshFilter* meshFilter, uint32_t layer); 
-
+        static std::unordered_map<uint64_t, int> BatchMap;
+        
+        std::vector<RenderProxy> GetAvaliableRenderProxyList(AssetID meshID, AssetID materialID, uint32_t layer); 
+        
         vector<DrawIndirectArgs> GetBatchInfo();
     private:
-        void TryAddBatches(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 
-        void TryDecreaseBatches(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 
+        uint64_t GetBatchHash(AssetID meshID, AssetID materialID, uint32_t layer); 
+        
         static void Create();
         static BatchManager* s_Instance;
 
@@ -567,51 +421,6 @@ namespace EngineCore
         GPUBufferAllocator* m_GlobalVertexBufferAllocator;
         GPUBufferAllocator* m_GLobalIndexBufferAllocator;
         static GeometryManager* s_Instance;
-    };
-```
-
-### File: `Runtime/Graphics/GPUSceneManager.h`
-```cpp
-{
-
-    class GPUSceneManager
-    {
-    public:
-        static GPUSceneManager* GetInstance();
-        GPUSceneManager();
-        static void Create();
-        void Tick();
-        void Destroy();
-        
-        BufferAllocation GetSinglePerMaterialData();
-        void RemoveSinglePerMaterialData(const BufferAllocation& bufferalloc);
-        void UpdateSinglePerMaterialData(const BufferAllocation& bufferalloc, void* data);
-
-        void TryFreeRenderProxyBlock(uint32_t index);
-        void TryCreateRenderProxyBlock(uint32_t index);
-        BufferAllocation LagacyRenderPathUploadBatch(void *data, uint32_t size);
-        void FlushBatchUploads();
-        void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
-        void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);
-
-        vector<PerObjectData> perObjectDataBuffer;
-
-        LinearAllocator* perFramelinearMemoryAllocator;
-
-        GPUBufferAllocator* allMaterialDataBuffer;
-        GPUBufferAllocator* allObjectDataBuffer;
-        GPUBufferAllocator* perFrameBatchBuffer;
-        GPUBufferAllocator* allAABBBuffer;
-        GPUBufferAllocator* renderProxyBuffer;
-
-
-        BufferAllocation visiblityAlloc;
-        GPUBufferAllocator* visibilityBuffer;
-        
-        ResourceHandle<ComputeShader> GPUCullingShaderHandler;
-    private:
-        static GPUSceneManager* sInstance; 
-        vector<CopyOp> mPendingBatchCopies;
     };
 ```
 
@@ -674,6 +483,31 @@ namespace EngineCore
     };
 ```
 
+### File: `Runtime/Renderer/RenderPath/GPUSceneRenderPath.h`
+```cpp
+namespace EngineCore
+{
+    class GPUSceneRenderPath : public IRenderPath
+    {
+    public:
+        virtual ~GPUSceneRenderPath() override 
+        {
+            delete cullingParamBuffer;
+            delete indirectDrawArgsBuffer;
+        };
+
+        virtual void Execute(RenderContext& context) override;
+
+
+        bool hasSetUpBuffer = false;
+        BufferAllocation cullingParamAlloc;
+        GPUBufferAllocator* cullingParamBuffer;
+        BufferAllocation indirectDrawArgsAlloc;
+        GPUBufferAllocator* indirectDrawArgsBuffer;
+
+    };
+```
+
 ### File: `Assets/Shader/GPUCulling.hlsl`
 ```hlsl
 // ==========================================
@@ -725,61 +559,6 @@ struct PerObjectData
     }
 
 }
-```
-
-### File: `Runtime/GameObject/MeshRenderer.h`
-```cpp
-namespace EngineCore
-{
-    class MeshRenderer : public Component
-    {
-        class GameObejct;
-    public:
-        MeshRenderer() = default;
-        MeshRenderer(GameObject* gamObject);
-        virtual ~MeshRenderer() override;
-        static ComponentType GetStaticType() { return ComponentType::MeshRenderer; };
-        virtual ComponentType GetType() const override{ return ComponentType::MeshRenderer; };
-
-        virtual const char* GetScriptName() const override { return "MeshRenderer"; }
-        
-        void SetUpMaterialPropertyBlock();
-
-        inline Material* GetSharedMaterial()
-        { 
-            return mShardMatHandler.IsValid() ? mShardMatHandler.Get() : nullptr;
-        };
-
-        inline void SetSharedMaterial(const ResourceHandle<Material>& mat) 
-        {
-            mShardMatHandler = mat;
-            //SetUpMaterialPropertyBlock();
-        }
-
-        // return a new Material Instance;
-        Material* GetOrCreateMatInstance();
-        // 
-        ResourceHandle<Material> GetMaterial();
-        inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
-
-        void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
-        uint32_t lastSyncTransformVersion = 0;
-        bool shouldUpdateMeshRenderer = true;
-        bool needUpdatePerMaterialData = false;
-        AABB worldBounds;
-        uint32_t sceneRenderNodeIndex = UINT32_MAX;
-        bool materialDirty = true;
-		
-        void TryAddtoBatchManager();
-
-        uint32_t renderLayer = 1;
-        void OnLoadResourceFinished();
-
-    private:
-        ResourceHandle<Material> mShardMatHandler;
-        ResourceHandle<Material> mInstanceMatHandler;
-
-    };
 ```
 
 ### File: `Runtime/Graphics/GPUBufferAllocator.h`
@@ -916,5 +695,343 @@ namespace EngineCore
         IGPUTexture*  textureBuffer;
         TextureDesc textureDesc;
         std::vector<uint8_t> cpuData;
+    };
+```
+
+### File: `Runtime/Serialization/DDSTextureLoader.h`
+```cpp
+  HEADER      124
+  HEADER_DX10* 20	(https://msdn.microsoft.com/en-us/library/bb943983(v=vs.85).aspx)
+  PIXELS      fseek(f, 0, SEEK_END); (ftell(f) - 128) - (fourCC == "DX10" ? 17 or 20 : 0)
+* the link tells you that this section isn't written unless its a DX10 file
+Supports DXT1, DXT3, DXT5.
+The problem with supporting DX10 is you need to know what it is used for and how opengl would use it.
+File Byte Order:
+typedef unsigned int DWORD;           // 32bits little endian
+  type   index    attribute           // description
+///////////////////////////////////////////////////////////////////////////////////////////////
+  DWORD  0        file_code;          //. always `DDS `, or 0x20534444
+  DWORD  4        size;               //. size of the header, always 124 (includes PIXELFORMAT)
+  DWORD  8        flags;              //. bitflags that tells you if data is present in the file
+                                      //      CAPS         0x1
+                                      //      HEIGHT       0x2
+                                      //      WIDTH        0x4
+                                      //      PITCH        0x8
+                                      //      PIXELFORMAT  0x1000
+                                      //      MIPMAPCOUNT  0x20000
+                                      //      LINEARSIZE   0x80000
+                                      //      DEPTH        0x800000
+  DWORD  12       height;             //. height of the base image (biggest mipmap)
+  DWORD  16       width;              //. width of the base image (biggest mipmap)
+  DWORD  20       pitchOrLinearSize;  //. bytes per scan line in an uncompressed texture, or bytes in the top level texture for a compressed texture
+                                      //     D3DX11.lib and other similar libraries unreliably or inconsistently provide the pitch, convert with
+                                      //     DX* && BC*: max( 1, ((width+3)/4) ) * block-size
+                                      //     *8*8_*8*8 && UYVY && YUY2: ((width+1) >> 1) * 4
+                                      //     (width * bits-per-pixel + 7)/8 (divide by 8 for byte alignment, whatever that means)
+  DWORD  24       depth;              //. Depth of a volume texture (in pixels), garbage if no volume data
+  DWORD  28       mipMapCount;        //. number of mipmaps, garbage if no pixel data
+  DWORD  32       reserved1[11];      //. unused
+  DWORD  76       Size;               //. size of the following 32 bytes (PIXELFORMAT)
+  DWORD  80       Flags;              //. bitflags that tells you if data is present in the file for following 28 bytes
+                                      //      ALPHAPIXELS  0x1
+                                      //      ALPHA        0x2
+                                      //      FOURCC       0x4
+                                      //      RGB          0x40
+                                      //      YUV          0x200
+                                      //      LUMINANCE    0x20000
+  DWORD  84       FourCC;             //. File format: DXT1, DXT2, DXT3, DXT4, DXT5, DX10. 
+  DWORD  88       RGBBitCount;        //. Bits per pixel
+  DWORD  92       RBitMask;           //. Bit mask for R channel
+  DWORD  96       GBitMask;           //. Bit mask for G channel
+  DWORD  100      BBitMask;           //. Bit mask for B channel
+  DWORD  104      ABitMask;           //. Bit mask for A channel
+  DWORD  108      caps;               //. 0x1000 for a texture w/o mipmaps
+                                      //      0x401008 for a texture w/ mipmaps
+                                      //      0x1008 for a cube map
+  DWORD  112      caps2;              //. bitflags that tells you if data is present in the file
+                                      //      CUBEMAP           0x200     Required for a cube map.
+                                      //      CUBEMAP_POSITIVEX 0x400     Required when these surfaces are stored in a cube map.
+                                      //      CUBEMAP_NEGATIVEX 0x800     ^
+                                      //      CUBEMAP_POSITIVEY 0x1000    ^
+                                      //      CUBEMAP_NEGATIVEY 0x2000    ^
+                                      //      CUBEMAP_POSITIVEZ 0x4000    ^
+                                      //      CUBEMAP_NEGATIVEZ 0x8000    ^
+                                      //      VOLUME            0x200000  Required for a volume texture.
+  DWORD  114      caps3;              //. unused
+  DWORD  116      caps4;              //. unused
+  DWORD  120      reserved2;          //. unused
+*/
+
+namespace EngineCore{
+    struct DDSHeader {
+        uint32_t magic;              // 'DDS ' (0x20534444)
+        uint32_t fileSize;               // 124
+        uint32_t flags;
+        uint32_t height;
+        uint32_t width;
+        uint32_t pitchOrLinearSize;
+        uint32_t depth;
+        uint32_t mipMapCount;
+        uint32_t reserved1[11];
+        uint32_t size;           // 应该是32
+        uint32_t flagsData;
+        uint32_t fourCC;
+        uint32_t rgbBitCount;
+        uint32_t rBitMask;
+        uint32_t gBitMask;
+        uint32_t bBitMask;
+```
+...
+```cpp
+    };
+
+    struct DDS_HEADER_DXT10 {
+        uint32_t dxgiFormat;      // DXGI_FORMAT枚举值
+        uint32_t resourceDimension; // D3D11_RESOURCE_DIMENSION
+        uint32_t miscFlag;        // D3D11_RESOURCE_MISC_FLAG
+        uint32_t arraySize;       // 数组大小
+        uint32_t miscFlags2;      // 额外标志
+    };
+```
+...
+```cpp
+    };
+
+    class DDSTextureLoader : public IResourceLoader
+    {
+    public:
+        virtual ~DDSTextureLoader() = default;
+        virtual LoadResult Load(const std::string& relativePath) override
+        {
+            LoadResult result;
+            std::string path = PathSettings::ResolveAssetPath(relativePath);
+    
+            Texture* tex = new Texture();
+            tex->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+            tex->SetAssetID(AssetIDGenerator::NewFromFile(path));
+            
+            DDSLoadResult ddsResult = LoadDDSFromFile(relativePath);
+            tex->textureDesc.format = ddsResult.format;
+            tex->textureDesc.width = ddsResult.width;
+            tex->textureDesc.height = ddsResult.height;
+            tex->textureDesc.dimension = TextureDimension::TEXTURE2D;
+            tex->textureDesc.texUsage = TextureUsage::ShaderResource;
+            tex->textureDesc.mipCount = ddsResult.mipMapCount;
+            tex->cpuData = ddsResult.pixelData;
+            // 计算mip Count
+            uint32_t offset = 0;
+            tex->textureDesc.mipOffset[0] = 0;  // 第 0 级从 0 开始
+            int width = ddsResult.width;
+            int height = ddsResult.height;
+            // ++i 和 i++在循环体中区别不大， 因为循环跑完才会走++操作，
+            // 不过针对迭代器，++i更好， 因为i++相当于要返回一个原值，并且在原来的迭代器上叠加
+            for (uint32_t i = 0; i < ddsResult.mipMapCount; ++i)
+            {
+                // 当前 mip level 的尺寸
+                uint32_t mipWidth = std::max(1, width >> i);
+                uint32_t mipHeight = std::max(1, height >> i);
+                
+                // 计算当前 mip level 的字节大小
+                uint32_t mipSize = CalculateDXTMipSize(mipWidth, mipHeight, ddsResult.blockSize);
+                
+                if (i > 0) {
+                    tex->textureDesc.mipOffset[i] = offset;  // 记录当前 mip 的 offset
+                }
+                
+                offset += mipSize;  // 累加到下一个 mip level
+            }
+
+            result.resource = tex;
+            return result;
+        }
+    
+        std::vector<uint8_t> LoadMipData(const std::string& realativePath, int mipCount){}
+    
+    
+        int CalculateDXTMipSize(uint32_t width, uint32_t height, uint32_t blockSize)
+        {
+            //DXT1 (BC1)：每 4×4 块占 8 字节
+            //DXT3 (BC2)：每 4×4 块占 16 字节
+            //DXT5 (BC3)：每 4×4 块占 16 字节
+            uint32_t blockWidth = (width + 3) / 4;
+            uint32_t blockHeight = (height + 3) / 4;
+            return blockWidth * blockHeight * blockSize;
+        }
+    
+    private:
+    
+    
+        DDSLoadResult LoadDDSFromFile(const std::string& relativePath)
+        {
+            std::string path = PathSettings::ResolveAssetPath(relativePath);
+            std::ifstream file(path, std::ios::binary);
+            ASSERT(file.is_open());
+    
+            file.seekg(0, std::ios::end);      // 先移动到文件末尾
+            std::streamsize fileSize = file.tellg();  // 获取文件大小
+            file.seekg(0, std::ios::beg);      // 再移回文件开始
+    
+            ASSERT(fileSize > sizeof(DDSHeader));
+    
+            DDSHeader header;
+            file.read(reinterpret_cast<char*>(&header), sizeof(DDSHeader));
+```
+...
+```cpp
+            if(header.magic != 0x20534444 || header.fileSize != 124)
+            {
+                ASSERT(false);
+            }
+    
+            DDSLoadResult result;
+            result.width = header.width;
+            result.height = header.height;
+            result.mipMapCount = header.mipMapCount > 0 ? header.mipMapCount : 1;
+        
+            // 7. 判断压缩格式 (DXT1/DXT3/DXT5)
+            uint32_t fourCC = header.fourCC;
+            
+            // 提取fourCC字符串来判断
+            char fourCCStr[5] = {0};
+```
+...
+```cpp
+                result.blockSize = 8;
+            }
+            else if (std::memcmp(fourCCStr, "DXT3", 4) == 0) {
+                result.format = TextureFormat::DXT3;  // DXT3
+                result.blockSize = 16;
+            }
+```
+
+### File: `Runtime/Platforms/D3D12/D3D12Texture.h`
+```cpp
+{
+    // 只是一个资源的壳，IGPUTexture的实现，持有指针
+    class D3D12Texture : public IGPUTexture
+    {
+    public:
+        D3D12Texture() = default;
+
+        D3D12Texture(const TextureDesc& desc) 
+            : m_Desc(desc)
+        {
+        }
+
+        D3D12Texture(ComPtr<ID3D12Resource> resource, const TextureDesc& desc, D3D12_RESOURCE_STATES initialState)
+            : m_Resource(resource), m_Desc(desc) 
+        {
+            switch(initialState)
+            {
+                case D3D12_RESOURCE_STATE_COMMON:
+                m_ResourceState = BufferResourceState::STATE_COMMON;
+                break;
+                case D3D12_RESOURCE_STATE_GENERIC_READ:
+                m_ResourceState = BufferResourceState::STATE_GENERIC_READ;
+                break;
+                case D3D12_RESOURCE_STATE_COPY_DEST:
+                m_ResourceState = BufferResourceState::STATE_COPY_DEST;
+                break;
+                default:
+                    ASSERT("Wrong InitialState");
+                break;
+            }
+        }
+
+        virtual ~D3D12Texture()
+        {
+        }
+
+        virtual const TextureDesc& GetDesc() const override {return m_Desc;};
+        virtual void* GetNativeHandle() const override {return m_Resource.Get();}
+
+
+        virtual uint64_t GetGPUVirtualAddress() const override
+        {
+            return m_Resource->GetGPUVirtualAddress();
+        }
+
+        virtual void SetName(const wchar_t* name) override {m_Resource->SetName(name);}
+    public:
+        ComPtr<ID3D12Resource> m_Resource;
+        TextureDesc m_Desc;
+    };
+```
+
+### File: `Runtime/GameObject/MeshFilter.h`
+```cpp
+namespace EngineCore
+{
+    class MeshFilter : public Component
+    {
+        class GameObejct;
+    public:
+        MeshFilter() = default;
+        MeshFilter(GameObject* gamObject);
+
+        virtual ~MeshFilter() override;
+        static ComponentType GetStaticType() { return ComponentType::MeshFilter; };
+        virtual ComponentType GetType() const override{ return ComponentType::MeshFilter; };
+        void OnLoadResourceFinished();
+    public:
+        ResourceHandle<Mesh> mMeshHandle;
+        
+        virtual const char* GetScriptName() const override { return "MeshFilter"; }
+
+        uint32_t GetHash()
+        {
+            return mMeshHandle->GetInstanceID();
+        }
+    private:
+        uint32_t hash;
+    };
+```
+
+### File: `Runtime/GameObject/MeshRenderer.h`
+```cpp
+namespace EngineCore
+{
+    class MeshRenderer : public Component
+    {
+        class GameObejct;
+    public:
+        MeshRenderer() = default;
+        MeshRenderer(GameObject* gamObject);
+        virtual ~MeshRenderer() override;
+        static ComponentType GetStaticType() { return ComponentType::MeshRenderer; };
+        virtual ComponentType GetType() const override{ return ComponentType::MeshRenderer; };
+
+        virtual const char* GetScriptName() const override { return "MeshRenderer"; }
+        
+        void SetUpMaterialPropertyBlock();
+
+        inline Material* GetSharedMaterial()
+        { 
+            return mShardMatHandler.IsValid() ? mShardMatHandler.Get() : nullptr;
+        };
+
+        void SetSharedMaterial(const ResourceHandle<Material>& mat);
+
+        // return a new Material Instance;
+        Material* GetOrCreateMatInstance();
+        // 
+        ResourceHandle<Material> GetMaterial();
+        inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
+
+        void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
+
+        bool shouldUpdateMeshRenderer = true;
+        AABB worldBounds;
+        bool materialDirty = true;
+		
+        uint32_t renderLayer = 1;
+        void OnLoadResourceFinished();
+        inline uint32_t GetCPUWorldIndex() { return mCPUWorldIndex;}
+        inline void SetCPUWorldIndex(uint32_t index) { mCPUWorldIndex = index;}
+    private:
+        ResourceHandle<Material> mShardMatHandler;
+        ResourceHandle<Material> mInstanceMatHandler;
+
+        uint32_t mCPUWorldIndex = UINT32_MAX;
     };
 ```

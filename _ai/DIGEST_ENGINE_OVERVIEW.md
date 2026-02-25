@@ -16,13 +16,12 @@
 
 ## Key Files Index
 - `[63]` **Runtime/Settings/ProjectSettings.cpp** *(Content Included)*
+- `[59]` **Runtime/Core/Game.cpp** *(Content Included)*
 - `[59]` **Runtime/Settings/ProjectSettings.h** *(Content Included)*
-- `[58]` **Runtime/Core/Game.cpp** *(Content Included)*
-- `[50]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
+- `[44]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
 - `[41]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[38]` **Runtime/Core/Game.h** *(Content Included)*
 - `[37]` **Runtime/Entry.cpp** *(Content Included)*
-- `[35]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
 - `[35]` **Editor/Panel/EditorGameViewPanel.cpp** *(Content Included)*
 - `[33]` **Runtime/Scene/SceneManager.h** *(Content Included)*
 - `[30]` **Editor/EditorSettings.cpp** *(Content Included)*
@@ -30,51 +29,52 @@
 - `[29]` **Runtime/GameObject/GameObject.cpp** *(Content Included)*
 - `[28]` **Runtime/GameObject/GameObject.h** *(Content Included)*
 - `[28]` **Runtime/Renderer/RenderEngine.h** *(Content Included)*
-- `[27]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
 - `[24]` **Runtime/EngineCore.h** *(Content Included)*
 - `[24]` **Editor/Panel/EditorGameViewPanel.h** *(Content Included)*
 - `[23]` **Runtime/GameObject/Camera.cpp** *(Content Included)*
 - `[23]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
-- `[19]` **Runtime/GameObject/MeshRenderer.cpp**
-- `[19]` **Runtime/GameObject/Transform.h**
+- `[19]` **Runtime/GameObject/Transform.h** *(Content Included)*
+- `[17]` **Runtime/GameObject/MeshRenderer.cpp** *(Content Included)*
 - `[16]` **Runtime/GameObject/Component.h**
 - `[16]` **Runtime/GameObject/ComponentType.h**
+- `[16]` **Runtime/GameObject/MeshFilter.cpp**
 - `[16]` **Runtime/GameObject/MeshRenderer.h**
+- `[16]` **Runtime/GameObject/Transform.cpp**
 - `[16]` **Editor/Panel/EditorMainBar.cpp**
-- `[15]` **Runtime/GameObject/MeshFilter.cpp**
 - `[15]` **Runtime/GameObject/MeshFilter.h**
 - `[15]` **Runtime/GameObject/MonoBehaviour.h**
 - `[14]` **Runtime/GameObject/Camera.h**
 - `[14]` **Runtime/GameObject/MonoBehaviour.cpp**
-- `[14]` **Runtime/GameObject/Transform.cpp**
 - `[14]` **Runtime/Serialization/SceneLoader.h**
-- `[13]` **Runtime/Renderer/RenderContext.cpp**
 - `[13]` **Runtime/Utils/HashCombine.h**
+- `[13]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
 - `[13]` **Editor/Panel/EditorHierarchyPanel.cpp**
 - `[12]` **Runtime/GameObject/Component.cpp**
-- `[12]` **Runtime/Renderer/BatchManager.cpp**
+- `[12]` **Runtime/Renderer/RenderContext.cpp**
 - `[12]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
-- `[11]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[11]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
-- `[11]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[11]` **Editor/Panel/EditorMainBar.h**
 - `[10]` **Runtime/Serialization/MaterialLoader.h**
 - `[10]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.cpp**
+- `[10]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
+- `[9]` **Runtime/Renderer/Culling.cpp**
 - `[9]` **Runtime/Renderer/RenderContext.h**
 - `[9]` **Runtime/Scene/Scene.h**
 - `[9]` **Runtime/Serialization/DDSTextureLoader.h**
-- `[9]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[9]` **Runtime/Platforms/D3D12/d3dUtil.cpp**
+- `[9]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
 - `[9]` **Editor/Panel/EditorHierarchyPanel.h**
 - `[8]` **Editor/EditorGUIManager.h**
-- `[8]` **Runtime/Renderer/Culling.cpp**
+- `[8]` **Runtime/Renderer/BatchManager.cpp**
 - `[8]` **Runtime/Scene/BistroSceneLoader.h**
 - `[8]` **Runtime/Serialization/MeshLoader.h**
 - `[8]` **Runtime/Platforms/D3D12/d3dUtil.h**
-- `[8]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
 - `[8]` **Editor/Panel/EditorConsolePanel.cpp**
 - `[8]` **Editor/Panel/EditorInspectorPanel.cpp**
 - `[7]` **Runtime/Renderer/Renderer.h**
+- `[7]` **Runtime/Scene/Scene.cpp**
+- `[7]` **Runtime/Serialization/ShaderLoader.h**
+- `[7]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 
 ## Evidence & Implementation Details
 
@@ -162,6 +162,90 @@ namespace EngineCore
 
 ```
 
+### File: `Runtime/Core/Game.cpp`
+```cpp
+#include "Settings/ProjectSettings.h"
+#include "Resources/AssetRegistry.h"
+namespace EngineCore
+{
+    void Game::Launch()
+    {
+        ProjectSettings::Initialize();
+        // InitManagers Here.
+        RenderEngine::Create();
+        ResourceManager::Create();
+        SceneManager::Create();
+        JobSystem::Create();
+        AssetRegistry::Create();
+        ASSERT(!(RenderSettings::s_EnableVertexPulling == true && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy));
+        //std::cout << "Launch Game" << std::endl;
+        // init Manager...
+        #ifdef EDITOR
+        EngineEditor::EditorGUIManager::Create();
+        #endif
+        while(!WindowManager::GetInstance()->WindowShouldClose())
+        {
+            mFrameIndex++;
+            PROFILER_FRAME_MARK("TinyProfiler");
+            Update(mFrameIndex);
+
+            Render();
+
+            EndFrame();
+        }
+
+        // 明确的关闭流程（顺序很重要！）
+        Shutdown();
+    }
+
+    void Game::Shutdown()
+    {
+        std::cout << "Game shutting down..." << std::endl;
+
+        // 1. 先停止渲染线程（最重要！）
+        //    必须在销毁任何渲染资源之前停止
+        RenderEngine::Destory();
+        std::cout << "RenderEngine destroyed." << std::endl;
+
+        // 2. 销毁编辑器UI
+        #ifdef EDITOR
+        EngineEditor::EditorGUIManager::OnDestory();
+        std::cout << "EditorGUIManager destroyed." << std::endl;
+        #endif
+
+        // 3. 销毁场景（包含所有GameObject）
+        SceneManager::Destroy();
+        std::cout << "SceneManager destroyed." << std::endl;
+
+        // 4. 最后销毁资源管理器
+        ResourceManager::GetInstance()->Destroy();
+        std::cout << "ResourceManager destroyed." << std::endl;
+
+        std::cout << "Game shutdown complete." << std::endl;
+    }
+
+    void Game::Update(uint32_t frameIndex)
+    {
+        PROFILER_ZONE("MainThread::GameUpdate");
+        ResourceManager::GetInstance()->Update();
+        SceneManager::GetInstance()->Update(frameIndex);
+        RenderEngine::GetInstance()->Update(frameIndex);
+    }
+
+    void Game::Render()
+    {
+        PROFILER_ZONE("MainThread::RenderTick");
+        RenderEngine::GetInstance()->Tick();
+    }
+
+    void Game::EndFrame()
+    {
+        SceneManager::GetInstance()->EndFrame();
+        RenderEngine::GetInstance()->EndFrame();
+    }
+
+```
+
 ### File: `Runtime/Settings/ProjectSettings.h`
 ```cpp
 #include <iostream>
@@ -218,94 +302,13 @@ namespace EngineCore
 }
 ```
 
-### File: `Runtime/Core/Game.cpp`
-```cpp
-#include "Settings/ProjectSettings.h"
-#include "Resources/AssetRegistry.h"
-namespace EngineCore
-{
-    void Game::Launch()
-    {
-        ProjectSettings::Initialize();
-        // InitManagers Here.
-        RenderEngine::Create();
-        ResourceManager::Create();
-        SceneManager::Create();
-        JobSystem::Create();
-        AssetRegistry::Create();
-        ASSERT(!(RenderSettings::s_EnableVertexPulling == true && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy));
-        //std::cout << "Launch Game" << std::endl;
-        // init Manager...
-        #ifdef EDITOR
-        EngineEditor::EditorGUIManager::Create();
-        #endif
-        while(!WindowManager::GetInstance()->WindowShouldClose())
-        {
-            PROFILER_FRAME_MARK("TinyProfiler");
-            Update();
-
-            Render();
-
-            EndFrame();
-        }
-
-        // 明确的关闭流程（顺序很重要！）
-        Shutdown();
-    }
-
-    void Game::Shutdown()
-    {
-        std::cout << "Game shutting down..." << std::endl;
-
-        // 1. 先停止渲染线程（最重要！）
-        //    必须在销毁任何渲染资源之前停止
-        RenderEngine::Destory();
-        std::cout << "RenderEngine destroyed." << std::endl;
-
-        // 2. 销毁编辑器UI
-        #ifdef EDITOR
-        EngineEditor::EditorGUIManager::OnDestory();
-        std::cout << "EditorGUIManager destroyed." << std::endl;
-        #endif
-
-        // 3. 销毁场景（包含所有GameObject）
-        SceneManager::Destroy();
-        std::cout << "SceneManager destroyed." << std::endl;
-
-        // 4. 最后销毁资源管理器
-        ResourceManager::GetInstance()->Destroy();
-        std::cout << "ResourceManager destroyed." << std::endl;
-
-        std::cout << "Game shutdown complete." << std::endl;
-    }
-
-    void Game::Update()
-    {
-        PROFILER_ZONE("MainThread::GameUpdate");
-        SceneManager::GetInstance()->Update();
-        ResourceManager::GetInstance()->Update();
-    }
-
-    void Game::Render()
-    {
-        PROFILER_ZONE("MainThread::RenderTick");
-        RenderEngine::GetInstance()->Tick();
-    }
-
-    void Game::EndFrame()
-    {
-        SceneManager::GetInstance()->EndFrame();
-    }
-
-}
-```
-
 ### File: `Runtime/Core/Game.h`
 ```cpp
 
 
 namespace EngineCore
 {
+
     class Game
     {
     public:
@@ -324,10 +327,12 @@ namespace EngineCore
 
         void Launch();
     private:
-        void Update();
+        void Update(uint32_t frameIndex);
         void Render();
         void EndFrame();
         void Shutdown();
+
+        uint32_t mFrameIndex = 0;
     };
 
 }
@@ -350,7 +355,7 @@ namespace EngineCore
         GameObject* FindGameObject(const std::string& name);
 
         void RemoveScene(const std::string& name);
-        static void Update();
+        static void Update(uint32_t frameIndex);
         static void Create();
         static void Destroy();
         static void EndFrame();
@@ -443,7 +448,7 @@ using Vector2 = EngineCore::Vector2;
         inline static Vector2 GetGameViewPanelEndPos(){return (gameViewStartPos + gameViewSize) * currentWindowSize;};
         inline static Vector2 GetGameViewPanelSize(){return gameViewSize * currentWindowSize;};
         
-        static void UpdateLayout(){};
+        static void UpdateLayout(float windowWidth, float windowHeight);
 
     };
 ```
@@ -482,6 +487,8 @@ namespace EngineCore
         bool enabled = true;
             // 非模板方式
         void AddComponent(Component* compont);
+        inline Scene* GetOwnerScene() { return ownerScene; }
+        inline void SetOwnerScene(Scene* scene) { ownerScene = scene; }
     private:
         Scene* ownerScene = nullptr;
     };
@@ -525,7 +532,7 @@ namespace EngineCore
 
 ### File: `Runtime/Renderer/RenderEngine.h`
 ```cpp
-#include "Renderer/RenderPath/GPUSceneRenderPath.h"
+#include "Scene/CPUScene.h"
 
 namespace EngineCore
 {
@@ -539,75 +546,34 @@ namespace EngineCore
     public:
         static RenderEngine* GetInstance(){return s_Instance.get();};
         static bool IsInitialized(){return s_Instance != nullptr;};
-        static void Update();
+        void Update(uint32_t frameID);
         static void Create();
+        void Tick();
+        void EndFrame();
         
         static void OnResize(int width, int height);
         static void OnDrawGUI();
-        static void Tick();
-
         static void Destory();
         RenderEngine(){};
         ~RenderEngine(){};
         static void WaitForLastFrameFinished();
         static void SignalMainThreadSubmited();
+        inline CPUScene& GetCPUScene(){return mCPUScene;}
+        inline GPUScene& GetGPUScene(){return mGPUScene;}
         static GPUSceneRenderPath gpuSceneRenderPath;
+        static LagacyRenderPath lagacyRenderPath;
+
     private:
         static std::unique_ptr<RenderEngine> s_Instance;
         static RenderContext renderContext;
-        static LagacyRenderPath lagacyRenderPath;
+
+        GPUScene mGPUScene;
+        CPUScene mCPUScene;
+
+        void ComsumeDirtySceneRenderNode();
+        void ComsumeDirtyCPUSceneRenderNode();
     };
     
-}
-```
-
-### File: `Runtime/Graphics/GPUSceneManager.h`
-```cpp
-#include "Resources/ResourceHandle.h"
-
-namespace EngineCore
-{
-
-    class GPUSceneManager
-    {
-    public:
-        static GPUSceneManager* GetInstance();
-        GPUSceneManager();
-        static void Create();
-        void Tick();
-        void Destroy();
-        
-        BufferAllocation GetSinglePerMaterialData();
-        void RemoveSinglePerMaterialData(const BufferAllocation& bufferalloc);
-        void UpdateSinglePerMaterialData(const BufferAllocation& bufferalloc, void* data);
-
-        void TryFreeRenderProxyBlock(uint32_t index);
-        void TryCreateRenderProxyBlock(uint32_t index);
-        BufferAllocation LagacyRenderPathUploadBatch(void *data, uint32_t size);
-        void FlushBatchUploads();
-        void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
-        void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);
-
-        vector<PerObjectData> perObjectDataBuffer;
-
-        LinearAllocator* perFramelinearMemoryAllocator;
-
-        GPUBufferAllocator* allMaterialDataBuffer;
-        GPUBufferAllocator* allObjectDataBuffer;
-        GPUBufferAllocator* perFrameBatchBuffer;
-        GPUBufferAllocator* allAABBBuffer;
-        GPUBufferAllocator* renderProxyBuffer;
-
-
-        BufferAllocation visiblityAlloc;
-        GPUBufferAllocator* visibilityBuffer;
-        
-        ResourceHandle<ComputeShader> GPUCullingShaderHandler;
-    private:
-        static GPUSceneManager* sInstance; 
-        vector<CopyOp> mPendingBatchCopies;
-    };
-
 }
 ```
 
@@ -621,4 +587,88 @@ namespace EngineEditor
         virtual void DrawGUI() override;
         virtual ~EditorGameViewPanel() override;
     };
+```
+
+### File: `Runtime/GameObject/Transform.h`
+```cpp
+#include "Scene/SceneManager.h"
+
+namespace EngineCore
+{
+    class GameObject;
+    struct Transform : Component
+    {
+        Transform();
+        Transform(GameObject* parent);
+        virtual ~Transform() override;
+        static ComponentType GetStaticType() { return ComponentType::Transform; };
+        virtual ComponentType GetType() const override{ return ComponentType::Transform; };
+        void MarkDirty();
+
+
+        void RotateX(float degree);
+        void RotateY(float degree);
+        void RotateZ(float degree);
+
+        const Vector3 GetLocalEulerAngles(); 
+        void SetLocalEulerAngles(const Vector3& eulerAngles);
+
+        const Vector3 GetWorldPosition(){ return mWorldPosition; };
+        const Quaternion GetWorldQuaternion(){ return mWorldQuaternion; };
+        const Vector3 GetWorldScale(){ return mWorldScale; };
+
+        const Vector3 GetLocalPosition() const { return mLocalPosition; };
+        const Quaternion GetLocalQuaternion() const { return mLocalQuaternion; };
+        const Vector3 GetLocalScale() const { return mLocalScale; };
+
+        void SetLocalPosition(const Vector3& localPosition);
+        void SetLocalQuaternion(const Quaternion& localQuaternion);
+        void SetLocalScale(const Vector3& localScale);
+
+        inline void SetWorldPosition(const Vector3& position) { mWorldPosition = position; }
+        inline void SetWorldQuaternion(const Quaternion& quaternion) { mWorldQuaternion = quaternion; }
+        inline void SetWorldScale(const Vector3& scale) { mWorldScale = scale; }
+
+        inline const Matrix4x4& GetWorldMatrix()
+        {
+            return mWorldMatrix;
+        }
+        
+        inline const Matrix4x4& GetLocalMatrix()
+        {
+            return mLocalMatrix;
+        }
+
+        void UpdateRecursively(uint32_t frameID);
+        inline uint32_t GetNodeDepth() { return mDepth; }
+
+    public:
+        bool isDirty = false;
+        std::vector<Transform*> childTransforms;
+        Transform* parentTransform = nullptr;
+        
+    protected:
+
+        friend class GameObject;
+        // 外部不能访问修改， 只能访问GameObject.SetParent
+        inline void SetParent(Transform* transform)
+        {
+            ASSERT(transform);
+            if(mDepth != 0)
+            {
+                parentTransform->RemoveChild(this);
+            }
+            parentTransform = transform; 
+            transform->AddChild(this);
+            mDepth = transform->GetNodeDepth() + 1;
+            MarkDirty();
+        };
+
+        inline void DettachParent()
+        {
+            if(parentTransform != nullptr) parentTransform->RemoveChild(this);
+            parentTransform = nullptr;
+            mDepth = 0;
+            MarkDirty();
+        }
 ```

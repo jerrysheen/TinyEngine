@@ -37,15 +37,15 @@
 - `[40]` **Editor/EditorSettings.cpp** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp**
 - `[17]` **Runtime/Core/Game.cpp**
-- `[12]` **Runtime/Renderer/RenderEngine.cpp**
 - `[11]` **Runtime/Renderer/Renderer.h**
-- `[8]` **Runtime/Graphics/GPUSceneManager.cpp**
+- `[8]` **Runtime/Renderer/RenderEngine.cpp**
 - `[8]` **Runtime/Scene/SceneManager.cpp**
 - `[7]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[6]` **premake5.lua**
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[5]` **Runtime/Renderer/RenderCommand.h**
+- `[5]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
 - `[4]` **Runtime/Core/Profiler.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[4]` **Runtime/Platforms/D3D12/d3dUtil.cpp**
@@ -56,8 +56,6 @@
 - `[4]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
 - `[3]` **Runtime/PreCompiledHeader.h**
 - `[3]` **Runtime/Resources/ResourceManager.h**
-- `[3]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
-- `[3]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[2]` **Runtime/CoreAssert.h**
 - `[2]` **Runtime/EngineCore.h**
 - `[2]` **Runtime/Core/Game.h**
@@ -75,6 +73,8 @@
 - `[2]` **Runtime/GameObject/MonoBehaviour.h**
 - `[2]` **Runtime/GameObject/Transform.h**
 - `[2]` **Runtime/Graphics/ComputeShader.h**
+- `[2]` **Runtime/Graphics/GeometryManager.h**
+- `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
 
 ## Evidence & Implementation Details
 
@@ -650,7 +650,7 @@ using Vector2 = EngineCore::Vector2;
         inline static Vector2 GetGameViewPanelEndPos(){return (gameViewStartPos + gameViewSize) * currentWindowSize;};
         inline static Vector2 GetGameViewPanelSize(){return gameViewSize * currentWindowSize;};
         
-        static void UpdateLayout(){};
+        static void UpdateLayout(float windowWidth, float windowHeight);
 
     };
 

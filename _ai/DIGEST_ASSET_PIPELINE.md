@@ -58,7 +58,7 @@
 - `[27]` **Runtime/Platforms/D3D12/D3D12Texture.h**
 - `[26]` **Runtime/Graphics/ComputeShader.cpp**
 - `[26]` **Runtime/Graphics/ComputeShader.h**
-- `[26]` **Runtime/Graphics/GPUSceneManager.cpp**
+- `[25]` **Runtime/Core/PublicStruct.h**
 - `[25]` **Runtime/GameObject/MeshFilter.cpp**
 - `[25]` **Runtime/Graphics/GPUTexture.h**
 - `[25]` **Runtime/Graphics/MeshUtils.cpp**
@@ -67,12 +67,12 @@
 - `[24]` **Runtime/MaterialLibrary/StandardPBR.cpp**
 - `[24]` **Editor/Panel/EditorMainBar.h**
 - `[24]` **Assets/Shader/GPUCulling.hlsl**
-- `[22]` **Runtime/Core/PublicStruct.h**
 - `[22]` **Runtime/Renderer/RenderCommand.h**
 - `[22]` **Runtime/Renderer/Renderer.cpp**
 - `[22]` **Runtime/Resources/ResourceHandle.h**
 - `[21]` **Runtime/Core/Game.cpp**
 - `[20]` **Runtime/Entry.cpp**
+- `[20]` **Runtime/Renderer/BatchManager.cpp**
 - `[20]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[19]` **Runtime/Renderer/RenderAPI.h**
 
@@ -261,7 +261,7 @@ namespace EngineCore
 
             Mesh* mesh = new Mesh();
             mesh->SetAssetCreateMethod(AssetCreateMethod::Serialization);
-            mesh->SetAssetID(AssetIDGenerator::NewFromFile(path));
+            mesh->SetAssetID(AssetIDGenerator::NewFromFile(relativePath));
             StreamHelper::Read(in, mesh->bounds);
             StreamHelper::ReadVector(in, mesh->vertex);
             StreamHelper::ReadVector(in, mesh->index);
@@ -676,15 +676,15 @@ namespace EngineCore
                 
                 std::string nodeName = nodeData.name;
                 GameObject* go = scene->CreateGameObject(nodeName.empty() ? "Node" : nodeName);
-
-                go->transform->SetLocalPosition(nodeData.position);
-                go->transform->SetLocalQuaternion(nodeData.rotation);
-                go->transform->SetLocalScale(nodeData.scale);
                 if(nodeData.parentIndex != -1)
                 {
                     ASSERT(gameObjectMap.count(nodeData.parentIndex) > 0);
                     go->SetParent(gameObjectMap[nodeData.parentIndex]);
                 }
+                go->transform->SetLocalPosition(nodeData.position);
+                go->transform->SetLocalQuaternion(nodeData.rotation);
+                go->transform->SetLocalScale(nodeData.scale);
+
                 gameObjectMap[i] = go;
 
                 //todo 加入材质的异步加载：
@@ -815,6 +815,7 @@ namespace EngineCore
         explicit operator bool() const {return value != 0;};
         operator uint64_t() const { return value;}
         bool IsValid() const {return value != 0;};
+        inline void SetInValid() { value = 0; } 
         inline void Reset() { value = 0; };
         AssetID() = default;
         AssetID(uint64_t value) :value(value) {};

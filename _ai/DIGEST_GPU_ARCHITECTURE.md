@@ -23,20 +23,18 @@
 - `[33]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[33]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
 - `[26]` **Runtime/Graphics/IGPUResource.h** *(Content Included)*
-- `[23]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/D3D12DescManager.h** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
 - `[20]` **Runtime/Platforms/D3D12/D3D12DescManager.cpp** *(Content Included)*
 - `[18]` **Runtime/Renderer/RenderCommand.h** *(Content Included)*
 - `[18]` **Runtime/Platforms/D3D12/D3D12Buffer.h** *(Content Included)*
 - `[17]` **Runtime/Graphics/GeometryManager.h** *(Content Included)*
-- `[17]` **Runtime/Graphics/GPUSceneManager.h** *(Content Included)*
 - `[17]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
 - `[17]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp** *(Content Included)*
 - `[17]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h** *(Content Included)*
 - `[17]` **Runtime/Platforms/D3D12/D3D12Texture.h** *(Content Included)*
-- `[17]` **Runtime/Platforms/D3D12/d3dx12.h**
-- `[16]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
+- `[17]` **Runtime/Platforms/D3D12/d3dx12.h** *(Content Included)*
+- `[16]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h** *(Content Included)*
 - `[16]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[15]` **Runtime/Graphics/ComputeShader.h**
 - `[15]` **Runtime/Platforms/D3D12/D3D12PSO.cpp**
@@ -52,7 +50,6 @@
 - `[12]` **Runtime/Graphics/RenderTexture.h**
 - `[12]` **Runtime/Graphics/Shader.h**
 - `[12]` **Runtime/Graphics/Texture.h**
-- `[12]` **Runtime/Renderer/RenderEngine.cpp**
 - `[12]` **Runtime/Serialization/AssetHeader.h**
 - `[12]` **Runtime/Serialization/DDSTextureLoader.h**
 - `[12]` **Runtime/Serialization/MeshLoader.h**
@@ -60,7 +57,6 @@
 - `[12]` **Runtime/Serialization/ShaderLoader.h**
 - `[12]` **Runtime/Serialization/StreamHelper.h**
 - `[12]` **Runtime/Serialization/TextureLoader.h**
-- `[12]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[12]` **Runtime/Platforms/D3D12/D3D12PSO.h**
 - `[11]` **Runtime/Graphics/ComputeShader.cpp**
 - `[11]` **Runtime/Graphics/Material.cpp**
@@ -73,8 +69,12 @@
 - `[10]` **Runtime/Graphics/Texture.cpp**
 - `[10]` **Runtime/Renderer/Renderer.h**
 - `[10]` **Runtime/Renderer/RenderStruct.h**
+- `[10]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
+- `[8]` **Runtime/Renderer/RenderEngine.cpp**
 - `[8]` **Runtime/Scene/SceneManager.cpp**
+- `[7]` **Runtime/Renderer/FrameContext.h**
 - `[7]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
+- `[7]` **Editor/D3D12/D3D12EditorGUIManager.h**
 
 ## Evidence & Implementation Details
 
@@ -575,56 +575,6 @@ namespace EngineCore
 };
 ```
 
-### File: `Runtime/Graphics/GPUSceneManager.h`
-```cpp
-#include "Resources/ResourceHandle.h"
-
-namespace EngineCore
-{
-
-    class GPUSceneManager
-    {
-    public:
-        static GPUSceneManager* GetInstance();
-        GPUSceneManager();
-        static void Create();
-        void Tick();
-        void Destroy();
-        
-        BufferAllocation GetSinglePerMaterialData();
-        void RemoveSinglePerMaterialData(const BufferAllocation& bufferalloc);
-        void UpdateSinglePerMaterialData(const BufferAllocation& bufferalloc, void* data);
-
-        void TryFreeRenderProxyBlock(uint32_t index);
-        void TryCreateRenderProxyBlock(uint32_t index);
-        BufferAllocation LagacyRenderPathUploadBatch(void *data, uint32_t size);
-        void FlushBatchUploads();
-        void UpdateRenderProxyBuffer(const vector<uint32_t>& materialDirtyList);
-        void UpdateAABBandPerObjectBuffer(const vector<uint32_t>& transformDirtyList, const vector<uint32_t>& materialDirtyList);
-
-        vector<PerObjectData> perObjectDataBuffer;
-
-        LinearAllocator* perFramelinearMemoryAllocator;
-
-        GPUBufferAllocator* allMaterialDataBuffer;
-        GPUBufferAllocator* allObjectDataBuffer;
-        GPUBufferAllocator* perFrameBatchBuffer;
-        GPUBufferAllocator* allAABBBuffer;
-        GPUBufferAllocator* renderProxyBuffer;
-
-
-        BufferAllocation visiblityAlloc;
-        GPUBufferAllocator* visibilityBuffer;
-        
-        ResourceHandle<ComputeShader> GPUCullingShaderHandler;
-    private:
-        static GPUSceneManager* sInstance; 
-        vector<CopyOp> mPendingBatchCopies;
-    };
-
-}
-```
-
 ### File: `Runtime/Serialization/MaterialLoader.h`
 ```cpp
     };
@@ -769,6 +719,157 @@ namespace EngineCore
     public:
         ComPtr<ID3D12Resource> m_Resource;
         TextureDesc m_Desc;
+    };
+}
+```
+
+### File: `Runtime/Platforms/D3D12/d3dx12.h`
+```cpp
+
+//------------------------------------------------------------------------------------------------
+struct CD3DX12_DESCRIPTOR_RANGE : public D3D12_DESCRIPTOR_RANGE
+{
+    CD3DX12_DESCRIPTOR_RANGE() { }
+    explicit CD3DX12_DESCRIPTOR_RANGE(const D3D12_DESCRIPTOR_RANGE &o) :
+        D3D12_DESCRIPTOR_RANGE(o)
+    {}
+    CD3DX12_DESCRIPTOR_RANGE(
+        D3D12_DESCRIPTOR_RANGE_TYPE rangeType,
+        UINT numDescriptors,
+        UINT baseShaderRegister,
+        UINT registerSpace = 0,
+        UINT offsetInDescriptorsFromTableStart =
+        D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND)
+    {
+        Init(rangeType, numDescriptors, baseShaderRegister, registerSpace, offsetInDescriptorsFromTableStart);
+    }
+    
+    inline void Init(
+        D3D12_DESCRIPTOR_RANGE_TYPE rangeType,
+        UINT numDescriptors,
+        UINT baseShaderRegister,
+        UINT registerSpace = 0,
+        UINT offsetInDescriptorsFromTableStart =
+        D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND)
+    {
+        Init(*this, rangeType, numDescriptors, baseShaderRegister, registerSpace, offsetInDescriptorsFromTableStart);
+    }
+    
+    static inline void Init(
+        _Out_ D3D12_DESCRIPTOR_RANGE &range,
+        D3D12_DESCRIPTOR_RANGE_TYPE rangeType,
+        UINT numDescriptors,
+        UINT baseShaderRegister,
+        UINT registerSpace = 0,
+        UINT offsetInDescriptorsFromTableStart =
+        D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND)
+    {
+        range.RangeType = rangeType;
+        range.NumDescriptors = numDescriptors;
+        range.BaseShaderRegister = baseShaderRegister;
+        range.RegisterSpace = registerSpace;
+        range.OffsetInDescriptorsFromTableStart = offsetInDescriptorsFromTableStart;
+    }
+};
+```
+...
+```cpp
+struct CD3DX12_ROOT_DESCRIPTOR_TABLE : public D3D12_ROOT_DESCRIPTOR_TABLE
+{
+    CD3DX12_ROOT_DESCRIPTOR_TABLE() {}
+```
+...
+```cpp
+        _In_reads_opt_(numDescriptorRanges) const D3D12_DESCRIPTOR_RANGE* _pDescriptorRanges)
+    {
+        Init(numDescriptorRanges, _pDescriptorRanges);
+    }
+    
+    inline void Init(
+        UINT numDescriptorRanges,
+        _In_reads_(numDescriptorRanges) const D3D12_DESCRIPTOR_RANGE* _pDescriptorRanges)
+    {
+```
+...
+```cpp
+
+//------------------------------------------------------------------------------------------------
+struct CD3DX12_ROOT_DESCRIPTOR : public D3D12_ROOT_DESCRIPTOR
+{
+    CD3DX12_ROOT_DESCRIPTOR() {}
+    explicit CD3DX12_ROOT_DESCRIPTOR(const D3D12_ROOT_DESCRIPTOR &o) :
+        D3D12_ROOT_DESCRIPTOR(o)
+    {}
+    CD3DX12_ROOT_DESCRIPTOR(
+        UINT shaderRegister,
+        UINT registerSpace = 0)
+    {
+        Init(shaderRegister, registerSpace);
+    }
+    
+    inline void Init(
+        UINT shaderRegister,
+        UINT registerSpace = 0)
+    {
+        Init(*this, shaderRegister, registerSpace);
+    }
+    
+    static inline void Init(_Out_ D3D12_ROOT_DESCRIPTOR &table, UINT shaderRegister, UINT registerSpace = 0)
+    {
+        table.ShaderRegister = shaderRegister;
+        table.RegisterSpace = registerSpace;
+    }
+};
+```
+...
+```cpp
+        rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+        rootParam.ShaderVisibility = visibility;
+        CD3DX12_ROOT_DESCRIPTOR_TABLE::Init(rootParam.DescriptorTable, numDescriptorRanges, pDescriptorRanges);
+    }
+
+    static inline void InitAsConstants(
+        _Out_ D3D12_ROOT_PARAMETER &rootParam,
+        UINT num32BitValues,
+        UINT shaderRegister,
+        UINT registerSpace = 0,
+        D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL)
+    {
+```
+
+### File: `Runtime/Platforms/D3D12/D3D12ShaderUtils.h`
+```cpp
+#include "d3dUtil.h"
+
+namespace EngineCore
+{
+    class D3D12ShaderUtils
+    {
+    public:
+        static bool CompileShaderAndGetReflection(const string& path, Shader* shader);
+        static bool CompileShaderStageAndGetReflection(const string& path, string entryPoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob);
+        static bool D3D12ShaderUtils::CompileComputeShaderAndGetReflection(const string& path, ComputeShader* csShader);
+        
+        static Microsoft::WRL::ComPtr<ID3DBlob> GetVSBlob(uint32_t shaderID)
+        {
+            ASSERT(vsBlobMap.count(shaderID) > 0);
+            return vsBlobMap[shaderID];
+        }
+
+        static Microsoft::WRL::ComPtr<ID3DBlob> GetPSBlob(uint32_t shaderID)
+        {
+            ASSERT(psBlobMap.count(shaderID) > 0);
+            return psBlobMap[shaderID];
+        }
+
+        static Microsoft::WRL::ComPtr<ID3DBlob> GetCSBlob(uint32_t shaderID)
+        {
+            ASSERT(csBlobMap.count(shaderID) > 0);
+            return csBlobMap[shaderID];
+        }
+        static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> vsBlobMap;
+        static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> psBlobMap;
+        static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> csBlobMap;
     };
 }
 ```

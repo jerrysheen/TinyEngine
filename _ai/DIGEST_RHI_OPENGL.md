@@ -17,8 +17,7 @@
 ## Key Files Index
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
 - `[12]` **Runtime/Core/Game.cpp** *(Content Included)*
-- `[12]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
-- `[8]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
+- `[8]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
 - `[8]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[8]` **Runtime/Serialization/DDSTextureLoader.h** *(Content Included)*
 - `[6]` **Runtime/Renderer/Renderer.h** *(Content Included)*
@@ -35,7 +34,7 @@
 - `[2]` **Editor/EditorGUIManager.h** *(Content Included)*
 - `[2]` **Editor/EditorSettings.h** *(Content Included)*
 - `[2]` **Runtime/CoreAssert.h** *(Content Included)*
-- `[2]` **Runtime/EngineCore.h**
+- `[2]` **Runtime/EngineCore.h** *(Content Included)*
 - `[2]` **Runtime/PreCompiledHeader.h**
 - `[2]` **Runtime/Core/Game.h**
 - `[2]` **Runtime/Core/InstanceID.h**
@@ -55,7 +54,6 @@
 - `[2]` **Runtime/Graphics/ComputeShader.h**
 - `[2]` **Runtime/Graphics/GeometryManager.h**
 - `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
-- `[2]` **Runtime/Graphics/GPUSceneManager.h**
 - `[2]` **Runtime/Graphics/GPUTexture.h**
 - `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/IGPUResource.h**
@@ -75,6 +73,8 @@
 - `[2]` **Runtime/Math/Frustum.h**
 - `[2]` **Runtime/Math/Math.h**
 - `[2]` **Runtime/Math/Matrix4x4.h**
+- `[2]` **Runtime/Math/Plane.h**
+- `[2]` **Runtime/Math/Quaternion.h**
 
 ## Evidence & Implementation Details
 
@@ -112,8 +112,9 @@ namespace EngineCore
         #endif
         while(!WindowManager::GetInstance()->WindowShouldClose())
         {
+            mFrameIndex++;
             PROFILER_FRAME_MARK("TinyProfiler");
-            Update();
+            Update(mFrameIndex);
 
             Render();
 
@@ -150,11 +151,12 @@ namespace EngineCore
         std::cout << "Game shutdown complete." << std::endl;
     }
 
-    void Game::Update()
+    void Game::Update(uint32_t frameIndex)
     {
         PROFILER_ZONE("MainThread::GameUpdate");
-        SceneManager::GetInstance()->Update();
         ResourceManager::GetInstance()->Update();
+        SceneManager::GetInstance()->Update(frameIndex);
+        RenderEngine::GetInstance()->Update(frameIndex);
     }
 
     void Game::Render()
@@ -166,9 +168,9 @@ namespace EngineCore
     void Game::EndFrame()
     {
         SceneManager::GetInstance()->EndFrame();
+        RenderEngine::GetInstance()->EndFrame();
     }
 
-}
 ```
 
 ### File: `Runtime/Renderer/RenderEngine.cpp`
@@ -184,14 +186,20 @@ namespace EngineCore
     void RenderEngine::Create()
     {
         s_Instance = std::make_unique<RenderEngine>();
+        s_Instance->GetGPUScene().Create();
         WindowManager::Create();
         RenderAPI::Create();
         Renderer::Create();
-        GPUSceneManager::Create();
     }
 
-    void RenderEngine::Update()
+    void RenderEngine::Update(uint32_t frameID)
     {
+
+        mCPUScene.Update(frameID);
+        mGPUScene.Update(frameID);
+
+        ComsumeDirtySceneRenderNode();
+
     }    
     
     void RenderEngine::OnResize(int width, int height)
@@ -207,6 +215,8 @@ namespace EngineCore
         PROFILER_EVENT_END("MainThread::WaitForGpuFinished");
 
 
+
+
         if (RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy)
         {
             lagacyRenderPath.Execute(renderContext);
@@ -220,13 +230,18 @@ namespace EngineCore
 
     }
 
+    void RenderEngine::EndFrame()
+    {
+        mCPUScene.EndFrame();
+    }
+
     void RenderEngine::Destory()
     {
         // Renderer 的析构函数会自动停止渲染线程
         Renderer::Destroy();
         //RenderAPI::Destroy();
         WindowManager::Destroy();
-        GPUSceneManager::GetInstance()->Destroy();
+        RenderEngine::GetInstance()->GetGPUScene().Destroy();
         // 最后销毁 RenderEngine 自己
         if (s_Instance)
         {
@@ -240,7 +255,9 @@ namespace EngineCore
         }
     }
 
-    void RenderEngine::WaitForLastFrameFinished()
+```
+...
+```cpp
     {
         PROFILER_EVENT_BEGIN("MainThread::WaitforSignalFromRenderThread");
         CpuEvent::RenderThreadSubmited().Wait();
@@ -250,9 +267,6 @@ namespace EngineCore
 
     void RenderEngine::SignalMainThreadSubmited()
     {
-        CpuEvent::MainThreadSubmited().Signal();
-    }
-
 ```
 
 ### File: `Runtime/Serialization/DDSTextureLoader.h`
@@ -1007,7 +1021,7 @@ using Vector2 = EngineCore::Vector2;
         inline static Vector2 GetGameViewPanelEndPos(){return (gameViewStartPos + gameViewSize) * currentWindowSize;};
         inline static Vector2 GetGameViewPanelSize(){return gameViewSize * currentWindowSize;};
         
-        static void UpdateLayout(){};
+        static void UpdateLayout(float windowWidth, float windowHeight);
 
     };
 

@@ -17,8 +17,7 @@
 - `[20]` **Win-GenProjects.bat** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
 - `[12]` **Runtime/Core/Game.cpp** *(Content Included)*
-- `[12]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
-- `[8]` **Runtime/Graphics/GPUSceneManager.cpp** *(Content Included)*
+- `[8]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
 - `[8]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[6]` **Runtime/Renderer/Renderer.h** *(Content Included)*
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h** *(Content Included)*
@@ -31,7 +30,7 @@
 - `[4]` **Assets/Shader/StandardPBR.hlsl** *(Content Included)*
 - `[4]` **Assets/Shader/StandardPBR_VertexPulling.hlsl** *(Content Included)*
 - `[2]` **Editor/EditorGUIManager.h** *(Content Included)*
-- `[2]` **Editor/EditorSettings.h**
+- `[2]` **Editor/EditorSettings.h** *(Content Included)*
 - `[2]` **Runtime/CoreAssert.h**
 - `[2]` **Runtime/EngineCore.h**
 - `[2]` **Runtime/PreCompiledHeader.h**
@@ -53,7 +52,6 @@
 - `[2]` **Runtime/Graphics/ComputeShader.h**
 - `[2]` **Runtime/Graphics/GeometryManager.h**
 - `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
-- `[2]` **Runtime/Graphics/GPUSceneManager.h**
 - `[2]` **Runtime/Graphics/GPUTexture.h**
 - `[2]` **Runtime/Graphics/IGPUBufferAllocator.h**
 - `[2]` **Runtime/Graphics/IGPUResource.h**
@@ -71,6 +69,8 @@
 - `[2]` **Runtime/MaterialLibrary/StandardPBR.h**
 - `[2]` **Runtime/Math/AABB.h**
 - `[2]` **Runtime/Math/Frustum.h**
+- `[2]` **Runtime/Math/Math.h**
+- `[2]` **Runtime/Math/Matrix4x4.h**
 
 ## Evidence & Implementation Details
 
@@ -658,6 +658,65 @@ namespace EngineEditor
     private:
         std::vector<EditorPanel*> mPanelList;
         GameObject* currentSelected = nullptr;
+    };
+
+
+}
+```
+
+### File: `Editor/EditorSettings.h`
+```cpp
+
+
+namespace EngineEditor
+{
+using Vector2 = EngineCore::Vector2;
+    // Editor
+    class EditorSettings
+    {
+    private:
+        // StartPos 和 Size都是0~1的ratio
+        static Vector2  hierarchyStartPos;
+        static Vector2  hierarchySize;
+        static Vector2  consoleStartPos;
+        static Vector2  consoleSize;
+        static Vector2  projectStartPos;
+        static Vector2  projectSize;
+        static Vector2  inspectorStartPos;
+        static Vector2  inspectorSize;
+        static Vector2  mainBarStartPos;
+        static Vector2  mainBarSize;
+        static Vector2  gameViewStartPos;
+        static Vector2  gameViewSize;
+
+        static Vector2 currentWindowSize;
+    public:
+        inline static Vector2 GetHierarchyPanelStartPos(){return hierarchyStartPos * currentWindowSize;};
+        inline static Vector2 GetHierarchyPanelEndPos(){return (hierarchyStartPos + hierarchySize) * currentWindowSize; };
+        inline static Vector2 GetHierarchyPanelSize(){return hierarchySize * currentWindowSize;};
+
+        inline static Vector2 GetConsolePanelStartPos(){return consoleStartPos * currentWindowSize;};
+        inline static Vector2 GetConsolePanelEndPos(){return (consoleStartPos + consoleSize) * currentWindowSize;};
+        inline static Vector2 GetConsolePanelSize(){return consoleSize * currentWindowSize;};
+
+        inline static Vector2 GetProjectPanelStartPos(){return projectStartPos * currentWindowSize;};
+        inline static Vector2 GetProjectPanelEndPos(){return (projectStartPos + projectSize) * currentWindowSize;};
+        inline static Vector2 GetProjectPanelSize(){return projectSize * currentWindowSize;};
+
+        inline static Vector2 GetInspectorPanelStartPos(){return inspectorStartPos * currentWindowSize;};
+        inline static Vector2 GetInspectorPanelEndPos(){return (inspectorStartPos + inspectorSize) * currentWindowSize;};
+        inline static Vector2 GetInspectorPanelSize(){return inspectorSize * currentWindowSize;};
+
+        inline static Vector2 GetMainBarPanelStartPos(){return mainBarStartPos * currentWindowSize;};
+        inline static Vector2 GetMainBarPanelEndPos(){return (mainBarStartPos + mainBarSize) * currentWindowSize;};
+        inline static Vector2 GetMainBarPanelSize(){return mainBarSize * currentWindowSize;};
+
+        inline static Vector2 GetGameViewPanelStartPos(){return gameViewStartPos * currentWindowSize;};
+        inline static Vector2 GetGameViewPanelEndPos(){return (gameViewStartPos + gameViewSize) * currentWindowSize;};
+        inline static Vector2 GetGameViewPanelSize(){return gameViewSize * currentWindowSize;};
+        
+        static void UpdateLayout(float windowWidth, float windowHeight);
+
     };
 
 

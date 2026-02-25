@@ -100,6 +100,7 @@
       "CORE_SYSTEM": ["Runtime/Core", "Runtime/Core/Allocator", "Runtime/Core/Concurrency", "Runtime/Math", "Runtime/Serialization", "Runtime/Utils", "PublicStruct", "PublicEnum", "Profiler", "Job", "JobSystem", "InstanceID", "Allocator"],
       "GAMEPLAY": ["Runtime/GameObject", "Runtime/Scene", "Runtime/Scripts", "Runtime/Managers", "Window", "Input", "Camera", "Transform", "Component", "MonoBehaviour"],
       "RHI_D3D12": ["Runtime/Platforms/D3D12", "RenderAPI", "Descriptor", "RootSignature", "PSO", "SwapChain", "Barrier", "Command", "Fence", "Context"],
+      "COMPONENT_SYSTEM": ["Camera", "Component", "ComponentType", "MeshFilter", "MeshRenderer", "MonoBehaviour", "Transform", "Scene"],
       "GRAPHICS_RES": ["Runtime/Graphics", "Runtime/Resources", "Runtime/MaterialLibrary", "Runtime/MaterialLibrary/MaterialLayout.h", "Runtime/MaterialLibrary/MaterialInstance.h", "Runtime/MaterialLibrary/MaterialArchetypeRegistry.h", "Material", "MaterialLayout", "MaterialInstance", "MaterialArchetypeRegistry", "Texture", "GPUBuffer", "Mesh", "GPUScene", "Vertex", "Index", "Layout", "Bindless"],
       "RENDER_PIPE": ["Runtime/Renderer", "Runtime/Renderer/RenderPipeLine", "Runtime/Renderer/RenderPath", "RenderPipeLine", "RenderPass", "RenderPath", "RenderContext", "Batch", "Culling", "RenderEngine", "Sort", "Blit"],
       "EDITOR_SYSTEM": ["Editor", "Editor/Panel", "Editor/D3D12", "Editor/EditorSerialization", "Editor/Mac", "Panel", "Inspector", "Hierarchy", "Gizmo", "GUI", "Widget", "Console"],

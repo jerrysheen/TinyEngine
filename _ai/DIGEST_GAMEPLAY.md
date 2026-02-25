@@ -31,27 +31,31 @@
 - `[27]` **Runtime/Platforms/Windows/WindowManagerWindows.h** *(Content Included)*
 - `[26]` **Runtime/GameObject/GameObject.h** *(Content Included)*
 - `[25]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
+- `[25]` **Runtime/Scene/Scene.cpp** *(Content Included)*
 - `[25]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp** *(Content Included)*
 - `[24]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
-- `[23]` **Runtime/Scene/Scene.cpp** *(Content Included)*
-- `[23]` **Runtime/Scene/Scene.h** *(Content Included)*
+- `[22]` **Runtime/Scene/Scene.h** *(Content Included)*
 - `[21]` **Runtime/GameObject/GameObject.cpp**
 - `[20]` **Runtime/Entry.cpp**
-- `[19]` **Runtime/GameObject/MeshRenderer.h**
+- `[18]` **Runtime/GameObject/MeshRenderer.h**
 - `[17]` **Runtime/GameObject/MeshFilter.h**
-- `[17]` **Runtime/Renderer/RenderEngine.cpp**
+- `[17]` **Runtime/Scene/SceneStruct.h**
+- `[15]` **Runtime/Scene/CPUScene.cpp**
 - `[14]` **Runtime/Core/Game.cpp**
-- `[14]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[14]` **Runtime/Scene/SceneManager.h**
-- `[13]` **Runtime/Graphics/GPUSceneManager.cpp**
+- `[13]` **Runtime/Renderer/RenderEngine.cpp**
+- `[13]` **Runtime/Scene/CPUScene.h**
 - `[13]` **Editor/Panel/EditorMainBar.cpp**
-- `[12]` **Runtime/GameObject/MeshFilter.cpp**
 - `[12]` **Runtime/Managers/Manager.h**
 - `[12]` **Runtime/Scene/BistroSceneLoader.h**
+- `[12]` **Runtime/Scene/GPUScene.h**
 - `[12]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[12]` **Editor/Panel/EditorInspectorPanel.cpp**
+- `[11]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[11]` **Runtime/Serialization/SceneLoader.h**
 - `[11]` **Assets/Shader/StandardPBR.hlsl**
+- `[10]` **Runtime/GameObject/MeshFilter.cpp**
+- `[10]` **Runtime/Scene/GPUScene.cpp**
 - `[10]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[10]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
 - `[9]` **Runtime/Renderer/Renderer.cpp**
@@ -59,6 +63,7 @@
 - `[9]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[9]` **Assets/Shader/BlitShader.hlsl**
 - `[9]` **Assets/Shader/GPUCulling.hlsl**
+- `[8]` **Editor/EditorSettings.cpp**
 - `[8]` **Runtime/Graphics/Mesh.h**
 - `[8]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[8]` **Editor/Panel/EditorHierarchyPanel.cpp**
@@ -66,15 +71,10 @@
 - `[7]` **Editor/EditorSettings.h**
 - `[7]` **Runtime/PreCompiledHeader.h**
 - `[7]` **Runtime/Renderer/RenderSorter.h**
-- `[7]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[6]` **Runtime/Renderer/RenderCommand.h**
 - `[6]` **Runtime/Renderer/RenderContext.h**
-- `[6]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[5]` **Runtime/Graphics/Mesh.cpp**
-- `[5]` **Runtime/Renderer/RenderAPI.h**
-- `[5]` **Runtime/Settings/ProjectSettings.h**
-- `[5]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 
 ## Evidence & Implementation Details
 
@@ -165,22 +165,19 @@ namespace EngineCore
 
         inline const Matrix4x4& GetWorldMatrix()
         {
-            UpdateIfDirty(); 
             return mWorldMatrix;
         }
         
         inline const Matrix4x4& GetLocalMatrix()
         {
-            UpdateIfDirty(); 
             return mLocalMatrix;
         }
 
-        void UpdateIfDirty();
-        void UpdateTransform();
-        //inline void UpdateNow() { UpdateTransform(); };
-        uint32_t transformVersion = 1;
+        void UpdateRecursively(uint32_t frameID);
+        inline uint32_t GetNodeDepth() { return mDepth; }
+
     public:
-        bool isDirty = true;
+        bool isDirty = false;
         std::vector<Transform*> childTransforms;
         Transform* parentTransform = nullptr;
         
@@ -190,24 +187,27 @@ namespace EngineCore
         // 外部不能访问修改， 只能访问GameObject.SetParent
         inline void SetParent(Transform* transform)
         {
+            ASSERT(transform);
+            if(mDepth != 0)
+            {
+                parentTransform->RemoveChild(this);
+            }
             parentTransform = transform; 
-            if(transform)transform->AddChild(this);
+            transform->AddChild(this);
+            mDepth = transform->GetNodeDepth() + 1;
+            MarkDirty();
         };
 
         inline void DettachParent()
         {
             if(parentTransform != nullptr) parentTransform->RemoveChild(this);
             parentTransform = nullptr;
+            mDepth = 0;
+            MarkDirty();
         }
 
         inline void AddChild(Transform* transform)
         {
-            childTransforms.push_back(transform);
-        };
-
-        inline void RemoveChild(Transform* transform)
-        {
-            auto it = std::find(childTransforms.begin(), childTransforms.end(), transform);
 ```
 
 ### File: `Runtime/GameObject/MonoBehaviour.h`
@@ -292,11 +292,20 @@ namespace EngineCore
 ```cpp
 namespace EngineCore
 {
-    class  WindowManager : public Manager<WindowManager>
+    class  WindowManager
     {
     public:
+        inline static WindowManager* GetInstance() 
+        {
+            if (s_Instance == nullptr)
+            {
+                Create();
+            };
+            return s_Instance.get();
+        }
         static void Update();
         static void Create();
+        static void Destroy();
         virtual bool WindowShouldClose() = 0;
         virtual void OnResize() = 0;
         virtual void* GetWindow() = 0;
@@ -306,8 +315,9 @@ namespace EngineCore
         {
             return {mWindowWidth, mWindowHeight};
         }
-        ~WindowManager() override {};
+        ~WindowManager(){};
         WindowManager(){};
+
     protected:
         int mWindowWidth;
         int mWindowHeight;
@@ -316,6 +326,7 @@ namespace EngineCore
         bool mResized = false;
         bool mAppPaused = false;
 		bool mMaximized = false;
+        static std::unique_ptr<WindowManager> s_Instance;
     };
 ```
 
@@ -327,7 +338,7 @@ namespace EngineCore
     {
     public :
         static void Update();
-        static void Create();
+        void Create();
         virtual bool WindowShouldClose() override;
         virtual void OnResize() override;
         WindowManagerWindows();
@@ -372,6 +383,8 @@ namespace EngineCore
         bool enabled = true;
             // 非模板方式
         void AddComponent(Component* compont);
+        inline Scene* GetOwnerScene() { return ownerScene; }
+        inline void SetOwnerScene(Scene* scene) { ownerScene = scene; }
     private:
         Scene* ownerScene = nullptr;
     };
@@ -386,27 +399,35 @@ namespace EngineCore
 ```
 ...
 ```cpp
+        void TryRemoveRootGameObject(GameObject* object);
+
+        void PushNewTransformDirtyRoot(Transform* transform);
+
+        
+        //todo: 先用vector写死，后面要用priorityqueue之类的
+        std::vector<Camera*> cameraStack;
 
         void RunLogicUpdate();
         void RunTransformUpdate();
-        void RunRecordDirtyRenderNode();
+        void RunRemoveInvalidDirtyRenderNode();
 
-
-        // todo:
-        // 材质更新的时候， 也需要去调用这个逻辑，比如changeRenderNodeInfo之类的，
-        int AddNewRenderNodeToCurrentScene(MeshRenderer* renderer);
-        void DeleteRenderNodeFromCurrentScene(uint32_t index);
+        uint32_t CreateRenderNode();
         
-    public:
-        int m_CurrentSceneRenderNodeIndex = 0;
-        std::queue<uint32_t> m_FreeSceneNode;
-        std::string name;
-        std::vector<GameObject*> allObjList;
-        std::vector<GameObject*> rootObjList;
-        bool enabled = true;
-        Camera* mainCamera = nullptr;
-        RenderSceneData renderSceneData;
-    private:
+        void DeleteRenderNode(MeshRenderer *renderer);
+        void MarkNodeCreated(MeshRenderer* renderer);
+        void MarkNodeTransformDirty(Transform* transform);
+        void MarkNodeMeshFilterDirty(MeshFilter* meshFilter);
+        void MarkNodeMeshRendererDirty(MeshRenderer* renderer);
+        void MarkNodeRenderableDirty(GameObject* object);
+        
+        inline std::vector<uint32_t>& GetPerFrameDirtyNodeList(){ return mPerFrameDirtyNodeList;}
+```
+...
+```cpp
+        void EnsureNodeQueueSize(uint32_t size);
+        void ClearPerFrameData();
+        void ClearDirtyRootTransform();
+        void PushLastFrameFreeIndex();
     };    
 } // namespace EngineCore
 ```

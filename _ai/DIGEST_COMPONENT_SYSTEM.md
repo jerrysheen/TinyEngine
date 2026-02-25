@@ -1,5 +1,5 @@
-# Architecture Digest: SCENE_SYSTEM
-> Auto-generated. Focus: Runtime/Scene, SceneManager, Scene, SceneLoader, BistroSceneLoader, GameObject, Component, Transform, Hierarchy, MeshFilter, MeshRenderer, GPUSceneManager, Game
+# Architecture Digest: COMPONENT_SYSTEM
+> Auto-generated. Focus: Camera, Component, ComponentType, MeshFilter, MeshRenderer, MonoBehaviour, Transform, Scene
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
@@ -10,73 +10,117 @@
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
 
-## Understanding Notes
-- Scene与GameObject/Component的组织结构。
-- 场景管理、加载与切换流程。
-
 ## Key Files Index
-- `[120]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
-- `[91]` **Runtime/Scene/BistroSceneLoader.h** *(Content Included)*
-- `[86]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
-- `[79]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
-- `[74]` **Runtime/Scene/SceneManager.h** *(Content Included)*
-- `[69]` **Runtime/GameObject/GameObject.h** *(Content Included)*
-- `[67]` **Runtime/GameObject/GameObject.cpp** *(Content Included)*
-- `[65]` **Runtime/Scene/Scene.cpp** *(Content Included)*
-- `[63]` **Runtime/GameObject/Transform.h** *(Content Included)*
-- `[62]` **Runtime/GameObject/MeshRenderer.cpp** *(Content Included)*
-- `[61]` **Runtime/GameObject/MeshFilter.cpp** *(Content Included)*
-- `[60]` **Runtime/GameObject/Transform.cpp** *(Content Included)*
-- `[60]` **Runtime/Scene/Scene.h** *(Content Included)*
-- `[58]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
-- `[55]` **Runtime/GameObject/MeshFilter.h** *(Content Included)*
-- `[53]` **Runtime/GameObject/Component.h** *(Content Included)*
-- `[49]` **Runtime/GameObject/ComponentType.h** *(Content Included)*
-- `[48]` **Runtime/Core/Game.cpp** *(Content Included)*
-- `[46]` **Runtime/Scene/CPUScene.cpp** *(Content Included)*
-- `[46]` **Editor/Panel/EditorHierarchyPanel.cpp** *(Content Included)*
-- `[45]` **Runtime/GameObject/Component.cpp**
-- `[44]` **Runtime/Scene/CPUScene.h**
-- `[43]` **Runtime/Scene/SceneStruct.h**
-- `[40]` **Runtime/GameObject/Camera.cpp**
-- `[40]` **Editor/Panel/EditorMainBar.cpp**
-- `[37]` **Runtime/Scene/GPUScene.h**
-- `[37]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
-- `[36]` **Runtime/Scene/GPUScene.cpp**
-- `[34]` **Editor/Panel/EditorHierarchyPanel.h**
-- `[31]` **Runtime/GameObject/MonoBehaviour.h**
-- `[29]` **Runtime/GameObject/Camera.h**
-- `[28]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
-- `[28]` **Editor/Panel/EditorGameViewPanel.cpp**
-- `[27]` **Runtime/Core/Game.h**
-- `[26]` **Runtime/GameObject/MonoBehaviour.cpp**
-- `[25]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
-- `[24]` **Runtime/Entry.cpp**
+- `[54]` **Runtime/GameObject/ComponentType.h** *(Content Included)*
+- `[50]` **Runtime/Scene/Scene.cpp** *(Content Included)*
+- `[49]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
+- `[46]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
+- `[45]` **Runtime/Scene/Scene.h** *(Content Included)*
+- `[41]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
+- `[38]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
+- `[38]` **Runtime/GameObject/Transform.h** *(Content Included)*
+- `[37]` **Runtime/GameObject/MeshFilter.h** *(Content Included)*
+- `[36]` **Runtime/GameObject/Camera.h** *(Content Included)*
+- `[35]` **Runtime/GameObject/Camera.cpp** *(Content Included)*
+- `[35]` **Runtime/GameObject/MonoBehaviour.h** *(Content Included)*
+- `[32]` **Runtime/Scene/CPUScene.cpp** *(Content Included)*
+- `[31]` **Runtime/GameObject/MeshFilter.cpp** *(Content Included)*
+- `[31]` **Runtime/GameObject/MeshRenderer.cpp** *(Content Included)*
+- `[31]` **Runtime/Scene/SceneStruct.h** *(Content Included)*
+- `[30]` **Runtime/GameObject/Transform.cpp** *(Content Included)*
+- `[30]` **Runtime/Scene/CPUScene.h** *(Content Included)*
+- `[30]` **Runtime/Scene/SceneManager.h** *(Content Included)*
+- `[29]` **Runtime/GameObject/Component.h** *(Content Included)*
+- `[29]` **Runtime/Scene/BistroSceneLoader.h**
+- `[28]` **Runtime/GameObject/GameObject.h**
+- `[28]` **Runtime/Scripts/CameraController.h**
+- `[28]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
+- `[27]` **Runtime/Scene/GPUScene.h**
+- `[27]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
+- `[27]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
+- `[25]` **Runtime/Scene/GPUScene.cpp**
+- `[25]` **Runtime/Scripts/CameraController.cpp**
 - `[24]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
-- `[24]` **Editor/Panel/EditorGameViewPanel.h**
-- `[18]` **Runtime/Renderer/Culling.cpp**
-- `[17]` **Runtime/Renderer/RenderEngine.cpp**
-- `[13]` **Editor/EditorSettings.cpp**
-- `[12]` **Editor/EditorGUIManager.h**
-- `[12]` **Editor/EditorSettings.h**
+- `[23]` **Runtime/GameObject/Component.cpp**
+- `[23]` **Runtime/GameObject/MonoBehaviour.cpp**
+- `[23]` **Editor/Panel/EditorMainBar.cpp**
+- `[20]` **Runtime/Entry.cpp**
+- `[18]` **Runtime/GameObject/GameObject.cpp**
+- `[17]` **Runtime/Core/Game.cpp**
+- `[14]` **Runtime/Renderer/RenderEngine.cpp**
 - `[12]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
-- `[12]` **Editor/Panel/EditorMainBar.h**
-- `[10]` **Runtime/Renderer/RenderContext.cpp**
-- `[10]` **Runtime/Renderer/RenderPath/LagacyRenderPath.cpp**
-- `[10]` **Editor/Panel/EditorInspectorPanel.h**
-- `[9]` **Runtime/Renderer/BatchManager.h**
-- `[9]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
+- `[11]` **Runtime/Renderer/Culling.cpp**
+- `[9]` **Editor/Panel/EditorHierarchyPanel.cpp**
 - `[9]` **Editor/Panel/EditorInspectorPanel.cpp**
 - `[8]` **Runtime/Graphics/Mesh.h**
-- `[8]` **Runtime/Scripts/CameraController.cpp**
-- `[8]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
+- `[8]` **Runtime/Renderer/RenderPath/LagacyRenderPath.cpp**
+- `[8]` **Editor/Panel/EditorInspectorPanel.h**
 - `[7]` **Runtime/Renderer/FrameContext.cpp**
 - `[7]` **Runtime/Renderer/FrameContext.h**
 - `[7]` **Runtime/Renderer/RenderEngine.h**
 - `[7]` **Runtime/Renderer/Renderer.h**
-- `[6]` **Editor/EditorGUIManager.cpp**
+- `[7]` **Runtime/Renderer/RenderSorter.h**
+- `[7]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
+- `[7]` **Editor/Panel/EditorMainBar.h**
+- `[6]` **Runtime/Core/PublicStruct.h**
+- `[6]` **Runtime/Renderer/RenderContext.cpp**
+- `[6]` **Runtime/Renderer/RenderContext.h**
+- `[6]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
+- `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
+- `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
+- `[6]` **Assets/Shader/StandardPBR.hlsl**
+- `[5]` **Runtime/Graphics/Material.cpp**
+- `[5]` **Runtime/Graphics/Mesh.cpp**
 
 ## Evidence & Implementation Details
+
+### File: `Runtime/GameObject/ComponentType.h`
+```cpp
+namespace EngineCore
+{
+    enum class ComponentType
+    {
+        MeshRenderer,
+        MeshFilter,
+        Camera,
+        Transform,
+        Script
+    };
+```
+
+### File: `Runtime/Scene/Scene.cpp`
+```cpp
+        PushLastFrameFreeIndex();
+        RunLogicUpdate();
+        RunTransformUpdate();
+        RunRemoveInvalidDirtyRenderNode();
+    }
+
+    void Scene::EndFrame()
+    {
+```
+...
+```cpp
+    void Scene::PushNewTransformDirtyRoot(Transform *transform)
+    {
+        ASSERT(transform);
+        dirtyRootDepthBucket[transform->GetNodeDepth()].push_back(transform);
+    }
+
+    void Scene::RunLogicUpdate()
+    {
+```
+...
+```cpp
+        uint32_t renderID = renderer->GetCPUWorldIndex();
+
+        NodeDirtyPayload payload(transform);
+        ApplyQueueNodeChange(renderID, (uint32_t)NodeDirtyFlags::TransformDirty, payload);        
+    }
+
+    void Scene::MarkNodeMeshFilterDirty(MeshFilter *meshFilter)
+    {
+```
 
 ### File: `Runtime/Scene/BistroSceneLoader.cpp`
 ```cpp
@@ -92,25 +136,6 @@
                 }
                 gameObject->transform->isDirty = true;
             }
-```
-...
-```cpp
-    }
-
-    void CollectMeshes(GameObject* node, std::vector<Mesh*>& distinctMeshes, std::unordered_map<Mesh*, int>& meshMap) {
-        MeshFilter* mf = node->GetComponent<MeshFilter>();
-        if (mf && mf->mMeshHandle.IsValid()) {
-            Mesh* mesh = mf->mMeshHandle.Get();
-            if (meshMap.find(mesh) == meshMap.end()) {
-                meshMap[mesh] = (int)distinctMeshes.size();
-                distinctMeshes.push_back(mesh);
-            }
-        }
-
-        for (auto child : node->GetChildren()) {
-            CollectMeshes(child, distinctMeshes, meshMap);
-        }
-    }
 ```
 ...
 ```cpp
@@ -225,97 +250,52 @@
 
     Scene* BistroSceneLoader::LoadFromCache(const std::string& path) {
 ```
-
-### File: `Runtime/Scene/BistroSceneLoader.h`
+...
 ```cpp
 
-namespace EngineCore {
-    class GameObject;
-    class Scene;
+        Scene* newScene = new Scene("BistroScene");
+        SceneManager::GetInstance()->SetCurrentScene(newScene);
 
-    class BistroSceneLoader {
-    public:
-        static Scene* Load(const std::string& path);
-        static void SaveToCache(Scene* scene, const std::string& path);
-        static Scene* LoadFromCache(const std::string& path);
-        static ResourceHandle<Material> commonMatHandle;
-        
-    private:
-        Scene* LoadInternal(const std::string& path);
-        void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
-        void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
-        void ProcessMaterials(const tinygltf::Model& model);
-        void ProcessShaders();
-        void ProcessTexture(const tinygltf::Model& model);
-        void CreateDefaultResources();
-        void AttachMaterialToGameObject(GameObject* gameObject, int materialIndex);
-        AssetID GetTextureAssetID(const tinygltf::Model& model, int textureIndex);
-        std::map<int, std::vector<std::pair<ResourceHandle<Mesh>, int>>> m_MeshCache;
-        std::vector<AssetID> m_ImageIndexToID;
-        std::vector<ResourceHandle<Material>> m_MaterialMap;
-    };
-```
+        // 1. Load Meshes
+        size_t meshCount;
+        in.read(reinterpret_cast<char*>(&meshCount), sizeof(meshCount));
+        std::vector<ResourceHandle<Mesh>> loadedMeshes;
+        loadedMeshes.reserve(meshCount);
 
-### File: `Runtime/Scene/SceneManager.cpp`
-```cpp
-    inline Scene* SceneManager::AddNewScene(const std::string& name)
-    {
-        ASSERT_MSG(mSceneMap.count(name) == 0, "The Same Name Scene Has Been Created");
-        Scene* scene = new Scene(name);
-        mSceneMap.try_emplace(name, scene);
-        if (mCurrentScene == nullptr) 
-        {
-            mCurrentScene = scene;
+        for (size_t i = 0; i < meshCount; i++) {
+            ResourceHandle<Mesh> handle = ResourceManager::GetInstance()->CreateResource<Mesh>();
+            Mesh* mesh = handle.Get();
+
+            // Bounds
+            in.read(reinterpret_cast<char*>(&mesh->bounds), sizeof(AABB));
+
+            // Vertices
+            size_t vCount;
+            in.read(reinterpret_cast<char*>(&vCount), sizeof(vCount));
+            if (vCount > 0) {
+                mesh->vertex.resize(vCount);
+                in.read(reinterpret_cast<char*>(mesh->vertex.data()), vCount * sizeof(Vertex));
+            }
+
+            // Indices
+            size_t iCount;
+            in.read(reinterpret_cast<char*>(&iCount), sizeof(iCount));
+            if (iCount > 0) {
+                mesh->index.resize(iCount);
+                in.read(reinterpret_cast<char*>(mesh->index.data()), iCount * sizeof(int));
+            }
+
+            // Layout
+            size_t lCount;
+            in.read(reinterpret_cast<char*>(&lCount), sizeof(lCount));
+            if (lCount > 0) {
+                mesh->layout.resize(lCount);
+                in.read(reinterpret_cast<char*>(mesh->layout.data()), lCount * sizeof(InputLayout));
+            }
+
+            mesh->UploadMeshToGPU();
+            loadedMeshes.push_back(handle);
         }
-```
-...
-```cpp
-    void SceneManager::RemoveScene(const std::string& name)
-    {
-        ASSERT_MSG(mSceneMap.count(name) > 0, "Can't find this scene");
-        // auto* 和 auto 是一样的道理， *在这个地方其实是一种语义，表示指针
-        auto* scene = mSceneMap[name];
-        if(mCurrentScene == scene)
-        {
-            scene->Close();
-        }
-```
-...
-```cpp
-    void SceneManager::SwitchSceneTo(const std::string& name)
-    {
-        ASSERT(mSceneMap.count(name) > 0);
-        auto* scene = mSceneMap[name];
-        if(scene == mCurrentScene) return;
-        mCurrentScene->Close();
-        scene->Open();
-        mCurrentScene  = scene;
-    };
-
-    void SceneManager::Update(uint32_t frameIndex)
-    {
-```
-...
-```cpp
-
-
-        ASSERT(scene);
-        if (scene) {
-             mSceneMap[scene->name] = scene;
-             mCurrentScene = scene;
-             scene->Open();
-        }
-```
-...
-```cpp
-    GameObject *SceneManager::CreateGameObject(const std::string& name)
-    {
-        ASSERT(mCurrentScene != nullptr);
-        return mCurrentScene->CreateGameObject(name);
-    }
-
-    GameObject *SceneManager::FindGameObject(const std::string& name)
-    {
 ```
 
 ### File: `Runtime/Serialization/SceneLoader.h`
@@ -410,208 +390,6 @@ namespace EngineCore
                 
                 SerilizedNode(gameObject, gameObjectMap, linearNode);
             }
-```
-...
-```cpp
-            else
-            {
-                ASSERT(gameObjectMap.count(parent->gameObject) > 0);
-                node.parentIndex = gameObjectMap[parent->gameObject];
-                gameObjectMap[gameObject] = linearNode.size();
-            }
-            node.materialID = materialID;
-            node.meshID = meshID;
-            node.position = gameObject->transform->GetLocalPosition();
-            node.rotation = gameObject->transform->GetLocalQuaternion();
-            node.scale = gameObject->transform->GetLocalScale();
-            linearNode.push_back(node);
-
-            for (auto* child : gameObject->GetChildren()) 
-            {
-```
-
-### File: `Runtime/Scene/SceneManager.h`
-```cpp
-namespace EngineCore
-{
-    class Scene;
-    class SceneManager
-    {
-        // 允许Manager类访问SceneManager私有函数。
-    public:
-        void LoadScene();
-        void UnloadScene();
-        GameObject* CreateGameObject(const std::string& name);
-        GameObject* FindGameObject(const std::string& name);
-
-        void RemoveScene(const std::string& name);
-        static void Update(uint32_t frameIndex);
-        static void Create();
-        static void Destroy();
-        static void EndFrame();
-        void Init();
-    public:
-        inline static SceneManager* GetInstance() 
-        {
-            if (!s_Instance) 
-            {
-                s_Instance = new SceneManager();
-            }
-            return s_Instance;
-        }
-
-        SceneManager();
-        ~SceneManager();
-
-        // todo： 这部分数据也要找地方存， maybe一个Global的渲染处
-
-        Material* blitMaterial;
-        Mesh* quadMesh;
-        ResourceHandle<Shader> blitShader;
-        ResourceHandle<Texture> testTexture;
-
-        inline Scene* GetCurrentScene() 
-        { 
-            return mCurrentScene; 
-        };
-        inline void SetCurrentScene(Scene* scene) 
-        { 
-            mCurrentScene = scene; 
-        };
-        Scene* AddNewScene(const std::string& name);
-        void SwitchSceneTo(const std::string& name);
-
-    private:
-        static SceneManager* s_Instance;
-        Scene* mCurrentScene = nullptr;
-        unordered_map<std::string, Scene*> mSceneMap;
-        vector<ResourceHandle<Texture>> texHandler;
-    };
-
-}
-```
-
-### File: `Runtime/GameObject/GameObject.h`
-```cpp
-namespace EngineCore
-{
-    class Component;
-    class Scene;
-    class Transform;
-    //class Transform;
-    // later we will inherete from Object, now just keep it simple.
-    class GameObject : Object
-    {
-    public:
-        GameObject();
-
-        GameObject::GameObject(const std::string& name, Scene* scene);
-
-        ~GameObject();
-        void SetParent(const GameObject* gameObject);
-        template<typename T>
-        inline T* GetComponent() const;
-        template<typename T>
-        inline T* AddComponent();
-
-        std::vector<GameObject*> GetChildren() const;
-    public:
-        Transform* transform;
-        std::unordered_map<ComponentType, Component*> components;
-        std::vector<MonoBehaviour*> scripts;
-        std::string name;
-        bool enabled = true;
-            // 非模板方式
-        void AddComponent(Component* compont);
-        inline Scene* GetOwnerScene() { return ownerScene; }
-        inline void SetOwnerScene(Scene* scene) { ownerScene = scene; }
-    private:
-        Scene* ownerScene = nullptr;
-    };
-```
-
-### File: `Runtime/GameObject/Transform.h`
-```cpp
-namespace EngineCore
-{
-    class GameObject;
-    struct Transform : Component
-    {
-        Transform();
-        Transform(GameObject* parent);
-        virtual ~Transform() override;
-        static ComponentType GetStaticType() { return ComponentType::Transform; };
-        virtual ComponentType GetType() const override{ return ComponentType::Transform; };
-        void MarkDirty();
-
-
-        void RotateX(float degree);
-        void RotateY(float degree);
-        void RotateZ(float degree);
-
-        const Vector3 GetLocalEulerAngles(); 
-        void SetLocalEulerAngles(const Vector3& eulerAngles);
-
-        const Vector3 GetWorldPosition(){ return mWorldPosition; };
-        const Quaternion GetWorldQuaternion(){ return mWorldQuaternion; };
-        const Vector3 GetWorldScale(){ return mWorldScale; };
-
-        const Vector3 GetLocalPosition() const { return mLocalPosition; };
-        const Quaternion GetLocalQuaternion() const { return mLocalQuaternion; };
-        const Vector3 GetLocalScale() const { return mLocalScale; };
-
-        void SetLocalPosition(const Vector3& localPosition);
-        void SetLocalQuaternion(const Quaternion& localQuaternion);
-        void SetLocalScale(const Vector3& localScale);
-
-        inline void SetWorldPosition(const Vector3& position) { mWorldPosition = position; }
-        inline void SetWorldQuaternion(const Quaternion& quaternion) { mWorldQuaternion = quaternion; }
-        inline void SetWorldScale(const Vector3& scale) { mWorldScale = scale; }
-
-        inline const Matrix4x4& GetWorldMatrix()
-        {
-            return mWorldMatrix;
-        }
-        
-        inline const Matrix4x4& GetLocalMatrix()
-        {
-            return mLocalMatrix;
-        }
-
-        void UpdateRecursively(uint32_t frameID);
-        inline uint32_t GetNodeDepth() { return mDepth; }
-
-    public:
-        bool isDirty = false;
-        std::vector<Transform*> childTransforms;
-        Transform* parentTransform = nullptr;
-        
-    protected:
-
-        friend class GameObject;
-        // 外部不能访问修改， 只能访问GameObject.SetParent
-        inline void SetParent(Transform* transform)
-        {
-            ASSERT(transform);
-            if(mDepth != 0)
-            {
-                parentTransform->RemoveChild(this);
-            }
-            parentTransform = transform; 
-            transform->AddChild(this);
-            mDepth = transform->GetNodeDepth() + 1;
-            MarkDirty();
-        };
-
-        inline void DettachParent()
-        {
-            if(parentTransform != nullptr) parentTransform->RemoveChild(this);
-            parentTransform = nullptr;
-            mDepth = 0;
-            MarkDirty();
-        }
-
-        inline void AddChild(Transform* transform)
 ```
 
 ### File: `Runtime/Scene/Scene.h`
@@ -747,6 +525,90 @@ namespace EngineCore
     };
 ```
 
+### File: `Runtime/GameObject/Transform.h`
+```cpp
+{
+    class GameObject;
+    struct Transform : Component
+    {
+        Transform();
+        Transform(GameObject* parent);
+        virtual ~Transform() override;
+        static ComponentType GetStaticType() { return ComponentType::Transform; };
+        virtual ComponentType GetType() const override{ return ComponentType::Transform; };
+        void MarkDirty();
+
+
+        void RotateX(float degree);
+        void RotateY(float degree);
+        void RotateZ(float degree);
+
+        const Vector3 GetLocalEulerAngles(); 
+        void SetLocalEulerAngles(const Vector3& eulerAngles);
+
+        const Vector3 GetWorldPosition(){ return mWorldPosition; };
+        const Quaternion GetWorldQuaternion(){ return mWorldQuaternion; };
+        const Vector3 GetWorldScale(){ return mWorldScale; };
+
+        const Vector3 GetLocalPosition() const { return mLocalPosition; };
+        const Quaternion GetLocalQuaternion() const { return mLocalQuaternion; };
+        const Vector3 GetLocalScale() const { return mLocalScale; };
+
+        void SetLocalPosition(const Vector3& localPosition);
+        void SetLocalQuaternion(const Quaternion& localQuaternion);
+        void SetLocalScale(const Vector3& localScale);
+
+        inline void SetWorldPosition(const Vector3& position) { mWorldPosition = position; }
+        inline void SetWorldQuaternion(const Quaternion& quaternion) { mWorldQuaternion = quaternion; }
+        inline void SetWorldScale(const Vector3& scale) { mWorldScale = scale; }
+
+        inline const Matrix4x4& GetWorldMatrix()
+        {
+            return mWorldMatrix;
+        }
+        
+        inline const Matrix4x4& GetLocalMatrix()
+        {
+            return mLocalMatrix;
+        }
+
+        void UpdateRecursively(uint32_t frameID);
+        inline uint32_t GetNodeDepth() { return mDepth; }
+
+    public:
+        bool isDirty = false;
+        std::vector<Transform*> childTransforms;
+        Transform* parentTransform = nullptr;
+        
+    protected:
+
+        friend class GameObject;
+        // 外部不能访问修改， 只能访问GameObject.SetParent
+        inline void SetParent(Transform* transform)
+        {
+            ASSERT(transform);
+            if(mDepth != 0)
+            {
+                parentTransform->RemoveChild(this);
+            }
+            parentTransform = transform; 
+            transform->AddChild(this);
+            mDepth = transform->GetNodeDepth() + 1;
+            MarkDirty();
+        };
+
+        inline void DettachParent()
+        {
+            if(parentTransform != nullptr) parentTransform->RemoveChild(this);
+            parentTransform = nullptr;
+            mDepth = 0;
+            MarkDirty();
+        }
+
+        inline void AddChild(Transform* transform)
+        {
+```
+
 ### File: `Runtime/GameObject/MeshFilter.h`
 ```cpp
 namespace EngineCore
@@ -776,9 +638,183 @@ namespace EngineCore
     };
 ```
 
-### File: `Runtime/GameObject/Component.h`
+### File: `Runtime/GameObject/Camera.h`
 ```cpp
 namespace EngineCore
+{
+    class Camera : public Component
+    {
+    public:
+        Camera() = default;
+        Camera(GameObject* parent);
+        virtual ~Camera() override {};
+        float mFov;
+        float mAspect;
+        float mNear;
+        float mFar; 
+        float mWidth;
+        float mHeight;
+        Matrix4x4 mProjectionMatrix;
+        Vector3 mLookAt;
+        Matrix4x4 mViewMatrix;
+        Frustum mFrustum;
+
+        static ComponentType GetStaticType() { return ComponentType::Camera; };
+        virtual ComponentType GetType() const override { return ComponentType::Camera; };
+        void Update();
+    public:
+        RenderPassAsset mRenderPassAsset;
+        // 这两个只是描述符， 没必要用指针
+        RenderTexture* depthAttachment;
+        RenderTexture* colorAttachment;
+        void UpdateCameraMatrix();
+
+
+        virtual const char* GetScriptName() const override { return "Camera"; }
+    };
+```
+
+### File: `Runtime/GameObject/MonoBehaviour.h`
+```cpp
+{
+    class GameObject;
+    class MonoBehaviour : public Component
+    {
+    public:
+        MonoBehaviour() = default;
+        MonoBehaviour(GameObject* parent);
+        virtual ~MonoBehaviour() = default;
+        // 非纯虚， 不一定要实现
+        virtual void Awake() {};
+        virtual void Start() {};
+        virtual void Update() {};
+        virtual void LateUpdate() {};
+        virtual void OnDestroy() {};
+        static ComponentType GetStaticType() { return ComponentType::Script; }
+        virtual ComponentType GetType() const { return ComponentType::Script; };
+        
+        // 每个类需要自己实现序列化和反序列化方法。
+        virtual const char* GetScriptName() const = 0;
+    protected:
+
+
+    };
+```
+
+### File: `Runtime/Scene/SceneStruct.h`
+```cpp
+        NodeDirtyPayload() = default;
+        NodeDirtyPayload(Transform* trans)
+            : transform(trans){}
+```
+...
+```cpp
+    };
+
+    struct GPUSceneDelta
+    {
+        vector<uint32_t> dirtyRenderNodeIDList;
+        vector<uint32_t> dirtyRenderNodeFlagsList;
+    };
+```
+
+### File: `Runtime/Scene/CPUScene.h`
+```cpp
+namespace EngineCore
+{
+    class CPUScene
+    {
+    public:
+        void Update(uint32_t frameID);
+      
+        void ApplyDirtyNode(uint32_t renderID, NodeDirtyFlags cpuWorldRenderNodeFlag , NodeDirtyPayload& payload);
+        void EndFrame();
+        CPUSceneView GetSceneView();
+
+    private:
+        void EnsureCapacity(uint32_t renderID);
+        void CreateRenderNode(uint32_t renderID, NodeDirtyPayload& payload);
+        void DeleteRenderNode(uint32_t renderID); 
+        void OnRenderNodeMaterialDirty(uint32_t renderID, NodeDirtyPayload& payload);
+        void OnRenderNodeTransformDirty(uint32_t renderID, NodeDirtyPayload& payload);
+        void OnRenderNodeMeshDirty(uint32_t renderID, NodeDirtyPayload& payload);
+    
+        
+    private:
+        vector<AssetID> materialList;
+        vector<AssetID> meshList;
+        vector<AABB> worldBoundsList;
+        vector<AABB> localBoundCacheList;
+        vector<Matrix4x4> objectToWorldMatrixList;
+        vector<uint32_t> layerList;
+
+        uint32_t mCurrentFrame = 0;
+    };
+```
+
+### File: `Runtime/Scene/SceneManager.h`
+```cpp
+namespace EngineCore
+{
+    class Scene;
+    class SceneManager
+    {
+        // 允许Manager类访问SceneManager私有函数。
+    public:
+        void LoadScene();
+        void UnloadScene();
+        GameObject* CreateGameObject(const std::string& name);
+        GameObject* FindGameObject(const std::string& name);
+
+        void RemoveScene(const std::string& name);
+        static void Update(uint32_t frameIndex);
+        static void Create();
+        static void Destroy();
+        static void EndFrame();
+        void Init();
+    public:
+        inline static SceneManager* GetInstance() 
+        {
+            if (!s_Instance) 
+            {
+                s_Instance = new SceneManager();
+            }
+            return s_Instance;
+        }
+
+        SceneManager();
+        ~SceneManager();
+
+        // todo： 这部分数据也要找地方存， maybe一个Global的渲染处
+
+        Material* blitMaterial;
+        Mesh* quadMesh;
+        ResourceHandle<Shader> blitShader;
+        ResourceHandle<Texture> testTexture;
+
+        inline Scene* GetCurrentScene() 
+        { 
+            return mCurrentScene; 
+        };
+        inline void SetCurrentScene(Scene* scene) 
+        { 
+            mCurrentScene = scene; 
+        };
+        Scene* AddNewScene(const std::string& name);
+        void SwitchSceneTo(const std::string& name);
+
+    private:
+        static SceneManager* s_Instance;
+        Scene* mCurrentScene = nullptr;
+        unordered_map<std::string, Scene*> mSceneMap;
+        vector<ResourceHandle<Texture>> texHandler;
+    };
+
+}
+```
+
+### File: `Runtime/GameObject/Component.h`
+```cpp
 {
     class GameObject;
     class Component
@@ -793,19 +829,5 @@ namespace EngineCore
         
         // 每个类需要自己实现序列化和反序列化方法。
         virtual const char* GetScriptName() const = 0;
-    };
-```
-
-### File: `Runtime/GameObject/ComponentType.h`
-```cpp
-namespace EngineCore
-{
-    enum class ComponentType
-    {
-        MeshRenderer,
-        MeshFilter,
-        Camera,
-        Transform,
-        Script
     };
 ```
