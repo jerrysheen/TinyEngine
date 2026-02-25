@@ -82,11 +82,11 @@ namespace EngineCore
         mCurrentScene  = scene;
     };
 
-    void SceneManager::Update()
+    void SceneManager::Update(uint32_t frameIndex)
     {
         if (s_Instance->mCurrentScene != nullptr) 
         {
-            s_Instance->mCurrentScene->Update();
+            s_Instance->mCurrentScene->Update(frameIndex);
         }
     }
 

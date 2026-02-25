@@ -4,8 +4,9 @@
 #include "GameObject/MeshRenderer.h"
 #include "Core/Profiler.h"
 #include "RenderSorter.h"
-#include "Graphics/GPUSceneManager.h"
+#include "Scene/GPUSCene.h"
 #include "Renderer/Renderer.h"
+#include "Renderer/RenderEngine.h"
 
 namespace EngineCore
 {
@@ -28,47 +29,52 @@ namespace EngineCore
         auto& item = visibleItems[0];
         RenderBatch currentBatch;
         currentBatch.instanceCount = 1;
-        currentBatch.mesh = item.meshFilter->mMeshHandle.Get();
-        currentBatch.mat = item.meshRenderer->GetMaterial().Get();
+
+        Mesh* mesh = ResourceManager::GetInstance()->GetResource<Mesh>(item.meshID);
+        Material* mat = ResourceManager::GetInstance()->GetResource<Material>(item.materialID);
+
+        currentBatch.mesh = mesh;
+        currentBatch.mat = mat;
         currentBatch.index = 0;
 
-        // todo : 回头这个东西应该也是CPU端映射的。
-        uint32_t objIndex = item.meshRenderer->sceneRenderNodeIndex;
+        uint32_t objIndex = item.objectIndex;
         tempList.push_back(objIndex);
         uint32_t globalIndex = 0;
         for(int i = 1; i < visibleItems.size(); i++)
         {
             item = visibleItems[i];
+            Mesh* mesh = ResourceManager::GetInstance()->GetResource<Mesh>(item.meshID);
+            Material* mat = ResourceManager::GetInstance()->GetResource<Material>(item.materialID);
+
             if(CanBatch(currentBatch, item))
             {
                 currentBatch.instanceCount += 1;
-                objIndex = item.meshRenderer->sceneRenderNodeIndex;
+                objIndex = item.objectIndex;
                 tempList.push_back(objIndex);
                 globalIndex += 1;
             }
             else
             {
                 // 改成直接在visibilitybuffer里给当前的数据?
-                currentBatch.alloc =  GPUSceneManager::GetInstance()->LagacyRenderPathUploadBatch(tempList.data(), tempList.size() * sizeof(uint32_t));
+                currentBatch.alloc =  RenderEngine::GetInstance()->GetGPUScene().UploadDrawBatch(tempList.data(), tempList.size() * sizeof(uint32_t));
                 bactchList.push_back(currentBatch);
                 
                 tempList.clear();
                 currentBatch.instanceCount = 1;
-                currentBatch.mesh = item.meshFilter->mMeshHandle.Get();
-                currentBatch.mat = item.meshRenderer->GetMaterial().Get();
+                currentBatch.mesh = mesh;
+                currentBatch.mat = mat;
                 currentBatch.index = globalIndex;
-                uint32_t objIndex = item.meshRenderer->sceneRenderNodeIndex;
+                uint32_t objIndex = item.objectIndex;
                 tempList.push_back(objIndex);
                 globalIndex++;
             }
         }
         if (tempList.size() > 0) 
         {
-            currentBatch.alloc = GPUSceneManager::GetInstance()->LagacyRenderPathUploadBatch(tempList.data(), tempList.size() * sizeof(uint32_t));
+            currentBatch.alloc = RenderEngine::GetInstance()->GetGPUScene().UploadDrawBatch(tempList.data(), tempList.size() * sizeof(uint32_t));
             bactchList.push_back(currentBatch);
             tempList.clear();
         }
-        GPUSceneManager::GetInstance()->FlushBatchUploads();
         PROFILER_EVENT_END("DrawRenderers::PrepareBatch");
 
     }
@@ -79,7 +85,7 @@ namespace EngineCore
 
     bool RenderContext::CanBatch(const RenderBatch& currentBatch, const RenderPacket item)
     {
-        return currentBatch.mesh->GetInstanceID() == item.meshFilter->mMeshHandle.Get()->GetInstanceID() &&
-            currentBatch.mat->GetAssetID() == item.meshRenderer->GetMaterial()->GetAssetID();
+        return currentBatch.mesh->GetAssetID() == item.meshID &&
+            currentBatch.mat->GetAssetID() == item.materialID;
     }
 } // namespace EngineCore

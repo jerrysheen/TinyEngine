@@ -5,6 +5,9 @@
 #include "Renderer/RenderEngine.h"
 #include "Renderer/RenderAPI.h"
 #include "Settings/ProjectSettings.h"
+#ifdef EDITOR
+#include "EditorSettings.h"
+#endif
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -17,8 +20,13 @@ namespace EngineCore
 
     WindowManagerWindows::WindowManagerWindows()
     {
-        //SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-		
+
+    }
+
+	void WindowManagerWindows::Create() 
+	{
+		//SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
 		WNDCLASSEXW wndClass = {};
 		wndClass.cbSize = sizeof(wndClass);
 		wndClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -32,12 +40,12 @@ namespace EngineCore
 		wndClass.lpszMenuName = 0;
 		wndClass.lpszClassName = L"MainWnd";
 		wndClass.hIconSm = LoadIcon(0, IDI_APPLICATION);
-		
-		
+
+
 		RegisterClassExW(&wndClass);
-		
+
 		mWindowWidth = WindowSettings::s_WindowWidth;
-        mWindowHeight = WindowSettings::s_WindowHeight;
+		mWindowHeight = WindowSettings::s_WindowHeight;
 
 		// CreateWindowW传入的窗口大小会包括标题栏和边框，需要根据客户区大小来计算实际窗口大小
 		RECT rc = { 0, 0, static_cast<LONG>(mWindowWidth), static_cast<LONG>(mWindowHeight) };
@@ -48,7 +56,7 @@ namespace EngineCore
 		mWindow = CreateWindowW(wndClass.lpszClassName, L"TinyEngine <Direct3D 12>", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
 			width, height, NULL, NULL, wndClass.hInstance, NULL);
 
-    }
+	}
 
     void WindowManagerWindows::Show()
     {
@@ -187,6 +195,15 @@ namespace EngineCore
     {
         //std::cout << "WindowManagerWindows::OnResize" << std::endl;
 		mResized = false;
+        if (mWindowWidth == 0 || mWindowHeight == 0)
+        {
+            return;
+        }
+
+#ifdef EDITOR
+        EngineEditor::EditorSettings::UpdateLayout(static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
+#endif
+
 		if(RenderAPI::IsInitialized())
 		{
 			RenderEngine::GetInstance()->OnResize(mWindowWidth, mWindowHeight);

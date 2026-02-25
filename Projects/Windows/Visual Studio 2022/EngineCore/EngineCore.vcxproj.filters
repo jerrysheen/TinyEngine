@@ -219,9 +219,6 @@
     <ClInclude Include="..\..\..\..\Runtime\Graphics\GPUBufferAllocator.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Graphics\GPUSceneManager.h">
-      <Filter>Runtime\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\GPUTexture.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
@@ -259,9 +256,6 @@
       <Filter>Runtime\Managers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\MaterialLibrary\MaterialArchetypeRegistry.h">
-      <Filter>Runtime\MaterialLibrary</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\MaterialLibrary\MaterialArchytype.h">
       <Filter>Runtime\MaterialLibrary</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\MaterialLibrary\MaterialInstance.h">
@@ -345,6 +339,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Renderer\Culling.h">
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\FrameContext.h">
+      <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\PerDrawAllocator.h">
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
@@ -390,6 +387,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderUniforms.h">
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderWorld.h">
+      <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\Renderer.h">
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
@@ -420,10 +420,19 @@
     <ClInclude Include="..\..\..\..\Runtime\Scene\BistroSceneLoader.h">
       <Filter>Runtime\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Scene\CPUScene.h">
+      <Filter>Runtime\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Scene\GPUScene.h">
+      <Filter>Runtime\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Scene\Scene.h">
       <Filter>Runtime\Scene</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Scene\SceneManager.h">
+      <Filter>Runtime\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Scene\SceneStruct.h">
       <Filter>Runtime\Scene</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Scripts\CameraController.h">
@@ -442,6 +451,9 @@
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Serialization\SceneLoader.h">
+      <Filter>Runtime\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Serialization\ShaderLoader.h">
       <Filter>Runtime\Serialization</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Serialization\StreamHelper.h">
@@ -551,9 +563,6 @@
     <ClCompile Include="..\..\..\..\Runtime\Graphics\GPUBufferAllocator.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Graphics\GPUSceneManager.cpp">
-      <Filter>Runtime\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Graphics\GeometryManager.cpp">
       <Filter>Runtime\Graphics</Filter>
     </ClCompile>
@@ -638,6 +647,9 @@
     <ClCompile Include="..\..\..\..\Runtime\Renderer\Culling.cpp">
       <Filter>Runtime\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\FrameContext.cpp">
+      <Filter>Runtime\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderAPI.cpp">
       <Filter>Runtime\Renderer</Filter>
     </ClCompile>
@@ -646,6 +658,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderEngine.cpp">
       <Filter>Runtime\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPath\GPUSceneRenderPath.cpp">
+      <Filter>Runtime\Renderer\RenderPath</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPath\LagacyRenderPath.cpp">
+      <Filter>Runtime\Renderer\RenderPath</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\FinalBlitPass.cpp">
       <Filter>Runtime\Renderer\RenderPipeLine</Filter>
@@ -669,6 +687,12 @@
       <Filter>Runtime\Resources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Scene\BistroSceneLoader.cpp">
+      <Filter>Runtime\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Scene\CPUScene.cpp">
+      <Filter>Runtime\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Scene\GPUScene.cpp">
       <Filter>Runtime\Scene</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Scene\Scene.cpp">

@@ -10,7 +10,7 @@
 #include "Scene/SceneManager.h"
 #include "Culling.h"
 #include "Scene/Scene.h"
-#include "Graphics/GPUSceneManager.h"
+#include "Scene/GPUSCene.h"
 #include "Renderer/RenderPath/LagacyRenderPath.h"
 // RenderEngine 类的设计逻辑：
 // 负责创建渲染相关的，比如窗口，渲染API， Renderer，
@@ -26,14 +26,20 @@ namespace EngineCore
     void RenderEngine::Create()
     {
         s_Instance = std::make_unique<RenderEngine>();
+        s_Instance->GetGPUScene().Create();
         WindowManager::Create();
         RenderAPI::Create();
         Renderer::Create();
-        GPUSceneManager::Create();
     }
 
-    void RenderEngine::Update()
+    void RenderEngine::Update(uint32_t frameID)
     {
+
+        mCPUScene.Update(frameID);
+        mGPUScene.Update(frameID);
+
+        ComsumeDirtySceneRenderNode();
+
     }    
     
     void RenderEngine::OnResize(int width, int height)
@@ -49,6 +55,8 @@ namespace EngineCore
         PROFILER_EVENT_END("MainThread::WaitForGpuFinished");
 
 
+
+
         if (RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy)
         {
             lagacyRenderPath.Execute(renderContext);
@@ -62,13 +70,18 @@ namespace EngineCore
 
     }
 
+    void RenderEngine::EndFrame()
+    {
+        mCPUScene.EndFrame();
+    }
+
     void RenderEngine::Destory()
     {
         // Renderer 的析构函数会自动停止渲染线程
         Renderer::Destroy();
         //RenderAPI::Destroy();
         WindowManager::Destroy();
-        GPUSceneManager::GetInstance()->Destroy();
+        RenderEngine::GetInstance()->GetGPUScene().Destroy();
         // 最后销毁 RenderEngine 自己
         if (s_Instance)
         {
@@ -95,4 +108,25 @@ namespace EngineCore
         CpuEvent::MainThreadSubmited().Signal();
     }
 
+    void RenderEngine::ComsumeDirtySceneRenderNode()
+    {
+        Scene* scene = SceneManager::GetInstance()->GetCurrentScene();
+        std::vector<uint32_t>& mPerFrameDirtyNodeList = scene->GetPerFrameDirtyNodeList();
+        std::vector<uint32_t>& mNodeChangeFlagList = scene->GetNodeChangeFlagList();
+        std::vector<NodeDirtyPayload>& mNodeDirtyPayloadList = scene->GetNodeDirtyPayloadList();
+        
+        for(uint32_t dirtyRenderID : mPerFrameDirtyNodeList)
+        {
+            mCPUScene.ApplyDirtyNode(dirtyRenderID, (NodeDirtyFlags)mNodeChangeFlagList[dirtyRenderID], mNodeDirtyPayloadList[dirtyRenderID]);
+        }
+
+        CPUSceneView view = mCPUScene.GetSceneView();
+        for(uint32_t dirtyRenderID : mPerFrameDirtyNodeList)
+        {
+            mGPUScene.ApplyDirtyNode(dirtyRenderID, mNodeChangeFlagList[dirtyRenderID], view);
+        }
+        mGPUScene.UpdateDirtyNode(view);
+
+        mGPUScene.UploadCopyOp();
+    }
 }

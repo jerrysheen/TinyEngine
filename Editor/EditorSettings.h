@@ -50,7 +50,7 @@ using Vector2 = EngineCore::Vector2;
         inline static Vector2 GetGameViewPanelEndPos(){return (gameViewStartPos + gameViewSize) * currentWindowSize;};
         inline static Vector2 GetGameViewPanelSize(){return gameViewSize * currentWindowSize;};
         
-        static void UpdateLayout(){};
+        static void UpdateLayout(float windowWidth, float windowHeight);
 
     };
 

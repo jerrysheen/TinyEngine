@@ -38,6 +38,8 @@ namespace EngineCore
         bool enabled = true;
             // 非模板方式
         void AddComponent(Component* compont);
+        inline Scene* GetOwnerScene() { return ownerScene; }
+        inline void SetOwnerScene(Scene* scene) { ownerScene = scene; }
     private:
         Scene* ownerScene = nullptr;
     };

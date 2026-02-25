@@ -1,17 +1,22 @@
 ﻿#include "PreCompiledHeader.h"
 #include "Transform.h"
 #include "GameObject.h"
+#include "Scene/Scene.h"
 
 namespace EngineCore
 {
     Transform::Transform()
         :mWorldMatrix(Matrix4x4::Identity), mLocalMatrix(Matrix4x4::Identity),
-        mWorldPosition(Vector3::Zero), mWorldQuaternion(Quaternion::Identity), mWorldScale(Vector3::One), mLocalPosition(Vector3::Zero), mLocalQuaternion(Quaternion::Identity), mLocalScale(Vector3::One)
+        mWorldPosition(Vector3::Zero), mWorldQuaternion(Quaternion::Identity), 
+        mWorldScale(Vector3::One), mLocalPosition(Vector3::Zero), 
+        mLocalQuaternion(Quaternion::Identity), mLocalScale(Vector3::One), mDepth(0)
     {
     }
     Transform::Transform(GameObject* go)
         :mWorldMatrix(Matrix4x4::Identity), mLocalMatrix(Matrix4x4::Identity),
-        mWorldPosition(Vector3::Zero), mWorldQuaternion(Quaternion::Identity), mWorldScale(Vector3::One), mLocalPosition(Vector3::Zero), mLocalQuaternion(Quaternion::Identity), mLocalScale(Vector3::One)
+        mWorldPosition(Vector3::Zero), mWorldQuaternion(Quaternion::Identity), 
+        mWorldScale(Vector3::One), mLocalPosition(Vector3::Zero), 
+        mLocalQuaternion(Quaternion::Identity), mLocalScale(Vector3::One), mDepth(0)
     {
         gameObject = go;
         go->transform = this;
@@ -28,15 +33,14 @@ namespace EngineCore
         if (parentTransform != nullptr) parentTransform->RemoveChild(this);
     }
 
-    void Transform::MarkDirty()
+    void Transform:: MarkDirty()
     {
         if(isDirty) return;
+        if(parentTransform != nullptr && parentTransform->isDirty == true) return;
+        Scene* scene = this->gameObject->GetOwnerScene();
+        ASSERT(scene != nullptr);
+        scene->PushNewTransformDirtyRoot(this);
         isDirty = true;
-        for(auto childTrans : childTransforms)
-        {
-            ASSERT(childTrans != nullptr);
-            childTrans->MarkDirty();
-        }
     }
 
     // 绕X轴旋转（局部空间）
@@ -84,12 +88,12 @@ namespace EngineCore
         MarkDirty();
     }
 
-    void Transform::UpdateTransform()
+    void Transform::UpdateRecursively(uint32_t frameID)
     {
-        if(parentTransform != nullptr && parentTransform->isDirty)
-        {
-            parentTransform->UpdateTransform();
-        }
+        // 表示这一帧已经更新过了
+        if(frameID == mDirtyFrame) return;
+        if(!isDirty) return;
+        mDirtyFrame = frameID;
         mLocalMatrix =  Matrix4x4::TRS(mLocalPosition, mLocalQuaternion, mLocalScale);
         if(parentTransform != nullptr)
         {
@@ -102,26 +106,19 @@ namespace EngineCore
 
         //update worldPos worldScale worldRotation
         Matrix4x4::WorldMatrixDecompose(mWorldMatrix, mWorldPosition, mWorldQuaternion, mWorldScale);
-        isDirty = false;
 
         for(int i = 0; i < childTransforms.size(); i++)
         {
-            childTransforms[i]->UpdateTransform();
+            childTransforms[i]->UpdateRecursively(frameID);
         }
 
-        transformVersion++;
+        isDirty = false;
+        Scene* scene = this->gameObject->GetOwnerScene();
+        ASSERT(scene != nullptr);
+        
+        scene->MarkNodeTransformDirty(this);
     }
 
-
-
-    void Transform::UpdateIfDirty()
-    {
-        if(isDirty)
-        {
-            UpdateTransform();
-            isDirty = false;
-        }
-    }
 
     const Vector3 Transform::GetLocalEulerAngles()
     {

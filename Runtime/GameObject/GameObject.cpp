@@ -17,7 +17,6 @@ namespace EngineCore
         ASSERT(scene != nullptr);
         ownerScene = scene;
         transform = this->AddComponent<Transform>();
-        ownerScene->AddGameObjectToSceneList(this);
     }
 
     void GameObject::SetParent(const GameObject* gameObject)

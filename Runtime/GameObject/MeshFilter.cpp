@@ -4,6 +4,7 @@
 #include "Graphics/Mesh.h"
 #include "GameObject.h"
 #include "Renderer/BatchManager.h"
+#include "Scene/Scene.h"
 
 namespace EngineCore
 {
@@ -12,19 +13,19 @@ namespace EngineCore
 	MeshFilter::MeshFilter(GameObject* go)
 	{
 		gameObject = go;
-		BatchManager::GetInstance()->TryAddBatchCount(this);
 	}
 
 
     MeshFilter::~MeshFilter()
     {
-		BatchManager::GetInstance()->TryDecreaseBatchCount(this);
 
     }
 
 	void MeshFilter::OnLoadResourceFinished()
 	{
-		this->gameObject->transform->transformVersion++;
+		Scene* scene = this->gameObject->GetOwnerScene();
+		ASSERT(scene != nullptr);
+		scene->MarkNodeRenderableDirty(this->gameObject);
 		return;
 	}
 

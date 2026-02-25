@@ -3,7 +3,7 @@
 #include "Math/AABB.h"
 #include "Math/Vector2.h"
 #include "Math/Frustum.h"
-
+#include "Resources/Asset.h"
 
 namespace EngineCore
 {
@@ -123,4 +123,5 @@ namespace EngineCore
     {
         uint32_t batchID;
     };
+
 }

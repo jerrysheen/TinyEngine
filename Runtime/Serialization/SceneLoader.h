@@ -51,15 +51,15 @@ namespace EngineCore
                 
                 std::string nodeName = nodeData.name;
                 GameObject* go = scene->CreateGameObject(nodeName.empty() ? "Node" : nodeName);
-
-                go->transform->SetLocalPosition(nodeData.position);
-                go->transform->SetLocalQuaternion(nodeData.rotation);
-                go->transform->SetLocalScale(nodeData.scale);
                 if(nodeData.parentIndex != -1)
                 {
                     ASSERT(gameObjectMap.count(nodeData.parentIndex) > 0);
                     go->SetParent(gameObjectMap[nodeData.parentIndex]);
                 }
+                go->transform->SetLocalPosition(nodeData.position);
+                go->transform->SetLocalQuaternion(nodeData.rotation);
+                go->transform->SetLocalScale(nodeData.scale);
+
                 gameObjectMap[i] = go;
 
                 //todo 加入材质的异步加载：

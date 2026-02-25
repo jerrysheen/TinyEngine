@@ -4,18 +4,14 @@
 #include "GameObject/Transform.h"
 #include "GameObject/MeshRenderer.h"
 #include "Graphics/Material.h"
+#include "Renderer/RenderEngine.h"
+#include "Scene/CPUScene.h"
 
 namespace EngineCore
 {
     Scene::Scene()
     {
         std::queue<uint32_t> empty;
-        std::swap(empty, m_FreeSceneNode);
-        renderSceneData.meshRendererList.reserve(10000);
-        renderSceneData.meshFilterList.reserve(10000);
-        renderSceneData.aabbList.reserve(10000);
-        renderSceneData.objectToWorldMatrixList.reserve(10000);
-        renderSceneData.layerList.reserve(10000);
     }
 
     Scene::~Scene()
@@ -47,17 +43,19 @@ namespace EngineCore
         }
     }
 
-    void Scene::Update()
+    void Scene::Update(uint32_t frameIndex)
     {
+        mCurrentFrame = frameIndex;
+        PushLastFrameFreeIndex();
         RunLogicUpdate();
         RunTransformUpdate();
-        RunRecordDirtyRenderNode();
-        renderSceneData.UpdateDirtyRenderNode();
+        RunRemoveInvalidDirtyRenderNode();
     }
 
     void Scene::EndFrame()
     {
-        renderSceneData.ClearDirtyList();
+        ClearDirtyRootTransform();
+        ClearPerFrameData();
     }
 
     GameObject* Scene::FindGameObject(const std::string &name)
@@ -72,6 +70,8 @@ namespace EngineCore
     GameObject* Scene::CreateGameObject(const std::string& name)
     {
         GameObject* obj = new GameObject(name, this);
+        allObjList.push_back(obj);
+        rootObjList.push_back(obj);
         return obj;
     }
 
@@ -115,6 +115,7 @@ namespace EngineCore
             *rootIt = rootObjList.back();
             rootObjList.pop_back();
         }
+
     }
 
     // 默认AddGameObject的时候，都是在根下创建
@@ -139,6 +140,12 @@ namespace EngineCore
         }
     }
 
+    void Scene::PushNewTransformDirtyRoot(Transform *transform)
+    {
+        ASSERT(transform);
+        dirtyRootDepthBucket[transform->GetNodeDepth()].push_back(transform);
+    }
+
     void Scene::RunLogicUpdate()
     {
         for(auto* go : allObjList)
@@ -159,85 +166,199 @@ namespace EngineCore
 
     void Scene::RunTransformUpdate()
     {
-        for(auto* go : allObjList)
+        for(auto transformList : dirtyRootDepthBucket)
         {
-            if(go != nullptr && go->enabled)
+            for(int i = 0 ; i < transformList.size(); i++)
             {
-                if(go->transform->isDirty)
-                {
-                    go->transform->UpdateTransform();
-                }
+                transformList[i]->UpdateRecursively(mCurrentFrame);
             }
         }
     }
 
 
-    void Scene::RunRecordDirtyRenderNode()
+
+    void Scene::RunRemoveInvalidDirtyRenderNode()
     {
-        for(int i = 0; i < renderSceneData.meshRendererList.size(); i++)
+        vector<uint32_t> dirtyNodeList;
+        for(auto renderID : mPerFrameDirtyNodeList)
         {
-            auto* meshRenderer = renderSceneData.meshRendererList[i];
-            if(!meshRenderer) continue;
-            uint32_t currversion = meshRenderer->gameObject->transform->transformVersion;
-            if(meshRenderer->lastSyncTransformVersion != currversion)
-            {
-                auto* meshFilter = meshRenderer->gameObject->GetComponent<MeshFilter>();
-                if(!meshFilter) continue;
-                if(renderSceneData.meshFilterList[i] == nullptr)
-                {
-                    renderSceneData.meshFilterList[i] = meshFilter;
-                }
-                meshRenderer->lastSyncTransformVersion = currversion;
-                meshRenderer->UpdateBounds(meshFilter->mMeshHandle.Get()->bounds, meshRenderer->gameObject->transform->GetWorldMatrix());
-                renderSceneData.transformDirtyList.push_back(i);
-
+            uint32_t flags = mNodeChangeFlagList[renderID];
+            if((flags & (uint32_t)NodeDirtyFlags::Created) && (flags & (uint32_t)NodeDirtyFlags::Destory)) {
+                continue;
             }
-
-            if (meshRenderer->needUpdatePerMaterialData) 
-            {
-                renderSceneData.materialDirtyList.push_back(i);
-                meshRenderer->needUpdatePerMaterialData = false;
-            }
-
+            dirtyNodeList.push_back(renderID);
         }
+        mPerFrameDirtyNodeList = dirtyNodeList;
     }
 
-    // void Scene::MarkRenderSceneTransformDataDirty(uint32_t index)
-    // {
-    //     renderSceneData.transformDirtyList.push_back(index);
-    // }
-
-    // void Scene::MarkRenderSceneMaterialDirty(uint32_t index)
-    // {
-    //     renderSceneData.materialDirtyList.push_back(index);
-    // }
-
-    int Scene::AddNewRenderNodeToCurrentScene(MeshRenderer *renderer)
+    uint32_t Scene::CreateRenderNode()
     {
-        uint32_t index = 0;
-        if(!m_FreeSceneNode.empty())
+        if(mFreeSceneIndex.size() > 0)
         {
-            index = m_FreeSceneNode.front();
-            m_FreeSceneNode.pop();
+            uint32_t index = mFreeSceneIndex.back();
+            mFreeSceneIndex.pop_back();
+            return index;
         }
-        else
-        {
-            renderSceneData.PushNewData();
-            index = m_CurrentSceneRenderNodeIndex;
-            m_CurrentSceneRenderNodeIndex++;
-        }
-        renderSceneData.SyncData(renderer, index);
-        renderSceneData.materialDirtyList.push_back(index);
-        return index;
+        return mCurrSceneIndex++;
+    }
+
+    void Scene::DeleteRenderNode(MeshRenderer *renderer)
+    {
+        InternalMarkNodeDeleted(renderer);
+        uint32_t renderID = renderer->GetCPUWorldIndex();
+        mPendingFreeSceneIndex.push_back(renderID);
+    }
+
+    void Scene::MarkNodeCreated(MeshRenderer *renderer)
+    {
+        uint32_t renderID = renderer->GetCPUWorldIndex();
+        EnsureNodeQueueSize(renderID);
+
+        Transform* transform = renderer->gameObject->transform;
+        MeshFilter* meshFilter = renderer->gameObject->GetComponent<MeshFilter>();
+        NodeDirtyPayload payload(transform, 
+            meshFilter == nullptr ? AssetID() : meshFilter->mMeshHandle.GetAssetID(),
+            renderer->GetMaterial().GetAssetID());
+        ApplyQueueNodeChange(renderID, (uint32_t)NodeDirtyFlags::Created, payload);
     }
 
 
-
-    void Scene::DeleteRenderNodeFromCurrentScene(uint32_t index)
+    void Scene::InternalMarkNodeDeleted(MeshRenderer *renderer)
     {
-        m_FreeSceneNode.push(index);
-        renderSceneData.DeleteData(index);
-        renderSceneData.materialDirtyList.push_back(index);
+        uint32_t renderID = renderer->GetCPUWorldIndex();
+
+        NodeDirtyPayload payload{};
+        ApplyQueueNodeChange(renderID, (uint32_t)NodeDirtyFlags::Destory, payload);
+    }
+
+    void Scene::MarkNodeTransformDirty(Transform *transform)
+    {
+        MeshRenderer* renderer = transform->gameObject->GetComponent<MeshRenderer>();
+        if (!renderer) return;
+        uint32_t renderID = renderer->GetCPUWorldIndex();
+
+        NodeDirtyPayload payload(transform);
+        ApplyQueueNodeChange(renderID, (uint32_t)NodeDirtyFlags::TransformDirty, payload);        
+    }
+
+    void Scene::MarkNodeMeshFilterDirty(MeshFilter *meshFilter)
+    {
+        MeshRenderer* renderer = meshFilter->gameObject->GetComponent<MeshRenderer>();
+        if(!renderer) return;
+        uint32_t renderID = renderer->GetCPUWorldIndex();
+        NodeDirtyPayload payload(meshFilter->gameObject->transform,
+                                  meshFilter->mMeshHandle->GetAssetID(),
+                                  AssetID{});
+        ApplyQueueNodeChange(renderID, (uint32_t)NodeDirtyFlags::MeshDirty, payload);
+    }
+
+    void Scene::MarkNodeMeshRendererDirty(MeshRenderer *renderer)
+    {
+        uint32_t renderID = renderer->GetCPUWorldIndex();
+        NodeDirtyPayload payload(renderer->gameObject->transform,
+            AssetID{},
+            renderer->GetMaterial().GetAssetID());
+        ApplyQueueNodeChange(renderID, (uint32_t)NodeDirtyFlags::MaterialDirty, payload);
+    }
+
+    void Scene::MarkNodeRenderableDirty(GameObject *object)
+    {
+        MeshRenderer* mr  = object->GetComponent<MeshRenderer>();
+        if(mr == nullptr) return;
+        uint32_t renderID = mr->GetCPUWorldIndex();
+
+
+        Transform* transform = object->transform;
+        MeshFilter* meshFilter = object->GetComponent<MeshFilter>();
+        NodeDirtyPayload payload(transform, 
+            meshFilter == nullptr ? AssetID() : meshFilter->mMeshHandle.GetAssetID(),
+            mr->GetMaterial().GetAssetID());
+        uint32_t flags = ((uint32_t)NodeDirtyFlags::MaterialDirty | (uint32_t)NodeDirtyFlags::TransformDirty);
+        if(meshFilter) 
+        {
+            flags |= (uint32_t)NodeDirtyFlags::MeshDirty;
+        }
+        ApplyQueueNodeChange(renderID, flags, payload);
+    }
+
+    void Scene::EnsureNodeQueueSize(uint32_t id)
+    {
+        const size_t need = static_cast<size_t>(id) + 1;
+        if(mNodeFrameStampList.size() < need)
+        {
+            mNodeFrameStampList.resize(need, 0);
+            mNodeChangeFlagList.resize(need, 0);
+            mNodeDirtyPayloadList.resize(need);
+        }
+    }
+
+    void Scene::ClearPerFrameData()
+    {
+        mPerFrameDirtyNodeList.clear();
+    }
+
+    void Scene::ClearDirtyRootTransform()
+    {
+        for(auto& rootNode : dirtyRootDepthBucket)
+        {
+            rootNode.clear();
+        }
+    }
+
+    void Scene::PushLastFrameFreeIndex()
+    {
+        if (!mPendingFreeSceneIndex.empty()) 
+        {
+            mFreeSceneIndex.insert(
+                mFreeSceneIndex.end(), 
+                mPendingFreeSceneIndex.begin(), 
+                mPendingFreeSceneIndex.end()
+            );
+            
+            // 2. 清空隔离区，准备接收下一帧的删除请求
+            mPendingFreeSceneIndex.clear();
+        }
+    }
+
+    void Scene::ApplyQueueNodeChange(uint32_t id, uint32_t flags, const NodeDirtyPayload& p)
+    {
+        if(mNodeFrameStampList[id] != mCurrentFrame)
+        {
+            // 这一帧还没创建，重置所有：
+            mPerFrameDirtyNodeList.push_back(id);
+            mNodeFrameStampList[id] = mCurrentFrame;
+            mNodeChangeFlagList[id] = 0;
+            mNodeDirtyPayloadList[id] = {};
+        }
+        mNodeChangeFlagList[id] |= flags;
+
+        // 直接更新现在状态： 直接强刷
+        if(flags & (uint32_t)NodeDirtyFlags::Created)
+        {
+            mNodeDirtyPayloadList[id].transform = p.transform;
+            mNodeDirtyPayloadList[id].materialID = p.materialID;
+            mNodeDirtyPayloadList[id].meshID = p.meshID.IsValid() ?  p.meshID : mNodeDirtyPayloadList[id].meshID;
+        }
+
+        if(flags & (uint32_t)NodeDirtyFlags::Destory)
+        {
+            mNodeDirtyPayloadList[id] = {};
+        }
+
+        if(flags & (uint32_t)NodeDirtyFlags::MaterialDirty)
+        {
+            mNodeDirtyPayloadList[id].materialID = p.materialID;
+        }
+
+        if(flags & (uint32_t)NodeDirtyFlags::MeshDirty)
+        {
+            mNodeDirtyPayloadList[id].meshID = p.meshID;
+        }
+
+        if(flags & (uint32_t)NodeDirtyFlags::TransformDirty)
+        {
+            mNodeDirtyPayloadList[id].transform = p.transform;
+        }
 
     }
 }

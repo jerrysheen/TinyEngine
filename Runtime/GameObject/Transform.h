@@ -42,22 +42,19 @@ namespace EngineCore
 
         inline const Matrix4x4& GetWorldMatrix()
         {
-            UpdateIfDirty(); 
             return mWorldMatrix;
         }
         
         inline const Matrix4x4& GetLocalMatrix()
         {
-            UpdateIfDirty(); 
             return mLocalMatrix;
         }
 
-        void UpdateIfDirty();
-        void UpdateTransform();
-        //inline void UpdateNow() { UpdateTransform(); };
-        uint32_t transformVersion = 1;
+        void UpdateRecursively(uint32_t frameID);
+        inline uint32_t GetNodeDepth() { return mDepth; }
+
     public:
-        bool isDirty = true;
+        bool isDirty = false;
         std::vector<Transform*> childTransforms;
         Transform* parentTransform = nullptr;
         
@@ -67,35 +64,51 @@ namespace EngineCore
         // 外部不能访问修改， 只能访问GameObject.SetParent
         inline void SetParent(Transform* transform)
         {
+            ASSERT(transform);
+            if(mDepth != 0)
+            {
+                parentTransform->RemoveChild(this);
+            }
             parentTransform = transform; 
-            if(transform)transform->AddChild(this);
+            transform->AddChild(this);
+            mDepth = transform->GetNodeDepth() + 1;
+            MarkDirty();
         };
 
         inline void DettachParent()
         {
             if(parentTransform != nullptr) parentTransform->RemoveChild(this);
             parentTransform = nullptr;
+            mDepth = 0;
+            MarkDirty();
         }
 
         inline void AddChild(Transform* transform)
         {
             childTransforms.push_back(transform);
+            transform->SetNodeDepth(mDepth + 1);
+            transform->isDirty = true;
+            isDirty = true;
+            transform->MarkDirty();
         };
 
+        // 什么意思呢？ 删除还是什么？ 只是从chilTransform里面移出去
         inline void RemoveChild(Transform* transform)
         {
             auto it = std::find(childTransforms.begin(), childTransforms.end(), transform);
             if(it != childTransforms.end())
             {
+
                 childTransforms.erase(it);
             }
+            transform->MarkDirty();
         };
-        
+
+        inline void SetNodeDepth(uint32_t depth){ mDepth = depth;}
     private:
 
         Matrix4x4 mWorldMatrix;
         Matrix4x4 mLocalMatrix;
-
         // 外部只读WorldPosition
         Vector3 mWorldPosition;
         Quaternion mWorldQuaternion;
@@ -104,7 +117,9 @@ namespace EngineCore
         Vector3 mLocalPosition;
         Quaternion mLocalQuaternion;
         Vector3 mLocalScale;
-    
+        
+        uint32_t mDepth = 0;
+        uint32_t mDirtyFrame = UINT32_MAX;
     public:
 
         virtual const char* GetScriptName() const override 
@@ -112,6 +127,5 @@ namespace EngineCore
             return "Transform"; 
         }
 
-            //UpdateNow();
     };
 } // namespace EngineCore

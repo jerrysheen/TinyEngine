@@ -44,23 +44,18 @@ namespace EngineCore
             }
             return s_Instance;
         }
-
-        void TryAddBatchCount(MeshRenderer* meshRenderer);
-        void TryDecreaseBatchCount(MeshRenderer* meshRenderer);
-
-        void TryAddBatchCount(MeshFilter* meshFilter);
-        void TryDecreaseBatchCount(MeshFilter* meshFilter);
-        static std::unordered_map<uint64_t, int> BatchMap;
+        void TryAddBatches(AssetID meshID, AssetID materialID, uint32_t layer); 
+        void TryDecreaseBatches(AssetID meshID, AssetID materialID, uint32_t layer);
         static std::unordered_map<uint64_t, DrawIndirectParam> drawIndirectParamMap;
         static std::unordered_map<uint64_t, DrawIndirectContext> drawIndirectContextMap;
-
-        std::vector<RenderProxy> GetAvaliableRenderProxyList(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 
-        static uint64_t GetBatchHash(MeshRenderer* meshRenderer, MeshFilter* meshFilter, uint32_t layer); 
-
+        static std::unordered_map<uint64_t, int> BatchMap;
+        
+        std::vector<RenderProxy> GetAvaliableRenderProxyList(AssetID meshID, AssetID materialID, uint32_t layer); 
+        
         vector<DrawIndirectArgs> GetBatchInfo();
     private:
-        void TryAddBatches(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 
-        void TryDecreaseBatches(MeshRenderer* meshRenderer, MeshFilter* meshFilter); 
+        uint64_t GetBatchHash(AssetID meshID, AssetID materialID, uint32_t layer); 
+        
         static void Create();
         static BatchManager* s_Instance;
 

@@ -257,7 +257,7 @@ namespace EngineCore
             {
                 ASSERT(mResourceCache[id] == res);
             }
-            mResourceCache[id] == res;
+            mResourceCache[id] = res;
         };
 
         template<typename T, typename... Args>

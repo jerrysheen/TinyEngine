@@ -13,7 +13,7 @@ namespace EngineCore
     {
     public :
         static void Update();
-        static void Create();
+        void Create();
         virtual bool WindowShouldClose() override;
         virtual void OnResize() override;
         WindowManagerWindows();

@@ -3,9 +3,11 @@
 #include "Renderer/RenderAPI.h"
 #include "Resources/ResourceManager.h"
 #include "Resources/Asset.h"
-#include "Graphics/GPUSceneManager.h"
+#include "Scene/GPUSCene.h"
 #include "Renderer/RenderStruct.h"
 #include "MaterialLibrary/MaterialArchetypeRegistry.h"
+#include "Renderer/RenderEngine.h"
+
 namespace EngineCore
 {
 
@@ -19,7 +21,7 @@ namespace EngineCore
         if (layout.GetSize() > 0) 
         {
             matInstance = std::make_unique<MaterialInstance>(layout);
-            materialAllocation = GPUSceneManager::GetInstance()->GetSinglePerMaterialData();
+            materialAllocation = RenderEngine::GetInstance()->GetGPUScene().GetSinglePerMaterialData();
         }
 
         SetUpRenderState();
@@ -40,7 +42,7 @@ namespace EngineCore
         if (layout.GetSize() > 0)
         {
             matInstance = std::make_unique<MaterialInstance>(layout);
-            materialAllocation = GPUSceneManager::GetInstance()->GetSinglePerMaterialData();
+            materialAllocation = RenderEngine::GetInstance()->GetGPUScene().GetSinglePerMaterialData();
         }
         SetUpRenderState();
         UploadDataToGpu();
@@ -62,7 +64,7 @@ namespace EngineCore
                 matInstance = std::make_unique<MaterialInstance>(layout);
             }
         }
-        materialAllocation = GPUSceneManager::GetInstance()->GetSinglePerMaterialData();
+        materialAllocation = RenderEngine::GetInstance()->GetGPUScene().GetSinglePerMaterialData();
         SetUpRenderState();
         if(materialAllocation.isValid)UploadDataToGpu();
     }
@@ -103,7 +105,7 @@ namespace EngineCore
     {
         if (matInstance)
         {
-            GPUSceneManager::GetInstance()->allMaterialDataBuffer
+            RenderEngine::GetInstance()->GetGPUScene().GetAllMaterialDataBuffer()
                 ->UploadBuffer(materialAllocation, matInstance->GetInstanceData().data(), matInstance->GetSize());
         }
         

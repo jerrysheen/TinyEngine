@@ -45,11 +45,11 @@ namespace EngineCore {
             // todo： 这个地方有加载时序问题。。
             SceneManager::GetInstance()->SetCurrentScene(res);
             // 刷新所有Transform的world position，避免父子节点关系建立后的延迟更新问题
-            for (auto& gameObject : res->allObjList) 
+            for (auto& gameObject : res->rootObjList) 
             {
                 if (gameObject != nullptr && gameObject->transform != nullptr)
                 {
-                    gameObject->transform->UpdateTransform();
+                    gameObject->transform->UpdateRecursively(0);
                 }
                 gameObject->transform->isDirty = true;
             }
@@ -257,7 +257,6 @@ namespace EngineCore {
                 }
 
                 mr->SetSharedMaterial(BistroSceneLoader::commonMatHandle);
-                mr->TryAddtoBatchManager();
             } 
         }
 
@@ -642,8 +641,6 @@ namespace EngineCore {
             }
         }
 
-        // 注册到批处理管理器
-        mr->TryAddtoBatchManager();
     }
 
     void BistroSceneLoader::ProcessTexture(const tinygltf::Model &model)

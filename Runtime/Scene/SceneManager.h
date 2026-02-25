@@ -24,7 +24,7 @@ namespace EngineCore
         GameObject* FindGameObject(const std::string& name);
 
         void RemoveScene(const std::string& name);
-        static void Update();
+        static void Update(uint32_t frameIndex);
         static void Create();
         static void Destroy();
         static void EndFrame();

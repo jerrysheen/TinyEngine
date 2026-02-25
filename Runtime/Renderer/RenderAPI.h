@@ -15,7 +15,14 @@ namespace  EngineCore
     class RenderAPI
     {
     public:
-        static RenderAPI* GetInstance(){ return s_Instance.get();}
+        inline static RenderAPI* GetInstance()
+        {
+            if (s_Instance == nullptr) 
+            {   
+                Create();
+            }
+            return s_Instance.get();
+        }
         static bool IsInitialized(){return s_Instance != nullptr;};
        
         static void Create();

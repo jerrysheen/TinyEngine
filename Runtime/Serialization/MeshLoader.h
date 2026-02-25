@@ -20,7 +20,7 @@ namespace EngineCore
 
             Mesh* mesh = new Mesh();
             mesh->SetAssetCreateMethod(AssetCreateMethod::Serialization);
-            mesh->SetAssetID(AssetIDGenerator::NewFromFile(path));
+            mesh->SetAssetID(AssetIDGenerator::NewFromFile(relativePath));
             StreamHelper::Read(in, mesh->bounds);
             StreamHelper::ReadVector(in, mesh->vertex);
             StreamHelper::ReadVector(in, mesh->index);

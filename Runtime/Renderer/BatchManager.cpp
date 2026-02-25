@@ -3,55 +3,26 @@
 #include "Utils/HashCombine.h"
 #include "Graphics/Mesh.h"
 #include "Settings/ProjectSettings.h"
-
+#include "Resources/ResourceManager.h"
+#include "Resources/Asset.h"
 namespace EngineCore
 {
     BatchManager* BatchManager::s_Instance = nullptr;
     std::unordered_map<uint64_t, int> BatchManager::BatchMap;
     std::unordered_map<uint64_t, DrawIndirectContext> BatchManager::drawIndirectContextMap;
     std::unordered_map<uint64_t, DrawIndirectParam> BatchManager::drawIndirectParamMap;
-    void BatchManager::TryAddBatchCount(MeshRenderer *meshRenderer)
+
+    std::vector<RenderProxy> BatchManager::GetAvaliableRenderProxyList(AssetID meshID, AssetID materialID, uint32_t layer)
     {
-        MeshFilter* meshFilter = meshRenderer->gameObject->GetComponent<MeshFilter>();
-        if(meshFilter == nullptr) return;
-        // todo :  这个地方的生成逻辑会麻烦一点，不单单是通过meshRenderer去创建。
-        // 一个meshRenderer会延伸出多个 renderProxy
-        TryAddBatches(meshRenderer, meshFilter);
-    }
+        if(!meshID.IsValid() || !materialID.IsValid()) return std::vector<RenderProxy>();
 
-    void BatchManager::TryDecreaseBatchCount(MeshRenderer *meshRenderer)
-    {
-        MeshFilter* meshFilter = meshRenderer->gameObject->GetComponent<MeshFilter>();
-        if(meshFilter == nullptr) return;
-        TryDecreaseBatches(meshRenderer, meshFilter);
-
-    }
-
-    void BatchManager::TryAddBatchCount(MeshFilter * meshFilter)
-    {
-        MeshRenderer* meshRenderer = meshFilter->gameObject->GetComponent<MeshRenderer>();
-        if(meshRenderer == nullptr) return;
-        TryAddBatches(meshRenderer, meshFilter);
-    }
-
-    void BatchManager::TryDecreaseBatchCount(MeshFilter * meshFilter)
-    {
-        MeshRenderer* meshRenderer = meshFilter->gameObject->GetComponent<MeshRenderer>();
-        if(meshRenderer == nullptr) return;
-        TryDecreaseBatches(meshRenderer, meshFilter);
-
-    }
-
-    std::vector<RenderProxy> BatchManager::GetAvaliableRenderProxyList(MeshRenderer *meshRenderer, MeshFilter* meshFilter)
-    {
-        ASSERT(meshRenderer != nullptr);
         vector<RenderProxy> renderProxyList;
-        uint32_t mask = meshRenderer->renderLayer;
+        uint32_t mask = layer;
         for(int i = 0 ; i < 32; i++)
         {
             if ((mask & (1u<<i)) != 0)
             {
-                uint64_t hash = GetBatchHash(meshRenderer, meshFilter, i);
+                uint64_t hash = GetBatchHash(meshID, materialID, i);
                 RenderProxy proxy;
                 proxy.batchID = drawIndirectParamMap[hash].indexInDrawIndirectList;
                 renderProxyList.push_back(proxy);
@@ -61,20 +32,23 @@ namespace EngineCore
         return renderProxyList;
     }
 
-    uint64_t BatchManager::GetBatchHash(MeshRenderer *meshRenderer, MeshFilter *meshFilter, uint32_t layer)
+    uint64_t BatchManager::GetBatchHash(AssetID meshID, AssetID materialID, uint32_t layer)
     {
+        if(!meshID.IsValid() || !materialID.IsValid()) return 0;
+        Mesh* mesh = ResourceManager::GetInstance()->GetResource<Mesh>(meshID);
+        Material* material = ResourceManager::GetInstance()->GetResource<Material>(materialID);
         uint64_t batchKey = 0;
-        uint32_t matKey = meshRenderer->GetMaterial()->mRenderState.GetHash();
+        uint32_t matKey = material->mRenderState.GetHash();
         HashCombine(matKey, static_cast<uint32_t>(layer));
         // 这个相当于VAOID
-        uint32_t vaoID = meshFilter->mMeshHandle.Get()->GetInstanceID();
+        uint32_t vaoID = mesh->GetInstanceID();
         uint32_t meshKey = vaoID;
         batchKey |= matKey;
         batchKey |= (static_cast<uint64_t>(meshKey) << 32);
 
         if(drawIndirectContextMap.count(batchKey) == 0)
         {
-            drawIndirectContextMap[batchKey] = {meshRenderer->GetMaterial().Get(), meshFilter->mMeshHandle.Get()};
+            drawIndirectContextMap[batchKey] = {material, mesh};
         }
         return batchKey; 
     }
@@ -116,16 +90,17 @@ namespace EngineCore
         return drawIndirectArgsList;
     }
 
-    void BatchManager::TryAddBatches(MeshRenderer *meshRenderer, MeshFilter *meshFilter)
+    void BatchManager::TryAddBatches(AssetID meshID, AssetID materialID, uint32_t layer)
     {
-        Mesh* mesh = meshFilter->mMeshHandle.Get();
-        if (mesh->indexAllocation == nullptr || mesh->vertexAllocation == nullptr) return;
-        uint32_t mask = meshRenderer->renderLayer;
+        if(!meshID.IsValid() || !materialID.IsValid()) return;
+        Mesh* mesh = ResourceManager::GetInstance()->GetResource<Mesh>(meshID);
+        Material* material = ResourceManager::GetInstance()->GetResource<Material>(materialID);
+        uint32_t mask = layer;
         for(int i = 0 ; i < 32; i++)
         {
             if ((mask & (1u<<i)) != 0)
             {
-                uint64_t batchKey = GetBatchHash(meshRenderer, meshFilter, i);
+                uint64_t batchKey = GetBatchHash(meshID, materialID, i);
                 if(BatchMap.count(batchKey) > 0)
                 {
                     BatchMap[batchKey] = BatchMap[batchKey] +1;;
@@ -133,8 +108,6 @@ namespace EngineCore
                 else
                 {
                     BatchMap[batchKey] = 1;
-                    Mesh* mesh = meshFilter->mMeshHandle.Get();
-                    ASSERT(mesh != nullptr);
                     if(!RenderSettings::s_EnableVertexPulling)
                     {
                         drawIndirectParamMap[batchKey] = 
@@ -153,25 +126,23 @@ namespace EngineCore
                             (uint32_t)mesh->vertexAllocation->offset,
                         };
                     }
-
                 }
             }
         }
 
     }
 
-    void BatchManager::TryDecreaseBatches(MeshRenderer *meshRenderer, MeshFilter *meshFilter)
+    void BatchManager::TryDecreaseBatches(AssetID meshID, AssetID materialID, uint32_t layer)
     {
-        uint32_t mask = meshRenderer->renderLayer;
+        uint32_t mask = layer;
         for(int i = 0 ; i < 32; i++)
         {
             if ((mask & (1u<<i)) != 0)
             {
-                uint64_t batchKey = GetBatchHash(meshRenderer, meshFilter, i);
+                uint64_t batchKey = GetBatchHash(meshID, materialID, i);
                 BatchMap[batchKey] = BatchMap[batchKey] - 1;
             }
         }
-
     }
 
     void BatchManager::Create()

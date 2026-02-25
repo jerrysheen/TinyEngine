@@ -3,6 +3,8 @@
 #include "RenderContext.h"
 #include "Renderer/RenderPath/LagacyRenderPath.h"
 #include "Renderer/RenderPath/GPUSceneRenderPath.h"
+#include "Scene/GPUScene.h"
+#include "Scene/CPUScene.h"
 
 namespace EngineCore
 {
@@ -16,23 +18,32 @@ namespace EngineCore
     public:
         static RenderEngine* GetInstance(){return s_Instance.get();};
         static bool IsInitialized(){return s_Instance != nullptr;};
-        static void Update();
+        void Update(uint32_t frameID);
         static void Create();
+        void Tick();
+        void EndFrame();
         
         static void OnResize(int width, int height);
         static void OnDrawGUI();
-        static void Tick();
-
         static void Destory();
         RenderEngine(){};
         ~RenderEngine(){};
         static void WaitForLastFrameFinished();
         static void SignalMainThreadSubmited();
+        inline CPUScene& GetCPUScene(){return mCPUScene;}
+        inline GPUScene& GetGPUScene(){return mGPUScene;}
         static GPUSceneRenderPath gpuSceneRenderPath;
+        static LagacyRenderPath lagacyRenderPath;
+
     private:
         static std::unique_ptr<RenderEngine> s_Instance;
         static RenderContext renderContext;
-        static LagacyRenderPath lagacyRenderPath;
+
+        GPUScene mGPUScene;
+        CPUScene mCPUScene;
+
+        void ComsumeDirtySceneRenderNode();
+        void ComsumeDirtyCPUSceneRenderNode();
     };
     
 }

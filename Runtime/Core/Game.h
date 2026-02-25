@@ -3,6 +3,7 @@
 
 namespace EngineCore
 {
+
     class Game
     {
     public:
@@ -21,10 +22,12 @@ namespace EngineCore
 
         void Launch();
     private:
-        void Update();
+        void Update(uint32_t frameIndex);
         void Render();
         void EndFrame();
         void Shutdown();
+
+        uint32_t mFrameIndex = 0;
     };
 
 }

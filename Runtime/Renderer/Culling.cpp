@@ -7,27 +7,31 @@
 #include "Scene/Scene.h"
 #include "Math/Frustum.h"
 #include "Core/PublicStruct.h"
+#include "Scene/CPUScene.h"
+#include "Renderer/RenderEngine.h"
+#include "Math/Math.h"
 
 namespace EngineCore
 {
     void Culling::Run(Camera *cam, RenderContext &context)
     {
-        auto* scene = SceneManager::GetInstance()->GetCurrentScene();
-        auto& sceneRenderData = scene->renderSceneData;
+        CPUScene scene = RenderEngine::GetInstance()->GetCPUScene();
         int totalVisible = 0;
         Vector3 campos = cam->gameObject->transform->GetWorldPosition();
-        for(int i = 0; i < scene->renderSceneData.meshRendererList.size(); i++)
+        CPUSceneView sceneView = scene.GetSceneView();
+        for(int i = 0; i < sceneView.materialList.size(); i++)
         {
-            if( sceneRenderData.meshRendererList[i] &&
-                sceneRenderData.meshFilterList[i])
+            if( sceneView.materialList[i].IsValid() &&
+                sceneView.meshList[i].IsValid())
             {
-                if (cam->mFrustum.TestAABB(sceneRenderData.aabbList[i]) != IntersectResult::Outside) 
+                if (cam->mFrustum.TestAABB(sceneView.worldBoundsList[i]) != IntersectResult::Outside)
                 {
                     RenderPacket packet;
-                    packet.meshRenderer = sceneRenderData.meshRendererList[i];
-                    packet.meshFilter = sceneRenderData.meshFilterList[i];
-                    Vector3 pos = sceneRenderData.objectToWorldMatrixList[i].ExtractWorldPosition();
+                    packet.materialID = sceneView.materialList[i];
+                    packet.meshID = sceneView.meshList[i];
+                    Vector3 pos = sceneView.objectToWorldList[i].ExtractWorldPosition();
                     packet.distanToCamera = Vector3::Distance(campos, pos);
+                    packet.objectIndex = i;
                     context.visibleItems.push_back(std::move(packet));
                     totalVisible++;
                 }
@@ -35,7 +39,7 @@ namespace EngineCore
             }
         }
         // todo: Culling::Run
-        PROFILER_COUNTER_ADD("SceneItems", scene->allObjList.size());
+        PROFILER_COUNTER_ADD("SceneItems", scene.GetSceneView().worldBoundsList.size());
         PROFILER_COUNTER_ADD("Visible Objects", totalVisible);
 
     }

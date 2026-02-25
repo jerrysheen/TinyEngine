@@ -7,13 +7,14 @@
 #include "Renderer/RenderUniforms.h"
 #include "Renderer/RenderStruct.h"
 #include "D3D12RootSignature.h"
-#include "Graphics/GPUSceneManager.h"
+#include "Scene/GPUSCene.h"
 #include "D3D12Buffer.h"
 #include "D3D12ShaderUtils.h"
 #include "Renderer/RenderEngine.h"
 #include "Graphics/IGPUResource.h"
 #include "D3D12Texture.h"
 #include "Graphics/GeometryManager.h"
+#include "Renderer/FrameContext.h"
 
 namespace EngineCore
 {
@@ -79,7 +80,7 @@ namespace EngineCore
 
         ThrowIfFailed(md3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE,
 		IID_PPV_ARGS(&mImediatelyFence->mFence)));
-        mFrameFence->mCurrentFence = 0;
+        mImediatelyFence->mCurrentFence = 0;
 
     }
     
@@ -693,11 +694,18 @@ namespace EngineCore
 
                 // todo 加入pendingtoList， 保持索引，在下一帧首释放。
                 ID3D12Resource* nativeHandle = static_cast<ID3D12Resource*>(bufferResource->GetNativeHandle());
+                const D3D12_RESOURCE_STATES beforeState = GetResourceState(bufferResource->GetState());
                 ImmediatelyExecute([&](ComPtr<ID3D12GraphicsCommandList> cmdList)
                 {
-                    cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(nativeHandle, D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST));
+                    if(beforeState != D3D12_RESOURCE_STATE_COPY_DEST)
+                    {
+                        cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(nativeHandle, beforeState, D3D12_RESOURCE_STATE_COPY_DEST));
+                    }
                     cmdList->CopyBufferRegion(nativeHandle, offset, uploadBuffer.Get(), 0, size);
-                    cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(nativeHandle, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON));
+                    if(beforeState != D3D12_RESOURCE_STATE_COPY_DEST)
+                    {
+                        cmdList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(nativeHandle, D3D12_RESOURCE_STATE_COPY_DEST, beforeState));
+                    }
                 });
                 WaitForRenderFinish(mImediatelyFence);
             }
@@ -955,13 +963,14 @@ namespace EngineCore
         Shader* shader = payloadSetMaterial.shader;
         Material* mat = payloadSetMaterial.mat;
         // todo： 重写buffer 绑定逻辑
-        uint64_t gpuAddr = GPUSceneManager::GetInstance()->allObjectDataBuffer->GetBaseGPUAddress();
+        FrameContext* currFrameContext = RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameContexts();
+        uint64_t gpuAddr = currFrameContext->allObjectDataBuffer->GetBaseGPUAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllObjectData, gpuAddr);
 
-        gpuAddr = GPUSceneManager::GetInstance()->allMaterialDataBuffer->GetBaseGPUAddress();
+        gpuAddr = RenderEngine::GetInstance()->GetGPUScene().GetAllMaterialDataBuffer()->GetBaseGPUAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllMaterialData, gpuAddr);
         
-        gpuAddr = GPUSceneManager::GetInstance()->visibilityBuffer->GetBaseGPUAddress();
+        gpuAddr = currFrameContext->visibilityBuffer->GetBaseGPUAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::PerDrawInstanceObjectsList, gpuAddr);
         
         // === 5. 绑定纹理 (Root Param 5+) ===
@@ -1002,13 +1011,14 @@ namespace EngineCore
         //TD3D12MaterialData& matData = m_DataMap[payloadSetMaterial.matId];
         Material* mat = payloadSetBindlessMat.mat;
         // todo： 重写buffer 绑定逻辑
-        uint64_t gpuAddr = GPUSceneManager::GetInstance()->allObjectDataBuffer->GetBaseGPUAddress();
+        FrameContext* currFrameContext = RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameContexts();
+        uint64_t gpuAddr = currFrameContext->allObjectDataBuffer->GetBaseGPUAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllObjectData, gpuAddr);
 
-        gpuAddr = GPUSceneManager::GetInstance()->allMaterialDataBuffer->GetBaseGPUAddress();
+        gpuAddr = RenderEngine::GetInstance()->GetGPUScene().GetAllMaterialDataBuffer()->GetBaseGPUAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllMaterialData, gpuAddr);
         
-        gpuAddr = GPUSceneManager::GetInstance()->visibilityBuffer->GetBaseGPUAddress();
+        gpuAddr = currFrameContext->visibilityBuffer->GetBaseGPUAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::PerDrawInstanceObjectsList, gpuAddr);
 
         if (RenderSettings::s_EnableVertexPulling)
@@ -1127,6 +1137,11 @@ namespace EngineCore
 
     void D3D12RenderAPI::RenderAPIWindowResize(Payload_WindowResize payloadWindowResize)
     {
+        if (payloadWindowResize.width <= 0 || payloadWindowResize.height <= 0)
+        {
+            return;
+        }
+
         mClientWidth = payloadWindowResize.width;
         mClientHeight = payloadWindowResize.height;
                           // Flush before changing any resources.
@@ -1410,4 +1425,3 @@ namespace EngineCore
     }
 
 } // namespace EngineCore
-

@@ -14,6 +14,7 @@ namespace EngineCore
         explicit operator bool() const {return value != 0;};
         operator uint64_t() const { return value;}
         bool IsValid() const {return value != 0;};
+        inline void SetInValid() { value = 0; } 
         inline void Reset() { value = 0; };
         AssetID() = default;
         AssetID(uint64_t value) :value(value) {};

@@ -7,7 +7,6 @@
 #include "Math/AABB.h"
 #include "Renderer/RenderStruct.h"
 
-
 namespace EngineCore
 {
     class MeshRenderer : public Component
@@ -29,11 +28,7 @@ namespace EngineCore
             return mShardMatHandler.IsValid() ? mShardMatHandler.Get() : nullptr;
         };
 
-        inline void SetSharedMaterial(const ResourceHandle<Material>& mat) 
-        {
-            mShardMatHandler = mat;
-            //SetUpMaterialPropertyBlock();
-        }
+        void SetSharedMaterial(const ResourceHandle<Material>& mat);
 
         // return a new Material Instance;
         Material* GetOrCreateMatInstance();
@@ -42,22 +37,20 @@ namespace EngineCore
         inline bool HasMaterialOverride() { return mInstanceMatHandler.IsValid(); }
 
         void UpdateBounds(const AABB& localBounds, const Matrix4x4& worldMatrix);
-        uint32_t lastSyncTransformVersion = 0;
+
         bool shouldUpdateMeshRenderer = true;
-        bool needUpdatePerMaterialData = false;
         AABB worldBounds;
-        uint32_t sceneRenderNodeIndex = UINT32_MAX;
         bool materialDirty = true;
 		
-        void TryAddtoBatchManager();
-
         uint32_t renderLayer = 1;
         void OnLoadResourceFinished();
-
+        inline uint32_t GetCPUWorldIndex() { return mCPUWorldIndex;}
+        inline void SetCPUWorldIndex(uint32_t index) { mCPUWorldIndex = index;}
     private:
         ResourceHandle<Material> mShardMatHandler;
         ResourceHandle<Material> mInstanceMatHandler;
 
+        uint32_t mCPUWorldIndex = UINT32_MAX;
     };
 
 }

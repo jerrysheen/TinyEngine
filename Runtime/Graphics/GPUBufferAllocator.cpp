@@ -43,7 +43,7 @@ namespace EngineCore
 
     void GPUBufferAllocator::UploadBuffer(const BufferAllocation& alloc, void* data, uint32_t size)
     {
-        ASSERT(alloc.isValid && data && m_Buffer);
+        ASSERT(alloc.isValid && data && m_Buffer && size > 0);
         RenderAPI::GetInstance()->UploadBuffer(m_Buffer, alloc.offset, data, size);
     }
 

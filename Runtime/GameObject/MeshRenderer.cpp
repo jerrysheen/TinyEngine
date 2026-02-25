@@ -4,7 +4,7 @@
 #include "Graphics/Material.h"
 #include "GameObject.h"
 #include "Resources/ResourceManager.h"
-#include "Graphics/GPUSceneManager.h"
+#include "Scene/GPUSCene.h"
 #include "Renderer/RenderUniforms.h"
 #include "Scene/SceneManager.h"
 #include "Scene/Scene.h"
@@ -16,22 +16,19 @@ namespace EngineCore
 	{
 		gameObject = go;
 		// 设置为0意味着强制会有一次同步
-		lastSyncTransformVersion = 0;
-		Scene* currentScene = SceneManager::GetInstance()->GetCurrentScene();
-		if(currentScene != nullptr)
-		{
-			sceneRenderNodeIndex = currentScene->AddNewRenderNodeToCurrentScene(this);
-		}
+		Scene* scene = go->GetOwnerScene();
+		ASSERT(scene != nullptr);
+		
+		SetCPUWorldIndex(scene->CreateRenderNode());
+		scene->MarkNodeCreated(this);
 	}
 
     MeshRenderer::~MeshRenderer()
     {
-		Scene* currentScene = SceneManager::GetInstance()->GetCurrentScene();
-		if(currentScene != nullptr)
-		{
-			currentScene->DeleteRenderNodeFromCurrentScene(sceneRenderNodeIndex);
-		}
-		BatchManager::GetInstance()->TryDecreaseBatchCount(this);
+		Scene* scene = gameObject->GetOwnerScene();
+		ASSERT(scene != nullptr);
+
+		scene->DeleteRenderNode(this);
 	}
 
 	void MeshRenderer::SetUpMaterialPropertyBlock()
@@ -39,7 +36,14 @@ namespace EngineCore
 		ASSERT(mShardMatHandler.IsValid());
     }
 
-    Material* MeshRenderer::GetOrCreateMatInstance()
+	void MeshRenderer::SetSharedMaterial(const ResourceHandle<Material>& mat)
+	{
+		gameObject->GetOwnerScene()->MarkNodeMeshRendererDirty(this);
+		mShardMatHandler = mat;
+		//SetUpMaterialPropertyBlock();
+	}
+
+	Material* MeshRenderer::GetOrCreateMatInstance()
     {
 		if(mInstanceMatHandler.IsValid())
 		{
@@ -62,15 +66,10 @@ namespace EngineCore
 		worldBounds.Transform(worldMatrix);
     }
 
-	void MeshRenderer::TryAddtoBatchManager()
-	{
-		BatchManager::GetInstance()->TryAddBatchCount(this);
-	}
 
     void MeshRenderer::OnLoadResourceFinished()
     {
-		this->gameObject->transform->transformVersion++;
-		needUpdatePerMaterialData = true;
+		gameObject->GetOwnerScene()->MarkNodeMeshRendererDirty(this);
 		return;
     }
 }

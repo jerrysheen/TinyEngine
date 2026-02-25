@@ -2,7 +2,6 @@
 #include <iostream>
 #include "Utils/HashCombine.h"
 #include "Core/PublicEnum.h"
-#include "Core/PublicStruct.h"
 #include "Renderer/RenderStruct.h"
 #include <tuple>
 #include <vector>

@@ -12,6 +12,10 @@ namespace EngineCore
         // 一定被提前创建，Create在Get之前。
         static T* GetInstance()
         {
+            if (s_Instance == nullptr) 
+            {
+                s_Instance = std::make_unique<T>();
+            }
             return s_Instance.get();
         }
         

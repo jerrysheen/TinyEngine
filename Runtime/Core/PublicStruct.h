@@ -74,8 +74,9 @@ namespace EngineCore
     {
         // 为了测试，先用直接塞数据的方式。
         uint64_t sortingKey = 0;
-        MeshRenderer* meshRenderer;
-        MeshFilter* meshFilter;
+        AssetID meshID;
+        AssetID materialID;
+        uint32_t objectIndex;
         float distanToCamera = 0;
     };
 

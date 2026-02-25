@@ -112,6 +112,9 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     // 2. 读取当前实例的 AABB
     AABB box = g_InputAABBs[instanceIndex];
     uint proxyOffset = g_InputPerObjectDatas[instanceIndex].renderProxyStartIndex;
+    
+    uint proxyCount = g_InputPerObjectDatas[instanceIndex].renderProxyCount;
+    if(proxyCount == 0) return; 
     uint batchID = g_RenderProxies[proxyOffset].batchID;
 
     // 3. 执行剔除测试

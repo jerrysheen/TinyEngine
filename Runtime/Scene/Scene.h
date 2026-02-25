@@ -5,78 +5,12 @@
 #include "GameObject/GameObject.h"
 #include "GameObject/Camera.h"
 #include "Renderer/RenderStruct.h"
+#include "Resources/Asset.h"
+#include <unordered_set>
+#include "SceneStruct.h"
 
 namespace EngineCore
 {
-    struct RenderSceneData
-    {
-        vector<MeshRenderer*> meshRendererList;
-        vector<MeshFilter*> meshFilterList;
-        vector<AABB> aabbList;
-        vector<Matrix4x4> objectToWorldMatrixList;
-        vector<uint32_t> layerList;
-
-        // 每帧重置
-        vector<uint32_t> transformDirtyList;
-        vector<uint32_t> materialDirtyList;
-        struct RenderSceneData() = default;
-        inline void SyncData(MeshRenderer* renderer, uint32_t index)
-        {
-            meshRendererList[index] = renderer;
-            if (renderer && renderer->gameObject)
-            {
-                aabbList[index] = renderer->worldBounds;
-                objectToWorldMatrixList[index] = renderer->gameObject->transform->GetWorldMatrix();
-                auto* meshFilter = renderer->gameObject->GetComponent<MeshFilter>();
-                if(meshFilter != nullptr)
-                {
-                    meshFilterList[index] = meshFilter;
-                }
-                else
-                {
-                    meshFilterList[index] = nullptr;
-                }
-            }
-        }
-
-        inline void PushNewData() 
-        {
-            meshRendererList.emplace_back();
-            meshFilterList.emplace_back();
-            aabbList.emplace_back();
-            objectToWorldMatrixList.emplace_back();
-            layerList.emplace_back();
-        }
-
-
-        inline void DeleteData(uint32_t index)
-        {
-            meshRendererList[index] = nullptr;
-            meshFilterList[index] = nullptr;
-
-            // 后续删除RenderProxy
-        }
-
-        inline void ClearDirtyList()
-        {
-            materialDirtyList.clear();
-            transformDirtyList.clear();
-        }
-
-        inline void UpdateDirtyRenderNode()
-        {
-            for(uint32_t index : transformDirtyList)
-            {
-                // 直接访问安全，因为meshrenderer为空的不会加到这里。
-                auto* renderer = meshRendererList[index];
-                aabbList[index] = renderer->worldBounds;
-                objectToWorldMatrixList[index] = renderer->gameObject->transform->GetWorldMatrix();
-            }
-            // todo: 暂时没有这个逻辑， 比如material切换pso，切换vao这种
-            //materialDirtyList...
-        }
-    };
-
     class Scene : public Resource
     {
     public:
@@ -85,7 +19,7 @@ namespace EngineCore
         Scene(const std::string& name):name(name){};
         void Open();
         void Close(){};
-        void Update();
+        void Update(uint32_t frameIndex);
         void EndFrame();
         GameObject* FindGameObject(const std::string& name);
         GameObject* CreateGameObject(const std::string& name);
@@ -101,29 +35,57 @@ namespace EngineCore
 
         void AddRootGameObject(GameObject* object);
         void TryRemoveRootGameObject(GameObject* object);
+
+        void PushNewTransformDirtyRoot(Transform* transform);
+
         
         //todo: 先用vector写死，后面要用priorityqueue之类的
         std::vector<Camera*> cameraStack;
 
         void RunLogicUpdate();
         void RunTransformUpdate();
-        void RunRecordDirtyRenderNode();
+        void RunRemoveInvalidDirtyRenderNode();
 
-
-        // todo:
-        // 材质更新的时候， 也需要去调用这个逻辑，比如changeRenderNodeInfo之类的，
-        int AddNewRenderNodeToCurrentScene(MeshRenderer* renderer);
-        void DeleteRenderNodeFromCurrentScene(uint32_t index);
+        uint32_t CreateRenderNode();
         
+        void DeleteRenderNode(MeshRenderer *renderer);
+        void MarkNodeCreated(MeshRenderer* renderer);
+        void MarkNodeTransformDirty(Transform* transform);
+        void MarkNodeMeshFilterDirty(MeshFilter* meshFilter);
+        void MarkNodeMeshRendererDirty(MeshRenderer* renderer);
+        void MarkNodeRenderableDirty(GameObject* object);
+        
+        inline std::vector<uint32_t>& GetPerFrameDirtyNodeList(){ return mPerFrameDirtyNodeList;}
+        inline std::vector<uint32_t>& GetNodeChangeFlagList(){ return mNodeChangeFlagList;}    
+        inline std::vector<NodeDirtyPayload>& GetNodeDirtyPayloadList(){ return mNodeDirtyPayloadList;}    
     public:
-        int m_CurrentSceneRenderNodeIndex = 0;
-        std::queue<uint32_t> m_FreeSceneNode;
         std::string name;
         std::vector<GameObject*> allObjList;
         std::vector<GameObject*> rootObjList;
         bool enabled = true;
         Camera* mainCamera = nullptr;
-        RenderSceneData renderSceneData;
+
+        std::vector<Transform*> dirtyRootDepthBucket[64];
+        
     private:
+        uint32_t mCurrentFrame = 0;
+        void ApplyQueueNodeChange(uint32_t id, uint32_t flags, const NodeDirtyPayload& p);
+        void InternalMarkNodeDeleted(MeshRenderer* renderer);
+        
+        std::vector<uint32_t> mNodeFrameStampList;
+        std::vector<uint32_t> mNodeChangeFlagList;
+        std::vector<NodeDirtyPayload> mNodeDirtyPayloadList;
+
+
+        std::vector<uint32_t> mPerFrameDirtyNodeList;
+        
+        uint32_t mCurrSceneIndex = 0;
+        std::vector<uint32_t> mFreeSceneIndex;
+        std::vector<uint32_t> mPendingFreeSceneIndex;
+
+        void EnsureNodeQueueSize(uint32_t size);
+        void ClearPerFrameData();
+        void ClearDirtyRootTransform();
+        void PushLastFrameFreeIndex();
     };    
 } // namespace EngineCore

@@ -3,11 +3,20 @@
 
 namespace EngineCore
 {
-    class  WindowManager : public Manager<WindowManager>
+    class  WindowManager
     {
     public:
+        inline static WindowManager* GetInstance() 
+        {
+            if (s_Instance == nullptr)
+            {
+                Create();
+            };
+            return s_Instance.get();
+        }
         static void Update();
         static void Create();
+        static void Destroy();
         virtual bool WindowShouldClose() = 0;
         virtual void OnResize() = 0;
         virtual void* GetWindow() = 0;
@@ -17,8 +26,9 @@ namespace EngineCore
         {
             return {mWindowWidth, mWindowHeight};
         }
-        ~WindowManager() override {};
+        ~WindowManager(){};
         WindowManager(){};
+
     protected:
         int mWindowWidth;
         int mWindowHeight;
@@ -27,5 +37,6 @@ namespace EngineCore
         bool mResized = false;
         bool mAppPaused = false;
 		bool mMaximized = false;
+        static std::unique_ptr<WindowManager> s_Instance;
     };
 }

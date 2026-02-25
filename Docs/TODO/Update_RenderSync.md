@@ -6,12 +6,12 @@
 
 - Game::Update() 里 Scene 更新先于 Resource finalize，导致资源完成时间与组件逻辑交织，时序不稳定。
 - Scene::Update() 同时承担逻辑、Transform、render dirty 记录以及 renderSceneData 的同步，职责混杂。
-- GPUSceneManager::Tick() 在 RenderPath 里执行，RenderPath 既更新数据又执行渲染，边界不清晰。
+- GPUScene::Tick() 在 RenderPath 里执行，RenderPath 既更新数据又执行渲染，边界不清晰。
 - Legacy / GPUScene 的概念被混用：Legacy 实际也在依赖 structured buffer，只是 CPU 做 culling/batching。
 
 二、架构定调（本阶段需要明确的共识）
 
-- GPUSceneManager 持久存在，作为 RenderWorld/RenderEngine 的渲染数据同步子系统。
+- GPUScene 持久存在，作为 RenderWorld/RenderEngine 的渲染数据同步子系统。
 - RenderPath 只负责渲染执行（Execute），不再负责 Render 数据更新。
 - Scene 只负责逻辑更新与“脏标记”，RenderEngine 负责“消费脏标记并同步渲染数据”。
 - Legacy 定义为“CPU Culling + GPU 数据结构复用”的路径，不再等价于“无 GPUScene”。
@@ -29,7 +29,7 @@
 - GpuScene 只持有 GPU Buffer 与资源索引（object/material/visibility/indirect）。
 
 命名建议（最小可落地）
-- GPUSceneManager -> GpuScene（或 GpuSceneManager，但职责严格限定为 GPU 同步）
+- GPUScene -> GpuScene（或 GpuSceneManager，但职责严格限定为 GPU 同步）
 - renderSceneData -> RenderSceneData
 - allObjectDataBuffer -> objectDataBuffer
 - allMaterialDataBuffer -> materialDataBuffer
@@ -51,7 +51,7 @@
 2) SceneManager::UpdateLogic()  // 脚本与组件逻辑
 3) SceneManager::UpdateTransform()
 4) SceneManager::CollectRenderDirty()
-5) RenderEngine::PrepareRenderData()  // 同步 RenderSceneData -> GPUSceneManager
+5) RenderEngine::PrepareRenderData()  // 同步 RenderSceneData -> GPUScene
 6) RenderEngine::Submit()             // RenderPath.Execute
 7) SceneManager::EndFrame()           // 清理 dirty list
 
@@ -65,7 +65,7 @@ RenderSceneData（暂时可继续挂在 Scene 上，但逻辑上视为 RenderWor
 - 存放渲染用的静态/动态数据与 dirty 列表。
 - 只由 RenderEngine::PrepareRenderData() 消费。
 
-GPUSceneManager
+GPUScene
 - 负责将 RenderSceneData 的 dirty 集合写入 GPU Buffer。
 - 不依赖具体 RenderPath，可被 Legacy 与 GPUScene 路径复用。
 
@@ -84,13 +84,13 @@ RenderPath
 - UpdateLogic()
 - UpdateTransform()
 - CollectRenderDirty()
-- UpdateRenderSceneData() 如果保留，应该只做 CPU 数据准备，不调用 GPUSceneManager
+- UpdateRenderSceneData() 如果保留，应该只做 CPU 数据准备，不调用 GPUScene
 
 3) RenderEngine 新增 PrepareRenderData()
-- 调用 GPUSceneManager::Tick() 或等价逻辑（保持功能不变）
+- 调用 GPUScene::Tick() 或等价逻辑（保持功能不变）
 - 消费 Scene::renderSceneData 的 dirty list
 
-4) RenderPath 里移除 GPUSceneManager::Tick()
+4) RenderPath 里移除 GPUScene::Tick()
 - RenderPath.Execute 只处理 Render 指令生成
 
 七、接口草案（示意）
@@ -112,7 +112,7 @@ Game::Render():
 九、验收标准（本阶段）
 
 - RenderPath 不再包含任何 “Render 数据更新” 操作。
-- GPUSceneManager 的 Tick 只在 RenderEngine 的 PrepareRenderData 阶段调用。
+- GPUScene 的 Tick 只在 RenderEngine 的 PrepareRenderData 阶段调用。
 - Scene 更新路径里没有 GPU/RenderAPI 调用。
 - Update 时序在 Game::Update / Game::Render 中清晰可读。
 

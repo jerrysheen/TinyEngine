@@ -27,8 +27,9 @@ namespace EngineCore
         #endif
         while(!WindowManager::GetInstance()->WindowShouldClose())
         {
+            mFrameIndex++;
             PROFILER_FRAME_MARK("TinyProfiler");
-            Update();
+            Update(mFrameIndex);
 
             Render();
 
@@ -65,11 +66,12 @@ namespace EngineCore
         std::cout << "Game shutdown complete." << std::endl;
     }
 
-    void Game::Update()
+    void Game::Update(uint32_t frameIndex)
     {
         PROFILER_ZONE("MainThread::GameUpdate");
-        SceneManager::GetInstance()->Update();
         ResourceManager::GetInstance()->Update();
+        SceneManager::GetInstance()->Update(frameIndex);
+        RenderEngine::GetInstance()->Update(frameIndex);
     }
 
     void Game::Render()
@@ -81,6 +83,7 @@ namespace EngineCore
     void Game::EndFrame()
     {
         SceneManager::GetInstance()->EndFrame();
+        RenderEngine::GetInstance()->EndFrame();
     }
 
 }

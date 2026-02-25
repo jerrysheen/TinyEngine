@@ -79,22 +79,16 @@ namespace EngineEditor
     Vector2  EditorSettings::hierarchySize = Vector2{250.0f/1920.0f, 630.0f/1080.0f};
     
     // Console 面板 (中下) - 513.75x400，占底部3/8
-    Vector2  EditorSettings::inspectorStartPos = Vector2{856.25f/1920.0f, 680.0f/1080.0f};
-    Vector2  EditorSettings::inspectorSize = Vector2{513.75f/1920.0f, 400.0f/1080.0f};
-    //// Console 面板 (中下) - 513.75x400，占底部3/8
-    //Vector2  EditorSettings::consoleStartPos = Vector2{856.25f/1920.0f, 680.0f/1080.0f};
-    //Vector2  EditorSettings::consoleSize = Vector2{513.75f/1920.0f, 400.0f/1080.0f};
+    Vector2  EditorSettings::consoleStartPos = Vector2{856.25f/1920.0f, 680.0f/1080.0f};
+    Vector2  EditorSettings::consoleSize = Vector2{513.75f/1920.0f, 400.0f/1080.0f};
     
     // Project 面板 (左下) - 856.25x400，占底部5/8
     Vector2  EditorSettings::projectStartPos = Vector2{0, 680.0f/1080.0f};
     Vector2  EditorSettings::projectSize = Vector2{856.25f/1920.0f, 400.0f/1080.0f};
     
     // Inspector 面板 (右侧) - 550x1030
-    Vector2  EditorSettings::consoleStartPos = Vector2{1370.0f/1920.0f, 50.0f/1080.0f};
-    Vector2  EditorSettings::consoleSize = Vector2{550.0f/1920.0f, 1030.0f/1080.0f};
-    //// Inspector 面板 (右侧) - 550x1030
-    //Vector2  EditorSettings::inspectorStartPos = Vector2{1370.0f/1920.0f, 50.0f/1080.0f};
-    //Vector2  EditorSettings::inspectorSize = Vector2{550.0f/1920.0f, 1030.0f/1080.0f};
+    Vector2  EditorSettings::inspectorStartPos = Vector2{1370.0f/1920.0f, 50.0f/1080.0f};
+    Vector2  EditorSettings::inspectorSize = Vector2{550.0f/1920.0f, 1030.0f/1080.0f};
     
     // MainBar 面板 (顶部) - 1920x50
     Vector2  EditorSettings::mainBarStartPos = Vector2{0, 0};
@@ -106,5 +100,15 @@ namespace EngineEditor
 
 
     Vector2  EditorSettings::currentWindowSize = Vector2{1920.0f, 1080.0f};
+
+    void EditorSettings::UpdateLayout(float windowWidth, float windowHeight)
+    {
+        if (windowWidth <= 0.0f || windowHeight <= 0.0f)
+        {
+            return;
+        }
+
+        currentWindowSize = Vector2{windowWidth, windowHeight};
+    }
 
 }
