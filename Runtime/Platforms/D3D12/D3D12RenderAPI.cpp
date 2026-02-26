@@ -874,6 +874,7 @@ namespace EngineCore
         // 重置状态缓存，因为Reset后CommandList的状态被清空了
         currentRootSignature = nullptr;
         currentPSO = psoObj;
+        mCurrentFrameContext = nullptr;
 
         // 统一使用 Bindless Heap (因为 FrameAllocator 的 SRV 部分现在也分配在 Bindless Heap 上了)
         ID3D12DescriptorHeap* heaps[] = {
@@ -962,15 +963,17 @@ namespace EngineCore
         //TD3D12MaterialData& matData = m_DataMap[payloadSetMaterial.matId];
         Shader* shader = payloadSetMaterial.shader;
         Material* mat = payloadSetMaterial.mat;
-        // todo： 重写buffer 绑定逻辑
-        FrameContext* currFrameContext = RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameContexts();
-        uint64_t gpuAddr = currFrameContext->allObjectDataBuffer->GetBaseGPUAddress();
+        ASSERT(mCurrentFrameContext != nullptr);
+        ASSERT(mCurrentFrameContext->allObjectDataBuffer != nullptr);
+        ASSERT(mCurrentFrameContext->visibilityBuffer != nullptr);
+
+        uint64_t gpuAddr = mCurrentFrameContext->allObjectDataBuffer->GetGPUBuffer()->GetGPUVirtualAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllObjectData, gpuAddr);
 
         gpuAddr = RenderEngine::GetInstance()->GetGPUScene().GetAllMaterialDataBuffer()->GetBaseGPUAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllMaterialData, gpuAddr);
         
-        gpuAddr = currFrameContext->visibilityBuffer->GetBaseGPUAddress();
+        gpuAddr = mCurrentFrameContext->visibilityBuffer->GetGPUBuffer()->GetGPUVirtualAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::PerDrawInstanceObjectsList, gpuAddr);
         
         // === 5. 绑定纹理 (Root Param 5+) ===
@@ -1010,15 +1013,17 @@ namespace EngineCore
     {
         //TD3D12MaterialData& matData = m_DataMap[payloadSetMaterial.matId];
         Material* mat = payloadSetBindlessMat.mat;
-        // todo： 重写buffer 绑定逻辑
-        FrameContext* currFrameContext = RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameContexts();
-        uint64_t gpuAddr = currFrameContext->allObjectDataBuffer->GetBaseGPUAddress();
+        ASSERT(mCurrentFrameContext != nullptr);
+        ASSERT(mCurrentFrameContext->allObjectDataBuffer != nullptr);
+        ASSERT(mCurrentFrameContext->visibilityBuffer != nullptr);
+
+        uint64_t gpuAddr = mCurrentFrameContext->allObjectDataBuffer->GetGPUBuffer()->GetGPUVirtualAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllObjectData, gpuAddr);
 
         gpuAddr = RenderEngine::GetInstance()->GetGPUScene().GetAllMaterialDataBuffer()->GetBaseGPUAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllMaterialData, gpuAddr);
         
-        gpuAddr = currFrameContext->visibilityBuffer->GetBaseGPUAddress();
+        gpuAddr = mCurrentFrameContext->visibilityBuffer->GetGPUBuffer()->GetGPUVirtualAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::PerDrawInstanceObjectsList, gpuAddr);
 
         if (RenderSettings::s_EnableVertexPulling)
@@ -1308,6 +1313,13 @@ namespace EngineCore
     void D3D12RenderAPI::RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData)
     {
         currentPerFrameBufferID = setPerFrameData.perFrameBufferID;
+    }
+
+    void D3D12RenderAPI::RenderAPISetFrameContext(Payload_SetFrameContext setFrameContext)
+    {
+        ASSERT(setFrameContext.frameContext != nullptr);
+        mCurrentFrameContext = setFrameContext.frameContext;
+        mCurrentFrameID = setFrameContext.frameID;
     }
 
     void D3D12RenderAPI::RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion)

@@ -43,16 +43,29 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(temp);   
     }
 
-    void Renderer::Render(RenderContext& context)
+    void Renderer::Prepare(RenderContext& context)
     {
-        PROFILER_ZONE("MainThread::Renderer::Render");
-
+        PROFILER_ZONE("MainThread::Renderer::Prepare");
         FlushPerFrameData();
+        FrameContext* currentFrameContext = RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameContexts();
+        ASSERT(currentFrameContext != nullptr);
+        SetFrameContext(currentFrameContext, RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameID());
+
         for(auto* pass : context.camera->mRenderPassAsset.renderPasses)
         {
             FlushPerPassData(context);
             pass->Configure(context);
             pass->Filter(context);
+            pass->Prepare(context);
+        }
+    }
+    
+    void Renderer::Render(RenderContext& context)
+    {
+        PROFILER_ZONE("MainThread::Renderer::Render");
+
+        for(auto* pass : context.camera->mRenderPassAsset.renderPasses)
+        {
             pass->Execute(context);
         }
         
@@ -220,6 +233,16 @@ namespace EngineCore
         mRenderBuffer.PushBlocking(temp);
     }
 
+    void Renderer::SetFrameContext(FrameContext* frameContext, uint32_t frameID)
+    {
+        ASSERT(frameContext != nullptr);
+        DrawCommand temp;
+        temp.op = RenderOp::kSetFrameContext;
+        temp.data.setFrameContext.frameContext = frameContext;
+        temp.data.setFrameContext.frameID = frameID;
+        mRenderBuffer.PushBlocking(temp);
+    }
+
     void Renderer::CopyBufferRegion(const Payload_CopyBufferRegion &copyCmd)
     {
         DrawCommand temp;
@@ -322,6 +345,9 @@ namespace EngineCore
         case RenderOp::kSetPerFrameData :
             RenderAPI::GetInstance()->RenderAPISetPerFrameData(cmd.data.setPerFrameData);
             break;  
+        case RenderOp::kSetFrameContext :
+            RenderAPI::GetInstance()->RenderAPISetFrameContext(cmd.data.setFrameContext);
+            break;
         case RenderOp::kWindowResize:
             hasResize = true;
             pendingResize = cmd.data.onWindowResize;

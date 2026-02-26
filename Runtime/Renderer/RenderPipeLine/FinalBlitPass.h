@@ -15,11 +15,15 @@ namespace EngineCore
         // 配置rt等
         virtual void Configure(const RenderContext& context) override;
         // 执行具体的draw
+        virtual void Prepare(RenderContext& context) override;
         virtual void Execute(RenderContext& context) override;
 
         virtual void Filter(const RenderContext& context) override;
 
         virtual void Submit() override;
 
+    private:
+        Material* mat;
+        Mesh* model;
     };
 } // namespace EngineCore

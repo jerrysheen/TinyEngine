@@ -10,6 +10,8 @@
 
 namespace EngineCore
 {
+    class FrameContext;
+
     enum class RenderOp : uint8_t
     {
         kInvalid = 0,
@@ -34,6 +36,7 @@ namespace EngineCore
         kDrawIndirect = 19,
         kSetBindlessMat = 20,
         kSetBindLessMeshIB = 21,
+        kSetFrameContext = 22,
     };
 
     enum class DepthComparisonFunc : uint8_t
@@ -169,6 +172,12 @@ namespace EngineCore
         UINT perPassBufferID;
     };
 
+    struct Payload_SetFrameContext
+    {
+        FrameContext* frameContext = nullptr;
+        uint32_t frameID = 0;
+    };
+
     struct alignas(16) CopyOp
     {
         uint32_t srcOffset;
@@ -296,6 +305,7 @@ namespace EngineCore
         Payload_DrawInstancedCommand setDrawInstanceCmd;
         Payload_SetPerFrameData setPerFrameData;
         Payload_SetPerPassData setPerPassData;
+        Payload_SetFrameContext setFrameContext;
         Payload_CopyBufferRegion copyBufferRegion;
         Payload_DispatchComputeShader dispatchComputeShader;
         Payload_SetBufferResourceState setBufferResourceState;

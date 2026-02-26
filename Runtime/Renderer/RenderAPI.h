@@ -52,6 +52,7 @@ namespace  EngineCore
         virtual void RenderAPIPresentFrame() = 0;
         virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) = 0;
         virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) = 0;
+        virtual void RenderAPISetFrameContext(Payload_SetFrameContext setFrameContext) = 0;
         virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) = 0;
         
         virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) = 0;

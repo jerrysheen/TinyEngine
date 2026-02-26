@@ -13,5 +13,6 @@ namespace EngineCore
     public:
         virtual ~LagacyRenderPath() override {};
         virtual void Execute(RenderContext& context) override;
+        virtual void Prepare(RenderContext& context) override;
     };
 };

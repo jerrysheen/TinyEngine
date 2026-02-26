@@ -25,6 +25,8 @@
 
 namespace EngineCore
 {
+    class FrameContext;
+
     class D3D12RenderAPI : public RenderAPI
     {
     public:
@@ -57,6 +59,7 @@ namespace EngineCore
         virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) override;
         virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) override;
         virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) override;
+        virtual void RenderAPISetFrameContext(Payload_SetFrameContext setFrameContext) override;
         virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) override;
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
@@ -221,6 +224,8 @@ namespace EngineCore
         ComPtr<ID3D12RootSignature> currentRootSignature;
         UINT currentPerFrameBufferID;
         UINT currentPerPassBufferID;
+        FrameContext* mCurrentFrameContext = nullptr;
+        uint32_t mCurrentFrameID = 0;
     };
 
 }

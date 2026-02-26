@@ -30,13 +30,18 @@ namespace EngineCore
         #endif
 
     }
-    void FinalBlitPass::Execute(RenderContext& context)
+    void FinalBlitPass::Prepare(RenderContext &context)
     {
         mRootSigSlot = RootSigSlot::PerPassData;
-        Material* mat = SceneManager::GetInstance()->blitMaterial;
+        mat = SceneManager::GetInstance()->blitMaterial;
         mat->SetTexture("SrcTexture", context.camera->colorAttachment->textureBuffer);
-        Mesh* model = SceneManager::GetInstance()->quadMesh;
+        model = SceneManager::GetInstance()->quadMesh;
         mRenderPassInfo.drawRecordList.emplace_back(mat, model);
+    }
+
+    void FinalBlitPass::Execute(RenderContext &context)
+    {
+
         // todo： 后面挪到别的地方， 先做Batch的部分：
         Renderer::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
         Renderer::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);

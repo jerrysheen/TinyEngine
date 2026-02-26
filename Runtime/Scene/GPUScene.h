@@ -18,7 +18,6 @@ namespace EngineCore
     public:
         GPUScene();
         void Create();
-        void Tick();
         void Update(uint32_t currentFrameIndex);
         void Destroy();
         void EndFrame();
@@ -36,6 +35,7 @@ namespace EngineCore
         void UpdateFrameContextShadowData(uint32_t renderID, CPUSceneView& view);
         
         FrameContext* GetCurrentFrameContexts();
+        inline uint32_t GetCurrentFrameID() const { return mCurrentFrameID; }
 
         inline GPUBufferAllocator* GetAllMaterialDataBuffer() { return allMaterialDataBuffer; }
         inline ResourceHandle<ComputeShader> GetCullingShaderHandler() { return GPUCullingShaderHandler; }

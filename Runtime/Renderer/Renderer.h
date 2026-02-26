@@ -32,6 +32,7 @@ namespace EngineCore
         static void Create();
 
         void BeginFrame();
+        void Prepare(RenderContext& context);
         void Render(RenderContext& context);
         void EndFrame();
 
@@ -42,6 +43,7 @@ namespace EngineCore
         void DrawIndexedInstanced(Mesh* mesh, int count, const PerDrawHandle& perDrawHandle);
         void SetPerFrameData(UINT perFrameBufferID);
         void SetPerPassData(UINT perPassBufferID);
+        void SetFrameContext(FrameContext* frameContext, uint32_t frameID);
         
         void SetRenderState(const Material* mat, const RenderPassInfo &passinfo);
 

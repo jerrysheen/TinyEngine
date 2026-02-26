@@ -32,17 +32,17 @@ namespace EngineCore
         static void SignalMainThreadSubmited();
         inline CPUScene& GetCPUScene(){return mCPUScene;}
         inline GPUScene& GetGPUScene(){return mGPUScene;}
-        static GPUSceneRenderPath gpuSceneRenderPath;
-        static LagacyRenderPath lagacyRenderPath;
 
     private:
+        IRenderPath* mCurrentRenderPath;
         static std::unique_ptr<RenderEngine> s_Instance;
-        static RenderContext renderContext;
+        RenderContext renderContext;
 
         GPUScene mGPUScene;
         CPUScene mCPUScene;
 
         void ComsumeDirtySceneRenderNode();
+        void UploadCopyOp();
     };
     
 }

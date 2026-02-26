@@ -8,5 +8,6 @@ namespace EngineCore
     public:
         virtual ~IRenderPath() = default;
         virtual void Execute(RenderContext& context) = 0;
+        virtual void Prepare(RenderContext& context) = 0;
     };
 }

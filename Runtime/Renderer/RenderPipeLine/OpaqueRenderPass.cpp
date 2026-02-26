@@ -33,9 +33,8 @@ namespace EngineCore
         SetViewPort(Vector2(0,0), Vector2(colorAttachment->GetWidth(), colorAttachment->GetHeight()));
         SetClearFlag(ClearFlag::All, Vector3(0.0, 0.0, 0.0), 1.0f);
     }
-    
-    // maybe send a context here?
-    void EngineCore::OpaqueRenderPass::Execute(RenderContext& context)
+
+    void OpaqueRenderPass::Prepare(RenderContext &context)
     {
         // 往哪里添加这个执行结果？
         ContextFilterSettings filterSettings;
@@ -45,6 +44,12 @@ namespace EngineCore
                                         drawSettings,
                                         filterSettings,
                                         mRenderPassInfo.renderBatchList);
+    }
+
+    // maybe send a context here?
+    void EngineCore::OpaqueRenderPass::Execute(RenderContext& context)
+    {
+
 
         PROFILER_EVENT_BEGIN("MainThread::OpaqueRenderPass::SetDrawCall");
 

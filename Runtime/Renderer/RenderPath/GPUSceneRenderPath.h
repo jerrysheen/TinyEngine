@@ -22,6 +22,7 @@ namespace EngineCore
         };
 
         virtual void Execute(RenderContext& context) override;
+        virtual void Prepare(RenderContext& context) override {};
 
 
         bool hasSetUpBuffer = false;

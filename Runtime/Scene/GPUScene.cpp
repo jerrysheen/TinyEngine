@@ -21,11 +21,6 @@ namespace EngineCore
     {
     }
 
-    void GPUScene::Tick()
-    {
-
-    }
-
     void GPUScene::Create()
     {
         // 强烈建议使用 512， 注意，这边都是Byte

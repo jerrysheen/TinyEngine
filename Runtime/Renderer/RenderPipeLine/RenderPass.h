@@ -21,8 +21,11 @@ namespace EngineCore
         virtual void Filter(const RenderContext& context) = 0;
         
         // first record drawInfo then sync data to RenderAPI, finally Submit to execute the
-        // real Draw.
-        // todo :  这个地方需要修改， 因为现在里面需要增加sortingkey，所以没const，但是感觉有问题
+        // CPU Prepare Data.
+        virtual void Prepare(RenderContext& context) = 0;
+
+        // first record drawInfo then sync data to RenderAPI, finally Submit to execute the
+        // Submit To RenderThread
         virtual void Execute(RenderContext& context) = 0;
         
         // sent current Data to Renderer-> RenderPassInfo

@@ -48,10 +48,6 @@ namespace EngineCore
         cullingParam.totalItem = gameObjectCount;
         cullingParamBuffer->UploadBuffer(cullingParamAlloc, &cullingParam, sizeof(GPUCullingParam));
 
-        PROFILER_EVENT_BEGIN("MainThread::GPUSceneManagerTick");
-        RenderEngine::GetInstance()->GetGPUScene().Tick();
-        PROFILER_EVENT_END("MainThread::GPUSceneManagerTick");
-
         
         // Get Current BatchInfo:
         vector<DrawIndirectArgs> batchInfo = BatchManager::GetInstance()->GetBatchInfo();

@@ -39,65 +39,65 @@ namespace EngineCore
     // maybe send a context here?
     void EngineCore::GPUSceneRenderPass::Execute(RenderContext& context)
     {
-        // 每Pass设置一次
-        m_LastMatState.Reset();
+        //// 每Pass设置一次
+        //m_LastMatState.Reset();
 
-        Renderer::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
-        Renderer::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
-        Renderer::GetInstance()->SetSissorRect(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
+        //Renderer::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
+        //Renderer::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
+        //Renderer::GetInstance()->SetSissorRect(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
 
-        Renderer::GetInstance()->SetPerPassData((UINT)mRenderPassInfo.mRootSigSlot);
-        if(!RenderSettings::s_EnableVertexPulling)
-        {
-            for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
-            {
-                int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
-                int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
-                Material* mat = renderContext.material;
-                Mesh* mesh = renderContext.mesh;
-                // 根据mat + pass信息组织pippeline
-                Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
-                // copy gpu material data desc 
-                Renderer::GetInstance()->SetBindlessMat(mat);
-                // bind mesh vertexbuffer and indexbuffer.
-                Renderer::GetInstance()->SetMeshData(mesh);
-                Payload_DrawIndirect indirectPayload;
-                // temp:
-                GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
-                ASSERT(indirectDrawArgsBuffer != nullptr);
-                indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
-                indirectPayload.count = 1;
-                indirectPayload.startIndex = batchID;
-                indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
-                Renderer::GetInstance()->DrawIndirect(indirectPayload);
-            }
-        }
-        else
-        {
-            for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
-            {
-                int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
-                int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
-                Material* mat = renderContext.material;
-                if (mat->GetMaterialRenderState().GetHash() != m_LastMatState.GetHash())
-                {
-                    m_LastMatState = mat->GetMaterialRenderState();
-                    Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
-                    Renderer::GetInstance()->SetBindlessMat(mat);
-                    Renderer::GetInstance()->SetBindLessMeshIB(0);
-                }
+        //Renderer::GetInstance()->SetPerPassData((UINT)mRenderPassInfo.mRootSigSlot);
+        //if(!RenderSettings::s_EnableVertexPulling)
+        //{
+        //    for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
+        //    {
+        //        int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
+        //        int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
+        //        Material* mat = renderContext.material;
+        //        Mesh* mesh = renderContext.mesh;
+        //        // 根据mat + pass信息组织pippeline
+        //        Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
+        //        // copy gpu material data desc 
+        //        Renderer::GetInstance()->SetBindlessMat(mat);
+        //        // bind mesh vertexbuffer and indexbuffer.
+        //        Renderer::GetInstance()->SetMeshData(mesh);
+        //        Payload_DrawIndirect indirectPayload;
+        //        // temp:
+        //        GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
+        //        ASSERT(indirectDrawArgsBuffer != nullptr);
+        //        indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
+        //        indirectPayload.count = 1;
+        //        indirectPayload.startIndex = batchID;
+        //        indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
+        //        Renderer::GetInstance()->DrawIndirect(indirectPayload);
+        //    }
+        //}
+        //else
+        //{
+        //    for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
+        //    {
+        //        int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
+        //        int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
+        //        Material* mat = renderContext.material;
+        //        if (mat->GetMaterialRenderState().GetHash() != m_LastMatState.GetHash())
+        //        {
+        //            m_LastMatState = mat->GetMaterialRenderState();
+        //            Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
+        //            Renderer::GetInstance()->SetBindlessMat(mat);
+        //            Renderer::GetInstance()->SetBindLessMeshIB(0);
+        //        }
 
-                Payload_DrawIndirect indirectPayload;
-                // temp:
-                GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
-                ASSERT(indirectDrawArgsBuffer != nullptr);
-                indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
-                indirectPayload.count = 1;
-                indirectPayload.startIndex = batchID;
-                indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
-                Renderer::GetInstance()->DrawIndirect(indirectPayload);
-            }
-        }
+        //        Payload_DrawIndirect indirectPayload;
+        //        // temp:
+        //        GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
+        //        ASSERT(indirectDrawArgsBuffer != nullptr);
+        //        indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
+        //        indirectPayload.count = 1;
+        //        indirectPayload.startIndex = batchID;
+        //        indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
+        //        Renderer::GetInstance()->DrawIndirect(indirectPayload);
+        //    }
+        //}
 
     }
 

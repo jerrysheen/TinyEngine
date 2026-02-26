@@ -20,9 +20,6 @@
 namespace EngineCore
 {
     std::unique_ptr<RenderEngine> RenderEngine::s_Instance = nullptr;
-    RenderContext RenderEngine::renderContext;
-    LagacyRenderPath RenderEngine::lagacyRenderPath;
-    GPUSceneRenderPath RenderEngine::gpuSceneRenderPath;
     void RenderEngine::Create()
     {
         s_Instance = std::make_unique<RenderEngine>();
@@ -30,6 +27,16 @@ namespace EngineCore
         WindowManager::Create();
         RenderAPI::Create();
         Renderer::Create();
+
+
+        if (RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy)
+        {
+            s_Instance->mCurrentRenderPath = new LagacyRenderPath();
+        }
+        else
+        {
+            s_Instance->mCurrentRenderPath = new GPUSceneRenderPath();
+        }
     }
 
     void RenderEngine::Update(uint32_t frameID)
@@ -37,9 +44,13 @@ namespace EngineCore
 
         mCPUScene.Update(frameID);
         mGPUScene.Update(frameID);
-
         ComsumeDirtySceneRenderNode();
-
+        WaitForLastFrameFinished();
+        PROFILER_EVENT_BEGIN("MainThread::WaitForGpuFinished");
+        RenderAPI::GetInstance()->WaitForGpuFinished();
+        PROFILER_EVENT_END("MainThread::WaitForGpuFinished");
+        mCurrentRenderPath->Prepare(renderContext);
+        UploadCopyOp();
     }    
     
     void RenderEngine::OnResize(int width, int height)
@@ -49,23 +60,11 @@ namespace EngineCore
 
     void RenderEngine::Tick()
     {
-        WaitForLastFrameFinished();
-        PROFILER_EVENT_BEGIN("MainThread::WaitForGpuFinished");
-        RenderAPI::GetInstance()->WaitForGpuFinished();
-        PROFILER_EVENT_END("MainThread::WaitForGpuFinished");
 
 
 
-
-        if (RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy)
-        {
-            lagacyRenderPath.Execute(renderContext);
-        }
-        else
-        {
-            gpuSceneRenderPath.Execute(renderContext);
-        }
-
+        s_Instance->mCurrentRenderPath->Execute(renderContext);
+        
         SignalMainThreadSubmited();
 
     }
@@ -82,6 +81,8 @@ namespace EngineCore
         //RenderAPI::Destroy();
         WindowManager::Destroy();
         RenderEngine::GetInstance()->GetGPUScene().Destroy();
+
+        delete s_Instance->mCurrentRenderPath;
         // 最后销毁 RenderEngine 自己
         if (s_Instance)
         {
@@ -127,6 +128,10 @@ namespace EngineCore
         }
         mGPUScene.UpdateDirtyNode(view);
 
+    }
+
+    void RenderEngine::UploadCopyOp()
+    {
         mGPUScene.UploadCopyOp();
     }
 }
