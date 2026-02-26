@@ -43,7 +43,6 @@ namespace EngineCore
         CPUScene mCPUScene;
 
         void ComsumeDirtySceneRenderNode();
-        void ComsumeDirtyCPUSceneRenderNode();
     };
     
 }

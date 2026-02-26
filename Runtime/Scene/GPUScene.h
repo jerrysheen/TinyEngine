@@ -33,7 +33,7 @@ namespace EngineCore
 
 
         void UpdateFrameContextDirtyFlags(uint32_t renderID, uint32_t flag);
-        void UpdateCurrentFrameContextShadowData(uint32_t renderID, CPUSceneView& view);
+        void UpdateFrameContextShadowData(uint32_t renderID, CPUSceneView& view);
         
         FrameContext* GetCurrentFrameContexts();
 

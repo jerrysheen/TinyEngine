@@ -92,7 +92,11 @@ namespace EngineCore
     {
         // 表示这一帧已经更新过了
         if(frameID == mDirtyFrame) return;
-        if(!isDirty) return;
+        if (isDirty)
+        {
+            mLocalMatrix = Matrix4x4::TRS(mLocalPosition, mLocalQuaternion, mLocalScale);
+            isDirty = false;
+        }
         mDirtyFrame = frameID;
         mLocalMatrix =  Matrix4x4::TRS(mLocalPosition, mLocalQuaternion, mLocalScale);
         if(parentTransform != nullptr)
@@ -112,7 +116,6 @@ namespace EngineCore
             childTransforms[i]->UpdateRecursively(frameID);
         }
 
-        isDirty = false;
         Scene* scene = this->gameObject->GetOwnerScene();
         ASSERT(scene != nullptr);
         

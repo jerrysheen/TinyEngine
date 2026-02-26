@@ -54,7 +54,6 @@ namespace EngineCore
         inline uint32_t GetNodeDepth() { return mDepth; }
 
     public:
-        bool isDirty = false;
         std::vector<Transform*> childTransforms;
         Transform* parentTransform = nullptr;
         
@@ -106,6 +105,7 @@ namespace EngineCore
 
         inline void SetNodeDepth(uint32_t depth){ mDepth = depth;}
     private:
+        bool isDirty = false;
 
         Matrix4x4 mWorldMatrix;
         Matrix4x4 mLocalMatrix;

@@ -148,7 +148,7 @@ namespace EngineCore
     void FrameContext::UpdateShadowData(uint32_t renderID, CPUSceneView &view)
     {
         uint32_t flags = mDirtyFlags[renderID];
-        if(flags & (uint32_t)NodeDirtyFlags::None) return;
+        if(flags == 0) return;
         if(flags & (uint32_t)NodeDirtyFlags::Destory)
         {
             TryFreeRenderProxyByRenderIndex(renderID);
@@ -199,8 +199,10 @@ namespace EngineCore
         {
             int renderID = mPerFrameDirtyID[i];
             uint32_t dirtyFlags = mDirtyFlags[renderID];
-            // PerFrameObject基本都要更新
-            if(!(dirtyFlags & (uint32_t)NodeDirtyFlags::None))
+
+            if(dirtyFlags == 0 || (dirtyFlags & (uint32_t)NodeDirtyFlags::Destory)) continue;
+            
+            if(dirtyFlags & (uint32_t) NodeDirtyFlags::Created)
             {
                 BufferAllocation allocation = allObjectDataBuffer->Allocate(sizeof(PerObjectData));
                 BufferAllocation tempAllocation = perFrameUploadBuffer->Allocate(sizeof(PerObjectData));
@@ -208,24 +210,49 @@ namespace EngineCore
                 CopyOp op;
                 op.srcOffset = tempAllocation.offset;
                 op.dstOffset = allocation.offset;
+                ASSERT(op.dstOffset == renderID * sizeof(PerObjectData));
                 op.size = sizeof(PerObjectData);
                 mCopyOpsObject.push_back(std::move(op));
-                mDirtyFlags[renderID] = 0;
-            }
 
-            if((dirtyFlags & (uint32_t)NodeDirtyFlags::Created) || (dirtyFlags & (uint32_t)NodeDirtyFlags::TransformDirty) || (dirtyFlags & (uint32_t)NodeDirtyFlags::MeshDirty))
-            {
-                BufferAllocation allocation = allAABBBuffer->Allocate(sizeof(AABB));
-                BufferAllocation tempAllocation = perFrameUploadBuffer->Allocate(sizeof(AABB));
+                allocation = allAABBBuffer->Allocate(sizeof(AABB));
+                tempAllocation = perFrameUploadBuffer->Allocate(sizeof(AABB));
                 perFrameUploadBuffer->UploadBuffer(tempAllocation, (void*)&cpuScene.worldBoundsList[renderID], sizeof(AABB));
-                CopyOp op;
                 op.srcOffset = tempAllocation.offset;
                 op.dstOffset = allocation.offset;
                 op.size = sizeof(AABB);
                 mCopyOpsAABB.push_back(std::move(op));
-                mDirtyFlags[renderID] = 0;
             }
+
+            if((dirtyFlags & (uint32_t)NodeDirtyFlags::TransformDirty) || (dirtyFlags & (uint32_t)NodeDirtyFlags::MeshDirty))
+            {
+                BufferAllocation dstAlloc;
+                dstAlloc.offset = renderID * sizeof(PerObjectData);  // 固定位置！
+                BufferAllocation tempAlloc = perFrameUploadBuffer->Allocate(sizeof(PerObjectData));
+                perFrameUploadBuffer->UploadBuffer(tempAlloc, &mPerObjectDatas[renderID], sizeof(PerObjectData));
+                CopyOp op;
+                op.srcOffset = tempAlloc.offset;
+                op.dstOffset = dstAlloc.offset;
+                op.size = sizeof(PerObjectData);
+                mCopyOpsObject.push_back(op);
+            }
+
+            if((dirtyFlags & (uint32_t)NodeDirtyFlags::MeshDirty) || (dirtyFlags & (uint32_t)NodeDirtyFlags::TransformDirty))
+            {
+                BufferAllocation dstAlloc;
+                dstAlloc.offset = renderID * sizeof(AABB);           // 固定位置！
+                BufferAllocation tempAlloc = perFrameUploadBuffer->Allocate(sizeof(AABB));
+                perFrameUploadBuffer->UploadBuffer(tempAlloc, (void*)&cpuScene.worldBoundsList[renderID], sizeof(AABB));
+                CopyOp op;
+                op.srcOffset = tempAlloc.offset;
+                op.dstOffset = dstAlloc.offset;
+                op.size = sizeof(AABB);
+                mCopyOpsAABB.push_back(op);
+            }
+            mDirtyFlags[renderID] = 0;
         }
+
+        // 不能在Reset的时候清除， 确保没有把历史脏数据清除掉。
+        mPerFrameDirtyID.clear();
     }
 
     FrameContext::~FrameContext()
@@ -249,7 +276,6 @@ namespace EngineCore
         visibilityBuffer->Reset();
         
         perFrameUploadBuffer->Reset();
-        mPerFrameDirtyID.clear();
 
 
         mCopyOpsObject.clear();

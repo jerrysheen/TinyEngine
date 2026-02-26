@@ -54,7 +54,6 @@ namespace EngineCore
 
     void Scene::EndFrame()
     {
-        ClearDirtyRootTransform();
         ClearPerFrameData();
     }
 
@@ -172,6 +171,11 @@ namespace EngineCore
             {
                 transformList[i]->UpdateRecursively(mCurrentFrame);
             }
+        }
+
+        for (auto& rootNode : dirtyRootDepthBucket)
+        {
+            rootNode.clear();
         }
     }
 
@@ -295,14 +299,6 @@ namespace EngineCore
     void Scene::ClearPerFrameData()
     {
         mPerFrameDirtyNodeList.clear();
-    }
-
-    void Scene::ClearDirtyRootTransform()
-    {
-        for(auto& rootNode : dirtyRootDepthBucket)
-        {
-            rootNode.clear();
-        }
     }
 
     void Scene::PushLastFrameFreeIndex()

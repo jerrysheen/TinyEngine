@@ -51,7 +51,6 @@ namespace EngineCore {
                 {
                     gameObject->transform->UpdateRecursively(0);
                 }
-                gameObject->transform->isDirty = true;
             }
         
             return res;

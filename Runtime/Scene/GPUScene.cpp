@@ -93,7 +93,7 @@ namespace EngineCore
         EnsureCapacity(renderID); 
         UpdateFrameContextDirtyFlags(renderID, flags);
         // 记录我当前脏ID即可
-        UpdateCurrentFrameContextShadowData(renderID, view);
+        UpdateFrameContextShadowData(renderID, view);
     }
 
 
@@ -105,9 +105,12 @@ namespace EngineCore
         }
     }
 
-    void GPUScene::UpdateCurrentFrameContextShadowData(uint32_t renderID, CPUSceneView &view)
+    void GPUScene::UpdateFrameContextShadowData(uint32_t renderID, CPUSceneView &view)
     {
-        mCurrentFrameContext->UpdateShadowData(renderID, view);
+        for(int i = 0; i < mMaxFrameCount; i++)
+        {
+            mCPUFrameContext[i].UpdateShadowData(renderID, view);
+        }
     }
 
     FrameContext *GPUScene::GetCurrentFrameContexts()
