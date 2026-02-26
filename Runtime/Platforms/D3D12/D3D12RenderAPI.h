@@ -222,6 +222,7 @@ namespace EngineCore
 
         ComPtr<ID3D12PipelineState> currentPSO;
         ComPtr<ID3D12RootSignature> currentRootSignature;
+        TD3D12MaterialStateCache materialStateCache;
         UINT currentPerFrameBufferID;
         UINT currentPerPassBufferID;
         FrameContext* mCurrentFrameContext = nullptr;

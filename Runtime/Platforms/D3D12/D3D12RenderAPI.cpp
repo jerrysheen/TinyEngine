@@ -875,6 +875,7 @@ namespace EngineCore
         currentRootSignature = nullptr;
         currentPSO = psoObj;
         mCurrentFrameContext = nullptr;
+        materialStateCache.Reset();
 
         // 统一使用 Bindless Heap (因为 FrameAllocator 的 SRV 部分现在也分配在 Bindless Heap 上了)
         ID3D12DescriptorHeap* heaps[] = {
@@ -968,13 +969,26 @@ namespace EngineCore
         ASSERT(mCurrentFrameContext->visibilityBuffer != nullptr);
 
         uint64_t gpuAddr = mCurrentFrameContext->allObjectDataBuffer->GetGPUBuffer()->GetGPUVirtualAddress();
-        mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllObjectData, gpuAddr);
+        if (materialStateCache.allObjectDataGpuAddress != gpuAddr) 
+        {
+            mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllObjectData, gpuAddr);
+            materialStateCache.allObjectDataGpuAddress = gpuAddr;
+        }
 
         gpuAddr = RenderEngine::GetInstance()->GetGPUScene().GetAllMaterialDataBuffer()->GetBaseGPUAddress();
-        mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllMaterialData, gpuAddr);
+        if (materialStateCache.allMaterialDataGpuAddress != gpuAddr)
+        {
+            mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllMaterialData, gpuAddr);
+            materialStateCache.allMaterialDataGpuAddress = gpuAddr;
+        }
+        
         
         gpuAddr = mCurrentFrameContext->visibilityBuffer->GetGPUBuffer()->GetGPUVirtualAddress();
-        mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::PerDrawInstanceObjectsList, gpuAddr);
+        if (materialStateCache.perDrawInstanceObjectsListGpuAddress != gpuAddr)
+        {
+            mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::PerDrawInstanceObjectsList, gpuAddr);
+            materialStateCache.perDrawInstanceObjectsListGpuAddress = gpuAddr;
+        }
         
         // === 5. 绑定纹理 (Root Param 5+) ===
         vector<ShaderBindingInfo > textureInfo = shader->mShaderReflectionInfo.mTextureInfo;
@@ -1087,6 +1101,7 @@ namespace EngineCore
                 );
             }
             currentRootSignature = rootSig;
+            materialStateCache.Reset();
         }
 
         ComPtr<ID3D12PipelineState> pso = D3D12PSO::GetOrCreatePSO(md3dDevice, psoDesc);  // 添加这行
@@ -1094,6 +1109,7 @@ namespace EngineCore
         {
             mCommandList->SetPipelineState(pso.Get()); 
             currentPSO = pso;
+            materialStateCache.Reset();
         }
         
     }

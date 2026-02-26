@@ -47,6 +47,17 @@ namespace EngineCore
         ComPtr<ID3DBlob> psBlob;
     };
         
-
+    struct TD3D12MaterialStateCache
+    {
+        uint64_t allObjectDataGpuAddress = 0;
+        uint64_t allMaterialDataGpuAddress = 0;
+        uint64_t perDrawInstanceObjectsListGpuAddress = 0;
+        void Reset() 
+        {
+            allObjectDataGpuAddress = 0;
+            allMaterialDataGpuAddress = 0;
+            perDrawInstanceObjectsListGpuAddress = 0;
+        }
+    };
 
 } // namespace EngineCore

@@ -56,6 +56,10 @@ namespace EngineCore
 
         inline const RenderPassInfo& GetRenderPassInfo(){return mRenderPassInfo;};
         RootSigSlot mRootSigSlot;
+    protected:
+        void IssueRenderCommandCommon(const RenderPassInfo& passInfo,
+                                      const std::vector<RenderBatch>& batches
+                                      );
     public:
         string name;
         RenderPassInfo mRenderPassInfo;
