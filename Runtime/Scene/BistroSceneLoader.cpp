@@ -41,17 +41,18 @@ namespace EngineCore {
         if (cacheFile.good()) {
             cacheFile.close();
             std::cout << "Loading from cache: " << fullPath << std::endl;
+
             Scene* res = static_cast<Scene*>(sceneLoader.Load(binPath).resource);
             // todo： 这个地方有加载时序问题。。
             SceneManager::GetInstance()->SetCurrentScene(res);
             // 刷新所有Transform的world position，避免父子节点关系建立后的延迟更新问题
-            for (auto& gameObject : res->rootObjList) 
-            {
-                if (gameObject != nullptr && gameObject->transform != nullptr)
-                {
-                    gameObject->transform->UpdateRecursively(0);
-                }
-            }
+            //for (auto& gameObject : res->rootObjList) 
+            //{
+            //    if (gameObject != nullptr && gameObject->transform != nullptr)
+            //    {
+            //        gameObject->transform->UpdateRecursively(0);
+            //    }
+            //}
         
             return res;
         }

@@ -22,7 +22,7 @@ namespace EngineCore
         virtual const char* GetScriptName() const override { return "MeshRenderer"; }
         
         void SetUpMaterialPropertyBlock();
-
+        void SetDefaultMaterial();
         inline Material* GetSharedMaterial()
         { 
             return mShardMatHandler.IsValid() ? mShardMatHandler.Get() : nullptr;

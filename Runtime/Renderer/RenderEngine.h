@@ -32,7 +32,11 @@ namespace EngineCore
         static void SignalMainThreadSubmited();
         inline CPUScene& GetCPUScene(){return mCPUScene;}
         inline GPUScene& GetGPUScene(){return mGPUScene;}
-
+        inline void SetCurrentFrame(uint32_t currentFrame)
+        {
+            mCPUScene.SetCurrentFrame(currentFrame);
+            mGPUScene.SetCurrentFrame(currentFrame);
+        }
     private:
         IRenderPath* mCurrentRenderPath;
         static std::unique_ptr<RenderEngine> s_Instance;

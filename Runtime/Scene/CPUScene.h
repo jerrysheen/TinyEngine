@@ -18,6 +18,10 @@ namespace EngineCore
         void EndFrame();
         CPUSceneView GetSceneView();
 
+        inline void SetCurrentFrame(uint32_t currentFrame)
+        {   
+            mCurrentFrame = currentFrame;
+        }
     private:
         void EnsureCapacity(uint32_t renderID);
         void CreateRenderNode(uint32_t renderID, NodeDirtyPayload& payload);

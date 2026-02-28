@@ -239,5 +239,11 @@ namespace EngineCore
         EnsureDefaultMaterial();
     }
 
+    ResourceHandle<Material> ResourceManager::GetDefaultMaterialHandle()
+    {
+        EnsureDefaultMaterial();
+        return ResourceHandle<Material>(mDefaultMaterial->GetAssetID());
+    }
+
 
 }

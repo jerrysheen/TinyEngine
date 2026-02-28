@@ -57,7 +57,12 @@ namespace EngineCore
         
         inline std::vector<uint32_t>& GetPerFrameDirtyNodeList(){ return mPerFrameDirtyNodeList;}
         inline std::vector<uint32_t>& GetNodeChangeFlagList(){ return mNodeChangeFlagList;}    
-        inline std::vector<NodeDirtyPayload>& GetNodeDirtyPayloadList(){ return mNodeDirtyPayloadList;}    
+        inline std::vector<NodeDirtyPayload>& GetNodeDirtyPayloadList(){ return mNodeDirtyPayloadList;}   
+
+        inline void SetCurrentFrame(uint32_t currentFrameIndex)
+        {
+            mCurrentFrame = currentFrameIndex;
+        }
     public:
         std::string name;
         std::vector<GameObject*> allObjList;

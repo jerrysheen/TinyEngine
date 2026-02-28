@@ -49,18 +49,18 @@ namespace EngineCore
         switch (heapType)
         {
         case D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV:
-            maxCount = 5000; // 大幅增加 Size 以支持 Bindless + Dynamic
-            return 5000;
+            maxCount = 12000; // 大幅增加 Size 以支持 Bindless + Dynamic
+            return maxCount;
             break;
         case D3D12_DESCRIPTOR_HEAP_TYPE_RTV:
         case D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER:
         case D3D12_DESCRIPTOR_HEAP_TYPE_DSV:
             maxCount = 100;
-            return 100;
+            return maxCount;
         default:
             cout << "Wrong D3D12_DESCRIPTOR_HEAP_TYPE Get!!!" << endl;
             maxCount = 100;
-            return 100;
+            return maxCount;
             break;
         }
     }

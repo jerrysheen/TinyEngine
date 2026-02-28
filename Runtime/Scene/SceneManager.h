@@ -59,7 +59,7 @@ namespace EngineCore
         };
         Scene* AddNewScene(const std::string& name);
         void SwitchSceneTo(const std::string& name);
-
+        void SetCurrentFrame(uint32_t currentFrameIndex);
     private:
         static SceneManager* s_Instance;
         Scene* mCurrentScene = nullptr;

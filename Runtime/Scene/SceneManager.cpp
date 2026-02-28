@@ -90,6 +90,11 @@ namespace EngineCore
         }
     }
 
+    void SceneManager::SetCurrentFrame(uint32_t currentFrameIndex)
+    {
+        if (mCurrentScene) mCurrentScene->SetCurrentFrame(currentFrameIndex);
+    }
+
     void SceneManager::Create()
     {
         if (s_Instance) return;
@@ -109,6 +114,8 @@ namespace EngineCore
         auto* gameObject = scene->CreateGameObject("Camera");
         auto* cam = gameObject->AddComponent<Camera>();
         gameObject->transform->SetLocalPosition(Vector3(-15, 2.5, -3));
+        //gameObject->transform->SetLocalPosition(Vector3(-35, 57.85, -103.45));
+        //gameObject->transform->SetLocalEulerAngles(Vector3(21.46, 11.97, 5.781));
         scene->mainCamera = cam;
 
 

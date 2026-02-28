@@ -27,13 +27,14 @@ namespace EngineCore
         #endif
         while(!WindowManager::GetInstance()->WindowShouldClose())
         {
-            mFrameIndex++;
             PROFILER_FRAME_MARK("TinyProfiler");
             Update(mFrameIndex);
 
             Render();
 
             EndFrame();
+            mFrameIndex++;
+
         }
 
         // 明确的关闭流程（顺序很重要！）
@@ -69,6 +70,8 @@ namespace EngineCore
     void Game::Update(uint32_t frameIndex)
     {
         PROFILER_ZONE("MainThread::GameUpdate");
+        SceneManager::GetInstance()->SetCurrentFrame(frameIndex);
+        RenderEngine::GetInstance()->SetCurrentFrame(frameIndex);
         ResourceManager::GetInstance()->Update();
         SceneManager::GetInstance()->Update(frameIndex);
         RenderEngine::GetInstance()->Update(frameIndex);

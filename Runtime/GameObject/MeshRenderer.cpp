@@ -18,8 +18,8 @@ namespace EngineCore
 		// 设置为0意味着强制会有一次同步
 		Scene* scene = go->GetOwnerScene();
 		ASSERT(scene != nullptr);
-		
 		SetCPUWorldIndex(scene->CreateRenderNode());
+		SetDefaultMaterial();
 		scene->MarkNodeCreated(this);
 	}
 
@@ -36,10 +36,15 @@ namespace EngineCore
 		ASSERT(mShardMatHandler.IsValid());
     }
 
+	void MeshRenderer::SetDefaultMaterial()
+	{
+		SetSharedMaterial(ResourceManager::GetInstance()->GetDefaultMaterialHandle());
+	}
+
 	void MeshRenderer::SetSharedMaterial(const ResourceHandle<Material>& mat)
 	{
-		gameObject->GetOwnerScene()->MarkNodeMeshRendererDirty(this);
 		mShardMatHandler = mat;
+		gameObject->GetOwnerScene()->MarkNodeMeshRendererDirty(this);
 		//SetUpMaterialPropertyBlock();
 	}
 

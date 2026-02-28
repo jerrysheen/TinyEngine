@@ -290,7 +290,7 @@ namespace EngineCore
         const size_t need = static_cast<size_t>(id) + 1;
         if(mNodeFrameStampList.size() < need)
         {
-            mNodeFrameStampList.resize(need, 0);
+            mNodeFrameStampList.resize(need, UINT32_MAX);
             mNodeChangeFlagList.resize(need, 0);
             mNodeDirtyPayloadList.resize(need);
         }
@@ -318,6 +318,7 @@ namespace EngineCore
 
     void Scene::ApplyQueueNodeChange(uint32_t id, uint32_t flags, const NodeDirtyPayload& p)
     {
+        EnsureNodeQueueSize(id);
         if(mNodeFrameStampList[id] != mCurrentFrame)
         {
             // 这一帧还没创建，重置所有：

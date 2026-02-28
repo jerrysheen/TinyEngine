@@ -39,6 +39,11 @@ namespace EngineCore
 
         inline GPUBufferAllocator* GetAllMaterialDataBuffer() { return allMaterialDataBuffer; }
         inline ResourceHandle<ComputeShader> GetCullingShaderHandler() { return GPUCullingShaderHandler; }
+
+        inline void SetCurrentFrame(uint32_t currentFrame)
+        {
+            mCurrentFrameID = currentFrame;
+        }
     private:
         void EnsureCapacity(uint32_t renderID);
     private:

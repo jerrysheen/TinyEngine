@@ -276,10 +276,11 @@ namespace EngineCore
         // todo: temp public for Editor Test
     public:
         static ResourceManager* sInstance;
-        int maxResourceLoadedInMainThread = 100;
+        int maxResourceLoadedInMainThread = 50;
         std::vector<Resource*> mPendingDeleteList;
         std::unordered_map<AssetType, IResourceLoader*> m_Loaders;
 
+        ResourceHandle<Material> GetDefaultMaterialHandle();
 
         std::thread mLoadThread;
         Mesh* defaultMesh = nullptr;
