@@ -45,8 +45,6 @@ namespace EngineCore
     {
         BufferAllocation alloc = m_GLobalIndexBufferAllocator->Allocate(size);
         RenderAPI::GetInstance()->UploadBuffer(alloc.buffer, alloc.offset, data, size);
-
-        RenderAPI::GetInstance()->UploadBuffer(alloc.buffer, alloc.offset, data, size);
         MeshBufferAllocation* meshBufferAllocation = new MeshBufferAllocation(
             alloc.buffer,
             alloc.gpuAddress,
