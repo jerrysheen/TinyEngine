@@ -1,64 +1,67 @@
 # Architecture Digest: GAMEPLAY
-> Auto-generated. Focus: Runtime/GameObject, Runtime/Scene, Runtime/Scripts, Runtime/Managers, Window, Input, Camera, Transform, Component, MonoBehaviour
+> Auto-generated. Focus: Runtime/GameObject, Runtime/Scene, Runtime/Scripts, Runtime/Managers, Runtime/Scene/SceneStruct.h, Window, Input, Camera, Transform, Component, MonoBehaviour, NodeDirtyFlags, NodeDirtyPayload, CPUSceneView, RunLogicUpdate, RunTransformUpdate, RunRemoveInvalidDirtyRenderNode
 
 ## Project Intent
-目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
 - 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+- 针对更新链路重点追踪：Game::Update/Render/EndFrame -> SceneManager/Scene -> CPUScene -> GPUScene -> FrameContext。
+- 重点识别NodeDirtyFlags、NodeDirtyPayload、PerFrameDirtyList、CopyOp等脏数据传播与跨帧同步结构。
 
 ## Understanding Notes
 - 围绕GameObject、Component、Transform、Camera与Scene的生命周期。
-- 关注运行时脚本与管理器如何驱动渲染与资源依赖。
+- 关注运行时脚本与管理器如何驱动渲染与资源依赖，强调GameObject/Component与场景更新职责解耦。
 
 ## Key Files Index
 - `[42]` **Runtime/GameObject/Camera.cpp** *(Content Included)*
 - `[42]` **Runtime/GameObject/Camera.h** *(Content Included)*
 - `[42]` **Runtime/GameObject/Transform.h** *(Content Included)*
 - `[41]` **Runtime/GameObject/MonoBehaviour.h** *(Content Included)*
+- `[41]` **Runtime/Scene/Scene.cpp** *(Content Included)*
 - `[38]` **Runtime/GameObject/ComponentType.h** *(Content Included)*
 - `[38]` **Runtime/Scripts/CameraController.h** *(Content Included)*
 - `[37]` **Runtime/GameObject/Component.h** *(Content Included)*
 - `[37]` **Runtime/Managers/WindowManager.h** *(Content Included)*
 - `[35]` **Runtime/GameObject/Transform.cpp** *(Content Included)*
 - `[35]` **Runtime/Managers/WindowManager.cpp** *(Content Included)*
+- `[35]` **Runtime/Scene/SceneStruct.h** *(Content Included)*
 - `[35]` **Runtime/Scripts/CameraController.cpp** *(Content Included)*
 - `[33]` **Runtime/GameObject/Component.cpp** *(Content Included)*
 - `[33]` **Runtime/GameObject/MonoBehaviour.cpp** *(Content Included)*
+- `[30]` **Runtime/Scene/Scene.h** *(Content Included)*
+- `[27]` **Runtime/Scene/CPUScene.cpp** *(Content Included)*
 - `[27]` **Runtime/Platforms/Windows/WindowManagerWindows.h** *(Content Included)*
 - `[26]` **Runtime/GameObject/GameObject.h** *(Content Included)*
-- `[25]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
-- `[25]` **Runtime/Scene/Scene.cpp** *(Content Included)*
-- `[25]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp** *(Content Included)*
-- `[24]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
-- `[22]` **Runtime/Scene/Scene.h** *(Content Included)*
+- `[26]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
+- `[25]` **Runtime/Scene/BistroSceneLoader.cpp**
+- `[25]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
 - `[21]` **Runtime/GameObject/GameObject.cpp**
 - `[20]` **Runtime/Entry.cpp**
+- `[20]` **Runtime/Scene/CPUScene.h**
+- `[19]` **Runtime/Renderer/RenderEngine.cpp**
 - `[18]` **Runtime/GameObject/MeshRenderer.h**
 - `[17]` **Runtime/GameObject/MeshFilter.h**
-- `[17]` **Runtime/Scene/SceneStruct.h**
-- `[15]` **Runtime/Scene/CPUScene.cpp**
+- `[15]` **Runtime/Scene/GPUScene.h**
 - `[14]` **Runtime/Core/Game.cpp**
 - `[14]` **Runtime/Scene/SceneManager.h**
-- `[13]` **Runtime/Renderer/RenderEngine.cpp**
-- `[13]` **Runtime/Scene/CPUScene.h**
+- `[13]` **Runtime/Scene/GPUScene.cpp**
 - `[13]` **Editor/Panel/EditorMainBar.cpp**
 - `[12]` **Runtime/Managers/Manager.h**
 - `[12]` **Runtime/Scene/BistroSceneLoader.h**
-- `[12]` **Runtime/Scene/GPUScene.h**
 - `[12]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[12]` **Editor/Panel/EditorInspectorPanel.cpp**
 - `[11]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[11]` **Runtime/Serialization/SceneLoader.h**
 - `[11]` **Assets/Shader/StandardPBR.hlsl**
 - `[10]` **Runtime/GameObject/MeshFilter.cpp**
-- `[10]` **Runtime/Scene/GPUScene.cpp**
+- `[10]` **Runtime/Renderer/FrameContext.cpp**
+- `[10]` **Runtime/Renderer/Renderer.cpp**
 - `[10]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[10]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
-- `[9]` **Runtime/Renderer/Renderer.cpp**
 - `[9]` **Runtime/Renderer/Renderer.h**
 - `[9]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[9]` **Assets/Shader/BlitShader.hlsl**
@@ -74,7 +77,6 @@
 - `[6]` **Runtime/Renderer/RenderCommand.h**
 - `[6]` **Runtime/Renderer/RenderContext.h**
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
-- `[5]` **Runtime/Graphics/Mesh.cpp**
 
 ## Evidence & Implementation Details
 
@@ -177,7 +179,6 @@ namespace EngineCore
         inline uint32_t GetNodeDepth() { return mDepth; }
 
     public:
-        bool isDirty = false;
         std::vector<Transform*> childTransforms;
         Transform* parentTransform = nullptr;
         
@@ -208,6 +209,7 @@ namespace EngineCore
 
         inline void AddChild(Transform* transform)
         {
+            childTransforms.push_back(transform);
 ```
 
 ### File: `Runtime/GameObject/MonoBehaviour.h`
@@ -330,6 +332,85 @@ namespace EngineCore
     };
 ```
 
+### File: `Runtime/Scene/SceneStruct.h`
+```cpp
+{
+
+    enum class NodeDirtyFlags : uint32_t
+    {
+        None = 0,
+        Created = 1 << 0,
+        Destory = 1 << 1,
+        TransformDirty = 1 << 2,
+        MeshDirty = 1 << 4,
+        MaterialDirty = 1 << 5,
+    };
+```
+...
+```cpp
+        NodeDirtyPayload() = default;
+        NodeDirtyPayload(Transform* trans)
+            : transform(trans){}
+```
+
+### File: `Runtime/Scene/Scene.h`
+```cpp
+        void Scene::DestroyGameObject(const std::string& name);
+
+        void AddCamToStack(Camera* cam);
+        inline void SetMainCamera(Camera* cam) { mainCamera = cam; }
+```
+...
+```cpp
+        void TryRemoveRootGameObject(GameObject* object);
+
+        void PushNewTransformDirtyRoot(Transform* transform);
+
+        
+        //todo: 先用vector写死，后面要用priorityqueue之类的
+        std::vector<Camera*> cameraStack;
+
+        void RunLogicUpdate();
+        void RunTransformUpdate();
+        void RunRemoveInvalidDirtyRenderNode();
+
+        uint32_t CreateRenderNode();
+        
+        void DeleteRenderNode(MeshRenderer *renderer);
+        void MarkNodeCreated(MeshRenderer* renderer);
+        void MarkNodeTransformDirty(Transform* transform);
+        void MarkNodeMeshFilterDirty(MeshFilter* meshFilter);
+        void MarkNodeMeshRendererDirty(MeshRenderer* renderer);
+        void MarkNodeRenderableDirty(GameObject* object);
+        
+        inline std::vector<uint32_t>& GetPerFrameDirtyNodeList(){ return mPerFrameDirtyNodeList;}
+```
+...
+```cpp
+    private:
+        uint32_t mCurrentFrame = 0;
+        void ApplyQueueNodeChange(uint32_t id, uint32_t flags, const NodeDirtyPayload& p);
+        void InternalMarkNodeDeleted(MeshRenderer* renderer);
+        
+        std::vector<uint32_t> mNodeFrameStampList;
+        std::vector<uint32_t> mNodeChangeFlagList;
+        std::vector<NodeDirtyPayload> mNodeDirtyPayloadList;
+
+
+        std::vector<uint32_t> mPerFrameDirtyNodeList;
+        
+        uint32_t mCurrSceneIndex = 0;
+        std::vector<uint32_t> mFreeSceneIndex;
+        std::vector<uint32_t> mPendingFreeSceneIndex;
+
+        void EnsureNodeQueueSize(uint32_t size);
+        void ClearPerFrameData();
+        void ClearDirtyRootTransform();
+        void PushLastFrameFreeIndex();
+    };    
+} // namespace EngineCore
+```
+
 ### File: `Runtime/Platforms/Windows/WindowManagerWindows.h`
 ```cpp
 namespace EngineCore
@@ -388,46 +469,4 @@ namespace EngineCore
     private:
         Scene* ownerScene = nullptr;
     };
-```
-
-### File: `Runtime/Scene/Scene.h`
-```cpp
-        void Scene::DestroyGameObject(const std::string& name);
-
-        void AddCamToStack(Camera* cam);
-        inline void SetMainCamera(Camera* cam) { mainCamera = cam; }
-```
-...
-```cpp
-        void TryRemoveRootGameObject(GameObject* object);
-
-        void PushNewTransformDirtyRoot(Transform* transform);
-
-        
-        //todo: 先用vector写死，后面要用priorityqueue之类的
-        std::vector<Camera*> cameraStack;
-
-        void RunLogicUpdate();
-        void RunTransformUpdate();
-        void RunRemoveInvalidDirtyRenderNode();
-
-        uint32_t CreateRenderNode();
-        
-        void DeleteRenderNode(MeshRenderer *renderer);
-        void MarkNodeCreated(MeshRenderer* renderer);
-        void MarkNodeTransformDirty(Transform* transform);
-        void MarkNodeMeshFilterDirty(MeshFilter* meshFilter);
-        void MarkNodeMeshRendererDirty(MeshRenderer* renderer);
-        void MarkNodeRenderableDirty(GameObject* object);
-        
-        inline std::vector<uint32_t>& GetPerFrameDirtyNodeList(){ return mPerFrameDirtyNodeList;}
-```
-...
-```cpp
-        void EnsureNodeQueueSize(uint32_t size);
-        void ClearPerFrameData();
-        void ClearDirtyRootTransform();
-        void PushLastFrameFreeIndex();
-    };    
-} // namespace EngineCore
 ```

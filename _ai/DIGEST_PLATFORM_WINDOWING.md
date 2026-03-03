@@ -2,13 +2,15 @@
 > Auto-generated. Focus: Runtime/Platforms, Runtime/Platforms/Windows, Window, WindowManager, WindowManagerWindows, Input, Platform, Win32, MessageLoop
 
 ## Project Intent
-目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
 - 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+- 针对更新链路重点追踪：Game::Update/Render/EndFrame -> SceneManager/Scene -> CPUScene -> GPUScene -> FrameContext。
+- 重点识别NodeDirtyFlags、NodeDirtyPayload、PerFrameDirtyList、CopyOp等脏数据传播与跨帧同步结构。
 
 ## Understanding Notes
 - 窗口、输入与平台层抽象决定跨平台能力。
@@ -346,6 +348,7 @@ namespace EngineCore
         virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) override;
         virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) override;
         virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) override;
+        virtual void RenderAPISetFrameContext(Payload_SetFrameContext setFrameContext) override;
         virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) override;
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
@@ -477,7 +480,18 @@ namespace EngineCore
         ComPtr<ID3DBlob> psBlob;
     };
         
-
+    struct TD3D12MaterialStateCache
+    {
+        uint64_t allObjectDataGpuAddress = 0;
+        uint64_t allMaterialDataGpuAddress = 0;
+        uint64_t perDrawInstanceObjectsListGpuAddress = 0;
+        void Reset() 
+        {
+            allObjectDataGpuAddress = 0;
+            allMaterialDataGpuAddress = 0;
+            perDrawInstanceObjectsListGpuAddress = 0;
+        }
+    };
 
 } // namespace EngineCore
 ```

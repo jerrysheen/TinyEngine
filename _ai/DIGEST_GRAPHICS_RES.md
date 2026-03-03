@@ -2,13 +2,15 @@
 > Auto-generated. Focus: Runtime/Graphics, Runtime/Resources, Runtime/MaterialLibrary, Runtime/MaterialLibrary/MaterialLayout.h, Runtime/MaterialLibrary/MaterialInstance.h, Runtime/MaterialLibrary/MaterialArchetypeRegistry.h, Material, MaterialLayout, MaterialInstance, MaterialArchetypeRegistry, Texture, GPUBuffer, Mesh, GPUScene, Vertex, Index, Layout, Bindless
 
 ## Project Intent
-目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
 - 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+- 针对更新链路重点追踪：Game::Update/Render/EndFrame -> SceneManager/Scene -> CPUScene -> GPUScene -> FrameContext。
+- 重点识别NodeDirtyFlags、NodeDirtyPayload、PerFrameDirtyList、CopyOp等脏数据传播与跨帧同步结构。
 
 ## Understanding Notes
 - 资源层是材质、纹理、模型与GPU缓冲的核心纽带。
@@ -56,25 +58,25 @@
 - `[26]` **Runtime/Graphics/IGPUResource.h**
 - `[25]` **Runtime/GameObject/MeshFilter.cpp**
 - `[25]` **Runtime/Renderer/RenderStruct.h**
+- `[24]` **Runtime/Renderer/Renderer.cpp**
+- `[24]` **Runtime/Resources/ResourceManager.h**
 - `[24]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
 - `[23]` **Runtime/Renderer/BatchManager.h**
-- `[22]` **Runtime/Renderer/Renderer.cpp**
-- `[22]` **Runtime/Resources/ResourceManager.h**
 - `[22]` **Runtime/Serialization/TextureLoader.h**
 - `[21]` **Runtime/Renderer/FrameContext.cpp**
 - `[21]` **Runtime/Renderer/RenderAPI.h**
 - `[21]` **Runtime/Resources/AssetTypeTraits.h**
+- `[21]` **Runtime/Scene/SceneManager.cpp**
+- `[21]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[21]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[21]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[21]` **Assets/Shader/StandardPBR.hlsl**
 - `[20]` **Runtime/Entry.cpp**
 - `[20]` **Runtime/Renderer/BatchManager.cpp**
 - `[20]` **Runtime/Renderer/Renderer.h**
-- `[20]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[20]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp**
 - `[19]` **Runtime/Core/PublicStruct.h**
 - `[19]` **Runtime/Scene/BistroSceneLoader.h**
-- `[19]` **Runtime/Scene/SceneManager.cpp**
 
 ## Evidence & Implementation Details
 
@@ -474,7 +476,7 @@ namespace EngineCore
         virtual const char* GetScriptName() const override { return "MeshRenderer"; }
         
         void SetUpMaterialPropertyBlock();
-
+        void SetDefaultMaterial();
         inline Material* GetSharedMaterial()
         { 
             return mShardMatHandler.IsValid() ? mShardMatHandler.Get() : nullptr;

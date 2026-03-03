@@ -2,13 +2,15 @@
 > Auto-generated. Focus: Editor, Editor/Panel, Editor/D3D12, Editor/EditorSerialization, Editor/Mac, Panel, Inspector, Hierarchy, Gizmo, GUI, Widget, Console
 
 ## Project Intent
-目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
 - 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+- 针对更新链路重点追踪：Game::Update/Render/EndFrame -> SceneManager/Scene -> CPUScene -> GPUScene -> FrameContext。
+- 重点识别NodeDirtyFlags、NodeDirtyPayload、PerFrameDirtyList、CopyOp等脏数据传播与跨帧同步结构。
 
 ## Understanding Notes
 - 编辑器提供调试与可视化界面，支撑迭代与资产编辑。
@@ -45,6 +47,7 @@
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[5]` **Runtime/Renderer/RenderCommand.h**
+- `[5]` **Runtime/Renderer/RenderPath/LagacyRenderPath.cpp**
 - `[5]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
 - `[4]` **Runtime/Core/Profiler.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
@@ -74,7 +77,6 @@
 - `[2]` **Runtime/GameObject/Transform.h**
 - `[2]` **Runtime/Graphics/ComputeShader.h**
 - `[2]` **Runtime/Graphics/GeometryManager.h**
-- `[2]` **Runtime/Graphics/GPUBufferAllocator.h**
 
 ## Evidence & Implementation Details
 

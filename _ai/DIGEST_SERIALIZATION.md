@@ -2,13 +2,15 @@
 > Auto-generated. Focus: Runtime/Serialization, Runtime/Resources, AssetHeader, StreamHelper, MeshLoader, SceneLoader, MaterialLoader, ShaderLoader, TextureLoader, DDSTextureLoader, IResourceLoader, ResourceManager, ResourceHandle, AssetRegistry, Asset
 
 ## Project Intent
-目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
 - 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+- 针对更新链路重点追踪：Game::Update/Render/EndFrame -> SceneManager/Scene -> CPUScene -> GPUScene -> FrameContext。
+- 重点识别NodeDirtyFlags、NodeDirtyPayload、PerFrameDirtyList、CopyOp等脏数据传播与跨帧同步结构。
 
 ## Understanding Notes
 - 序列化涉及AssetHeader、StreamHelper与各类Loader。
@@ -18,7 +20,7 @@
 - `[66]` **Runtime/Serialization/DDSTextureLoader.h** *(Content Included)*
 - `[65]` **Runtime/Resources/AssetRegistry.cpp** *(Content Included)*
 - `[60]` **Runtime/Resources/AssetRegistry.h** *(Content Included)*
-- `[58]` **Runtime/Resources/ResourceManager.cpp** *(Content Included)*
+- `[60]` **Runtime/Resources/ResourceManager.cpp** *(Content Included)*
 - `[55]` **Runtime/Serialization/AssetHeader.h** *(Content Included)*
 - `[55]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
 - `[53]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
@@ -54,13 +56,13 @@
 - `[7]` **Runtime/Renderer/BatchManager.h**
 - `[7]` **Runtime/Scene/SceneStruct.h**
 - `[7]` **Runtime/Settings/ProjectSettings.h**
+- `[6]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[6]` **Runtime/Renderer/RenderContext.cpp**
 - `[6]` **Runtime/Renderer/Renderer.h**
 - `[6]` **Runtime/Scene/SceneManager.h**
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[5]` **premake5.lua**
-- `[5]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[5]` **Runtime/Scene/GPUScene.h**
 - `[5]` **Runtime/Scene/Scene.cpp**
 - `[5]` **Runtime/Settings/ProjectSettings.cpp**
@@ -748,10 +750,11 @@ namespace EngineCore
         // todo: temp public for Editor Test
     public:
         static ResourceManager* sInstance;
-        int maxResourceLoadedInMainThread = 100;
+        int maxResourceLoadedInMainThread = 50;
         std::vector<Resource*> mPendingDeleteList;
         std::unordered_map<AssetType, IResourceLoader*> m_Loaders;
 
+        ResourceHandle<Material> GetDefaultMaterialHandle();
 
         std::thread mLoadThread;
         Mesh* defaultMesh = nullptr;

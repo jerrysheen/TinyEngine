@@ -109,10 +109,48 @@ Game::Render():
 - Copy/Graphics/Compute queue 分离
 - RenderWorld 从 Scene 中完全剥离
 
-九、验收标准（本阶段）
+九、接续任务（Fence + Upload 重构，下一阶段）
+
+背景（当前阻塞点）
+- `Runtime/Core/Game.cpp` 与 `Runtime/Renderer/RenderEngine.cpp` 当前是“强等待”链路：主线程每帧等待渲染线程/GPU完成，CPU-GPU 基本锁步。
+- `Runtime/Platforms/D3D12/D3D12RenderAPI.cpp` 的 `CreateTextureBuffer/CreateBuffer/UploadBuffer` 仍包含 `WaitForRenderFinish(mImediatelyFence)`，资源上传是阻塞式。
+- 这两处会互相叠加，导致上传与渲染并行度上不去。
+
+阶段目标
+- 先把“帧同步”从强等待改为基于 fence value 的可控等待（按 frame slot 或资源粒度）。
+- 再把“资源上传”改为提交后异步完成（pending -> ready），不在上传函数内部等待。
+
+执行顺序（必须按序）
+1) Fence 基础设施统一
+- 在 D3D12 层提供：`SignalFrameFence()`（返回 fence value）与 `WaitForFenceValue(value)`。
+- 保留现有接口兼容，逐步替换 `WaitForRenderFinish/WaitForGpuFinished` 的直接调用点。
+
+2) 主循环去强等待（先改 RenderEngine/Game）
+- 改造 `RenderEngine::Update/Tick/EndFrame`，移除“每帧全局强等”。
+- 引入 frame slot（建议 2~3）记录“本槽最近一次提交 fence value”，仅在复用该槽资源前等待。
+- 保持功能正确优先，第一步不追求多队列，仅先消除锁步。
+
+3) UploadManager 抽象（统一上传入口）
+- 把 `CreateTextureBuffer/CreateBuffer/UploadBuffer` 里的立即提交+等待改为“提交上传请求”。
+- 请求返回 `UploadTicket`（或等价句柄），支持 `callback` 或 `poll` 查询完成。
+- 统一维护 pending upload 资源生命周期，按 fence 完成后回收 upload heap 临时资源。
+
+4) 资源可见性切换（pending -> live）
+- `Mesh/Texture` 上传后不立刻生效；完成后再把 allocation/texture handle 从 pending 切到 live。
+- 渲染侧只读 live，未 ready 时使用默认资源或跳过绘制，避免读半成品。
+
+5) 清理与回归
+- 清理同步上传遗留路径，确保 Runtime 里没有“上传函数内部强等”。
+- 增加 profiling 标记：主线程等待时长、上传完成延迟、帧内 copy 批次大小。
+
+里程碑验收（下一阶段）
+- M1：`Game/RenderEngine` 不再每帧全局阻塞等待 GPU 完成。
+- M2：`D3D12RenderAPI` 上传路径不再调用 `WaitForRenderFinish(mImediatelyFence)`。
+- M3：`Mesh/Texture` 具备 pending/ready 状态，渲染路径可处理未 ready 资源。
+
+十、验收标准（本阶段）
 
 - RenderPath 不再包含任何 “Render 数据更新” 操作。
 - GPUScene 的 Tick 只在 RenderEngine 的 PrepareRenderData 阶段调用。
 - Scene 更新路径里没有 GPU/RenderAPI 调用。
 - Update 时序在 Game::Update / Game::Render 中清晰可读。
-

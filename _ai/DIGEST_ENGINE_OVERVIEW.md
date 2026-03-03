@@ -2,13 +2,15 @@
 > Auto-generated. Focus: Runtime/Entry.cpp, Runtime/Core/Game.h, Runtime/Settings, EngineCore, Game, RenderEngine, SceneManager, Settings, ProjectSettings, RenderSettings, Runtime/Utils
 
 ## Project Intent
-目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
 - 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+- 针对更新链路重点追踪：Game::Update/Render/EndFrame -> SceneManager/Scene -> CPUScene -> GPUScene -> FrameContext。
+- 重点识别NodeDirtyFlags、NodeDirtyPayload、PerFrameDirtyList、CopyOp等脏数据传播与跨帧同步结构。
 
 ## Understanding Notes
 - 引擎入口、主循环与模块初始化/销毁流程。
@@ -47,7 +49,6 @@
 - `[14]` **Runtime/GameObject/MonoBehaviour.cpp**
 - `[14]` **Runtime/Serialization/SceneLoader.h**
 - `[13]` **Runtime/Utils/HashCombine.h**
-- `[13]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
 - `[13]` **Editor/Panel/EditorHierarchyPanel.cpp**
 - `[12]` **Runtime/GameObject/Component.cpp**
 - `[12]` **Runtime/Renderer/RenderContext.cpp**
@@ -55,8 +56,8 @@
 - `[11]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[11]` **Editor/Panel/EditorMainBar.h**
 - `[10]` **Runtime/Serialization/MaterialLoader.h**
+- `[10]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
 - `[10]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.cpp**
-- `[10]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[9]` **Runtime/Renderer/Culling.cpp**
 - `[9]` **Runtime/Renderer/RenderContext.h**
 - `[9]` **Runtime/Scene/Scene.h**
@@ -68,6 +69,7 @@
 - `[8]` **Runtime/Renderer/BatchManager.cpp**
 - `[8]` **Runtime/Scene/BistroSceneLoader.h**
 - `[8]` **Runtime/Serialization/MeshLoader.h**
+- `[8]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[8]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[8]` **Editor/Panel/EditorConsolePanel.cpp**
 - `[8]` **Editor/Panel/EditorInspectorPanel.cpp**
@@ -185,13 +187,14 @@ namespace EngineCore
         #endif
         while(!WindowManager::GetInstance()->WindowShouldClose())
         {
-            mFrameIndex++;
             PROFILER_FRAME_MARK("TinyProfiler");
             Update(mFrameIndex);
 
             Render();
 
             EndFrame();
+            mFrameIndex++;
+
         }
 
         // 明确的关闭流程（顺序很重要！）
@@ -227,6 +230,8 @@ namespace EngineCore
     void Game::Update(uint32_t frameIndex)
     {
         PROFILER_ZONE("MainThread::GameUpdate");
+        SceneManager::GetInstance()->SetCurrentFrame(frameIndex);
+        RenderEngine::GetInstance()->SetCurrentFrame(frameIndex);
         ResourceManager::GetInstance()->Update();
         SceneManager::GetInstance()->Update(frameIndex);
         RenderEngine::GetInstance()->Update(frameIndex);
@@ -241,9 +246,6 @@ namespace EngineCore
     void Game::EndFrame()
     {
         SceneManager::GetInstance()->EndFrame();
-        RenderEngine::GetInstance()->EndFrame();
-    }
-
 ```
 
 ### File: `Runtime/Settings/ProjectSettings.h`
@@ -390,7 +392,7 @@ namespace EngineCore
         };
         Scene* AddNewScene(const std::string& name);
         void SwitchSceneTo(const std::string& name);
-
+        void SetCurrentFrame(uint32_t currentFrameIndex);
     private:
         static SceneManager* s_Instance;
         Scene* mCurrentScene = nullptr;
@@ -560,18 +562,21 @@ namespace EngineCore
         static void SignalMainThreadSubmited();
         inline CPUScene& GetCPUScene(){return mCPUScene;}
         inline GPUScene& GetGPUScene(){return mGPUScene;}
-        static GPUSceneRenderPath gpuSceneRenderPath;
-        static LagacyRenderPath lagacyRenderPath;
-
+        inline void SetCurrentFrame(uint32_t currentFrame)
+        {
+            mCPUScene.SetCurrentFrame(currentFrame);
+            mGPUScene.SetCurrentFrame(currentFrame);
+        }
     private:
+        IRenderPath* mCurrentRenderPath;
         static std::unique_ptr<RenderEngine> s_Instance;
-        static RenderContext renderContext;
+        RenderContext renderContext;
 
         GPUScene mGPUScene;
         CPUScene mCPUScene;
 
         void ComsumeDirtySceneRenderNode();
-        void ComsumeDirtyCPUSceneRenderNode();
+        void UploadCopyOp();
     };
     
 }
@@ -643,7 +648,6 @@ namespace EngineCore
         inline uint32_t GetNodeDepth() { return mDepth; }
 
     public:
-        bool isDirty = false;
         std::vector<Transform*> childTransforms;
         Transform* parentTransform = nullptr;
         
@@ -671,4 +675,5 @@ namespace EngineCore
             mDepth = 0;
             MarkDirty();
         }
+
 ```

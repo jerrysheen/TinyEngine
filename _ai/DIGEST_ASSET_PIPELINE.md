@@ -2,13 +2,15 @@
 > Auto-generated. Focus: Runtime/Resources, Runtime/Serialization, Runtime/MaterialLibrary, Asset, AssetRegistry, ResourceManager, Importer, Texture, Material, Shader, Mesh, MeshLoader, TextureLoader, MaterialLoader, SceneLoader, StreamHelper
 
 ## Project Intent
-目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
 - 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+- 针对更新链路重点追踪：Game::Update/Render/EndFrame -> SceneManager/Scene -> CPUScene -> GPUScene -> FrameContext。
+- 重点识别NodeDirtyFlags、NodeDirtyPayload、PerFrameDirtyList、CopyOp等脏数据传播与跨帧同步结构。
 
 ## Understanding Notes
 - 资源导入、序列化、元数据与运行时缓存关系。
@@ -21,8 +23,8 @@
 - `[67]` **Runtime/Serialization/DDSTextureLoader.h** *(Content Included)*
 - `[66]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
 - `[65]` **Runtime/Resources/AssetRegistry.cpp** *(Content Included)*
+- `[62]` **Runtime/Resources/ResourceManager.h** *(Content Included)*
 - `[60]` **Runtime/Resources/AssetRegistry.h** *(Content Included)*
-- `[60]` **Runtime/Resources/ResourceManager.h** *(Content Included)*
 - `[57]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
 - `[52]` **Runtime/Serialization/TextureLoader.h** *(Content Included)*
 - `[49]` **Runtime/Resources/AssetTypeTraits.h** *(Content Included)*
@@ -39,9 +41,9 @@
 - `[36]` **Runtime/Serialization/AssetHeader.h**
 - `[34]` **Runtime/Serialization/StreamHelper.h**
 - `[34]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
+- `[33]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[33]` **Runtime/MaterialLibrary/StandardPBR.h**
 - `[33]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
-- `[32]` **Runtime/GameObject/MeshRenderer.cpp**
 - `[32]` **Runtime/GameObject/MeshRenderer.h**
 - `[32]` **Runtime/Graphics/Mesh.cpp**
 - `[32]` **Assets/Shader/StandardPBR.hlsl**
@@ -67,8 +69,8 @@
 - `[24]` **Runtime/MaterialLibrary/StandardPBR.cpp**
 - `[24]` **Editor/Panel/EditorMainBar.h**
 - `[24]` **Assets/Shader/GPUCulling.hlsl**
+- `[23]` **Runtime/Renderer/Renderer.cpp**
 - `[22]` **Runtime/Renderer/RenderCommand.h**
-- `[22]` **Runtime/Renderer/Renderer.cpp**
 - `[22]` **Runtime/Resources/ResourceHandle.h**
 - `[21]` **Runtime/Core/Game.cpp**
 - `[20]` **Runtime/Entry.cpp**
@@ -494,30 +496,6 @@ namespace EngineCore{
             }
 ```
 
-### File: `Runtime/Resources/AssetRegistry.h`
-```cpp
-namespace EngineCore
-{
-    class AssetRegistry
-    {
-    public:
-        static void Create();
-        static void Destroy();
-        static AssetRegistry* GetInstance();
-        void RegisterAsset(Resource* resource);
-        std::string GetAssetPathFromID(uint64_t id);
-        uint64_t GetAssetIDFromPath(const std::string& path);
-        void SaveToDisk(const std::string& manifestPath);
-        void LoadFromDisk(const std::string& manifestPath);
-    private:
-        static AssetRegistry* s_Instacnce;
-        std::unordered_map<uint64_t, std::string> assetIDToPathMap;
-        std::unordered_map<std::string, uint64_t> pathToAssetIDMap;
-
-        std::mutex  m_mutex;;
-    };
-```
-
 ### File: `Runtime/Resources/ResourceManager.h`
 ```cpp
     };
@@ -633,6 +611,24 @@ namespace EngineCore
 ```
 ...
 ```cpp
+        std::unordered_map<AssetType, IResourceLoader*> m_Loaders;
+
+        ResourceHandle<Material> GetDefaultMaterialHandle();
+
+        std::thread mLoadThread;
+        Mesh* defaultMesh = nullptr;
+        Texture* mDefaultTexture = nullptr;
+        Shader* mDefaultShader = nullptr;
+        Material* mDefaultMaterial = nullptr;
+
+        std::mutex m_Mutex;
+        std::vector<LoadTask*> freeTaskList;
+        unordered_map<AssetID, Resource*> mResourceCache;
+        unordered_map<AssetID, int> mResourceCountMap;
+        unordered_map<AssetID, LoadTask*> mLoadTaskCache;
+        // LoadTask 不回收
+        ThreadSafeQueue<LoadTask*> mLoadTaskQueue;
+        ThreadSafeQueue<LoadResult> mLoadResultQueue;
         LoadTask* GetOrCreateALoadTask(uint64_t assetid, AssetType assetType);
         void TryFinalize(LoadTask* task);
         void EnsureDefaultTexture();
@@ -643,6 +639,30 @@ namespace EngineCore
     };
 
 }
+```
+
+### File: `Runtime/Resources/AssetRegistry.h`
+```cpp
+namespace EngineCore
+{
+    class AssetRegistry
+    {
+    public:
+        static void Create();
+        static void Destroy();
+        static AssetRegistry* GetInstance();
+        void RegisterAsset(Resource* resource);
+        std::string GetAssetPathFromID(uint64_t id);
+        uint64_t GetAssetIDFromPath(const std::string& path);
+        void SaveToDisk(const std::string& manifestPath);
+        void LoadFromDisk(const std::string& manifestPath);
+    private:
+        static AssetRegistry* s_Instacnce;
+        std::unordered_map<uint64_t, std::string> assetIDToPathMap;
+        std::unordered_map<std::string, uint64_t> pathToAssetIDMap;
+
+        std::mutex  m_mutex;;
+    };
 ```
 
 ### File: `Runtime/Serialization/SceneLoader.h`

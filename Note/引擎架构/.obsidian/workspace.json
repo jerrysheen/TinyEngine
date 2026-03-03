@@ -57,9 +57,60 @@
               "icon": "lucide-layout-dashboard",
               "title": "资源加载系统"
             }
+          },
+          {
+            "id": "e4fe3aa0476956a3",
+            "type": "leaf",
+            "state": {
+              "type": "canvas",
+              "state": {
+                "file": "ComputeShader接入梳理.canvas",
+                "viewState": {
+                  "x": -119.34426082687092,
+                  "y": 234.45343927906413,
+                  "zoom": -0.2819953579176006
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "ComputeShader接入梳理"
+            }
+          },
+          {
+            "id": "0b13f930bc3c4872",
+            "type": "leaf",
+            "state": {
+              "type": "canvas",
+              "state": {
+                "file": "2_28 一帧的Tick逻辑.canvas",
+                "viewState": {
+                  "x": 236.5,
+                  "y": -260,
+                  "zoom": -0.6666666666666666
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "2_28 一帧的Tick逻辑"
+            }
+          },
+          {
+            "id": "b315106d741a83ad",
+            "type": "leaf",
+            "state": {
+              "type": "canvas",
+              "state": {
+                "file": "2_28 一帧的Tick逻辑.canvas",
+                "viewState": {
+                  "x": -32.058487934900086,
+                  "y": -58.82170386411724,
+                  "zoom": -0.6666666666666667
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "2_28 一帧的Tick逻辑"
+            }
           }
         ],
-        "currentTab": 2
+        "currentTab": 5
       }
     ],
     "direction": "vertical"
@@ -207,14 +258,17 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "fc5529cd2bb130de",
+  "active": "b315106d741a83ad",
   "lastOpenFiles": [
-    "未命名.md",
     "资源加载系统.canvas",
+    "2_28 一帧的Tick逻辑.canvas",
+    "未命名.md",
+    "渲染管线第一版.canvas",
+    "欢迎.md",
+    "ComputeShader接入梳理.canvas",
     "ResourceManager.canvas",
     "12_31重构资源.canvas",
     "12_27 GPUScene 前半段更新.canvas",
-    "欢迎.md",
     "Shader.h.md",
     "UnitySRPBatch.canvas",
     "Pasted image 20251217230600.png",
@@ -222,11 +276,9 @@
     "Pasted image 20251213164812.png",
     "Material.h.md",
     "Head to GPU Scene.canvas",
-    "ComputeShader接入梳理.canvas",
     "资源初始化.canvas",
     "12_17GPU Scene大致流程， 和实现方案.canvas",
     "ComputeShader接入梳理：.md",
-    "12_13重构数据流.canvas",
     "Head to GPU Scene.md",
     "Picture/Pasted image 20251128144237.png",
     "Picture",

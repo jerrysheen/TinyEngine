@@ -2,13 +2,15 @@
 > Auto-generated. Focus: Assets/Shader, Assets/Shader/include, hlsl, include, Lighting, Surface, PBR
 
 ## Project Intent
-目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
 - 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+- 针对更新链路重点追踪：Game::Update/Render/EndFrame -> SceneManager/Scene -> CPUScene -> GPUScene -> FrameContext。
+- 重点识别NodeDirtyFlags、NodeDirtyPayload、PerFrameDirtyList、CopyOp等脏数据传播与跨帧同步结构。
 
 ## Understanding Notes
 - Shader库是GPU驱动渲染的核心资产。
@@ -361,6 +363,7 @@ namespace EngineCore
         static void Create();
 
         void BeginFrame();
+        void Prepare(RenderContext& context);
         void Render(RenderContext& context);
         void EndFrame();
 
@@ -371,6 +374,7 @@ namespace EngineCore
         void DrawIndexedInstanced(Mesh* mesh, int count, const PerDrawHandle& perDrawHandle);
         void SetPerFrameData(UINT perFrameBufferID);
         void SetPerPassData(UINT perPassBufferID);
+        void SetFrameContext(FrameContext* frameContext, uint32_t frameID);
         
         void SetRenderState(const Material* mat, const RenderPassInfo &passinfo);
 
@@ -424,8 +428,6 @@ namespace EngineCore
                 PROFILER_EVENT_BEGIN("RenderThread::ProcessEditorGUI");
                 if (hasDrawGUI)
                 {
-                    EngineEditor::EditorGUIManager::GetInstance()->BeginFrame();
-                    EngineEditor::EditorGUIManager::GetInstance()->Render();
                     EngineEditor::EditorGUIManager::GetInstance()->EndFrame();
                     hasDrawGUI = false;
                 }

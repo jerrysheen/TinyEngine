@@ -2,13 +2,15 @@
 > Auto-generated. Focus: Runtime/Platforms/Opengl, OpenGL, Opengl
 
 ## Project Intent
-目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
 - 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+- 针对更新链路重点追踪：Game::Update/Render/EndFrame -> SceneManager/Scene -> CPUScene -> GPUScene -> FrameContext。
+- 重点识别NodeDirtyFlags、NodeDirtyPayload、PerFrameDirtyList、CopyOp等脏数据传播与跨帧同步结构。
 
 ## Understanding Notes
 - OpenGL平台层用于探索或备用渲染后端。
@@ -112,13 +114,14 @@ namespace EngineCore
         #endif
         while(!WindowManager::GetInstance()->WindowShouldClose())
         {
-            mFrameIndex++;
             PROFILER_FRAME_MARK("TinyProfiler");
             Update(mFrameIndex);
 
             Render();
 
             EndFrame();
+            mFrameIndex++;
+
         }
 
         // 明确的关闭流程（顺序很重要！）
@@ -154,6 +157,8 @@ namespace EngineCore
     void Game::Update(uint32_t frameIndex)
     {
         PROFILER_ZONE("MainThread::GameUpdate");
+        SceneManager::GetInstance()->SetCurrentFrame(frameIndex);
+        RenderEngine::GetInstance()->SetCurrentFrame(frameIndex);
         ResourceManager::GetInstance()->Update();
         SceneManager::GetInstance()->Update(frameIndex);
         RenderEngine::GetInstance()->Update(frameIndex);
@@ -168,9 +173,6 @@ namespace EngineCore
     void Game::EndFrame()
     {
         SceneManager::GetInstance()->EndFrame();
-        RenderEngine::GetInstance()->EndFrame();
-    }
-
 ```
 
 ### File: `Runtime/Renderer/RenderEngine.cpp`
@@ -180,9 +182,6 @@ namespace EngineCore
 namespace EngineCore
 {
     std::unique_ptr<RenderEngine> RenderEngine::s_Instance = nullptr;
-    RenderContext RenderEngine::renderContext;
-    LagacyRenderPath RenderEngine::lagacyRenderPath;
-    GPUSceneRenderPath RenderEngine::gpuSceneRenderPath;
     void RenderEngine::Create()
     {
         s_Instance = std::make_unique<RenderEngine>();
@@ -190,6 +189,16 @@ namespace EngineCore
         WindowManager::Create();
         RenderAPI::Create();
         Renderer::Create();
+
+
+        if (RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy)
+        {
+            s_Instance->mCurrentRenderPath = new LagacyRenderPath();
+        }
+        else
+        {
+            s_Instance->mCurrentRenderPath = new GPUSceneRenderPath();
+        }
     }
 
     void RenderEngine::Update(uint32_t frameID)
@@ -197,9 +206,13 @@ namespace EngineCore
 
         mCPUScene.Update(frameID);
         mGPUScene.Update(frameID);
-
         ComsumeDirtySceneRenderNode();
-
+        WaitForLastFrameFinished();
+        PROFILER_EVENT_BEGIN("MainThread::WaitForGpuFinished");
+        RenderAPI::GetInstance()->WaitForGpuFinished();
+        PROFILER_EVENT_END("MainThread::WaitForGpuFinished");
+        mCurrentRenderPath->Prepare(renderContext);
+        UploadCopyOp();
     }    
     
     void RenderEngine::OnResize(int width, int height)
@@ -209,23 +222,11 @@ namespace EngineCore
 
     void RenderEngine::Tick()
     {
-        WaitForLastFrameFinished();
-        PROFILER_EVENT_BEGIN("MainThread::WaitForGpuFinished");
-        RenderAPI::GetInstance()->WaitForGpuFinished();
-        PROFILER_EVENT_END("MainThread::WaitForGpuFinished");
 
 
 
-
-        if (RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy)
-        {
-            lagacyRenderPath.Execute(renderContext);
-        }
-        else
-        {
-            gpuSceneRenderPath.Execute(renderContext);
-        }
-
+        s_Instance->mCurrentRenderPath->Execute(renderContext);
+        
         SignalMainThreadSubmited();
 
     }
@@ -242,6 +243,8 @@ namespace EngineCore
         //RenderAPI::Destroy();
         WindowManager::Destroy();
         RenderEngine::GetInstance()->GetGPUScene().Destroy();
+
+        delete s_Instance->mCurrentRenderPath;
         // 最后销毁 RenderEngine 自己
         if (s_Instance)
         {
@@ -254,10 +257,10 @@ namespace EngineCore
             // 4. 后续 GetInstance() 不会返回野指针
         }
     }
-
 ```
 ...
 ```cpp
+    void RenderEngine::WaitForLastFrameFinished()
     {
         PROFILER_EVENT_BEGIN("MainThread::WaitforSignalFromRenderThread");
         CpuEvent::RenderThreadSubmited().Wait();
@@ -489,6 +492,7 @@ namespace EngineCore
         static void Create();
 
         void BeginFrame();
+        void Prepare(RenderContext& context);
         void Render(RenderContext& context);
         void EndFrame();
 
@@ -499,6 +503,7 @@ namespace EngineCore
         void DrawIndexedInstanced(Mesh* mesh, int count, const PerDrawHandle& perDrawHandle);
         void SetPerFrameData(UINT perFrameBufferID);
         void SetPerPassData(UINT perPassBufferID);
+        void SetFrameContext(FrameContext* frameContext, uint32_t frameID);
         
         void SetRenderState(const Material* mat, const RenderPassInfo &passinfo);
 
@@ -552,8 +557,6 @@ namespace EngineCore
                 PROFILER_EVENT_BEGIN("RenderThread::ProcessEditorGUI");
                 if (hasDrawGUI)
                 {
-                    EngineEditor::EditorGUIManager::GetInstance()->BeginFrame();
-                    EngineEditor::EditorGUIManager::GetInstance()->Render();
                     EngineEditor::EditorGUIManager::GetInstance()->EndFrame();
                     hasDrawGUI = false;
                 }

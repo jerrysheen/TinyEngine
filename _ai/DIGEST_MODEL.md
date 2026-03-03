@@ -2,13 +2,15 @@
 > Auto-generated. Focus: Runtime/Graphics, Mesh, MeshUtils, GeometryManager, MeshFilter, Scene, D3D12RenderAPI, RenderAPI, MeshRenderer, BistroSceneLoader
 
 ## Project Intent
-目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
 - 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+- 针对更新链路重点追踪：Game::Update/Render/EndFrame -> SceneManager/Scene -> CPUScene -> GPUScene -> FrameContext。
+- 重点识别NodeDirtyFlags、NodeDirtyPayload、PerFrameDirtyList、CopyOp等脏数据传播与跨帧同步结构。
 
 ## Understanding Notes
 - 模型与几何系统关注Mesh/GeometryManager与GPU上传路径。
@@ -16,7 +18,7 @@
 
 ## Key Files Index
 - `[66]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
-- `[64]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
+- `[63]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[59]` **Runtime/Graphics/MeshUtils.cpp** *(Content Included)*
 - `[57]` **Runtime/Graphics/MeshUtils.h** *(Content Included)*
 - `[56]` **Runtime/GameObject/MeshFilter.cpp** *(Content Included)*
@@ -67,11 +69,11 @@
 - `[12]` **Runtime/Graphics/Texture.cpp**
 - `[12]` **Runtime/Graphics/Texture.h**
 - `[12]` **Runtime/Renderer/Culling.cpp**
+- `[12]` **Runtime/Renderer/Renderer.cpp**
 - `[11]` **Runtime/GameObject/GameObject.h**
 - `[11]` **Runtime/Renderer/RenderContext.cpp**
 - `[10]` **Runtime/Renderer/BatchManager.h**
 - `[10]` **Runtime/Renderer/FrameContext.cpp**
-- `[10]` **Runtime/Renderer/Renderer.cpp**
 - `[10]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp**
 - `[10]` **Editor/Panel/EditorMainBar.h**
 - `[9]` **Runtime/Core/PublicStruct.h**
@@ -84,14 +86,13 @@
             // todo： 这个地方有加载时序问题。。
             SceneManager::GetInstance()->SetCurrentScene(res);
             // 刷新所有Transform的world position，避免父子节点关系建立后的延迟更新问题
-            for (auto& gameObject : res->rootObjList) 
-            {
-                if (gameObject != nullptr && gameObject->transform != nullptr)
-                {
-                    gameObject->transform->UpdateRecursively(0);
-                }
-                gameObject->transform->isDirty = true;
-            }
+            //for (auto& gameObject : res->rootObjList) 
+            //{
+            //    if (gameObject != nullptr && gameObject->transform != nullptr)
+            //    {
+            //        gameObject->transform->UpdateRecursively(0);
+            //    }
+            //}
 ```
 ...
 ```cpp
@@ -264,8 +265,8 @@ namespace EngineCore {
 
 ### File: `Runtime/Platforms/D3D12/D3D12RenderAPI.h`
 ```cpp
-namespace EngineCore
-{
+    class FrameContext;
+
     class D3D12RenderAPI : public RenderAPI
     {
     public:
@@ -298,6 +299,7 @@ namespace EngineCore
         virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) override;
         virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) override;
         virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) override;
+        virtual void RenderAPISetFrameContext(Payload_SetFrameContext setFrameContext) override;
         virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) override;
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
@@ -343,7 +345,6 @@ namespace EngineCore
         }
 
         ID3D12Resource* D3D12RenderAPI::CurrentBackBuffer()const
-        {
 ```
 
 ### File: `Runtime/GameObject/MeshFilter.h`
@@ -392,7 +393,7 @@ namespace EngineCore
         virtual const char* GetScriptName() const override { return "MeshRenderer"; }
         
         void SetUpMaterialPropertyBlock();
-
+        void SetDefaultMaterial();
         inline Material* GetSharedMaterial()
         { 
             return mShardMatHandler.IsValid() ? mShardMatHandler.Get() : nullptr;
@@ -653,7 +654,12 @@ namespace EngineCore
         
         inline std::vector<uint32_t>& GetPerFrameDirtyNodeList(){ return mPerFrameDirtyNodeList;}
         inline std::vector<uint32_t>& GetNodeChangeFlagList(){ return mNodeChangeFlagList;}    
-        inline std::vector<NodeDirtyPayload>& GetNodeDirtyPayloadList(){ return mNodeDirtyPayloadList;}    
+        inline std::vector<NodeDirtyPayload>& GetNodeDirtyPayloadList(){ return mNodeDirtyPayloadList;}   
+
+        inline void SetCurrentFrame(uint32_t currentFrameIndex)
+        {
+            mCurrentFrame = currentFrameIndex;
+        }
     public:
         std::string name;
         std::vector<GameObject*> allObjList;
@@ -680,11 +686,6 @@ namespace EngineCore
         std::vector<uint32_t> mPendingFreeSceneIndex;
 
         void EnsureNodeQueueSize(uint32_t size);
-        void ClearPerFrameData();
-        void ClearDirtyRootTransform();
-        void PushLastFrameFreeIndex();
-    };    
-} // namespace EngineCore
 ```
 
 ### File: `Runtime/Scene/CPUScene.h`
@@ -700,6 +701,10 @@ namespace EngineCore
         void EndFrame();
         CPUSceneView GetSceneView();
 
+        inline void SetCurrentFrame(uint32_t currentFrame)
+        {   
+            mCurrentFrame = currentFrame;
+        }
     private:
         void EnsureCapacity(uint32_t renderID);
         void CreateRenderNode(uint32_t renderID, NodeDirtyPayload& payload);
@@ -771,7 +776,7 @@ namespace EngineCore
         };
         Scene* AddNewScene(const std::string& name);
         void SwitchSceneTo(const std::string& name);
-
+        void SetCurrentFrame(uint32_t currentFrameIndex);
     private:
         static SceneManager* s_Instance;
         Scene* mCurrentScene = nullptr;

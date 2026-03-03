@@ -2,13 +2,15 @@
 > Auto-generated. Focus: Camera, Component, ComponentType, MeshFilter, MeshRenderer, MonoBehaviour, Transform, Scene
 
 ## Project Intent
-目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
 - 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+- 针对更新链路重点追踪：Game::Update/Render/EndFrame -> SceneManager/Scene -> CPUScene -> GPUScene -> FrameContext。
+- 重点识别NodeDirtyFlags、NodeDirtyPayload、PerFrameDirtyList、CopyOp等脏数据传播与跨帧同步结构。
 
 ## Key Files Index
 - `[54]` **Runtime/GameObject/ComponentType.h** *(Content Included)*
@@ -16,7 +18,7 @@
 - `[49]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
 - `[46]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
 - `[45]` **Runtime/Scene/Scene.h** *(Content Included)*
-- `[41]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
+- `[43]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[38]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
 - `[38]` **Runtime/GameObject/Transform.h** *(Content Included)*
 - `[37]` **Runtime/GameObject/MeshFilter.h** *(Content Included)*
@@ -48,16 +50,16 @@
 - `[18]` **Runtime/GameObject/GameObject.cpp**
 - `[17]` **Runtime/Core/Game.cpp**
 - `[14]` **Runtime/Renderer/RenderEngine.cpp**
-- `[12]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[11]` **Runtime/Renderer/Culling.cpp**
+- `[11]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[9]` **Editor/Panel/EditorHierarchyPanel.cpp**
 - `[9]` **Editor/Panel/EditorInspectorPanel.cpp**
 - `[8]` **Runtime/Graphics/Mesh.h**
-- `[8]` **Runtime/Renderer/RenderPath/LagacyRenderPath.cpp**
+- `[8]` **Runtime/Renderer/FrameContext.cpp**
 - `[8]` **Editor/Panel/EditorInspectorPanel.h**
-- `[7]` **Runtime/Renderer/FrameContext.cpp**
 - `[7]` **Runtime/Renderer/FrameContext.h**
 - `[7]` **Runtime/Renderer/RenderEngine.h**
+- `[7]` **Runtime/Renderer/Renderer.cpp**
 - `[7]` **Runtime/Renderer/Renderer.h**
 - `[7]` **Runtime/Renderer/RenderSorter.h**
 - `[7]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
@@ -128,14 +130,13 @@ namespace EngineCore
             // todo： 这个地方有加载时序问题。。
             SceneManager::GetInstance()->SetCurrentScene(res);
             // 刷新所有Transform的world position，避免父子节点关系建立后的延迟更新问题
-            for (auto& gameObject : res->rootObjList) 
-            {
-                if (gameObject != nullptr && gameObject->transform != nullptr)
-                {
-                    gameObject->transform->UpdateRecursively(0);
-                }
-                gameObject->transform->isDirty = true;
-            }
+            //for (auto& gameObject : res->rootObjList) 
+            //{
+            //    if (gameObject != nullptr && gameObject->transform != nullptr)
+            //    {
+            //        gameObject->transform->UpdateRecursively(0);
+            //    }
+            //}
 ```
 ...
 ```cpp
@@ -442,7 +443,12 @@ namespace EngineCore
         
         inline std::vector<uint32_t>& GetPerFrameDirtyNodeList(){ return mPerFrameDirtyNodeList;}
         inline std::vector<uint32_t>& GetNodeChangeFlagList(){ return mNodeChangeFlagList;}    
-        inline std::vector<NodeDirtyPayload>& GetNodeDirtyPayloadList(){ return mNodeDirtyPayloadList;}    
+        inline std::vector<NodeDirtyPayload>& GetNodeDirtyPayloadList(){ return mNodeDirtyPayloadList;}   
+
+        inline void SetCurrentFrame(uint32_t currentFrameIndex)
+        {
+            mCurrentFrame = currentFrameIndex;
+        }
     public:
         std::string name;
         std::vector<GameObject*> allObjList;
@@ -469,11 +475,6 @@ namespace EngineCore
         std::vector<uint32_t> mPendingFreeSceneIndex;
 
         void EnsureNodeQueueSize(uint32_t size);
-        void ClearPerFrameData();
-        void ClearDirtyRootTransform();
-        void PushLastFrameFreeIndex();
-    };    
-} // namespace EngineCore
 ```
 
 ### File: `Runtime/GameObject/MeshRenderer.h`
@@ -493,7 +494,7 @@ namespace EngineCore
         virtual const char* GetScriptName() const override { return "MeshRenderer"; }
         
         void SetUpMaterialPropertyBlock();
-
+        void SetDefaultMaterial();
         inline Material* GetSharedMaterial()
         { 
             return mShardMatHandler.IsValid() ? mShardMatHandler.Get() : nullptr;
@@ -576,7 +577,6 @@ namespace EngineCore
         inline uint32_t GetNodeDepth() { return mDepth; }
 
     public:
-        bool isDirty = false;
         std::vector<Transform*> childTransforms;
         Transform* parentTransform = nullptr;
         
@@ -607,6 +607,7 @@ namespace EngineCore
 
         inline void AddChild(Transform* transform)
         {
+            childTransforms.push_back(transform);
 ```
 
 ### File: `Runtime/GameObject/MeshFilter.h`
@@ -731,6 +732,10 @@ namespace EngineCore
         void EndFrame();
         CPUSceneView GetSceneView();
 
+        inline void SetCurrentFrame(uint32_t currentFrame)
+        {   
+            mCurrentFrame = currentFrame;
+        }
     private:
         void EnsureCapacity(uint32_t renderID);
         void CreateRenderNode(uint32_t renderID, NodeDirtyPayload& payload);
@@ -802,7 +807,7 @@ namespace EngineCore
         };
         Scene* AddNewScene(const std::string& name);
         void SwitchSceneTo(const std::string& name);
-
+        void SetCurrentFrame(uint32_t currentFrameIndex);
     private:
         static SceneManager* s_Instance;
         Scene* mCurrentScene = nullptr;

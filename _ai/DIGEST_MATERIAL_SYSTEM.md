@@ -2,13 +2,15 @@
 > Auto-generated. Focus: Runtime/MaterialLibrary, Runtime/MaterialLibrary/MaterialLayout.h, Runtime/MaterialLibrary/MaterialInstance.h, Runtime/MaterialLibrary/MaterialArchetypeRegistry.h, BistroSceneLoader, Material, MaterialInstance, MaterialLayout, MaterialArchetypeRegistry, StandardPBR, Bindless
 
 ## Project Intent
-目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作。
+目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
 
 ## Digest Guidance
 - 优先提取头文件中的接口定义与系统契约，避免CPP实现噪音。
 - 如果某子系统缺少头文件，可在索引中保留关键.cpp以建立结构视图。
 - 突出GPU驱动渲染、资源生命周期、管线调度、序列化与工具链。
 - 关注可扩展性：Pass/Path、RHI封装、资源描述、线程与任务系统。
+- 针对更新链路重点追踪：Game::Update/Render/EndFrame -> SceneManager/Scene -> CPUScene -> GPUScene -> FrameContext。
+- 重点识别NodeDirtyFlags、NodeDirtyPayload、PerFrameDirtyList、CopyOp等脏数据传播与跨帧同步结构。
 
 ## Understanding Notes
 - 材质序列化与反序列化，运行时设置系统，生成MaterialInstance/MaterialLayout，并配合Bindless材质绑定。
@@ -33,15 +35,16 @@
 - `[12]` **Runtime/Renderer/RenderCommand.h** *(Content Included)*
 - `[12]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[11]` **Runtime/Renderer/RenderAPI.h** *(Content Included)*
+- `[11]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
 - `[10]` **Runtime/Renderer/Renderer.cpp** *(Content Included)*
-- `[10]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
-- `[10]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
+- `[10]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[8]` **Runtime/Renderer/RenderEngine.cpp**
 - `[8]` **Runtime/Renderer/RenderStruct.h**
 - `[8]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
 - `[7]` **Runtime/GameObject/MeshRenderer.h**
 - `[7]` **Runtime/Renderer/BatchManager.h**
 - `[7]` **Runtime/Resources/ResourceManager.cpp**
+- `[7]` **Runtime/Resources/ResourceManager.h**
 - `[7]` **Runtime/Scene/SceneStruct.h**
 - `[7]` **Runtime/Serialization/SceneLoader.h**
 - `[7]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
@@ -49,6 +52,7 @@
 - `[6]` **Runtime/Core/PublicStruct.h**
 - `[6]` **Runtime/Scene/GPUScene.h**
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
+- `[6]` **Runtime/Platforms/D3D12/D3D12Struct.h**
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[6]` **Assets/Shader/BlitShader.hlsl**
 - `[6]` **Assets/Shader/SimpleTestShader.hlsl**
@@ -57,7 +61,6 @@
 - `[5]` **Runtime/Renderer/BatchManager.cpp**
 - `[5]` **Runtime/Renderer/RenderContext.cpp**
 - `[5]` **Runtime/Resources/AssetTypeTraits.h**
-- `[5]` **Runtime/Resources/ResourceManager.h**
 - `[5]` **Runtime/Scene/CPUScene.cpp**
 - `[5]` **Runtime/Scene/GPUScene.cpp**
 - `[5]` **Runtime/Scene/Scene.cpp**
@@ -69,7 +72,6 @@
 - `[4]` **Runtime/Renderer/Culling.cpp**
 - `[4]` **Runtime/Renderer/FrameContext.cpp**
 - `[4]` **Runtime/Scene/CPUScene.h**
-- `[4]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[4]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp**
 - `[4]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[4]` **Runtime/Platforms/D3D12/d3dUtil.cpp**
@@ -465,7 +467,7 @@ struct VertexInput
 
 ### File: `Runtime/Renderer/Renderer.h`
 ```cpp
-        void SetPerPassData(UINT perPassBufferID);
+        void SetFrameContext(FrameContext* frameContext, uint32_t frameID);
         
         void SetRenderState(const Material* mat, const RenderPassInfo &passinfo);
 
@@ -519,8 +521,6 @@ struct VertexInput
                 PROFILER_EVENT_BEGIN("RenderThread::ProcessEditorGUI");
                 if (hasDrawGUI)
                 {
-                    EngineEditor::EditorGUIManager::GetInstance()->BeginFrame();
-                    EngineEditor::EditorGUIManager::GetInstance()->Render();
                     EngineEditor::EditorGUIManager::GetInstance()->EndFrame();
                     hasDrawGUI = false;
                 }
@@ -545,6 +545,8 @@ struct VertexInput
 
     private:
         SPSCRingBuffer<16384> mRenderBuffer;
+        std::thread mRenderThread;
+        bool hasResize = false;
 ```
 
 ### File: `Runtime/Renderer/RenderCommand.h`
@@ -613,6 +615,7 @@ namespace  EngineCore
         virtual void RenderAPIPresentFrame() = 0;
         virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) = 0;
         virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) = 0;
+        virtual void RenderAPISetFrameContext(Payload_SetFrameContext setFrameContext) = 0;
         virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) = 0;
         
         virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) = 0;
@@ -644,4 +647,88 @@ namespace  EngineCore
     
 } // namespace  EngineCore
 
+```
+
+### File: `Runtime/Platforms/D3D12/D3D12RenderAPI.h`
+```cpp
+        virtual void RenderAPIConfigureRT(Payload_ConfigureRT payloadConfigureRT) override;
+        virtual void RenderAPIDrawIndexed(Payload_DrawCommand payloadDrawCommand) override;
+        virtual void RenderAPISetMaterial(Payload_SetMaterial payloadSetMaterial) override;
+        virtual void RenderAPISetBindlessMat(Payload_SetBindlessMat payloadSetBindlessMat) override;
+        virtual void RenderAPISetBindLessMeshIB() override;
+        virtual void RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState) override;
+        virtual void RenderAPISetSissorRect(Payload_SetSissorRect payloadSetSissorrect) override;
+        virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) override;
+        virtual void RenderAPISetViewPort(Payload_SetViewPort payloadSetViewport) override;
+        virtual void RenderAPIWindowResize(Payload_WindowResize payloadWindowResize) override;
+        virtual void RenderAPISubmit() override;
+        virtual void RenderAPIPresentFrame() override;
+        virtual void RenderAPISetPerDrawData(Payload_SetPerDrawData setPerDrawData) override;
+        virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) override;
+        virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) override;
+        virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) override;
+        virtual void RenderAPISetFrameContext(Payload_SetFrameContext setFrameContext) override;
+        virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) override;
+        virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
+        virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
+        virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) override;
+
+        
+        virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) override;
+        virtual RenderTexture* GetCurrentBackBuffer() override;
+
+        virtual void SetGlobalDataImpl(uint32_t bufferID, uint32_t offset, uint32_t size, const void* value) override;
+
+        TD3D12ConstantBuffer CreateConstantBuffer(uint32_t size);
+
+        Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;
+        UINT mRtvDescriptorSize = 0;
+        UINT mDsvDescriptorSize = 0;
+        UINT mCbvSrvUavDescriptorSize = 0;
+        const int MAX_FRAME_INFLIAGHT = 3;
+        DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+        UINT mCurrBackBuffer = 0;
+        static const int SwapChainBufferCount = 3;
+        Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
+        // 给底层使用的具体资源
+        D3D12Texture mBackBuffer[SwapChainBufferCount];
+        // 一个壳，上层用，IGPUTexture = mBackBuffer
+        RenderTexture mBackBufferProxyRenderTexture;
+        D3D12Texture mBackBufferProxy;
+        
+        TD3D12Fence* mFrameFence;
+        TD3D12Fence* mImediatelyFence;
+
+        D3D12_CPU_DESCRIPTOR_HANDLE D3D12RenderAPI::CurrentBackBufferView()const
+        {
+            return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+                mRtvHeap->GetCPUDescriptorHandleForHeapStart(),
+                mCurrBackBuffer,
+                mRtvDescriptorSize);
+        }
+
+        D3D12_CPU_DESCRIPTOR_HANDLE D3D12RenderAPI::DepthStencilView()const
+        {
+            return mDsvHeap->GetCPUDescriptorHandleForHeapStart();
+        }
+
+        ID3D12Resource* D3D12RenderAPI::CurrentBackBuffer()const
+        {
+            return mBackBuffer[mCurrBackBuffer].m_Resource.Get();
+        }
+
+        void SignalFence(TD3D12Fence* mFence);
+        void WaitForFence(TD3D12Fence* mFence);
+        void WaitForRenderFinish(TD3D12Fence* mFence);
+        virtual void WaitForGpuFinished() override { WaitForFence(mFrameFence); }
+
+        ComPtr<ID3D12PipelineState> psoObj;
+        ComPtr<ID3D12RootSignature> rootSignature;
+        
+        void ImmediatelyExecute(std::function<void(ComPtr<ID3D12GraphicsCommandList> cmdList)>&& function);
+        
+        virtual IGPUBuffer* CreateBuffer(const BufferDesc& desc, void* data) override;
+        virtual void UploadBuffer(IGPUBuffer* bufferResource, uint32_t offset, void* data, uint32_t size) override;
+        static D3D12_RESOURCE_STATES GetResourceState(BufferResourceState state);
+    private:
 ```
