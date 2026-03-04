@@ -96,6 +96,13 @@
       "MATERIAL_SYSTEM": [
         "材质序列化与反序列化，运行时设置系统，生成MaterialInstance/MaterialLayout，并配合Bindless材质绑定。",
         "关注序列化反序列化是否合理"
+      ],
+      "FRAME_PIPELINE_BOUNDARY": [
+        "明确主循环阶段边界：SimulationUpdate（游戏逻辑）/ RenderBuild（渲染前端构建）/ RenderSubmit（渲染后端提交）。",
+        "重点识别当前混用点：Game::Update/Render、RenderEngine::Update/Tick、GPUScene::Update/ApplyDirtyNode/UpdateDirtyNode 的职责交叉。",
+        "强调FrameContext应仅承载每帧临时数据（Upload/CopyOp/临时可见性），持久GPU场景数据应独立管理。",
+        "区分RenderPath差异但统一阶段模型：Legacy与GPUScene路径都应Build与Submit分离，仅构建产物不同（DrawList vs Copy+Culling+Indirect）。",
+        "关注同步策略现代化：避免每帧WaitForGpuFinished，转向frames-in-flight与fence驱动的延迟回收。"
       ]
     },
     "subsystems": {
@@ -119,6 +126,8 @@
       "CONCURRENCY": ["Runtime/Core/Concurrency", "JobSystem", "CpuEvent", "Renderer", "RenderThreadMain", "RenderAPI", "D3D12RenderAPI", "Fence", "Wait", "WaitForLastFrameFinished", "SignalMainThreadSubmited", "FrameContext", "mMaxFrameCount"],
       "GPU_ARCHITECTURE": ["Runtime/Platforms/D3D12", "Runtime/Graphics", "Runtime/Serialization", "GPUBuffer", "Descriptor", "RootSignature", "Bindless", "ResourceState"],
       "MATERIAL_SYSTEM": ["Runtime/MaterialLibrary", "Runtime/MaterialLibrary/MaterialLayout.h", "Runtime/MaterialLibrary/MaterialInstance.h", "Runtime/MaterialLibrary/MaterialArchetypeRegistry.h", "BistroSceneLoader", "Material", "MaterialInstance", "MaterialLayout", "MaterialArchetypeRegistry", "StandardPBR", "Bindless"],
+      "FRAME_PIPELINE_BOUNDARY": ["Runtime/Core/Game.cpp", "Runtime/Renderer/RenderEngine.cpp", "Runtime/Scene/GPUScene.cpp", "Runtime/Renderer/FrameContext.h", "Runtime/Renderer/FrameContext.cpp", "Runtime/Renderer/RenderPath/LagacyRenderPath.h", "Runtime/Renderer/RenderPath/LagacyRenderPath.cpp", "Runtime/Renderer/RenderPath/GPUSceneRenderPath.h", "Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp", "Runtime/Renderer/Renderer.cpp", "Game::Update", "Game::Render", "RenderEngine::Update", "RenderEngine::Tick", "GPUScene::Update", "ApplyDirtyNode", "UpdateDirtyNode", "UploadCopyOp", "FrameContext", "CopyOp", "perFrameUploadBuffer", "PersistentGPUScene", "SceneDelta", "DirtyFlags", "RenderBuild", "RenderSubmit", "BuildVsSubmit", "MainThreadFrontend", "RenderThreadBackend", "GPUCulling", "DrawIndirect", "LegacyPath", "GPUScenePath", "frames-in-flight", "fence", "deferred free"],
       "BUILD_TOOLING": ["premake5.lua", "WinBuildAndRun", "Win-GenProjects", "run_ai_analysis", "msbuild", "Tools/premake"]
+      
     }
   }

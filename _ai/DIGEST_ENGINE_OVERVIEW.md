@@ -53,10 +53,10 @@
 - `[12]` **Runtime/GameObject/Component.cpp**
 - `[12]` **Runtime/Renderer/RenderContext.cpp**
 - `[12]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
+- `[11]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
 - `[11]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[11]` **Editor/Panel/EditorMainBar.h**
 - `[10]` **Runtime/Serialization/MaterialLoader.h**
-- `[10]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
 - `[10]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.cpp**
 - `[9]` **Runtime/Renderer/Culling.cpp**
 - `[9]` **Runtime/Renderer/RenderContext.h**

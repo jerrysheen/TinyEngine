@@ -74,9 +74,9 @@
 - `[7]` **Editor/EditorSettings.h**
 - `[7]` **Runtime/PreCompiledHeader.h**
 - `[7]` **Runtime/Renderer/RenderSorter.h**
+- `[7]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
 - `[6]` **Runtime/Renderer/RenderCommand.h**
 - `[6]` **Runtime/Renderer/RenderContext.h**
-- `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 
 ## Evidence & Implementation Details
 

@@ -61,7 +61,6 @@
 - `[12]` **Runtime/Renderer/PerDrawAllocator.h**
 - `[12]` **Runtime/Renderer/RenderStruct.h**
 - `[12]` **Runtime/Renderer/RenderUniforms.h**
-- `[12]` **Runtime/Renderer/RenderWorld.h**
 - `[11]` **Runtime/Scene/GPUScene.h**
 - `[11]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp**
 - `[10]` **Runtime/Renderer/BatchManager.cpp**
@@ -73,10 +72,11 @@
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[5]` **Runtime/Core/PublicStruct.h**
-- `[5]` **Runtime/Graphics/GeometryManager.cpp**
 - `[5]` **Runtime/Scene/Scene.cpp**
 - `[5]` **Editor/Panel/EditorMainBar.cpp**
 - `[4]` **Runtime/Core/ThreadSafeQueue.h**
+- `[4]` **Runtime/Graphics/GeometryManager.cpp**
+- `[4]` **Runtime/Graphics/GPUBufferAllocator.cpp**
 
 ## Evidence & Implementation Details
 
@@ -806,7 +806,7 @@ namespace EngineCore
         };
 
         virtual void Execute(RenderContext& context) override;
-        virtual void Prepare(RenderContext& context) override {};
+        virtual void Prepare(RenderContext& context) override;
 
 
         bool hasSetUpBuffer = false;

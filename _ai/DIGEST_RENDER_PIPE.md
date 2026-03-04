@@ -24,8 +24,8 @@
 - `[62]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h** *(Content Included)*
 - `[62]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h** *(Content Included)*
 - `[61]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h** *(Content Included)*
+- `[60]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp** *(Content Included)*
 - `[59]` **Runtime/Renderer/RenderPipeLine/RenderPass.cpp** *(Content Included)*
-- `[58]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp** *(Content Included)*
 - `[54]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
 - `[52]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h** *(Content Included)*
 - `[50]` **Runtime/Renderer/RenderPath/LagacyRenderPath.cpp** *(Content Included)*
@@ -54,7 +54,6 @@
 - `[12]` **Runtime/Renderer/PerDrawAllocator.h**
 - `[12]` **Runtime/Renderer/RenderCommand.h**
 - `[12]` **Runtime/Renderer/RenderUniforms.h**
-- `[12]` **Runtime/Renderer/RenderWorld.h**
 - `[12]` **Runtime/Renderer/SPSCRingBuffer.h**
 - `[12]` **Runtime/Scene/SceneManager.cpp**
 - `[10]` **Runtime/Renderer/RenderAPI.cpp**
@@ -77,91 +76,70 @@
 - `[3]` **Runtime/Core/PublicEnum.h**
 - `[3]` **Runtime/Graphics/GPUBufferAllocator.cpp**
 - `[3]` **Runtime/Settings/ProjectSettings.cpp**
+- `[3]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 
 ## Evidence & Implementation Details
 
 ### File: `Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp`
 ```cpp
-#include "Graphics/RenderTexture.h"
+        m_LastMatState.Reset();
 
-namespace EngineCore
-{
-    GPUSceneRenderPass::GPUSceneRenderPass()
-    {
-        Create();
+        Renderer::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
+        Renderer::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
+        Renderer::GetInstance()->SetSissorRect(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
+
+        Renderer::GetInstance()->SetPerPassData((UINT)mRenderPassInfo.mRootSigSlot);
+        if(!RenderSettings::s_EnableVertexPulling)
+        {
+           for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
+           {
+               int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
+               int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
+               Material* mat = renderContext.material;
+               Mesh* mesh = renderContext.mesh;
+               // 根据mat + pass信息组织pippeline
+               Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
+               // copy gpu material data desc 
+               Renderer::GetInstance()->SetBindlessMat(mat);
+               // bind mesh vertexbuffer and indexbuffer.
+               Renderer::GetInstance()->SetMeshData(mesh);
+               Payload_DrawIndirect indirectPayload;
+               // temp:
+               GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
+               ASSERT(indirectDrawArgsBuffer != nullptr);
+               indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
+               indirectPayload.count = 1;
+               indirectPayload.startIndex = batchID;
+               indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
+               Renderer::GetInstance()->DrawIndirect(indirectPayload);
+           }
+        }
+```
+...
+```cpp
+               {
+                   m_LastMatState = mat->GetMaterialRenderState();
+                   Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
+                   Renderer::GetInstance()->SetBindlessMat(mat);
+                   Renderer::GetInstance()->SetBindLessMeshIB(0);
+               }
+
+               Payload_DrawIndirect indirectPayload;
+               // temp:
+               GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
+               ASSERT(indirectDrawArgsBuffer != nullptr);
+               indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
+               indirectPayload.count = 1;
+               indirectPayload.startIndex = batchID;
+               indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
+               Renderer::GetInstance()->DrawIndirect(indirectPayload);
+           }
+        }
+
     }
 
-    void EngineCore::GPUSceneRenderPass::Create()
+    void GPUSceneRenderPass::Filter(const RenderContext &context)
     {
-
-    }
-    
-    void EngineCore::GPUSceneRenderPass::Configure(const RenderContext& context)
-    {
-        mRenderPassInfo.passName = "GPUSceneRenderPass";
-        mRenderPassInfo.enableBatch = true;
-        mRenderPassInfo.enableIndirectDrawCall = true;
-        RenderTexture* colorAttachment = context.camera->colorAttachment;
-        RenderTexture* depthAttachment = context.camera->depthAttachment;
-        SetRenderTarget(colorAttachment, depthAttachment);
-        SetViewPort(Vector2(0,0), Vector2(colorAttachment->GetWidth(), colorAttachment->GetHeight()));
-        SetClearFlag(ClearFlag::All, Vector3(0.0, 0.0, 0.0), 1.0f);
-    }
-    
-    // maybe send a context here?
-    void EngineCore::GPUSceneRenderPass::Execute(RenderContext& context)
-    {
-        //// 每Pass设置一次
-        //m_LastMatState.Reset();
-
-        //Renderer::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
-        //Renderer::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
-        //Renderer::GetInstance()->SetSissorRect(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
-
-        //Renderer::GetInstance()->SetPerPassData((UINT)mRenderPassInfo.mRootSigSlot);
-        //if(!RenderSettings::s_EnableVertexPulling)
-        //{
-        //    for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
-        //    {
-        //        int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
-        //        int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
-        //        Material* mat = renderContext.material;
-        //        Mesh* mesh = renderContext.mesh;
-        //        // 根据mat + pass信息组织pippeline
-        //        Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
-        //        // copy gpu material data desc 
-        //        Renderer::GetInstance()->SetBindlessMat(mat);
-        //        // bind mesh vertexbuffer and indexbuffer.
-        //        Renderer::GetInstance()->SetMeshData(mesh);
-        //        Payload_DrawIndirect indirectPayload;
-        //        // temp:
-        //        GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
-        //        ASSERT(indirectDrawArgsBuffer != nullptr);
-        //        indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
-        //        indirectPayload.count = 1;
-        //        indirectPayload.startIndex = batchID;
-        //        indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
-        //        Renderer::GetInstance()->DrawIndirect(indirectPayload);
-        //    }
-        //}
-        //else
-        //{
-        //    for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
-        //    {
-        //        int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
-        //        int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
-        //        Material* mat = renderContext.material;
-        //        if (mat->GetMaterialRenderState().GetHash() != m_LastMatState.GetHash())
-        //        {
-        //            m_LastMatState = mat->GetMaterialRenderState();
-        //            Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
-        //            Renderer::GetInstance()->SetBindlessMat(mat);
-        //            Renderer::GetInstance()->SetBindLessMeshIB(0);
-        //        }
-
-        //        Payload_DrawIndirect indirectPayload;
-        //        // temp:
-        //        GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
 ```
 
 ### File: `Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp`
@@ -363,7 +341,7 @@ namespace EngineCore
         };
 
         virtual void Execute(RenderContext& context) override;
-        virtual void Prepare(RenderContext& context) override {};
+        virtual void Prepare(RenderContext& context) override;
 
 
         bool hasSetUpBuffer = false;

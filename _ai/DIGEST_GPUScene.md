@@ -20,7 +20,7 @@
 - `[70]` **Runtime/Renderer/FrameContext.cpp** *(Content Included)*
 - `[64]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[52]` **Runtime/Renderer/FrameContext.h** *(Content Included)*
-- `[50]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp** *(Content Included)*
+- `[51]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp** *(Content Included)*
 - `[48]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp** *(Content Included)*
 - `[47]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
 - `[41]` **Runtime/Scene/GPUScene.cpp** *(Content Included)*
@@ -682,7 +682,7 @@ namespace EngineCore
         };
 
         virtual void Execute(RenderContext& context) override;
-        virtual void Prepare(RenderContext& context) override {};
+        virtual void Prepare(RenderContext& context) override;
 
 
         bool hasSetUpBuffer = false;

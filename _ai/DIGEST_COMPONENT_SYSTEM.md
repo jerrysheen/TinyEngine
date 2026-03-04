@@ -32,11 +32,11 @@
 - `[30]` **Runtime/GameObject/Transform.cpp** *(Content Included)*
 - `[30]` **Runtime/Scene/CPUScene.h** *(Content Included)*
 - `[30]` **Runtime/Scene/SceneManager.h** *(Content Included)*
-- `[29]` **Runtime/GameObject/Component.h** *(Content Included)*
+- `[30]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp** *(Content Included)*
+- `[29]` **Runtime/GameObject/Component.h**
 - `[29]` **Runtime/Scene/BistroSceneLoader.h**
 - `[28]` **Runtime/GameObject/GameObject.h**
 - `[28]` **Runtime/Scripts/CameraController.h**
-- `[28]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
 - `[27]` **Runtime/Scene/GPUScene.h**
 - `[27]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
 - `[27]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
@@ -816,23 +816,4 @@ namespace EngineCore
     };
 
 }
-```
-
-### File: `Runtime/GameObject/Component.h`
-```cpp
-{
-    class GameObject;
-    class Component
-    {
-    public:
-        Component(){};
-        virtual ~Component() = 0;
-        virtual ComponentType GetType() const = 0;
-        
-        GameObject* gameObject = nullptr;
-        bool enabled = true;
-        
-        // 每个类需要自己实现序列化和反序列化方法。
-        virtual const char* GetScriptName() const = 0;
-    };
 ```

@@ -35,8 +35,8 @@
 - `[62]` **Runtime/Scene/GPUScene.h** *(Content Included)*
 - `[62]` **Runtime/Scene/SceneStruct.h** *(Content Included)*
 - `[61]` **Runtime/GameObject/Transform.cpp** *(Content Included)*
+- `[59]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp** *(Content Included)*
 - `[58]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
-- `[58]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp** *(Content Included)*
 - `[55]` **Runtime/GameObject/MeshFilter.h**
 - `[53]` **Runtime/GameObject/Component.h**
 - `[51]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**

@@ -47,6 +47,7 @@
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[5]` **Runtime/Renderer/RenderCommand.h**
+- `[5]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
 - `[5]` **Runtime/Renderer/RenderPath/LagacyRenderPath.cpp**
 - `[5]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
 - `[4]` **Runtime/Core/Profiler.h**
@@ -76,7 +77,6 @@
 - `[2]` **Runtime/GameObject/MonoBehaviour.h**
 - `[2]` **Runtime/GameObject/Transform.h**
 - `[2]` **Runtime/Graphics/ComputeShader.h**
-- `[2]` **Runtime/Graphics/GeometryManager.h**
 
 ## Evidence & Implementation Details
 

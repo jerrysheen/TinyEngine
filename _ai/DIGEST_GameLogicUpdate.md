@@ -18,7 +18,7 @@
 
 ## Key Files Index
 - `[110]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp** *(Content Included)*
-- `[100]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp** *(Content Included)*
+- `[103]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp** *(Content Included)*
 - `[94]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h** *(Content Included)*
 - `[91]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h** *(Content Included)*
 - `[81]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
@@ -82,94 +82,68 @@
 
 ### File: `Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp`
 ```cpp
-#include "Graphics/RenderTexture.h"
+        m_LastMatState.Reset();
 
-namespace EngineCore
-{
-    GPUSceneRenderPass::GPUSceneRenderPass()
-    {
-        Create();
+        Renderer::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
+        Renderer::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
+        Renderer::GetInstance()->SetSissorRect(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
+
+        Renderer::GetInstance()->SetPerPassData((UINT)mRenderPassInfo.mRootSigSlot);
+        if(!RenderSettings::s_EnableVertexPulling)
+        {
+           for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
+           {
+               int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
+               int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
+               Material* mat = renderContext.material;
+               Mesh* mesh = renderContext.mesh;
+               // 根据mat + pass信息组织pippeline
+               Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
+               // copy gpu material data desc 
+               Renderer::GetInstance()->SetBindlessMat(mat);
+               // bind mesh vertexbuffer and indexbuffer.
+               Renderer::GetInstance()->SetMeshData(mesh);
+               Payload_DrawIndirect indirectPayload;
+               // temp:
+               GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
+               ASSERT(indirectDrawArgsBuffer != nullptr);
+               indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
+               indirectPayload.count = 1;
+               indirectPayload.startIndex = batchID;
+               indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
+               Renderer::GetInstance()->DrawIndirect(indirectPayload);
+           }
+        }
+```
+...
+```cpp
+               {
+                   m_LastMatState = mat->GetMaterialRenderState();
+                   Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
+                   Renderer::GetInstance()->SetBindlessMat(mat);
+                   Renderer::GetInstance()->SetBindLessMeshIB(0);
+               }
+
+               Payload_DrawIndirect indirectPayload;
+               // temp:
+               GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
+               ASSERT(indirectDrawArgsBuffer != nullptr);
+               indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
+               indirectPayload.count = 1;
+               indirectPayload.startIndex = batchID;
+               indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
+               Renderer::GetInstance()->DrawIndirect(indirectPayload);
+           }
+        }
+
     }
 
-    void EngineCore::GPUSceneRenderPass::Create()
+    void GPUSceneRenderPass::Filter(const RenderContext &context)
     {
-
-    }
-    
-    void EngineCore::GPUSceneRenderPass::Configure(const RenderContext& context)
-    {
-        mRenderPassInfo.passName = "GPUSceneRenderPass";
-        mRenderPassInfo.enableBatch = true;
-        mRenderPassInfo.enableIndirectDrawCall = true;
-        RenderTexture* colorAttachment = context.camera->colorAttachment;
-        RenderTexture* depthAttachment = context.camera->depthAttachment;
-        SetRenderTarget(colorAttachment, depthAttachment);
-        SetViewPort(Vector2(0,0), Vector2(colorAttachment->GetWidth(), colorAttachment->GetHeight()));
-        SetClearFlag(ClearFlag::All, Vector3(0.0, 0.0, 0.0), 1.0f);
-    }
-    
-    // maybe send a context here?
-    void EngineCore::GPUSceneRenderPass::Execute(RenderContext& context)
-    {
-        //// 每Pass设置一次
-        //m_LastMatState.Reset();
-
-        //Renderer::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
-        //Renderer::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
-        //Renderer::GetInstance()->SetSissorRect(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
-
-        //Renderer::GetInstance()->SetPerPassData((UINT)mRenderPassInfo.mRootSigSlot);
-        //if(!RenderSettings::s_EnableVertexPulling)
-        //{
-        //    for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
-        //    {
-        //        int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
-        //        int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
-        //        Material* mat = renderContext.material;
-        //        Mesh* mesh = renderContext.mesh;
-        //        // 根据mat + pass信息组织pippeline
-        //        Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
-        //        // copy gpu material data desc 
-        //        Renderer::GetInstance()->SetBindlessMat(mat);
-        //        // bind mesh vertexbuffer and indexbuffer.
-        //        Renderer::GetInstance()->SetMeshData(mesh);
-        //        Payload_DrawIndirect indirectPayload;
-        //        // temp:
-        //        GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
-        //        ASSERT(indirectDrawArgsBuffer != nullptr);
-        //        indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
-        //        indirectPayload.count = 1;
-        //        indirectPayload.startIndex = batchID;
-        //        indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
-        //        Renderer::GetInstance()->DrawIndirect(indirectPayload);
-        //    }
-        //}
-        //else
-        //{
-        //    for(auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
-        //    {
-        //        int batchID = BatchManager::GetInstance()->drawIndirectParamMap[hashID].indexInDrawIndirectList;
-        //        int stratIndex = BatchManager::GetInstance()->drawIndirectParamMap[hashID].startIndexInInstanceDataList;
-        //        Material* mat = renderContext.material;
-        //        if (mat->GetMaterialRenderState().GetHash() != m_LastMatState.GetHash())
-        //        {
-        //            m_LastMatState = mat->GetMaterialRenderState();
-        //            Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
-        //            Renderer::GetInstance()->SetBindlessMat(mat);
-        //            Renderer::GetInstance()->SetBindLessMeshIB(0);
-        //        }
-
-        //        Payload_DrawIndirect indirectPayload;
-        //        // temp:
-        //        GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
 ```
 
 ### File: `Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp`
 ```cpp
-        //todo:
-        // 这个地方要把ResourceState切换一下
-        Renderer::GetInstance()->BeginFrame();
-
         FrameContext* currentFrame = RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameContexts();
         auto* visibilityBuffer = currentFrame->visibilityBuffer;
         Renderer::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
@@ -208,9 +182,22 @@ namespace EngineCore
         Renderer::GetInstance()->Render(context);
 #ifdef EDITOR
         Renderer::GetInstance()->OnDrawGUI();
+        EngineEditor::EditorGUIManager::GetInstance()->BeginFrame();
+        EngineEditor::EditorGUIManager::GetInstance()->Render();
 #endif
 
         Renderer::GetInstance()->EndFrame();
+    }
+
+    void GPUSceneRenderPath::Prepare(RenderContext& context)
+    {
+```
+...
+```cpp
+        context.camera = cam;
+
+        Renderer::GetInstance()->Prepare(context);
+        Renderer::GetInstance()->BeginFrame();
     }
 }
 ```
@@ -256,7 +243,7 @@ namespace EngineCore
         };
 
         virtual void Execute(RenderContext& context) override;
-        virtual void Prepare(RenderContext& context) override {};
+        virtual void Prepare(RenderContext& context) override;
 
 
         bool hasSetUpBuffer = false;
