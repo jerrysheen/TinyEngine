@@ -34,7 +34,9 @@ namespace EngineCore
         void UpdateFrameContextDirtyFlags(uint32_t renderID, uint32_t flag);
         void UpdateFrameContextShadowData(uint32_t renderID, CPUSceneView& view);
         
-        FrameContext* GetCurrentFrameContexts();
+        FrameContext* GetCurrentFrameContext();
+        FrameContext* GetNextFrameContext();
+
         inline uint32_t GetCurrentFrameID() const { return mCurrentFrameID; }
 
         inline GPUBufferAllocator* GetAllMaterialDataBuffer() { return allMaterialDataBuffer; }

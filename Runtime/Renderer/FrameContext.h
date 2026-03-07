@@ -29,6 +29,8 @@ namespace EngineCore
         ~FrameContext();
         void UpdateDirtyFlags(uint32_t renderID, uint32_t flags);
         void UploadCopyOp();
+        inline uint64_t GetFenceValue(){return mGPUFenceValue;}
+        inline void SetFenceValue(uint64_t fenceValue){ mGPUFenceValue = fenceValue;}
     private:
         void TryFreeRenderProxyByRenderIndex(uint32_t renderID);
         void TryFreePerObjectDataAndAABBData(uint32_t renderID);
@@ -38,6 +40,6 @@ namespace EngineCore
         vector<CopyOp> mCopyOpsAABB;
         vector<CopyOp> mCopyOpsProxy;
         vector<CopyOp> mCopyOpsVisibility;
-
+        uint64_t mGPUFenceValue = 0;
     };
 }

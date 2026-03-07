@@ -6,8 +6,11 @@ namespace EngineCore
     class CpuEvent
     {
     public:
-        static CpuEvent& RenderThreadSubmited();
-        static CpuEvent& MainThreadSubmited();
+        //static CpuEvent& RenderThreadSubmited();
+        //static CpuEvent& MainThreadSubmited();
+        // 渲染线程消费完ImGui DrawData后发出信号，主线程BeginFrame等待它
+        // 初始为true：第一帧不需要等待上一帧
+        static CpuEvent& GUIDataConsumed();
 
         CpuEvent(bool startCondition = false)
             : m_signaled(startCondition){}

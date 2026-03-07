@@ -43,8 +43,9 @@ namespace EngineCore
         }
     }
 
-    void Scene::Update(uint32_t frameIndex)
+    void Scene::TickSimulation(uint32_t frameIndex)
     {
+        PROFILER_ZONE("MainThread::Scene::TickSimulation");
         mCurrentFrame = frameIndex;
         PushLastFrameFreeIndex();
         RunLogicUpdate();
@@ -147,20 +148,20 @@ namespace EngineCore
 
     void Scene::RunLogicUpdate()
     {
-        for(auto* go : allObjList)
-        {
-            if(go != nullptr)
-            {
-                for(auto& script : go->scripts)
-                {
-                    script->Update();
-                }
-                if (go->GetComponent<Camera>() != nullptr) 
-                {
-                    go->GetComponent<Camera>()->Update();
-                }
-            }
-        }
+        //for(auto* go : allObjList)
+        //{
+        //    if(go != nullptr)
+        //    {
+        //        for(auto& script : go->scripts)
+        //        {
+        //            script->Update();
+        //        }
+        //        if (go->GetComponent<Camera>() != nullptr) 
+        //        {
+        //            go->GetComponent<Camera>()->Update();
+        //        }
+        //    }
+        //}
     }
 
     void Scene::RunTransformUpdate()

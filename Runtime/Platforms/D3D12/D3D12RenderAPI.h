@@ -27,7 +27,7 @@ namespace EngineCore
 {
     class FrameContext;
 
-    class D3D12RenderAPI : public RenderAPI
+    class D3D12RenderAPI final : public RenderAPI
     {
     public:
 
@@ -122,6 +122,7 @@ namespace EngineCore
         virtual IGPUBuffer* CreateBuffer(const BufferDesc& desc, void* data) override;
         virtual void UploadBuffer(IGPUBuffer* bufferResource, uint32_t offset, void* data, uint32_t size) override;
         static D3D12_RESOURCE_STATES GetResourceState(BufferResourceState state);
+        virtual uint64_t GetCurrentGPUCompletedFenceValue() override;
     private:
 
         bool InitDirect3D();
@@ -194,8 +195,7 @@ namespace EngineCore
 		UINT m4xMSAAQuality = 0;
 		UINT msaaSamplesCount = 4;
 
-
-        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mDirectCmdListAlloc;
+        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mDirectCmdListAlloc[3];
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
 
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mImediatelyCmdListAlloc;

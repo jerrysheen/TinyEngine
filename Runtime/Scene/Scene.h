@@ -19,7 +19,7 @@ namespace EngineCore
         Scene(const std::string& name):name(name){};
         void Open();
         void Close(){};
-        void Update(uint32_t frameIndex);
+        void TickSimulation(uint32_t frameIndex);
         void EndFrame();
         GameObject* FindGameObject(const std::string& name);
         GameObject* CreateGameObject(const std::string& name);

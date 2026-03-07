@@ -48,7 +48,7 @@ namespace EngineCore
     void GPUScene::Update(uint32_t currentFrameIndex)
     {
         mCurrentFrameID = currentFrameIndex;
-        mCurrentFrameContext = GetCurrentFrameContexts();
+        mCurrentFrameContext = GetCurrentFrameContext();
         mCurrentFrameContext->Reset();
     }
 
@@ -108,12 +108,19 @@ namespace EngineCore
         }
     }
 
-    FrameContext *GPUScene::GetCurrentFrameContexts()
+    FrameContext *GPUScene::GetCurrentFrameContext()
     {
         int index = mCurrentFrameID % mMaxFrameCount;
         ASSERT(index >= 0 && index < mMaxFrameCount);
         return &mCPUFrameContext[index];
         // TODO: insert return statement here
+    }
+
+    FrameContext *GPUScene::GetNextFrameContext()
+    {
+        int index = (mCurrentFrameID + 1) % mMaxFrameCount;
+        ASSERT(index >= 0 && index < mMaxFrameCount);
+        return &mCPUFrameContext[index];
     }
 
     void GPUScene::EnsureCapacity(uint32_t renderID)

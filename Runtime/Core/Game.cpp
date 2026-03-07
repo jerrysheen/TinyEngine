@@ -28,17 +28,40 @@ namespace EngineCore
         while(!WindowManager::GetInstance()->WindowShouldClose())
         {
             PROFILER_FRAME_MARK("TinyProfiler");
-            Update(mFrameIndex);
+            TickFrame(mFrameIndex);
 
-            Render();
-
-            EndFrame();
             mFrameIndex++;
 
         }
 
         // 明确的关闭流程（顺序很重要！）
         Shutdown();
+    }
+
+    void Game::TickFrame(uint32_t frameIndex)
+    {
+        PROFILER_ZONE("MainThread::GameUpdate");
+        // 等待当前帧FrameContext可用
+        RenderEngine::GetInstance()->BeginFrame();
+        ResourceManager::GetInstance()->Update();
+
+        PROFILER_EVENT_BEGIN("TickFrame::TickSimulation");
+        SceneManager::GetInstance()->TickSimulation(frameIndex);
+        PROFILER_EVENT_END("TickFrame::TickSimulation");
+
+        PROFILER_EVENT_BEGIN("TickFrame::RenderEngineUpdate");
+        RenderEngine::GetInstance()->Update(frameIndex);
+        PROFILER_EVENT_END("TickFrame::RenderEngineUpdate");
+
+
+        RenderEngine::GetInstance()->Tick();
+
+
+        PROFILER_EVENT_BEGIN("TickFrame::EndFrame");
+        SceneManager::GetInstance()->EndFrame();
+        RenderEngine::GetInstance()->EndFrame();
+        PROFILER_EVENT_END("TickFrame::EndFrame");
+
     }
 
     void Game::Shutdown()
@@ -65,28 +88,6 @@ namespace EngineCore
         std::cout << "ResourceManager destroyed." << std::endl;
 
         std::cout << "Game shutdown complete." << std::endl;
-    }
-
-    void Game::Update(uint32_t frameIndex)
-    {
-        PROFILER_ZONE("MainThread::GameUpdate");
-        SceneManager::GetInstance()->SetCurrentFrame(frameIndex);
-        RenderEngine::GetInstance()->SetCurrentFrame(frameIndex);
-        ResourceManager::GetInstance()->Update();
-        SceneManager::GetInstance()->Update(frameIndex);
-        RenderEngine::GetInstance()->Update(frameIndex);
-    }
-
-    void Game::Render()
-    {
-        PROFILER_ZONE("MainThread::RenderTick");
-        RenderEngine::GetInstance()->Tick();
-    }
-
-    void Game::EndFrame()
-    {
-        SceneManager::GetInstance()->EndFrame();
-        RenderEngine::GetInstance()->EndFrame();
     }
 
 }

@@ -6,19 +6,17 @@ namespace EngineCore
 {
     void LagacyRenderPath::Prepare(RenderContext &context)
     {
+        PROFILER_ZONE("LagacyRenderPath::Prepare");
+
         context.Reset();
         // todo： 这个地方culling逻辑是不是应该放到Update
         Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->mainCamera;
         // temp 方案
         cam->Update();
         context.camera = cam;
-        PROFILER_EVENT_BEGIN("MainThread::Culling::Run");
         Culling::Run(cam, context);
-        PROFILER_EVENT_END("MainThread::Culling::Run");
 
         Renderer::GetInstance()->Prepare(context);
-        Renderer::GetInstance()->BeginFrame();
-
     }
 
     void LagacyRenderPath::Execute(RenderContext &context)

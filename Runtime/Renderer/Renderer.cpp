@@ -47,7 +47,7 @@ namespace EngineCore
     {
         PROFILER_ZONE("MainThread::Renderer::Prepare");
         FlushPerFrameData();
-        FrameContext* currentFrameContext = RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameContexts();
+        FrameContext* currentFrameContext = RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameContext();
         ASSERT(currentFrameContext != nullptr);
         SetFrameContext(currentFrameContext, RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameID());
 
@@ -62,7 +62,7 @@ namespace EngineCore
     
     void Renderer::Render(RenderContext& context)
     {
-        PROFILER_ZONE("MainThread::Renderer::Render");
+        //PROFILER_ZONE("MainThread::Renderer::Render");
 
         for(auto* pass : context.camera->mRenderPassAsset.renderPasses)
         {

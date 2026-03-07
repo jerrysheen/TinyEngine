@@ -22,9 +22,7 @@ namespace EngineCore
 
         void Launch();
     private:
-        void Update(uint32_t frameIndex);
-        void Render();
-        void EndFrame();
+        void TickFrame(uint32_t frameIndex);
         void Shutdown();
 
         uint32_t mFrameIndex = 0;

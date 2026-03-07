@@ -26,7 +26,7 @@ namespace EngineCore
     struct TD3D12Fence
     {
     public:
-        int mCurrentFence;
+        uint64_t mCurrentFence;
         Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
     };
 

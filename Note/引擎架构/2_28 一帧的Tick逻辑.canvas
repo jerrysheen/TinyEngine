@@ -17,7 +17,11 @@
 		{"id":"0eac6bd61f74486b","type":"text","text":"Game::Render\nRenderEngine::Tick","x":-805,"y":850,"width":240,"height":80},
 		{"id":"6de4b041ec2f40fd","type":"text","text":"RenderPath::Execute\nRenderer Begin/Render/EndFrame\nSignalMainThreadSubmited","x":-427,"y":850,"width":300,"height":100},
 		{"id":"f2d98b37fd1048c0","type":"text","text":"Game::EndFrame","x":-805,"y":1050,"width":240,"height":60},
-		{"id":"0c0c9ddf1d804d11","type":"text","text":"Scene::EndFrame -> ClearPerFrameData\nRenderEngine::EndFrame -> CPUScene.EndFrame","x":-427,"y":1040,"width":350,"height":90}
+		{"id":"0c0c9ddf1d804d11","type":"text","text":"Scene::EndFrame -> ClearPerFrameData\nRenderEngine::EndFrame -> CPUScene.EndFrame","x":-427,"y":1040,"width":350,"height":90},
+		{"id":"07f60337a6afd26e","x":-1200,"y":-133,"width":440,"height":119,"type":"text","text":"# RenderEngine:: BeginFrame\n等待currFrameContext是否可用"},
+		{"id":"9114a2eeb75930b6","x":-1760,"y":90,"width":385,"height":50,"type":"text","text":"# GameCPP->TickFrame()"},
+		{"id":"b282d3139c68a305","x":-1200,"y":26,"width":440,"height":114,"type":"text","text":"# ResourceManager::Update"},
+		{"id":"062c0943df3d16b2","type":"text","text":"# SceneManager::TickSimulation\n运行Component，标记脏数据\n","x":-1200,"y":200,"width":440,"height":114}
 	],
 	"edges":[
 		{"id":"c29943fe86afcc0e","fromNode":"1ccfe5aab2a64848","fromSide":"right","toNode":"422d6bd882ad873e","toSide":"left"},

@@ -41,16 +41,14 @@ namespace EngineCore
 
     void RenderEngine::Update(uint32_t frameID)
     {
-
         mCPUScene.Update(frameID);
         mGPUScene.Update(frameID);
         ComsumeDirtySceneRenderNode();
-        WaitForLastFrameFinished();
-        PROFILER_EVENT_BEGIN("MainThread::WaitForGpuFinished");
-        RenderAPI::GetInstance()->WaitForGpuFinished();
-        PROFILER_EVENT_END("MainThread::WaitForGpuFinished");
         mCurrentRenderPath->Prepare(renderContext);
+        //PROFILER_EVENT_BEGIN("MainThread::RenderEngine::Update");
         UploadCopyOp();
+        //PROFILER_EVENT_END("MainThread::RenderEngine::Update");
+
     }    
     
     void RenderEngine::OnResize(int width, int height)
@@ -60,13 +58,29 @@ namespace EngineCore
 
     void RenderEngine::Tick()
     {
-
-
-
+        PROFILER_ZONE("TickFrame::RenderEngineTick");
         s_Instance->mCurrentRenderPath->Execute(renderContext);
-        
-        SignalMainThreadSubmited();
+    }
 
+    void RenderEngine::BeginFrame()
+    {
+        PROFILER_ZONE("MainThread::WaitForFrameContextAvaliable()");
+        // 等待当前帧的 FrameContext 可用（GPU 已经不再使用该槽的数据）
+        FrameContext* nextFrame = GetGPUScene().GetNextFrameContext();
+        uint64_t frameFenceValue = nextFrame->GetFenceValue();
+        if(frameFenceValue != 0)
+        {
+            while(RenderAPI::GetInstance()->GetCurrentGPUCompletedFenceValue() < frameFenceValue)
+            {
+                std::this_thread::yield();
+            }
+        }
+
+#ifdef EDITOR
+        // 等待渲染线程消费完上一帧的 ImGui DrawData
+        // 防止 ImGui::NewFrame() 提前清掉渲染线程还在用的 DrawData
+        CpuEvent::GUIDataConsumed().Wait();
+#endif
     }
 
     void RenderEngine::EndFrame()
@@ -96,18 +110,18 @@ namespace EngineCore
         }
     }
 
-    void RenderEngine::WaitForLastFrameFinished()
-    {
-        PROFILER_EVENT_BEGIN("MainThread::WaitforSignalFromRenderThread");
-        CpuEvent::RenderThreadSubmited().Wait();
-        PROFILER_EVENT_END("MainThread::WaitforSignalFromRenderThread");
+    // void RenderEngine::WaitForLastFrameFinished()
+    // {
+    //     PROFILER_EVENT_BEGIN("MainThread::WaitforSignalFromRenderThread");
+    //     CpuEvent::RenderThreadSubmited().Wait();
+    //     PROFILER_EVENT_END("MainThread::WaitforSignalFromRenderThread");
 
-    }
+    // }
 
-    void RenderEngine::SignalMainThreadSubmited()
-    {
-        CpuEvent::MainThreadSubmited().Signal();
-    }
+    // void RenderEngine::SignalMainThreadSubmited()
+    // {
+    //     CpuEvent::MainThreadSubmited().Signal();
+    // }
 
     void RenderEngine::ComsumeDirtySceneRenderNode()
     {

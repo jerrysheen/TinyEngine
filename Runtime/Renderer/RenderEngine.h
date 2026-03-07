@@ -21,6 +21,7 @@ namespace EngineCore
         void Update(uint32_t frameID);
         static void Create();
         void Tick();
+        void BeginFrame();
         void EndFrame();
         
         static void OnResize(int width, int height);
@@ -28,8 +29,8 @@ namespace EngineCore
         static void Destory();
         RenderEngine(){};
         ~RenderEngine(){};
-        static void WaitForLastFrameFinished();
-        static void SignalMainThreadSubmited();
+        //static void WaitForLastFrameFinished();
+        //static void SignalMainThreadSubmited();
         inline CPUScene& GetCPUScene(){return mCPUScene;}
         inline GPUScene& GetGPUScene(){return mGPUScene;}
         inline void SetCurrentFrame(uint32_t currentFrame)

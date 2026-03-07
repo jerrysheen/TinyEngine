@@ -73,6 +73,8 @@ namespace  EngineCore
             SetGlobalDataImpl(bufferID, offset, size, static_cast<void*>(value));
         }
         virtual void WaitForGpuFinished() = 0;
+
+        virtual uint64_t GetCurrentGPUCompletedFenceValue() = 0;
     public:
         static std::unique_ptr<RenderAPI> s_Instance;
     protected:

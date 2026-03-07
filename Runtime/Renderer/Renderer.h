@@ -76,9 +76,9 @@ namespace EngineCore
             {
                 PROFILER_ZONE("RenderThread::RenderLoop");
 
-                PROFILER_EVENT_BEGIN("RenderThread::WaitForSignalFromMainThread");
-                CpuEvent::MainThreadSubmited().Wait();
-                PROFILER_EVENT_END("RenderThread::WaitForSignalFromMainThread");
+                // PROFILER_EVENT_BEGIN("RenderThread::WaitForSignalFromMainThread");
+                // CpuEvent::MainThreadSubmited().Wait();
+                // PROFILER_EVENT_END("RenderThread::WaitForSignalFromMainThread");
 
                 RenderAPI::GetInstance()->RenderAPIBeginFrame();
                 DrawCommand cmd;
@@ -100,13 +100,14 @@ namespace EngineCore
                     EngineEditor::EditorGUIManager::GetInstance()->EndFrame();
                     hasDrawGUI = false;
                 }
+                // ImGui DrawData 已消费完毕，通知主线程可以安全调用 ImGui::NewFrame()
+                CpuEvent::GUIDataConsumed().Signal();
                 PROFILER_EVENT_END("RenderThread::ProcessEditorGUI");
 #endif
 
 
                 RenderAPI::GetInstance()->RenderAPIPresentFrame();
 
-                CpuEvent::RenderThreadSubmited().Signal();
 
                 if (hasResize)
                 {

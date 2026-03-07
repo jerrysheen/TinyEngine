@@ -30,11 +30,7 @@ namespace EngineCore
             indirectDrawArgsAlloc = indirectDrawArgsBuffer->Allocate(sizeof(DrawIndirectArgs) * 3000);
         }
 
-        //todo:
-        // 这个地方要把ResourceState切换一下
-        Renderer::GetInstance()->BeginFrame();
-
-        FrameContext* currentFrame = RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameContexts();
+        FrameContext* currentFrame = RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameContext();
         auto* visibilityBuffer = currentFrame->visibilityBuffer;
         Renderer::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
         Renderer::GetInstance()->SetResourceState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
@@ -82,6 +78,8 @@ namespace EngineCore
         Renderer::GetInstance()->Render(context);
 #ifdef EDITOR
         Renderer::GetInstance()->OnDrawGUI();
+        EngineEditor::EditorGUIManager::GetInstance()->BeginFrame();
+        EngineEditor::EditorGUIManager::GetInstance()->Render();
 #endif
 
         Renderer::GetInstance()->EndFrame();

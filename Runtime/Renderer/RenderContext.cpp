@@ -15,15 +15,15 @@ namespace EngineCore
     void RenderContext::DrawRenderers(RenderContext &renderContext, const ContextDrawSettings &drawingSettings, const ContextFilterSettings &filteringSettings, std::vector<RenderBatch> & bactchList)
     {
         vector<RenderPacket>& visibleItems = renderContext.visibleItems;
-        PROFILER_EVENT_BEGIN("DrawRenderers::SortingContext");
+        //PROFILER_EVENT_BEGIN("DrawRenderers::SortingContext");
         RendererSort::BuildSortKeys(renderContext, renderContext.visibleItems, drawingSettings.sortingCriteria);
-        PROFILER_EVENT_END("DrawRenderers::SortingContext");
+        //PROFILER_EVENT_END("DrawRenderers::SortingContext");
 
-        PROFILER_EVENT_BEGIN("DrawRenderers::SortingContext");
+        //PROFILER_EVENT_BEGIN("DrawRenderers::SortingContext");
         std::sort(visibleItems.begin(), visibleItems.end(), [](RenderPacket& a, RenderPacket& b) { return a.sortingKey < b.sortingKey; });
-        PROFILER_EVENT_END("DrawRenderers::SortingContext");
+        //PROFILER_EVENT_END("DrawRenderers::SortingContext");
         
-        PROFILER_EVENT_BEGIN("DrawRenderers::PrepareBatch");
+        //PROFILER_EVENT_BEGIN("DrawRenderers::PrepareBatch");
         vector<uint32_t> tempList;
         if(visibleItems.size() == 0) return;
         auto& item = visibleItems[0];
@@ -75,7 +75,7 @@ namespace EngineCore
             bactchList.push_back(currentBatch);
             tempList.clear();
         }
-        PROFILER_EVENT_END("DrawRenderers::PrepareBatch");
+        //PROFILER_EVENT_END("DrawRenderers::PrepareBatch");
 
     }
 

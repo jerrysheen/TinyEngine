@@ -91,7 +91,7 @@ namespace EngineCore
         mClientHeight = height;
         // Flush before changing any resources.
 	    WaitForFence(mFrameFence);
-        ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
+        ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc[mCurrBackBuffer].Get(), nullptr));
 
         // Release the previous resources we will be recreating.
         for (int i = 0; i < SwapChainBufferCount; ++i)
@@ -219,14 +219,17 @@ namespace EngineCore
         queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
         ThrowIfFailed(md3dDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&mCommandQueue)));
 
-        ThrowIfFailed(md3dDevice->CreateCommandAllocator(
-            D3D12_COMMAND_LIST_TYPE_DIRECT,
-            IID_PPV_ARGS(mDirectCmdListAlloc.GetAddressOf())));
-        mDirectCmdListAlloc->SetName(L"DirectCommandList");
+        for (int i = 0; i < MAX_FRAME_INFLIAGHT; i++) 
+        {
+            ThrowIfFailed(md3dDevice->CreateCommandAllocator(
+                D3D12_COMMAND_LIST_TYPE_DIRECT,
+                IID_PPV_ARGS(mDirectCmdListAlloc[i].GetAddressOf())));
+            mDirectCmdListAlloc[i]->SetName(L"DirectCommandList");
+        }
         ThrowIfFailed(md3dDevice->CreateCommandList(
             0,
             D3D12_COMMAND_LIST_TYPE_DIRECT,
-            mDirectCmdListAlloc.Get(), // Associated command allocator
+            mDirectCmdListAlloc[0].Get(), // Associated command allocator
             nullptr,                   // Initial PipelineStateObject
             IID_PPV_ARGS(mCommandList.GetAddressOf())));
 
@@ -742,6 +745,11 @@ namespace EngineCore
         }
     }
 
+    uint64_t D3D12RenderAPI::GetCurrentGPUCompletedFenceValue()
+    {
+        return mFrameFence->mFence->GetCompletedValue();
+    }
+
     // void D3D12RenderAPI::SetShaderTexture(const Material* mat, const string& slotName, int slotIndex, uint32_t texInstanceID)
     // {
     //     uint32_t matID = mat->GetInstanceID();
@@ -867,9 +875,9 @@ namespace EngineCore
     void D3D12RenderAPI::RenderAPIBeginFrame()
     {
         // 给定默认的PSO，
-        WaitForRenderFinish(mFrameFence);
-        ThrowIfFailed(mDirectCmdListAlloc->Reset());
-        ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), psoObj.Get()));
+        //WaitForRenderFinish(mFrameFence);
+        ThrowIfFailed(mDirectCmdListAlloc[mCurrBackBuffer]->Reset());
+        ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc[mCurrBackBuffer].Get(), psoObj.Get()));
 
         // 重置状态缓存，因为Reset后CommandList的状态被清空了
         currentRootSignature = nullptr;
@@ -1167,8 +1175,8 @@ namespace EngineCore
         mClientHeight = payloadWindowResize.height;
                           // Flush before changing any resources.
         WaitForRenderFinish(mFrameFence);
-        ThrowIfFailed(mDirectCmdListAlloc->Reset());
-        ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
+        ThrowIfFailed(mDirectCmdListAlloc[mCurrBackBuffer]->Reset());
+        ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc[mCurrBackBuffer].Get(), nullptr));
 
         // 重置状态缓存
         currentRootSignature = nullptr;
@@ -1285,15 +1293,14 @@ namespace EngineCore
 
         // Done recording commands.
         ThrowIfFailed(mCommandList->Close());
-
-        PROFILER_EVENT_BEGIN("GPU Process::WaitForGPUFinished");
         // Add the command list to the queue for execution.
         ID3D12CommandList* cmdsLists[] = { mCommandList.Get() };
         mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
         // swap the back and front buffers
         SignalFence(mFrameFence);
 
-        PROFILER_EVENT_END("GPU Process::WaitForGPUFinished");
+        uint64_t currentFenceValue = mFrameFence->mCurrentFence;
+        mCurrentFrameContext->SetFenceValue(currentFenceValue);
     }
 
     // todo 这个分类似乎不合理
