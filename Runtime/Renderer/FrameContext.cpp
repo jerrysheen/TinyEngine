@@ -266,15 +266,8 @@ namespace EngineCore
 
     void FrameContext::Reset()
     {
-
+        PROFILER_ZONE("FrameContext::Reset()");
         visibilityBuffer->Reset();
-        vector<uint8_t> empty;
-        empty.resize(4 * 10000, 0);
-        BufferAllocation allocation = visibilityBuffer->Allocate(4 * 10000);
-        visibilityBuffer->UploadBuffer(allocation, empty.data(), empty.size());
-        // 初始化之后再清除
-        visibilityBuffer->Reset();
-        
         perFrameUploadBuffer->Reset();
 
 

@@ -123,6 +123,13 @@ namespace EngineCore
         return &mCPUFrameContext[index];
     }
 
+    FrameContext* GPUScene::GetFrameContextByFrameID(uint32_t frameID)
+    {
+        int index = frameID % mMaxFrameCount;
+        ASSERT(index >= 0 && index < mMaxFrameCount);
+        return &mCPUFrameContext[index];
+    }
+
     void GPUScene::EnsureCapacity(uint32_t renderID)
     {
         for(int i = 0; i < 3; i++)

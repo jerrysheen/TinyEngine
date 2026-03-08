@@ -28,7 +28,6 @@ namespace EngineCore
         EngineEditor::EditorGUIManager::GetInstance()->BeginFrame();
         EngineEditor::EditorGUIManager::GetInstance()->Render();
 #endif
-
         Renderer::GetInstance()->EndFrame();
     }
 

@@ -876,6 +876,21 @@ namespace EngineCore
     {
         // 给定默认的PSO，
         //WaitForRenderFinish(mFrameFence);
+        uint64_t allocatorFenceValue = mDirectAllocatorFenceValues[mCurrBackBuffer];
+        if (allocatorFenceValue > 0 && mFrameFence->mFence->GetCompletedValue() < allocatorFenceValue)
+        {
+            auto event = CreateEventEx(nullptr, NULL, NULL, EVENT_ALL_ACCESS);
+            if (event)
+            {
+                ThrowIfFailed(mFrameFence->mFence->SetEventOnCompletion(allocatorFenceValue, event));
+                WaitForSingleObject(event, INFINITE);
+                CloseHandle(event);
+            }
+            else
+            {
+                ASSERT_MSG(false, "CreateEventEx failed while waiting direct command allocator fence.");
+            }
+        }
         ThrowIfFailed(mDirectCmdListAlloc[mCurrBackBuffer]->Reset());
         ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc[mCurrBackBuffer].Get(), psoObj.Get()));
 
@@ -1300,7 +1315,8 @@ namespace EngineCore
         SignalFence(mFrameFence);
 
         uint64_t currentFenceValue = mFrameFence->mCurrentFence;
-        mCurrentFrameContext->SetFenceValue(currentFenceValue);
+        mDirectAllocatorFenceValues[mCurrBackBuffer] = currentFenceValue;
+        mCurrentFrameContext->PublishSubmission(mCurrentFrameID, currentFenceValue);
     }
 
     // todo 这个分类似乎不合理

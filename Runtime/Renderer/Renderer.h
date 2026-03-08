@@ -80,16 +80,43 @@ namespace EngineCore
                 // CpuEvent::MainThreadSubmited().Wait();
                 // PROFILER_EVENT_END("RenderThread::WaitForSignalFromMainThread");
 
-                RenderAPI::GetInstance()->RenderAPIBeginFrame();
-                DrawCommand cmd;
 
                 PROFILER_EVENT_BEGIN("RenderThread::ProcessDrawComand");
-                while(mRenderBuffer.PopBlocking(cmd))
+                DrawCommand cmd;
+                if (!mRenderBuffer.TryPop(cmd)) 
                 {
-                    if (cmd.op == RenderOp::kEndFrame) break;
+                    mDataAvailableEvent.Wait();
+                    continue;
+                }
+
+                bool hasBeginFrame = false;
+                bool hasEndFrame = false;
+                while (mRunning.load(std::memory_order_acquire) == true)
+                {
+                    if (cmd.op == RenderOp::kBeginFrame) hasBeginFrame = true;
+                    if (cmd.op == RenderOp::kEndFrame)
+                    {
+                        hasEndFrame = true;
+                        break;
+                    }
+
                     ProcessDrawCommand(cmd);
+
+                    if (!mRenderBuffer.TryPop(cmd))
+                    {
+                        mDataAvailableEvent.Wait();
+                        if (!mRunning.load(std::memory_order_acquire)) break;
+                        if (!mRenderBuffer.TryPop(cmd)) continue;
+                    }
                 }
                 PROFILER_EVENT_END("RenderThread::ProcessDrawComand");
+
+                if (!hasBeginFrame || !hasEndFrame)
+                {
+                    continue;
+                }
+                
+                
                 // later do Gpu Fence...
                 RenderAPI::GetInstance()->RenderAPISubmit();
 
@@ -121,7 +148,11 @@ namespace EngineCore
         
 
     private:
-        SPSCRingBuffer<16384> mRenderBuffer;
+        void EnqueueCommand(const DrawCommand& cmd);
+        void TryWakeUpRenderThread();
+        void WaitForQueueSpace();
+
+        SPSCRingBuffer<DrawCommand, 16384> mRenderBuffer;
         std::thread mRenderThread;
         bool hasResize = false;
         bool hasDrawGUI = false;
@@ -134,6 +165,7 @@ namespace EngineCore
         // todo： 后面可能不应该这么设置？ 丧失灵活性了， 至少保证Core里面的内容改了这边同步
         PerPassData_Forward mPerPassData_Forward;
 
+        CpuEvent mDataAvailableEvent;
         void FlushPerFrameData();
         void FlushPerPassData(const RenderContext& context);
         void CreatePerFrameData();

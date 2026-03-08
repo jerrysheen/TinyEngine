@@ -36,8 +36,10 @@ namespace EngineCore
         
         FrameContext* GetCurrentFrameContext();
         FrameContext* GetNextFrameContext();
+        FrameContext* GetFrameContextByFrameID(uint32_t frameID);
 
         inline uint32_t GetCurrentFrameID() const { return mCurrentFrameID; }
+        inline uint32_t GetMaxFrameCount() const { return mMaxFrameCount; }
 
         inline GPUBufferAllocator* GetAllMaterialDataBuffer() { return allMaterialDataBuffer; }
         inline ResourceHandle<ComputeShader> GetCullingShaderHandler() { return GPUCullingShaderHandler; }

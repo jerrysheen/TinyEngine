@@ -41,6 +41,7 @@ namespace EngineCore
 
     void RenderEngine::Update(uint32_t frameID)
     {
+        PROFILER_ZONE("RenderEngine::Update");
         mCPUScene.Update(frameID);
         mGPUScene.Update(frameID);
         ComsumeDirtySceneRenderNode();
@@ -62,15 +63,26 @@ namespace EngineCore
         s_Instance->mCurrentRenderPath->Execute(renderContext);
     }
 
-    void RenderEngine::BeginFrame()
+    void RenderEngine::BeginFrame(uint32_t frameID)
     {
         PROFILER_ZONE("MainThread::WaitForFrameContextAvaliable()");
-        // 等待当前帧的 FrameContext 可用（GPU 已经不再使用该槽的数据）
-        FrameContext* nextFrame = GetGPUScene().GetNextFrameContext();
-        uint64_t frameFenceValue = nextFrame->GetFenceValue();
-        if(frameFenceValue != 0)
+        GPUScene& gpuScene = GetGPUScene();
+        const uint32_t maxFrameCount = gpuScene.GetMaxFrameCount();
+
+        // 当开始复用 ring 槽位时，必须确保“上一任帧”的提交信息已经由渲染线程发布。
+        // 仅等 fence 值不够，因为渲染线程可能还未写入该槽位的最新 fence。
+        if (frameID >= maxFrameCount)
         {
-            while(RenderAPI::GetInstance()->GetCurrentGPUCompletedFenceValue() < frameFenceValue)
+            FrameContext* frameContext = gpuScene.GetFrameContextByFrameID(frameID);
+            const uint64_t expectedSubmittedFrameID = static_cast<uint64_t>(frameID - maxFrameCount);
+
+            while (!frameContext->IsSubmissionReadyForFrame(expectedSubmittedFrameID))
+            {
+                std::this_thread::yield();
+            }
+
+            const uint64_t frameFenceValue = frameContext->GetFenceValue();
+            while (RenderAPI::GetInstance()->GetCurrentGPUCompletedFenceValue() < frameFenceValue)
             {
                 std::this_thread::yield();
             }

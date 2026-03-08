@@ -17,6 +17,7 @@ namespace EngineCore
         mRunning.store(false, std::memory_order_release);
         
         // 2. 唤醒可能在等待的渲染线程
+        mDataAvailableEvent.Signal();
         mSleepRenderThreadCV.notify_all();
         // 3. 等待渲染线程结束
         if (mRenderThread.joinable())
@@ -36,16 +37,15 @@ namespace EngineCore
 
     void Renderer::BeginFrame()
     {        
-        RenderAPI::GetInstance()->ClearRenderPassInfo();
-
         DrawCommand temp;
         temp.op = RenderOp::kBeginFrame;
-        mRenderBuffer.PushBlocking(temp);   
+        EnqueueCommand(temp);
     }
 
     void Renderer::Prepare(RenderContext& context)
     {
         PROFILER_ZONE("MainThread::Renderer::Prepare");
+        BeginFrame();
         FlushPerFrameData();
         FrameContext* currentFrameContext = RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameContext();
         ASSERT(currentFrameContext != nullptr);
@@ -67,6 +67,7 @@ namespace EngineCore
         for(auto* pass : context.camera->mRenderPassAsset.renderPasses)
         {
             pass->Execute(context);
+            TryWakeUpRenderThread();
         }
         
         for (auto& pass : context.camera->mRenderPassAsset.renderPasses)
@@ -80,7 +81,27 @@ namespace EngineCore
     {
         DrawCommand temp;
         temp.op = RenderOp::kEndFrame;
-        mRenderBuffer.PushBlocking(temp);
+        EnqueueCommand(temp);
+        TryWakeUpRenderThread();
+    }
+
+    void Renderer::EnqueueCommand(const DrawCommand& cmd)
+    {
+        while (!mRenderBuffer.TryPush(cmd)) 
+        {
+            mDataAvailableEvent.Signal();
+            WaitForQueueSpace();
+        }
+    }
+
+    void Renderer::TryWakeUpRenderThread()
+    {
+        mDataAvailableEvent.Signal();
+    }
+
+    void Renderer::WaitForQueueSpace()
+    {
+        //// 你后续可替换成 spin -> yield -> wait 的三级退避
     }
 
     void Renderer::FlushPerFrameData()
@@ -121,7 +142,7 @@ namespace EngineCore
         pso.matRenderState = mat->GetMaterialRenderState();
         temp.data.setRenderState.psoDesc = pso;
         
-        mRenderBuffer.PushBlocking(temp);
+        EnqueueCommand(temp);
     }
 
     void Renderer::SetMaterialData(Material* mat)
@@ -130,7 +151,8 @@ namespace EngineCore
         temp.op = RenderOp::kSetMaterial;
         temp.data.setMaterial.mat = mat;
         temp.data.setMaterial.shader = mat->mShader.Get();
-        mRenderBuffer.PushBlocking(temp);
+        EnqueueCommand(temp);
+
     }
 
     void Renderer::ConfigureRenderTarget(const RenderPassInfo &info)
@@ -145,7 +167,7 @@ namespace EngineCore
         ClearValue value = {Vector3(info.clearColorValue.x, info.clearColorValue.y, info.clearColorValue.z),
             info.clearDepthValue, info.clearFlag};
         configureRT.clearValue = std::move(value);
-        mRenderBuffer.PushBlocking(temp);
+        EnqueueCommand(temp);
     }
 
     void Renderer::SetMeshData(Mesh* mesh)
@@ -153,7 +175,7 @@ namespace EngineCore
         DrawCommand temp;
         temp.op = RenderOp::kSetVBIB;
         temp.data.setVBIB.mesh = mesh;
-        mRenderBuffer.PushBlocking(temp);
+        EnqueueCommand(temp);
     }
 
     void Renderer::SetViewPort(const Vector2 &viewportStartXY, const Vector2 &viewportEndXY)
@@ -165,7 +187,7 @@ namespace EngineCore
         setViewPort.y = viewportStartXY.y;
         setViewPort.w = viewportEndXY.x - viewportStartXY.x;
         setViewPort.h = viewportEndXY.y - viewportStartXY.y;
-        mRenderBuffer.PushBlocking(temp);
+        EnqueueCommand(temp);
     }
 
     // SissorRect 和ViewPort参数不一样， 一个是widthheight ， 一个是start end
@@ -178,7 +200,7 @@ namespace EngineCore
         setSissorRect.y = viewportStartXY.y;
         setSissorRect.w = viewportEndXY.x;
         setSissorRect.h = viewportEndXY.y;
-        mRenderBuffer.PushBlocking(temp);
+        EnqueueCommand(temp);
     }
 
     void Renderer::ResizeWindow(int width, int height)
@@ -187,14 +209,14 @@ namespace EngineCore
         temp.op = RenderOp::kWindowResize;
         temp.data.onWindowResize.width = width;
         temp.data.onWindowResize.height = height;
-        mRenderBuffer.PushBlocking(temp);
+        EnqueueCommand(temp);
     }
 
     void Renderer::OnDrawGUI()
     {
         DrawCommand temp;
         temp.op = RenderOp::kIssueEditorGUIDraw;
-        mRenderBuffer.PushBlocking(temp);
+        EnqueueCommand(temp);
     }
 
     void Renderer::SetPerDrawData(const PerDrawHandle &perDrawHandle)
@@ -203,7 +225,7 @@ namespace EngineCore
         temp.op = RenderOp::kSetPerDrawData;
         temp.data.setPerDrawData.perDrawOffset = perDrawHandle.offset;
         temp.data.setPerDrawData.perDrawSize= perDrawHandle.size;
-        mRenderBuffer.PushBlocking(temp);
+        EnqueueCommand(temp);
     }
 
     void Renderer::DrawIndexedInstanced(Mesh* mesh, int count, const PerDrawHandle &perDrawHandle)
@@ -214,7 +236,7 @@ namespace EngineCore
         temp.data.setDrawInstanceCmd.count = count;
         temp.data.setDrawInstanceCmd.perDrawOffset = perDrawHandle.offset / sizeof(uint32_t);
         temp.data.setDrawInstanceCmd.perDrawStride = perDrawHandle.size / count;
-        mRenderBuffer.PushBlocking(temp);
+        EnqueueCommand(temp);
     }
 
     void Renderer::SetPerPassData(UINT perPassBufferID)
@@ -222,7 +244,7 @@ namespace EngineCore
         DrawCommand temp;
         temp.op = RenderOp::kSetPerPassData;
         temp.data.setPerPassData.perPassBufferID = perPassBufferID;
-        mRenderBuffer.PushBlocking(temp);
+        EnqueueCommand(temp);
     }
 
     void Renderer::SetPerFrameData(UINT perFrameBufferID)
@@ -230,7 +252,7 @@ namespace EngineCore
         DrawCommand temp;
         temp.op = RenderOp::kSetPerFrameData;
         temp.data.setPerFrameData.perFrameBufferID = perFrameBufferID;
-        mRenderBuffer.PushBlocking(temp);
+        EnqueueCommand(temp);
     }
 
     void Renderer::SetFrameContext(FrameContext* frameContext, uint32_t frameID)
@@ -240,7 +262,7 @@ namespace EngineCore
         temp.op = RenderOp::kSetFrameContext;
         temp.data.setFrameContext.frameContext = frameContext;
         temp.data.setFrameContext.frameID = frameID;
-        mRenderBuffer.PushBlocking(temp);
+        EnqueueCommand(temp);
     }
 
     void Renderer::CopyBufferRegion(const Payload_CopyBufferRegion &copyCmd)
@@ -248,7 +270,7 @@ namespace EngineCore
         DrawCommand temp;
         temp.op = RenderOp::kCopyBufferRegion;
         temp.data.copyBufferRegion = copyCmd;
-        mRenderBuffer.PushBlocking(temp);
+        EnqueueCommand(temp);
     }
 
     void Renderer::DispatchComputeShader(const Payload_DispatchComputeShader &dispatchCmd)
@@ -256,7 +278,7 @@ namespace EngineCore
         DrawCommand cmd;
         cmd.data.dispatchComputeShader = dispatchCmd;
         cmd.op = RenderOp::kDispatchComputeShader;
-        mRenderBuffer.PushBlocking(cmd);
+        EnqueueCommand(cmd);
     }
 
     void Renderer::SetResourceState(IGPUResource* resource, BufferResourceState state)
@@ -267,7 +289,7 @@ namespace EngineCore
         DrawCommand cmd;
         cmd.data.setBufferResourceState = payload;
         cmd.op = RenderOp::kSetBufferResourceState;
-        mRenderBuffer.PushBlocking(cmd);
+        EnqueueCommand(cmd);
     }
 
     void Renderer::SetBindlessMat(Material *mat)
@@ -277,7 +299,7 @@ namespace EngineCore
         DrawCommand cmd;
         cmd.data.setBindlessMat = payload;
         cmd.op = RenderOp::kSetBindlessMat;
-        mRenderBuffer.PushBlocking(cmd);
+        EnqueueCommand(cmd);
     }
 
     void Renderer::SetBindLessMeshIB(uint32_t id)
@@ -287,7 +309,7 @@ namespace EngineCore
         DrawCommand cmd;
         cmd.data.SetBindLessMeshIB = payload;
         cmd.op = RenderOp::kSetBindLessMeshIB;
-        mRenderBuffer.PushBlocking(cmd);
+        EnqueueCommand(cmd);
     }
 
     void Renderer::DrawIndirect(Payload_DrawIndirect payload)
@@ -295,7 +317,7 @@ namespace EngineCore
         DrawCommand cmd;
         cmd.data.setDrawIndirect = payload;
         cmd.op = RenderOp::kDrawIndirect;
-        mRenderBuffer.PushBlocking(cmd);
+        EnqueueCommand(cmd);
     }
 
 
@@ -304,6 +326,9 @@ namespace EngineCore
     {
         switch (cmd.op)
         {
+        case RenderOp::kBeginFrame :
+            RenderAPI::GetInstance()->RenderAPIBeginFrame();
+        break;
         case RenderOp::kConfigureRT :
             RenderAPI::GetInstance()->RenderAPIConfigureRT(cmd.data.configureRT);
         break;

@@ -21,7 +21,7 @@ namespace EngineCore
         void Update(uint32_t frameID);
         static void Create();
         void Tick();
-        void BeginFrame();
+        void BeginFrame(uint32_t frameID);
         void EndFrame();
         
         static void OnResize(int width, int height);

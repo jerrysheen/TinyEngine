@@ -42,7 +42,7 @@ namespace EngineCore
     {
         PROFILER_ZONE("MainThread::GameUpdate");
         // 等待当前帧FrameContext可用
-        RenderEngine::GetInstance()->BeginFrame();
+        RenderEngine::GetInstance()->BeginFrame(frameIndex);
         ResourceManager::GetInstance()->Update();
 
         PROFILER_EVENT_BEGIN("TickFrame::TickSimulation");

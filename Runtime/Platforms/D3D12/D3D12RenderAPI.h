@@ -196,6 +196,7 @@ namespace EngineCore
 		UINT msaaSamplesCount = 4;
 
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mDirectCmdListAlloc[3];
+        uint64_t mDirectAllocatorFenceValues[SwapChainBufferCount] = {};
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
 
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mImediatelyCmdListAlloc;
