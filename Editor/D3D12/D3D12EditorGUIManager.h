@@ -40,6 +40,7 @@ namespace EngineEditor
 		ComPtr<ID3D12DescriptorHeap> descriptorHeap = nullptr;
 		ComPtr<ID3D12GraphicsCommandList> commandList = nullptr;
 		std::vector<ComPtr<ID3D12CommandAllocator>> commandAllocators;
+        std::vector<uint64_t> allocatorFenceValues;
 
 		void InitForDirectX12();
 		UINT GetNextAvailablePos();

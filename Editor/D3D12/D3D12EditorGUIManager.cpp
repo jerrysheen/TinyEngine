@@ -84,12 +84,28 @@ namespace EngineEditor
     void D3D12EditorGUIManager::EndFrame()
     {
         auto renderAPI = static_cast<EngineCore::D3D12RenderAPI*>(EngineCore::RenderAPI::GetInstance());
+        const uint32_t allocatorIndex = renderAPI->mCurrBackBuffer;
+        uint64_t lastFenceValue = allocatorFenceValues[allocatorIndex];
+        if (lastFenceValue > 0 && renderAPI->GetFrameFence()->mFence->GetCompletedValue() < lastFenceValue)
+        {
+            HANDLE eventHandle = CreateEventEx(nullptr, NULL, NULL, EVENT_ALL_ACCESS);
+            if (eventHandle)
+            {
+                HRESULT hr = renderAPI->GetFrameFence()->mFence->SetEventOnCompletion(lastFenceValue, eventHandle);
+                assert(SUCCEEDED(hr));
+                WaitForSingleObject(eventHandle, INFINITE);
+                CloseHandle(eventHandle);
+            }
+            else
+            {
+                assert(false && "CreateEventEx failed in D3D12EditorGUIManager::EndFrame");
+            }
+        }
 
+		commandAllocators[allocatorIndex]->Reset();
+		commandList->Reset(commandAllocators[allocatorIndex].Get(), NULL);
 
-		commandAllocators[renderAPI->mCurrBackBuffer]->Reset();
-		commandList->Reset(commandAllocators[renderAPI->mCurrBackBuffer].Get(), NULL);
-
-        auto currentBackBuffer = renderAPI->mBackBuffer[renderAPI->mCurrBackBuffer].m_Resource;
+        auto currentBackBuffer = renderAPI->mBackBuffer[allocatorIndex].m_Resource;
 		auto toRenderTarget = CD3DX12_RESOURCE_BARRIER::Transition(currentBackBuffer.Get(),
 			D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		commandList->ResourceBarrier(1, &toRenderTarget);
@@ -112,6 +128,7 @@ namespace EngineEditor
 		renderAPI->mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
 
 		renderAPI->SignalFence(renderAPI->GetFrameFence());
+        allocatorFenceValues[allocatorIndex] = renderAPI->GetFrameFence()->mCurrentFence;
     }
     
     
@@ -136,6 +153,7 @@ namespace EngineEditor
 			descriptorHeap->GetCPUDescriptorHandleForHeapStart(), descriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
 		commandAllocators.resize(renderAPI->MAX_FRAME_INFLIAGHT);
+        allocatorFenceValues.resize(renderAPI->MAX_FRAME_INFLIAGHT, 0);
 		for (uint32_t i = 0; i < renderAPI->MAX_FRAME_INFLIAGHT; i++)
 		{
 			if (renderAPI->md3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocators[i])) != S_OK)

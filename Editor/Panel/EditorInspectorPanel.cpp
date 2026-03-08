@@ -13,8 +13,8 @@ namespace EngineEditor
     // Inspector 透明度设置为0.0， 只用来接受以及处理一些SceneView事件
     void EditorInspectorPanel::DrawGUI()
     {
-        ImGui::SetNextWindowPos(ImVec2((float)EditorSettings::GetInspectorPanelStartPos().x, (float)EditorSettings::GetInspectorPanelStartPos().y));
-        ImGui::SetNextWindowSize(ImVec2((float)EditorSettings::GetInspectorPanelSize().x, (float)EditorSettings::GetInspectorPanelSize().y));
+        ImGui::SetNextWindowPos(ImVec2((float)EditorSettings::GetConsolePanelStartPos().x, (float)EditorSettings::GetConsolePanelStartPos().y));
+        ImGui::SetNextWindowSize(ImVec2((float)EditorSettings::GetConsolePanelSize().x, (float)EditorSettings::GetConsolePanelSize().y));
         
         if (ImGui::Begin("Inspector", NULL, 
             ImGuiWindowFlags_NoCollapse | 

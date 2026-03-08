@@ -9,8 +9,8 @@ namespace EngineEditor
     // Console 透明度设置为0.0， 只用来接受以及处理一些SceneView事件
     void EditorConsolePanel::DrawGUI()
     {
-        ImGui::SetNextWindowPos(ImVec2((float)EditorSettings::GetConsolePanelStartPos().x, (float)EditorSettings::GetConsolePanelStartPos().y));
-        ImGui::SetNextWindowSize(ImVec2((float)EditorSettings::GetConsolePanelSize().x, (float)EditorSettings::GetConsolePanelSize().y));
+        ImGui::SetNextWindowPos(ImVec2((float)EditorSettings::GetInspectorPanelStartPos().x, (float)EditorSettings::GetInspectorPanelStartPos().y));
+        ImGui::SetNextWindowSize(ImVec2((float)EditorSettings::GetInspectorPanelSize().x, (float)EditorSettings::GetInspectorPanelSize().y));
 
         if (ImGui::Begin("Console - Profiler", NULL,
             ImGuiWindowFlags_NoCollapse |
