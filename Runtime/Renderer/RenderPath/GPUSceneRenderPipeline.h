@@ -1,7 +1,7 @@
 #pragma once
-#include "IRenderPath.h"
+#include "IRenderPipeline.h"
 #include "Scene/GPUSCene.h"
-#include "Renderer/Renderer.h"
+#include "Renderer/RenderBackend.h"
 #include "Renderer/RenderCommand.h"
 #include "Graphics/GPUBufferAllocator.h"
 #include "Graphics/IGPUResource.h"
@@ -12,17 +12,18 @@
 
 namespace EngineCore
 {
-    class GPUSceneRenderPath : public IRenderPath
+    class GPUSceneRenderPipeline : public IRenderPipeline
     {
     public:
-        virtual ~GPUSceneRenderPath() override 
+        virtual ~GPUSceneRenderPipeline() override 
         {
             delete cullingParamBuffer;
             delete indirectDrawArgsBuffer;
         };
 
-        virtual void Execute(RenderContext& context) override;
         virtual void Prepare(RenderContext& context) override {};
+        //virtual void Record(const CommandStream& cmdStream, RenderContext& context) override;
+        virtual void Record(RenderContext& context) override;
 
 
         bool hasSetUpBuffer = false;

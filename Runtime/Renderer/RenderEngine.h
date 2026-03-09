@@ -1,8 +1,8 @@
 #pragma once
 #include "Managers/Manager.h"
 #include "RenderContext.h"
-#include "Renderer/RenderPath/LagacyRenderPath.h"
-#include "Renderer/RenderPath/GPUSceneRenderPath.h"
+#include "Renderer/RenderPath/LagacyRenderPipeline.h"
+#include "Renderer/RenderPath/GPUSceneRenderPipeline.h"
 #include "Scene/GPUScene.h"
 #include "Scene/CPUScene.h"
 
@@ -39,7 +39,7 @@ namespace EngineCore
             mGPUScene.SetCurrentFrame(currentFrame);
         }
     private:
-        IRenderPath* mCurrentRenderPath;
+        IRenderPipeline* mCurrentRenderPath;
         static std::unique_ptr<RenderEngine> s_Instance;
         RenderContext renderContext;
 

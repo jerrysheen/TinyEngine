@@ -348,6 +348,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderAPI.h">
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderBackend.h">
+      <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderCommand.h">
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
@@ -357,13 +360,13 @@
     <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderEngine.h">
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderPath\GPUSceneRenderPath.h">
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderPath\GPUSceneRenderPipeline.h">
       <Filter>Runtime\Renderer\RenderPath</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderPath\IRenderPath.h">
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderPath\IRenderPipeline.h">
       <Filter>Runtime\Renderer\RenderPath</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderPath\LagacyRenderPath.h">
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderPath\LagacyRenderPipeline.h">
       <Filter>Runtime\Renderer\RenderPath</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\FinalBlitPass.h">
@@ -385,12 +388,6 @@
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderUniforms.h">
-      <Filter>Runtime\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Renderer\RenderWorld.h">
-      <Filter>Runtime\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Renderer\Renderer.h">
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\SPSCRingBuffer.h">
@@ -653,16 +650,19 @@
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderAPI.cpp">
       <Filter>Runtime\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderBackend.cpp">
+      <Filter>Runtime\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderContext.cpp">
       <Filter>Runtime\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderEngine.cpp">
       <Filter>Runtime\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPath\GPUSceneRenderPath.cpp">
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPath\GPUSceneRenderPipeline.cpp">
       <Filter>Runtime\Renderer\RenderPath</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPath\LagacyRenderPath.cpp">
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPath\LagacyRenderPipeline.cpp">
       <Filter>Runtime\Renderer\RenderPath</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\FinalBlitPass.cpp">
@@ -676,9 +676,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\RenderPass.cpp">
       <Filter>Runtime\Renderer\RenderPipeLine</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Renderer\Renderer.cpp">
-      <Filter>Runtime\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Resources\AssetRegistry.cpp">
       <Filter>Runtime\Resources</Filter>

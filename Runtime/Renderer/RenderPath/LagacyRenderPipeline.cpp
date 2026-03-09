@@ -1,12 +1,12 @@
 #include "PreCompiledHeader.h"
-#include "LagacyRenderPath.h"
+#include "LagacyRenderPipeline.h"
 #include "Renderer/RenderEngine.h"
 
 namespace EngineCore
 {
-    void LagacyRenderPath::Prepare(RenderContext &context)
+    void LagacyRenderPipeline::Prepare(RenderContext &context)
     {
-        PROFILER_ZONE("LagacyRenderPath::Prepare");
+        PROFILER_ZONE("LagacyRenderPipeline::Prepare");
 
         context.Reset();
         // todo： 这个地方culling逻辑是不是应该放到Update
@@ -16,19 +16,19 @@ namespace EngineCore
         context.camera = cam;
         Culling::Run(cam, context);
 
-        Renderer::GetInstance()->Prepare(context);
+        RenderBackend::GetInstance()->Prepare(context);
     }
 
-    void LagacyRenderPath::Execute(RenderContext &context)
+    void LagacyRenderPipeline::Record(RenderContext& context)
     {
-        Renderer::GetInstance()->Render(context);
+        RenderBackend::GetInstance()->Render(context);
 
 #ifdef EDITOR
-        Renderer::GetInstance()->OnDrawGUI();
+        RenderBackend::GetInstance()->OnDrawGUI();
         EngineEditor::EditorGUIManager::GetInstance()->BeginFrame();
         EngineEditor::EditorGUIManager::GetInstance()->Render();
 #endif
-        Renderer::GetInstance()->EndFrame();
+        RenderBackend::GetInstance()->EndFrame();
     }
 
 

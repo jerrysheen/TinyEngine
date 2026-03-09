@@ -24,11 +24,11 @@
 
 namespace EngineCore
 {
-    class Renderer : public Manager<Renderer>
+    class RenderBackend : public Manager<RenderBackend>
     {
     public:
-        Renderer(): mRenderThread(&Renderer::RenderThreadMain, this), mRunning(true), mPerFrameData{}{};
-        ~Renderer();
+        RenderBackend(): mRenderThread(&RenderBackend::RenderThreadMain, this), mRunning(true), mPerFrameData{}{};
+        ~RenderBackend();
         static void Create();
 
         void BeginFrame();

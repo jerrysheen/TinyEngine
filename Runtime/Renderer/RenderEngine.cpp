@@ -4,14 +4,14 @@
 #include "Settings/ProjectSettings.h"
 #include "Managers/WindowManager.h"
 #include "GameObject/Camera.h"
-#include "Renderer.h"
+#include "RenderBackend.h"
 #include "RenderPipeLine/OpaqueRenderPass.h"
 #include "Platforms/D3D12/D3D12RenderAPI.h"
 #include "Scene/SceneManager.h"
 #include "Culling.h"
 #include "Scene/Scene.h"
 #include "Scene/GPUSCene.h"
-#include "Renderer/RenderPath/LagacyRenderPath.h"
+#include "Renderer/RenderPath/LagacyRenderPipeline.h"
 // RenderEngine 类的设计逻辑：
 // 负责创建渲染相关的，比如窗口，渲染API， Renderer，
 // 负责拉起每一帧的渲染， Renderer的主线程数据组织， Culling的运行
@@ -26,16 +26,16 @@ namespace EngineCore
         s_Instance->GetGPUScene().Create();
         WindowManager::Create();
         RenderAPI::Create();
-        Renderer::Create();
+        RenderBackend::Create();
 
 
         if (RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy)
         {
-            s_Instance->mCurrentRenderPath = new LagacyRenderPath();
+            s_Instance->mCurrentRenderPath = new LagacyRenderPipeline();
         }
         else
         {
-            s_Instance->mCurrentRenderPath = new GPUSceneRenderPath();
+            s_Instance->mCurrentRenderPath = new GPUSceneRenderPipeline();
         }
     }
 
@@ -54,13 +54,13 @@ namespace EngineCore
     
     void RenderEngine::OnResize(int width, int height)
     {
-        Renderer::GetInstance()->ResizeWindow(width, height);
+        RenderBackend::GetInstance()->ResizeWindow(width, height);
     }
 
     void RenderEngine::Tick()
     {
         PROFILER_ZONE("TickFrame::RenderEngineTick");
-        s_Instance->mCurrentRenderPath->Execute(renderContext);
+        s_Instance->mCurrentRenderPath->Record(renderContext);
     }
 
     void RenderEngine::BeginFrame(uint32_t frameID)
@@ -103,7 +103,7 @@ namespace EngineCore
     void RenderEngine::Destory()
     {
         // Renderer 的析构函数会自动停止渲染线程
-        Renderer::Destroy();
+        RenderBackend::Destroy();
         //RenderAPI::Destroy();
         WindowManager::Destroy();
         RenderEngine::GetInstance()->GetGPUScene().Destroy();

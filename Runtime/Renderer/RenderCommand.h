@@ -323,4 +323,9 @@ namespace EngineCore
         DrawCommand(){};
     };
 
+    struct CommandStream
+    {
+        std::vector<DrawCommand> commads;
+    };
+
 };

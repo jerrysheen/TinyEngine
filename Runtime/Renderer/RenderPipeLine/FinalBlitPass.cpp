@@ -1,6 +1,6 @@
 #include "PreCompiledHeader.h"
 #include "FinalBlitPass.h"
-#include "Renderer/Renderer.h"
+#include "Renderer/RenderBackend.h"
 #include "Scene/SceneManager.h"
 #include "Managers/WindowManager.h"
 #include "Core/PublicEnum.h"
@@ -43,22 +43,22 @@ namespace EngineCore
     {
 
         // todo： 后面挪到别的地方， 先做Batch的部分：
-        Renderer::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
-        Renderer::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
-        Renderer::GetInstance()->SetSissorRect(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
+        RenderBackend::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
+        RenderBackend::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
+        RenderBackend::GetInstance()->SetSissorRect(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
         
-        Renderer::GetInstance()->SetPerPassData((UINT)mRenderPassInfo.mRootSigSlot);
+        RenderBackend::GetInstance()->SetPerPassData((UINT)mRenderPassInfo.mRootSigSlot);
         
         // 根据mat + pass信息组织pippeline
-        Renderer::GetInstance()->SetRenderState(mat, mRenderPassInfo);
+        RenderBackend::GetInstance()->SetRenderState(mat, mRenderPassInfo);
         // copy gpu material data desc 
-        Renderer::GetInstance()->SetMaterialData(mat);
+        RenderBackend::GetInstance()->SetMaterialData(mat);
         //Texture* tex = context.camera->colorAttachment.Get();
         //Renderer::GetInstance()->SetResourceState(tex, BufferResourceState::STATE_SHADER_RESOURCE);
         //Renderer::GetInstance()->BindTexture(tex, 0, 0);
         // bind mesh vertexbuffer and indexbuffer.
-        Renderer::GetInstance()->SetMeshData(model);
-        Renderer::GetInstance()->DrawIndexedInstanced(model, 1, PerDrawHandle{0,0});
+        RenderBackend::GetInstance()->SetMeshData(model);
+        RenderBackend::GetInstance()->DrawIndexedInstanced(model, 1, PerDrawHandle{0,0});
     }
 
     void FinalBlitPass::Filter(const RenderContext& context)

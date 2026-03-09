@@ -1,5 +1,5 @@
 #include "PreCompiledHeader.h"
-#include "Renderer.h"
+#include "RenderBackend.h"
 #include "RenderAPI.h"
 #include "Core/PublicEnum.h"
 #include "Core/Concurrency/CpuEvent.h"
@@ -7,9 +7,9 @@
 #include "Renderer/RenderEngine.h"
 namespace EngineCore
 {
-    std::unique_ptr<Renderer> Renderer::s_Instance = nullptr;
+    std::unique_ptr<RenderBackend> RenderBackend::s_Instance = nullptr;
 
-    Renderer::~Renderer()
+    RenderBackend::~RenderBackend()
     {
         std::cout << "Renderer shutting down, stopping render thread..." << std::endl;
         
@@ -27,22 +27,22 @@ namespace EngineCore
         }
     }
 
-    void Renderer::Create()
+    void RenderBackend::Create()
     {
-        s_Instance = std::make_unique<Renderer>();
+        s_Instance = std::make_unique<RenderBackend>();
         s_Instance->CreatePerFrameData();
         s_Instance->CreatePerPassForwardData();
     }
 
 
-    void Renderer::BeginFrame()
+    void RenderBackend::BeginFrame()
     {        
         DrawCommand temp;
         temp.op = RenderOp::kBeginFrame;
         EnqueueCommand(temp);
     }
 
-    void Renderer::Prepare(RenderContext& context)
+    void RenderBackend::Prepare(RenderContext& context)
     {
         PROFILER_ZONE("MainThread::Renderer::Prepare");
         BeginFrame();
@@ -60,7 +60,7 @@ namespace EngineCore
         }
     }
     
-    void Renderer::Render(RenderContext& context)
+    void RenderBackend::Render(RenderContext& context)
     {
         //PROFILER_ZONE("MainThread::Renderer::Render");
 
@@ -77,7 +77,7 @@ namespace EngineCore
        
     }
 
-    void Renderer::EndFrame()
+    void RenderBackend::EndFrame()
     {
         DrawCommand temp;
         temp.op = RenderOp::kEndFrame;
@@ -85,7 +85,7 @@ namespace EngineCore
         TryWakeUpRenderThread();
     }
 
-    void Renderer::EnqueueCommand(const DrawCommand& cmd)
+    void RenderBackend::EnqueueCommand(const DrawCommand& cmd)
     {
         while (!mRenderBuffer.TryPush(cmd)) 
         {
@@ -94,24 +94,24 @@ namespace EngineCore
         }
     }
 
-    void Renderer::TryWakeUpRenderThread()
+    void RenderBackend::TryWakeUpRenderThread()
     {
         mDataAvailableEvent.Signal();
     }
 
-    void Renderer::WaitForQueueSpace()
+    void RenderBackend::WaitForQueueSpace()
     {
         //// 你后续可替换成 spin -> yield -> wait 的三级退避
     }
 
-    void Renderer::FlushPerFrameData()
+    void RenderBackend::FlushPerFrameData()
     {
         mPerFrameData.AmbientColor = Vector3(1.0f, 1.0f, 0.0f);
         RenderAPI::GetInstance()->SetGlobalValue<PerFrameData>((uint32_t)UniformBufferType::PerFrameData, 0, &mPerFrameData);
         SetPerFrameData((UINT)RootSigSlot::PerFrameData);
     }
 
-    void Renderer::FlushPerPassData(const RenderContext &context)
+    void RenderBackend::FlushPerPassData(const RenderContext &context)
     {
         mPerPassData_Forward.ProjectionMatrix = context.camera->mProjectionMatrix;
         mPerPassData_Forward.ViewMatrix = context.camera->mViewMatrix;
@@ -119,18 +119,18 @@ namespace EngineCore
         SetPerPassData((UINT)RootSigSlot::PerPassData);
     }
 
-    void Renderer::CreatePerFrameData()
+    void RenderBackend::CreatePerFrameData()
     {
         RenderAPI::GetInstance()->CreateGlobalConstantBuffer((uint32_t)UniformBufferType::PerFrameData, sizeof(mPerFrameData));
     }
 
-    void Renderer::CreatePerPassForwardData()
+    void RenderBackend::CreatePerPassForwardData()
     {
         RenderAPI::GetInstance()->CreateGlobalConstantBuffer((uint32_t)UniformBufferType::PerPassData_Foraward, sizeof(mPerPassData_Forward));
     }
 
     // 从PSOManager创建一个PSO，可以复用
-    void Renderer::SetRenderState(const Material* mat, const RenderPassInfo &passinfo)
+    void RenderBackend::SetRenderState(const Material* mat, const RenderPassInfo &passinfo)
     {
         //RenderAPI::GetInstance()->GetOrCreatePSO(mat, passinfo);
         DrawCommand temp;
@@ -145,7 +145,7 @@ namespace EngineCore
         EnqueueCommand(temp);
     }
 
-    void Renderer::SetMaterialData(Material* mat)
+    void RenderBackend::SetMaterialData(Material* mat)
     {
         DrawCommand temp;
         temp.op = RenderOp::kSetMaterial;
@@ -155,7 +155,7 @@ namespace EngineCore
 
     }
 
-    void Renderer::ConfigureRenderTarget(const RenderPassInfo &info)
+    void RenderBackend::ConfigureRenderTarget(const RenderPassInfo &info)
     {
         DrawCommand temp;
         temp.op = RenderOp::kConfigureRT;
@@ -170,7 +170,7 @@ namespace EngineCore
         EnqueueCommand(temp);
     }
 
-    void Renderer::SetMeshData(Mesh* mesh)
+    void RenderBackend::SetMeshData(Mesh* mesh)
     {
         DrawCommand temp;
         temp.op = RenderOp::kSetVBIB;
@@ -178,7 +178,7 @@ namespace EngineCore
         EnqueueCommand(temp);
     }
 
-    void Renderer::SetViewPort(const Vector2 &viewportStartXY, const Vector2 &viewportEndXY)
+    void RenderBackend::SetViewPort(const Vector2 &viewportStartXY, const Vector2 &viewportEndXY)
     {
         DrawCommand temp;
         temp.op = RenderOp::kSetViewPort;
@@ -191,7 +191,7 @@ namespace EngineCore
     }
 
     // SissorRect 和ViewPort参数不一样， 一个是widthheight ， 一个是start end
-    void Renderer::SetSissorRect(const Vector2& viewportStartXY, const Vector2& viewportEndXY)
+    void RenderBackend::SetSissorRect(const Vector2& viewportStartXY, const Vector2& viewportEndXY)
     {
         DrawCommand temp;
         temp.op = RenderOp::kSetSissorRect;
@@ -203,7 +203,7 @@ namespace EngineCore
         EnqueueCommand(temp);
     }
 
-    void Renderer::ResizeWindow(int width, int height)
+    void RenderBackend::ResizeWindow(int width, int height)
     {
         DrawCommand temp;
         temp.op = RenderOp::kWindowResize;
@@ -212,14 +212,14 @@ namespace EngineCore
         EnqueueCommand(temp);
     }
 
-    void Renderer::OnDrawGUI()
+    void RenderBackend::OnDrawGUI()
     {
         DrawCommand temp;
         temp.op = RenderOp::kIssueEditorGUIDraw;
         EnqueueCommand(temp);
     }
 
-    void Renderer::SetPerDrawData(const PerDrawHandle &perDrawHandle)
+    void RenderBackend::SetPerDrawData(const PerDrawHandle &perDrawHandle)
     {
         DrawCommand temp;
         temp.op = RenderOp::kSetPerDrawData;
@@ -228,7 +228,7 @@ namespace EngineCore
         EnqueueCommand(temp);
     }
 
-    void Renderer::DrawIndexedInstanced(Mesh* mesh, int count, const PerDrawHandle &perDrawHandle)
+    void RenderBackend::DrawIndexedInstanced(Mesh* mesh, int count, const PerDrawHandle &perDrawHandle)
     {
         DrawCommand temp;
         temp.op = RenderOp::kDrawInstanced;
@@ -239,7 +239,7 @@ namespace EngineCore
         EnqueueCommand(temp);
     }
 
-    void Renderer::SetPerPassData(UINT perPassBufferID)
+    void RenderBackend::SetPerPassData(UINT perPassBufferID)
     {
         DrawCommand temp;
         temp.op = RenderOp::kSetPerPassData;
@@ -247,7 +247,7 @@ namespace EngineCore
         EnqueueCommand(temp);
     }
 
-    void Renderer::SetPerFrameData(UINT perFrameBufferID)
+    void RenderBackend::SetPerFrameData(UINT perFrameBufferID)
     {
         DrawCommand temp;
         temp.op = RenderOp::kSetPerFrameData;
@@ -255,7 +255,7 @@ namespace EngineCore
         EnqueueCommand(temp);
     }
 
-    void Renderer::SetFrameContext(FrameContext* frameContext, uint32_t frameID)
+    void RenderBackend::SetFrameContext(FrameContext* frameContext, uint32_t frameID)
     {
         ASSERT(frameContext != nullptr);
         DrawCommand temp;
@@ -265,7 +265,7 @@ namespace EngineCore
         EnqueueCommand(temp);
     }
 
-    void Renderer::CopyBufferRegion(const Payload_CopyBufferRegion &copyCmd)
+    void RenderBackend::CopyBufferRegion(const Payload_CopyBufferRegion &copyCmd)
     {
         DrawCommand temp;
         temp.op = RenderOp::kCopyBufferRegion;
@@ -273,7 +273,7 @@ namespace EngineCore
         EnqueueCommand(temp);
     }
 
-    void Renderer::DispatchComputeShader(const Payload_DispatchComputeShader &dispatchCmd)
+    void RenderBackend::DispatchComputeShader(const Payload_DispatchComputeShader &dispatchCmd)
     {
         DrawCommand cmd;
         cmd.data.dispatchComputeShader = dispatchCmd;
@@ -281,7 +281,7 @@ namespace EngineCore
         EnqueueCommand(cmd);
     }
 
-    void Renderer::SetResourceState(IGPUResource* resource, BufferResourceState state)
+    void RenderBackend::SetResourceState(IGPUResource* resource, BufferResourceState state)
     {
         Payload_SetBufferResourceState payload;
         payload.resource = resource;
@@ -292,7 +292,7 @@ namespace EngineCore
         EnqueueCommand(cmd);
     }
 
-    void Renderer::SetBindlessMat(Material *mat)
+    void RenderBackend::SetBindlessMat(Material *mat)
     {
         Payload_SetBindlessMat payload;
         payload.mat = mat;
@@ -302,7 +302,7 @@ namespace EngineCore
         EnqueueCommand(cmd);
     }
 
-    void Renderer::SetBindLessMeshIB(uint32_t id)
+    void RenderBackend::SetBindLessMeshIB(uint32_t id)
     {
         Payload_SetBindLessMeshIB payload;
         payload.id = id;
@@ -312,7 +312,7 @@ namespace EngineCore
         EnqueueCommand(cmd);
     }
 
-    void Renderer::DrawIndirect(Payload_DrawIndirect payload)
+    void RenderBackend::DrawIndirect(Payload_DrawIndirect payload)
     {
         DrawCommand cmd;
         cmd.data.setDrawIndirect = payload;
@@ -322,7 +322,7 @@ namespace EngineCore
 
 
     // 渲染线程消费指令
-    void Renderer::ProcessDrawCommand(const DrawCommand &cmd)
+    void RenderBackend::ProcessDrawCommand(const DrawCommand &cmd)
     {
         switch (cmd.op)
         {

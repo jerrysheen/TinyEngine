@@ -6,7 +6,7 @@
 #include "Platforms/D3D12/D3D12RenderAPI.h"
 #include "Renderer/RenderAPI.h"
 #include "Core/PublicStruct.h"
-#include "Renderer/Renderer.h"
+#include "Renderer/RenderBackend.h"
 #include "Core/PublicEnum.h"
 #include "Renderer/BatchManager.h"
 #include "Renderer/RenderEngine.h"
@@ -63,7 +63,7 @@ namespace EngineCore
         //        Renderer::GetInstance()->SetMeshData(mesh);
         //        Payload_DrawIndirect indirectPayload;
         //        // temp:
-        //        GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
+        //        GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::GPUSceneRenderPipeline.indirectDrawArgsBuffer;
         //        ASSERT(indirectDrawArgsBuffer != nullptr);
         //        indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
         //        indirectPayload.count = 1;
@@ -89,7 +89,7 @@ namespace EngineCore
 
         //        Payload_DrawIndirect indirectPayload;
         //        // temp:
-        //        GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::gpuSceneRenderPath.indirectDrawArgsBuffer;
+        //        GPUBufferAllocator* indirectDrawArgsBuffer = RenderEngine::GPUSceneRenderPipeline.indirectDrawArgsBuffer;
         //        ASSERT(indirectDrawArgsBuffer != nullptr);
         //        indirectPayload.indirectArgsBuffer = indirectDrawArgsBuffer->GetGPUBuffer();
         //        indirectPayload.count = 1;

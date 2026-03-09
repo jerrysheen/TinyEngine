@@ -2,7 +2,7 @@
 #include "FrameContext.h"
 #include "Scene/SceneStruct.h"
 #include "Renderer/BatchManager.h"
-#include "Renderer/Renderer.h"
+#include "Renderer/RenderBackend.h"
 
 
 namespace EngineCore
@@ -110,7 +110,7 @@ namespace EngineCore
             copyObject.destDefaultBuffer = allObjectDataBuffer->GetGPUBuffer();
             copyObject.copyList = mCopyOpsObject.data();
             copyObject.count = mCopyOpsObject.size();
-            Renderer::GetInstance()->CopyBufferRegion(copyObject);
+            RenderBackend::GetInstance()->CopyBufferRegion(copyObject);
         }
 
         if (mCopyOpsAABB.size() > 0)
@@ -120,7 +120,7 @@ namespace EngineCore
             copyAABB.destDefaultBuffer = allAABBBuffer->GetGPUBuffer();
             copyAABB.copyList = mCopyOpsAABB.data();
             copyAABB.count = mCopyOpsAABB.size();
-            Renderer::GetInstance()->CopyBufferRegion(copyAABB);
+            RenderBackend::GetInstance()->CopyBufferRegion(copyAABB);
         }
 
         if (mCopyOpsProxy.size() > 0)
@@ -130,7 +130,7 @@ namespace EngineCore
             copyRenderProxy.destDefaultBuffer = renderProxyBuffer->GetGPUBuffer();
             copyRenderProxy.copyList = mCopyOpsProxy.data();
             copyRenderProxy.count = mCopyOpsProxy.size();
-            Renderer::GetInstance()->CopyBufferRegion(copyRenderProxy);
+            RenderBackend::GetInstance()->CopyBufferRegion(copyRenderProxy);
         }
 
         if (mCopyOpsVisibility.size() > 0)
@@ -140,7 +140,7 @@ namespace EngineCore
             copyVisibility.destDefaultBuffer = visibilityBuffer->GetGPUBuffer();
             copyVisibility.copyList = mCopyOpsVisibility.data();
             copyVisibility.count = mCopyOpsVisibility.size();
-            Renderer::GetInstance()->CopyBufferRegion(copyVisibility);
+            RenderBackend::GetInstance()->CopyBufferRegion(copyVisibility);
         }
 
     }

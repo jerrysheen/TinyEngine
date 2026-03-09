@@ -5,7 +5,7 @@
 #include "Core/Profiler.h"
 #include "RenderSorter.h"
 #include "Scene/GPUSCene.h"
-#include "Renderer/Renderer.h"
+#include "Renderer/RenderBackend.h"
 #include "Renderer/RenderEngine.h"
 
 namespace EngineCore

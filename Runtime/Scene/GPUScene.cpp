@@ -7,7 +7,7 @@
 #include "Scene/SceneManager.h"
 #include "Scene/Scene.h"
 #include "Renderer/RenderCommand.h"
-#include "Renderer/Renderer.h"
+#include "Renderer/RenderBackend.h"
 #include "Renderer/BatchManager.h"
 
 namespace EngineCore

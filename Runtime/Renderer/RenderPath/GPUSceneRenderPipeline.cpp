@@ -1,10 +1,10 @@
 #include "PreCompiledHeader.h"
-#include "GPUSceneRenderPath.h"
+#include "GPUSceneRenderPipeline.h"
 #include "Renderer/RenderEngine.h"
 
 namespace EngineCore
 {
-    void GPUSceneRenderPath::Execute(RenderContext &context)
+    void GPUSceneRenderPipeline::Record(RenderContext& context)
     {
         if (!hasSetUpBuffer) 
         {
@@ -32,8 +32,8 @@ namespace EngineCore
 
         FrameContext* currentFrame = RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameContext();
         auto* visibilityBuffer = currentFrame->visibilityBuffer;
-        Renderer::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
-        Renderer::GetInstance()->SetResourceState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
+        RenderBackend::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
+        RenderBackend::GetInstance()->SetResourceState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
 
 
         Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->mainCamera;
@@ -66,22 +66,22 @@ namespace EngineCore
         payload.groupX = gameObjectCount / 64 + 1;
         payload.groupY = 1;
         payload.groupZ = 1;
-        Renderer::GetInstance()->DispatchComputeShader(payload);
+        RenderBackend::GetInstance()->DispatchComputeShader(payload);
         // 先把shader跑起来， 渲染到RT上， 后续blit啥的接入后面再说
 
         // 这个地方简单跑个绑定测试？
-        Renderer::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_SHADER_RESOURCE);
-        Renderer::GetInstance()->SetResourceState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_INDIRECT_ARGUMENT);
+        RenderBackend::GetInstance()->SetResourceState(visibilityBuffer->GetGPUBuffer(), BufferResourceState::STATE_SHADER_RESOURCE);
+        RenderBackend::GetInstance()->SetResourceState(indirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_INDIRECT_ARGUMENT);
 
         context.Reset();
         context.camera = cam;
-        Renderer::GetInstance()->Render(context);
+        RenderBackend::GetInstance()->Render(context);
 #ifdef EDITOR
-        Renderer::GetInstance()->OnDrawGUI();
+        RenderBackend::GetInstance()->OnDrawGUI();
         EngineEditor::EditorGUIManager::GetInstance()->BeginFrame();
         EngineEditor::EditorGUIManager::GetInstance()->Render();
 #endif
 
-        Renderer::GetInstance()->EndFrame();
+        RenderBackend::GetInstance()->EndFrame();
     }
 }
