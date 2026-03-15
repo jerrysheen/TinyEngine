@@ -7,12 +7,12 @@
 #include "Core/Allocator/LinearAllocator.h"
 #include "Graphics/ComputeShader.h"
 #include "Resources/ResourceHandle.h"
-#include "Renderer/FrameContext.h"
-
+#include "Renderer/FrameTicket.h"
+#include "Renderer/UploadPagePool.h"
 
 namespace EngineCore
 {
-
+    class CPUSceneView;
     class GPUScene
     {
     public:
@@ -21,25 +21,20 @@ namespace EngineCore
         void Update(uint32_t currentFrameIndex);
         void Destroy();
         void EndFrame();
+        void BeginFrame();
         
         BufferAllocation GetSinglePerMaterialData();
         BufferAllocation UploadDrawBatch(void *data, uint32_t size);
 
-        void UpdateDirtyNode(CPUSceneView& view);
+        void UpdatePerFrameDirtyNode(CPUSceneView& view);
         void UploadCopyOp();
-
-        void ApplyDirtyNode(uint32_t renderID, uint32_t flags, CPUSceneView& view);
-
-
-        void UpdateFrameContextDirtyFlags(uint32_t renderID, uint32_t flag);
-        void UpdateFrameContextShadowData(uint32_t renderID, CPUSceneView& view);
         
-        FrameContext* GetCurrentFrameContext();
-        FrameContext* GetNextFrameContext();
-        FrameContext* GetFrameContextByFrameID(uint32_t frameID);
+        void ApplyDirtyNode(uint32_t renderID, uint32_t flags, CPUSceneView& view);
+        void UpdateDirtyFlags(uint32_t renderID, uint32_t flags);
+        void UpdateShadowData(uint32_t renderID, CPUSceneView& cpuScene);
 
         inline uint32_t GetCurrentFrameID() const { return mCurrentFrameID; }
-        inline uint32_t GetMaxFrameCount() const { return mMaxFrameCount; }
+        inline uint32_t GetMaxFrameCount() const { return MAX_FRAME_INFLIGHT; }
 
         inline GPUBufferAllocator* GetAllMaterialDataBuffer() { return allMaterialDataBuffer; }
         inline ResourceHandle<ComputeShader> GetCullingShaderHandler() { return GPUCullingShaderHandler; }
@@ -48,15 +43,45 @@ namespace EngineCore
         {
             mCurrentFrameID = currentFrame;
         }
+
+        inline void SetUploadPagePool(UploadPagePool* pool)
+        {
+            mUploadPagePool = pool;
+        }
+
+        inline uint64_t GetAllObjectDataBufferAddress() { return allObjectDataBuffer->GetBaseGPUAddress(); }
+        inline uint64_t GetAllAABBDataBufferAddress() { return allAABBBuffer->GetBaseGPUAddress(); }
+        inline uint64_t GetCurrentVisibilityBuffer(uint32_t frameID) { return GetVisibilityBufferByFrameID(frameID)->GetBaseGPUAddress(); }
+        inline GPUBufferAllocator* GetVisibilityBufferByFrameID(uint32_t frameID) { return visibilityBuffer[frameID % 3]; }
     private:
         void EnsureCapacity(uint32_t renderID);
     private:
-        ResourceHandle<ComputeShader> GPUCullingShaderHandler;
-        static const int mMaxFrameCount = 3;
-        uint32_t mCurrentFrameID = 0;
-        FrameContext* mCurrentFrameContext;
-        FrameContext mCPUFrameContext[mMaxFrameCount];
+        void SetCurrentContext();
+        void TryFreeRenderProxyByRenderIndex(uint32_t renderID);
+        void TryFreePerObjectDataAndAABBData(uint32_t renderID);
+        
+        GPUBufferAllocator* allObjectDataBuffer;
+        GPUBufferAllocator* allAABBBuffer;
+        GPUBufferAllocator* renderProxyBuffer;
         GPUBufferAllocator* allMaterialDataBuffer;
+
+        
+        vector<uint32_t> mDirtyFlags;
+        vector<uint32_t> mPerFrameDirtyID;
+        vector<PerObjectData> mPerObjectDatas;
+
+        ResourceHandle<ComputeShader> GPUCullingShaderHandler;
+        static const int MAX_FRAME_INFLIGHT = 3;
+        uint32_t mCurrentFrameID = 0;
+
+        UploadPagePool* mUploadPagePool;
+
+
+        std::vector<CopyOp>* mCurrentCopyOp;
+        std::vector<CopyOp> mFrameCopyOp[MAX_FRAME_INFLIGHT];
+        
+        GPUBufferAllocator* mCurrVisibilityBuffer;
+        GPUBufferAllocator* visibilityBuffer[3];
     };
 
 }

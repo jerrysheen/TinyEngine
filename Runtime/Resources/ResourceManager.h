@@ -28,7 +28,7 @@ namespace EngineCore
     {
         AssetID id = 0;
         AssetType type = AssetType::Default;
-        Resource* resource;
+        Resource* resource = nullptr;
         int pendingDeps = 0;
         std::vector<function<void()>> calllbacks;
         LoadState loadState = LoadState::None;
@@ -41,6 +41,7 @@ namespace EngineCore
             pendingDeps = 0;
             calllbacks.clear();
             loadState = LoadState::None;
+            pendingUnload = false;
         }
     };
 
@@ -123,7 +124,7 @@ namespace EngineCore
         void ApplyLoadResult(LoadResult& result, LoadPolicy policy)
         {
             LoadTask* task = result.task;
-            ASSERT(result.resource != nullptr);
+            ASSERT(task && result.resource != nullptr);
 
             task->loadState = LoadState::Loaded;
             task->resource = result.resource;
@@ -276,7 +277,7 @@ namespace EngineCore
         // todo: temp public for Editor Test
     public:
         static ResourceManager* sInstance;
-        int maxResourceLoadedInMainThread = 50;
+        int maxResourceLoadedInMainThread = 150;
         std::vector<Resource*> mPendingDeleteList;
         std::unordered_map<AssetType, IResourceLoader*> m_Loaders;
 

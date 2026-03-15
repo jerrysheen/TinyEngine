@@ -1,5 +1,7 @@
 #pragma once
 #include <map>
+#include <unordered_map>
+#include <vector>
 #include "GameObject/GameObject.h"
 #include "GameObject/Camera.h"
 #include "GameObject/Transform.h"
@@ -10,10 +12,10 @@
 #include "Graphics/Texture.h"
 #include "Resources/ResourceHandle.h"
 
-
 namespace EngineCore
 {
     class Scene;
+    class SceneDelta;
     class SceneManager
     {
         // 允许Manager类访问SceneManager私有函数。
@@ -60,11 +62,13 @@ namespace EngineCore
         Scene* AddNewScene(const std::string& name);
         void SwitchSceneTo(const std::string& name);
         void SetCurrentFrame(uint32_t currentFrameIndex);
+
+        SceneDelta FlushSceneDelta();
     private:
         static SceneManager* s_Instance;
         Scene* mCurrentScene = nullptr;
-        unordered_map<std::string, Scene*> mSceneMap;
-        vector<ResourceHandle<Texture>> texHandler;
+        std::unordered_map<std::string, Scene*> mSceneMap;
+        std::vector<ResourceHandle<Texture>> texHandler;
     };
 
 }

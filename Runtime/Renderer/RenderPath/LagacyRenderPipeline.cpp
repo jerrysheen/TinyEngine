@@ -16,12 +16,34 @@ namespace EngineCore
         context.camera = cam;
         Culling::Run(cam, context);
 
-        RenderBackend::GetInstance()->Prepare(context);
+        RenderBackend::GetInstance()->BeginFrame();
+        RenderBackend::GetInstance()->FlushPerFrameData();
+        uint32_t frameIndex = RenderEngine::GetInstance()->GetCurrentFrame();
+        FrameTicket* currentFrameTicket= RenderEngine::GetInstance()->GetCurrentFrameTicket(frameIndex);
+        RenderBackend::GetInstance()->SetFrame(currentFrameTicket, frameIndex);
+
+        for(auto* pass : context.camera->mRenderPassAsset.renderPasses)
+        {
+            RenderBackend::GetInstance()->FlushPerPassData(context);
+            pass->Configure(context);
+            pass->Filter(context);
+            pass->Prepare(context);
+        }
     }
 
-    void LagacyRenderPipeline::Record(RenderContext& context)
+    void LagacyRenderPipeline::RecordAndFlush(RenderContext& context)
     {
-        RenderBackend::GetInstance()->Render(context);
+        //PROFILER_ZONE("MainThread::Renderer::Render")
+        for(auto* pass : context.camera->mRenderPassAsset.renderPasses)
+        {
+            pass->Execute(context);
+            RenderBackend::GetInstance()->TryWakeUpRenderThread();
+        }
+        
+        for (auto& pass : context.camera->mRenderPassAsset.renderPasses)
+        {
+            pass->Clear();
+        }
 
 #ifdef EDITOR
         RenderBackend::GetInstance()->OnDrawGUI();
@@ -31,5 +53,5 @@ namespace EngineCore
         RenderBackend::GetInstance()->EndFrame();
     }
 
-
+    
 }

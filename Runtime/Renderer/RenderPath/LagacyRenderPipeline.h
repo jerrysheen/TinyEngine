@@ -13,7 +13,9 @@ namespace EngineCore
     public:
         virtual ~LagacyRenderPipeline() override {};
         virtual void Prepare(RenderContext& context) override;
-        virtual void Record(RenderContext& context) override;
+        virtual void RecordAndFlush(RenderContext& context) override;
         //virtual void Record(const CommandStream& cmdStream, RenderContext& context) override;
+    
     };
+
 };

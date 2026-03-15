@@ -8,7 +8,7 @@
 #include "Math/Frustum.h"
 #include "Renderer/BatchManager.h"
 #include "Scene/SceneManager.h"
-#include "Renderer/FrameContext.h"
+#include "Renderer/FrameTicket.h"
 
 namespace EngineCore
 {
@@ -23,7 +23,7 @@ namespace EngineCore
 
         virtual void Prepare(RenderContext& context) override {};
         //virtual void Record(const CommandStream& cmdStream, RenderContext& context) override;
-        virtual void Record(RenderContext& context) override;
+        virtual void RecordAndFlush(RenderContext& context) override;
 
 
         bool hasSetUpBuffer = false;

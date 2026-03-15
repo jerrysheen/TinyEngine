@@ -14,7 +14,7 @@
 #include "Graphics/IGPUResource.h"
 #include "D3D12Texture.h"
 #include "Graphics/GeometryManager.h"
-#include "Renderer/FrameContext.h"
+#include "Renderer/FrameTicket.h"
 
 namespace EngineCore
 {
@@ -897,7 +897,7 @@ namespace EngineCore
         // 重置状态缓存，因为Reset后CommandList的状态被清空了
         currentRootSignature = nullptr;
         currentPSO = psoObj;
-        mCurrentFrameContext = nullptr;
+        mCurrentFrameTicket = nullptr;
         materialStateCache.Reset();
 
         // 统一使用 Bindless Heap (因为 FrameAllocator 的 SRV 部分现在也分配在 Bindless Heap 上了)
@@ -987,11 +987,8 @@ namespace EngineCore
         //TD3D12MaterialData& matData = m_DataMap[payloadSetMaterial.matId];
         Shader* shader = payloadSetMaterial.shader;
         Material* mat = payloadSetMaterial.mat;
-        ASSERT(mCurrentFrameContext != nullptr);
-        ASSERT(mCurrentFrameContext->allObjectDataBuffer != nullptr);
-        ASSERT(mCurrentFrameContext->visibilityBuffer != nullptr);
 
-        uint64_t gpuAddr = mCurrentFrameContext->allObjectDataBuffer->GetGPUBuffer()->GetGPUVirtualAddress();
+        uint64_t gpuAddr = RenderEngine::GetInstance()->GetGPUScene().GetAllObjectDataBufferAddress();
         if (materialStateCache.allObjectDataGpuAddress != gpuAddr) 
         {
             mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllObjectData, gpuAddr);
@@ -1006,7 +1003,7 @@ namespace EngineCore
         }
         
         
-        gpuAddr = mCurrentFrameContext->visibilityBuffer->GetGPUBuffer()->GetGPUVirtualAddress();
+        gpuAddr = RenderEngine::GetInstance()->GetGPUScene().GetCurrentVisibilityBuffer(mCurrentFrameID);
         if (materialStateCache.perDrawInstanceObjectsListGpuAddress != gpuAddr)
         {
             mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::PerDrawInstanceObjectsList, gpuAddr);
@@ -1050,17 +1047,14 @@ namespace EngineCore
     {
         //TD3D12MaterialData& matData = m_DataMap[payloadSetMaterial.matId];
         Material* mat = payloadSetBindlessMat.mat;
-        ASSERT(mCurrentFrameContext != nullptr);
-        ASSERT(mCurrentFrameContext->allObjectDataBuffer != nullptr);
-        ASSERT(mCurrentFrameContext->visibilityBuffer != nullptr);
 
-        uint64_t gpuAddr = mCurrentFrameContext->allObjectDataBuffer->GetGPUBuffer()->GetGPUVirtualAddress();
+        uint64_t gpuAddr = RenderEngine::GetInstance()->GetGPUScene().GetAllObjectDataBufferAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllObjectData, gpuAddr);
 
         gpuAddr = RenderEngine::GetInstance()->GetGPUScene().GetAllMaterialDataBuffer()->GetBaseGPUAddress();
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::AllMaterialData, gpuAddr);
         
-        gpuAddr = mCurrentFrameContext->visibilityBuffer->GetGPUBuffer()->GetGPUVirtualAddress();
+        gpuAddr = RenderEngine::GetInstance()->GetGPUScene().GetCurrentVisibilityBuffer(mCurrentFrameID);
         mCommandList->SetGraphicsRootShaderResourceView((UINT)RootSigSlot::PerDrawInstanceObjectsList, gpuAddr);
 
         if (RenderSettings::s_EnableVertexPulling)
@@ -1316,7 +1310,7 @@ namespace EngineCore
 
         uint64_t currentFenceValue = mFrameFence->mCurrentFence;
         mDirectAllocatorFenceValues[mCurrBackBuffer] = currentFenceValue;
-        mCurrentFrameContext->PublishSubmission(mCurrentFrameID, currentFenceValue);
+        mCurrentFrameTicket->PublishSubmission(mCurrentFrameID, currentFenceValue);
     }
 
     // todo 这个分类似乎不合理
@@ -1354,11 +1348,11 @@ namespace EngineCore
         currentPerFrameBufferID = setPerFrameData.perFrameBufferID;
     }
 
-    void D3D12RenderAPI::RenderAPISetFrameContext(Payload_SetFrameContext setFrameContext)
+    void D3D12RenderAPI::RenderAPISetFrame(Payload_SetFrame setFrame)
     {
-        ASSERT(setFrameContext.frameContext != nullptr);
-        mCurrentFrameContext = setFrameContext.frameContext;
-        mCurrentFrameID = setFrameContext.frameID;
+        ASSERT(setFrame.frameTicket != nullptr);
+        mCurrentFrameID = setFrame.frameID;
+        mCurrentFrameTicket = setFrame.frameTicket;
     }
 
     void D3D12RenderAPI::RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion)

@@ -23,33 +23,38 @@ namespace EngineCore
     void RenderEngine::Create()
     {
         s_Instance = std::make_unique<RenderEngine>();
-        s_Instance->GetGPUScene().Create();
+        s_Instance->mGPUScene.Create();
         WindowManager::Create();
         RenderAPI::Create();
         RenderBackend::Create();
 
+        s_Instance->mUploadPagePool = new UploadPagePool(16 * 1024 * 1024);
+        s_Instance->mGPUScene.SetUploadPagePool(s_Instance->mUploadPagePool);
 
         if (RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy)
         {
-            s_Instance->mCurrentRenderPath = new LagacyRenderPipeline();
+            s_Instance->mCurrentRenderPipeline = new LagacyRenderPipeline();
         }
         else
         {
-            s_Instance->mCurrentRenderPath = new GPUSceneRenderPipeline();
+            s_Instance->mCurrentRenderPipeline = new GPUSceneRenderPipeline();
         }
     }
 
-    void RenderEngine::Update(uint32_t frameID)
+    void RenderEngine::PrepareFrame(uint32_t frameID, const SceneDelta& sceneDelta)
     {
+        WaitForFrameAvaliable(frameID);
+        mCurrentFrameID = frameID;
+        mCurrFrameTicket = GetCurrentFrameTicket(frameID);
+
         PROFILER_ZONE("RenderEngine::Update");
         mCPUScene.Update(frameID);
         mGPUScene.Update(frameID);
-        ComsumeDirtySceneRenderNode();
-        mCurrentRenderPath->Prepare(renderContext);
+        ComsumeDirtySceneRenderNode(sceneDelta);
         //PROFILER_EVENT_BEGIN("MainThread::RenderEngine::Update");
+        mCurrentRenderPipeline->Prepare(renderContext);
         UploadCopyOp();
         //PROFILER_EVENT_END("MainThread::RenderEngine::Update");
-
     }    
     
     void RenderEngine::OnResize(int width, int height)
@@ -57,31 +62,27 @@ namespace EngineCore
         RenderBackend::GetInstance()->ResizeWindow(width, height);
     }
 
-    void RenderEngine::Tick()
+    void RenderEngine::BuildFrame()
     {
-        PROFILER_ZONE("TickFrame::RenderEngineTick");
-        s_Instance->mCurrentRenderPath->Record(renderContext);
+        mCurrentRenderPipeline->RecordAndFlush(renderContext);
     }
 
-    void RenderEngine::BeginFrame(uint32_t frameID)
+    void RenderEngine::WaitForFrameAvaliable(uint32_t frameID)
     {
         PROFILER_ZONE("MainThread::WaitForFrameContextAvaliable()");
-        GPUScene& gpuScene = GetGPUScene();
-        const uint32_t maxFrameCount = gpuScene.GetMaxFrameCount();
-
+        const FrameTicket* currentTicket = GetCurrentFrameTicket(frameID);
         // 当开始复用 ring 槽位时，必须确保“上一任帧”的提交信息已经由渲染线程发布。
         // 仅等 fence 值不够，因为渲染线程可能还未写入该槽位的最新 fence。
-        if (frameID >= maxFrameCount)
+        if (frameID >= MAX_FRAME_INFLIGHT)
         {
-            FrameContext* frameContext = gpuScene.GetFrameContextByFrameID(frameID);
-            const uint64_t expectedSubmittedFrameID = static_cast<uint64_t>(frameID - maxFrameCount);
+            const uint64_t expectedSubmittedFrameID = static_cast<uint64_t>(frameID - MAX_FRAME_INFLIGHT);
 
-            while (!frameContext->IsSubmissionReadyForFrame(expectedSubmittedFrameID))
+            while (!currentTicket->IsSubmissionReadyForFrame(expectedSubmittedFrameID))
             {
                 std::this_thread::yield();
             }
 
-            const uint64_t frameFenceValue = frameContext->GetFenceValue();
+            const uint64_t frameFenceValue = currentTicket->GetFenceValue();
             while (RenderAPI::GetInstance()->GetCurrentGPUCompletedFenceValue() < frameFenceValue)
             {
                 std::this_thread::yield();
@@ -108,7 +109,8 @@ namespace EngineCore
         WindowManager::Destroy();
         RenderEngine::GetInstance()->GetGPUScene().Destroy();
 
-        delete s_Instance->mCurrentRenderPath;
+        delete s_Instance->mUploadPagePool;
+        delete s_Instance->mCurrentRenderPipeline;
         // 最后销毁 RenderEngine 自己
         if (s_Instance)
         {
@@ -135,12 +137,11 @@ namespace EngineCore
     //     CpuEvent::MainThreadSubmited().Signal();
     // }
 
-    void RenderEngine::ComsumeDirtySceneRenderNode()
+    void RenderEngine::ComsumeDirtySceneRenderNode(const SceneDelta& sceneDelta)
     {
-        Scene* scene = SceneManager::GetInstance()->GetCurrentScene();
-        std::vector<uint32_t>& mPerFrameDirtyNodeList = scene->GetPerFrameDirtyNodeList();
-        std::vector<uint32_t>& mNodeChangeFlagList = scene->GetNodeChangeFlagList();
-        std::vector<NodeDirtyPayload>& mNodeDirtyPayloadList = scene->GetNodeDirtyPayloadList();
+        const std::vector<uint32_t>& mPerFrameDirtyNodeList = sceneDelta.GetPerFrameDirtyNodeList();
+        const std::vector<uint32_t>& mNodeChangeFlagList = sceneDelta.GetNodeChangeFlagList();
+        const std::vector<NodeDirtyPayload>& mNodeDirtyPayloadList = sceneDelta.GetNodeDirtyPayloadList();
         
         for(uint32_t dirtyRenderID : mPerFrameDirtyNodeList)
         {
@@ -152,8 +153,7 @@ namespace EngineCore
         {
             mGPUScene.ApplyDirtyNode(dirtyRenderID, mNodeChangeFlagList[dirtyRenderID], view);
         }
-        mGPUScene.UpdateDirtyNode(view);
-
+        mGPUScene.UpdatePerFrameDirtyNode(view);
     }
 
     void RenderEngine::UploadCopyOp()

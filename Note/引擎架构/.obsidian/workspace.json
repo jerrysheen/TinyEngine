@@ -98,15 +98,15 @@
             "state": {
               "type": "canvas",
               "state": {
-                "file": "2_28 一帧的Tick逻辑.canvas",
+                "file": "260309Tick逻辑后半段重构.canvas",
                 "viewState": {
-                  "x": -331.81878099392327,
-                  "y": 1466.4269325099892,
-                  "zoom": -1.1102230246251565e-16
+                  "x": 1120.0830025118398,
+                  "y": 833.2329916192963,
+                  "zoom": -0.6666666666666667
                 }
               },
               "icon": "lucide-layout-dashboard",
-              "title": "2_28 一帧的Tick逻辑"
+              "title": "260309Tick逻辑后半段重构"
             }
           }
         ],
@@ -260,9 +260,10 @@
   },
   "active": "b315106d741a83ad",
   "lastOpenFiles": [
-    "资源加载系统.canvas",
-    "2_28 一帧的Tick逻辑.canvas",
     "未命名.md",
+    "260309Tick逻辑后半段重构.canvas",
+    "2_28 一帧的Tick逻辑.canvas",
+    "资源加载系统.canvas",
     "渲染管线第一版.canvas",
     "欢迎.md",
     "ComputeShader接入梳理.canvas",
@@ -276,8 +277,6 @@
     "Pasted image 20251213164812.png",
     "Material.h.md",
     "Head to GPU Scene.canvas",
-    "资源初始化.canvas",
-    "12_17GPU Scene大致流程， 和实现方案.canvas",
     "ComputeShader接入梳理：.md",
     "Head to GPU Scene.md",
     "Picture/Pasted image 20251128144237.png",

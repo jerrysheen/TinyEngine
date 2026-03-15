@@ -32,13 +32,14 @@ namespace EngineCore
     void ResourceManager::Update()
     {   
         int taskCount = maxResourceLoadedInMainThread;
-        while(mLoadResultQueue.size() > 0 && taskCount-- > 0)
+        while(taskCount-- > 0)
         {
             LoadResult loadResult;
-            if(mLoadResultQueue.TryPop(loadResult))
+            if(!mLoadResultQueue.TryPop(loadResult))
             {
-                ApplyLoadResult(loadResult, LoadPolicy::Async);
-            };
+                break;
+            }
+            ApplyLoadResult(loadResult, LoadPolicy::Async);
         }
     }
 

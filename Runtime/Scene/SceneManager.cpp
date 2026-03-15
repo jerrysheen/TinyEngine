@@ -7,6 +7,8 @@
 #include "GameObject/MeshRenderer.h"
 #include "Scripts/CameraController.h"
 #include "Scene.h"
+#include "SceneStruct.h"
+
 
 namespace EngineCore
 {
@@ -93,6 +95,12 @@ namespace EngineCore
     void SceneManager::SetCurrentFrame(uint32_t currentFrameIndex)
     {
         if (mCurrentScene) mCurrentScene->SetCurrentFrame(currentFrameIndex);
+    }
+
+    SceneDelta SceneManager::FlushSceneDelta()
+    {
+        ASSERT(mCurrentScene);
+        return mCurrentScene->FlushSceneDelta();
     }
 
     void SceneManager::Create()

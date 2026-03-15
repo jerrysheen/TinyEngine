@@ -19,8 +19,8 @@ namespace EngineCore
 
     struct LoadResult
     {
-        LoadTask* task;
-        Resource* resource;
+        LoadTask* task = nullptr;
+        Resource* resource = nullptr;
         std::vector<LoadDependency> dependencyList;
     };
 

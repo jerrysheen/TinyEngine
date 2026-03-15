@@ -339,7 +339,7 @@
     <ClInclude Include="..\..\..\..\Runtime\Renderer\Culling.h">
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Runtime\Renderer\FrameContext.h">
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\FrameTicket.h">
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\PerDrawAllocator.h">
@@ -391,6 +391,9 @@
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Renderer\SPSCRingBuffer.h">
+      <Filter>Runtime\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Renderer\UploadPagePool.h">
       <Filter>Runtime\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Resources\Asset.h">
@@ -644,7 +647,7 @@
     <ClCompile Include="..\..\..\..\Runtime\Renderer\Culling.cpp">
       <Filter>Runtime\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\Runtime\Renderer\FrameContext.cpp">
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\FrameTicket.cpp">
       <Filter>Runtime\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderAPI.cpp">
@@ -676,6 +679,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Renderer\RenderPipeLine\RenderPass.cpp">
       <Filter>Runtime\Renderer\RenderPipeLine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\Runtime\Renderer\UploadPagePool.cpp">
+      <Filter>Runtime\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\Runtime\Resources\AssetRegistry.cpp">
       <Filter>Runtime\Resources</Filter>

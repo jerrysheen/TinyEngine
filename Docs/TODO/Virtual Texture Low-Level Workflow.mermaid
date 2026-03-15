@@ -1,0 +1,27 @@
+
+sequenceDiagram
+    participant Shader as Pixel Shader
+    participant PT as Page Table (GPU)
+    participant Pool as Physical Pool (VRAM)
+    participant Backend as RenderBackend (Feedback)
+    participant IO as IO / Disk
+
+    Note over Shader, Pool: 渲染阶段 (Render Pass)
+    Shader->>PT: 采样贴图 UV
+    alt Page 存在
+        PT-->>Shader: 返回物理池中的地址
+        Shader->>Pool: 获取真实像素颜色
+    else Page 缺失 (Page Miss)
+        PT-->>Shader: 返回 Miss 状态 & Fallback 坐标
+        Shader->>Pool: 获取模糊的颜色
+        Shader->>Backend: [记录] 写入 Feedback Buffer (我需要这页!)
+    end
+
+    Note over Backend, IO: 帧结束/后台处理阶段
+    Backend->>Backend: 解析 Feedback Buffer，汇总缺失的 Pages
+    Backend->>IO: 去硬盘读这几个特定的 64KB 数据块
+    IO-->>Backend: 数据加载完成
+    
+    Note over Backend, Pool: 数据应用阶段 (Upload)
+    Backend->>Pool: 将 64KB 数据填入物理缓存池的空闲槽位
+    Backend->>PT: 更新页表 (把虚拟 UV 映射到新的槽位)

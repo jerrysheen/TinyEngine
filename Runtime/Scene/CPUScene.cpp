@@ -15,7 +15,7 @@ namespace EngineCore
         mCurrentFrame = frameID;
     }
 
-    void CPUScene::CreateRenderNode(uint32_t renderID, NodeDirtyPayload &payload)
+    void CPUScene::CreateRenderNode(uint32_t renderID, const NodeDirtyPayload &payload)
     {
         EnsureCapacity(renderID);
         ASSERT(payload.materialID.IsValid());
@@ -34,7 +34,7 @@ namespace EngineCore
         return;
     }
 
-    void CPUScene::OnRenderNodeMaterialDirty(uint32_t renderID, NodeDirtyPayload &payload)
+    void CPUScene::OnRenderNodeMaterialDirty(uint32_t renderID, const NodeDirtyPayload &payload)
     {
         ASSERT(materialList.size() > renderID);
         ASSERT(payload.materialID.IsValid());
@@ -45,7 +45,7 @@ namespace EngineCore
         return;
     }
 
-    void CPUScene::OnRenderNodeTransformDirty(uint32_t renderID, NodeDirtyPayload &payload)
+    void CPUScene::OnRenderNodeTransformDirty(uint32_t renderID, const NodeDirtyPayload &payload)
     {
         ASSERT(materialList.size() > renderID);
         objectToWorldMatrixList[renderID] = payload.transform->GetWorldMatrix();
@@ -53,7 +53,7 @@ namespace EngineCore
         return;
     }
 
-    void CPUScene::OnRenderNodeMeshDirty(uint32_t renderID, NodeDirtyPayload &payload)
+    void CPUScene::OnRenderNodeMeshDirty(uint32_t renderID, const NodeDirtyPayload &payload)
     {
         ASSERT(materialList.size() > renderID);
         BatchManager::GetInstance()->TryDecreaseBatches(meshList[renderID], materialList[renderID], layerList[renderID]);
@@ -90,7 +90,7 @@ namespace EngineCore
 
     }
 
-    void CPUScene::ApplyDirtyNode(uint32_t renderID, NodeDirtyFlags cpuWorldRenderNodeFlag, NodeDirtyPayload &cpuWorldRenderNodePayload)
+    void CPUScene::ApplyDirtyNode(uint32_t renderID, NodeDirtyFlags cpuWorldRenderNodeFlag, const NodeDirtyPayload &cpuWorldRenderNodePayload)
     {
         EnsureCapacity(renderID);
         if((uint32_t)cpuWorldRenderNodeFlag & (uint32_t)NodeDirtyFlags::Created)

@@ -286,6 +286,21 @@ namespace EngineCore
         ApplyQueueNodeChange(renderID, flags, payload);
     }
 
+    SceneDelta Scene::FlushSceneDelta()
+    {
+        SceneDelta delta;
+        delta.mPerFrameDirtyNodeList = std::move(mPerFrameDirtyNodeList);
+        delta.mNodeChangeFlagList = std::move(mNodeChangeFlagList);
+        delta.mNodeDirtyPayloadList = std::move(mNodeDirtyPayloadList);
+
+        // Scene 自己仍然会在后续帧继续按 renderID 下标写入这两份数组，
+        // move 之后必须立刻恢复到与 frame stamp 一致的容量。
+        mNodeChangeFlagList.resize(mNodeFrameStampList.size(), 0);
+        mNodeDirtyPayloadList.resize(mNodeFrameStampList.size());
+
+        return delta;
+    }
+
     void Scene::EnsureNodeQueueSize(uint32_t id)
     {
         const size_t need = static_cast<size_t>(id) + 1;

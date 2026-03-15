@@ -54,10 +54,16 @@ namespace EngineCore
         {}
     };
 
-    struct GPUSceneDelta
+    struct SceneDelta
     {
-        vector<uint32_t> dirtyRenderNodeIDList;
-        vector<uint32_t> dirtyRenderNodeFlagsList;
+        std::vector<uint32_t> mPerFrameDirtyNodeList;
+        std::vector<uint32_t> mNodeChangeFlagList;
+        std::vector<NodeDirtyPayload> mNodeDirtyPayloadList;
+
+        inline const std::vector<uint32_t>& GetPerFrameDirtyNodeList() const {return mPerFrameDirtyNodeList;};
+        inline const std::vector<uint32_t>& GetNodeChangeFlagList() const {return mNodeChangeFlagList;};
+        inline const std::vector<NodeDirtyPayload>& GetNodeDirtyPayloadList() const {return mNodeDirtyPayloadList;};
+        
     };
     
 }

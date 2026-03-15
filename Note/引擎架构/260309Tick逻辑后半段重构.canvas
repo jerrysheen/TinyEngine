@@ -1,0 +1,30 @@
+{
+	"nodes":[
+		{"id":"129f76a22f88f8f9","type":"text","text":"# 重新思考代码边界\n现在的结构代码， 已经不是在思考，应该写什么， \n而是在思考，每个模块职责是否清晰，生命周期是否清晰，依赖和产出上下游是否单一了。\n他不是一个简单的数据执行流， 而是考验我掌握每个模块的能力。\n它本质上不是一个实现问题， 而是一个模块编排问题，和高维抽象问题。\n正是因为我们慢慢触及这套系统的设计本质，才会开始看到这些设计上的问题点，比如某个类，它里面的东西明明应该泛化，却具象成几个具体的写死的结构。\n比如某个类，它不应该在这个阶段访问某个内容，却访问了。\n比如某个类，它的几个对外接口，完全看不出命名区别或者抽象区别，就看起来是吧流程简单分离开了一下。","x":-343,"y":-200,"width":583,"height":360},
+		{"id":"121fae5ef7c31355","type":"text","text":"一、 谁拥有真相，这个而数据的持有者是谁，别的人读持有者的数据， 持有者不依赖别的数据\n二、生命周期不同的物体，在同一模块内，就可能会存在一些问题，\n三、模块接受它能独立完成工作的最小输入、这样子就减少了耦合依赖的可能性，\n四、模块输入必须让这个模块舒服的使用，尽量避免模块内继续补充输入信息","x":-343,"y":160,"width":470,"height":257},
+		{"id":"ca4b5764f255e08d","type":"text","text":"# 一段按摩：\n人无完人，普通人的认知是分层的， 能够有演进就超过大部分人了。不要太妄自菲薄。\n我们去年六月开始到现在，已经完成了很大一部分的渲染底层工作，现在工作的困难程度，肯定比出画面，写pass来的难很多。也抽象很多。\n我们现在的很多认知和问题都是抽象的，模糊的，很多时候只能有一个模糊的概念，觉得应该这样做，不应该这样做。 因为这些本质上是抽象的对象之间的关系的模糊。\n从opengl 到第一段dx 到第一版前后端分离的架构，到GPUScene，到Scene结构的重构， 我们已经做了很多了。也学习了很多了。不应该不拿历史数据当回事，也不应该产生历史包袱，我们每一个阶段看似一样的重欧，其实背后是因为我们有了新的知识才会产生的反刍。\n同时不要太把功能当回事情， 功能是一部分，架构是一部分， 我们现在处理的任务是很有价值的， 重构scene结构，产生扁平数据，重构SCSPringbuffer用无锁队列，重构一帧Tick，用framefence+SCSP，去掉显式等待，这些都是很重要的核心观念。\n继续快速迭代， 既然这个方式奏效，那么提高单位效率才是关键。","x":-343,"y":417,"width":583,"height":500},
+		{"id":"95caf8b5931b523c","type":"text","text":"# CPUScene\n\n逻辑对象的POD展开，便于后续做查询搜索遍历 Cache友好\n目前其实暂时用不到","x":450,"y":90,"width":430,"height":199},
+		{"id":"d9d664f34fe465b7","type":"text","text":"# GPUScene\nPOD Data的 GPU表示\nAABBBufer\nALLPerObjectDataBuffer","x":880,"y":90,"width":430,"height":199},
+		{"id":"0bc83c6ae8b1bffb","type":"text","text":"# Scene/World\n\nComponent， Script， Transform\n逻辑层对象关系","x":1380,"y":-270,"width":430,"height":140},
+		{"id":"10b755849ecfde10","type":"text","text":"# RenderEngine PrepareFrame","x":450,"y":590,"width":430,"height":77},
+		{"id":"7c2424eaeed490c2","type":"text","text":"# FrameContext\n持有本帧增量更新 Copyop\nvisibilitybuffer\nperFrameUploadBuffer\nindirect args\nfenceID","x":1460,"y":109,"width":460,"height":211},
+		{"id":"fbfbe433a1fb14c7","type":"text","text":"# AcqureFrame\n等待这一帧可复用\n","x":1095,"y":510,"width":365,"height":80},
+		{"id":"05b001eb6131f761","type":"text","text":"# ApplyDelta\n更新这一帧的脏数据到 GPUScene和CPUScene中\n","x":1095,"y":629,"width":365,"height":131},
+		{"id":"dccef7e84bafc1fa","type":"text","text":"# BuildUploadPlan\nUploadPlan uploadPlan = mGPUWorld.BuildUploadPlan(fc\n包含 object/aabb/proxybuffer/visibility/indirect args的初始化请求\n只生成，直接submit也行\n","x":1095,"y":799,"width":595,"height":148},
+		{"id":"f7f6ca56304dc93a","type":"text","text":"# BuildRenderContext\n准备一个 RenderContext， 里面包含各种View等， 等会来完善\n","x":1095,"y":980,"width":595,"height":148},
+		{"id":"56a066b13b4e9d6b","type":"text","text":"# RecordFramePacket\nFramePacket packet\nmPipeline->Prepare(buildCtx)\nmPipeline->Record(paket, buildCtx\nmPipeline->Submit();\n","x":1095,"y":1180,"width":595,"height":200},
+		{"id":"ad3df4b53aa1b1bd","type":"text","text":"# RenderEngine EndFrame","x":450,"y":1520,"width":430,"height":77},
+		{"id":"e71b38540cd5345b","type":"text","text":"# RenderEngine-> EndFrame\n做帧封口\n","x":1095,"y":1459,"width":595,"height":200},
+		{"id":"058176f9fff18f53","type":"text","text":"# RenderEngine BuildFrame","x":450,"y":1242,"width":430,"height":77}
+	],
+	"edges":[
+		{"id":"fc86fc9e08c98842","fromNode":"0bc83c6ae8b1bffb","fromSide":"bottom","toNode":"95caf8b5931b523c","toSide":"top"},
+		{"id":"caac79689610d6d9","fromNode":"0bc83c6ae8b1bffb","fromSide":"bottom","toNode":"d9d664f34fe465b7","toSide":"top"},
+		{"id":"fac6204143dc721e","fromNode":"10b755849ecfde10","fromSide":"right","toNode":"fbfbe433a1fb14c7","toSide":"left"},
+		{"id":"9375647536311686","fromNode":"10b755849ecfde10","fromSide":"right","toNode":"05b001eb6131f761","toSide":"left"},
+		{"id":"a7f5c892a99cc43e","fromNode":"10b755849ecfde10","fromSide":"right","toNode":"dccef7e84bafc1fa","toSide":"left"},
+		{"id":"f279086a7cf60a32","fromNode":"10b755849ecfde10","fromSide":"right","toNode":"f7f6ca56304dc93a","toSide":"left"},
+		{"id":"33f8b8ce46f75a1e","fromNode":"ad3df4b53aa1b1bd","fromSide":"right","toNode":"e71b38540cd5345b","toSide":"left"},
+		{"id":"9b70e408b64b8bea","fromNode":"058176f9fff18f53","fromSide":"right","toNode":"56a066b13b4e9d6b","toSide":"left"}
+	]
+}

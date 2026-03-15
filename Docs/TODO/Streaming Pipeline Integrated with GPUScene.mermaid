@@ -1,0 +1,31 @@
+
+sequenceDiagram
+    participant Cam as 主线程 (Camera/Logic)
+    participant IO as 异步加载线程 (Async I/O)
+    participant GPU_Copy as GPU Copy Queue
+    participant CPUScene as CPUScene / SceneDelta
+    participant GPUScene as GPUScene (Persistent Buffer)
+
+    Cam->>Cam: 相机移动，发现 Sector_5 进入加载半径
+    Cam->>IO: Request Load (Sector_5)
+    
+    Note over IO: 阶段 B: 硬盘读取 & CPU 反序列化
+    IO->>IO: 读取 Sector_5.pak<br/>解析 1000 个实体
+    
+    Note over IO, GPU_Copy: 阶段 C: 资源预热 (Texture/Mesh)
+    IO->>GPU_Copy: 提交顶点/贴图数据 (使用 UploadPool)
+    GPU_Copy-->>IO: Signal Fence (上传完成)
+    
+    Note over Cam, GPUScene: 阶段 D & E: 接入场景
+    IO->>Cam: Notify Sector_5 Ready!
+    Cam->>CPUScene: 为 Sector_5 创建 CPU 实体
+    CPUScene->>CPUScene: 产生巨大的 SceneDelta (包含 1000 个 AddNode)
+    
+    CPUScene->>GPUScene: ApplyDelta(Sector_5_Delta)
+    Note right of GPUScene: GPUScene 在 allObjectDataBuffer<br/>中寻找 1000 个空闲 Slot 写入数据
+    
+    Cam->>Cam: 相机远离，发现 Sector_1 离开卸载半径
+    Cam->>CPUScene: 销毁 Sector_1 的 CPU 实体
+    CPUScene->>CPUScene: 产生 SceneDelta (包含 RemoveNode)
+    CPUScene->>GPUScene: ApplyDelta(Remove_Delta)
+    Note right of GPUScene: GPUScene 释放 allObjectDataBuffer<br/>中对应的 Slot，留给未来复用

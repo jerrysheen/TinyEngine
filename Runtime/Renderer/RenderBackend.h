@@ -32,8 +32,6 @@ namespace EngineCore
         static void Create();
 
         void BeginFrame();
-        void Prepare(RenderContext& context);
-        void Render(RenderContext& context);
         void EndFrame();
 
         void DrawIndexed(uint32_t vaoID, int count);
@@ -43,7 +41,7 @@ namespace EngineCore
         void DrawIndexedInstanced(Mesh* mesh, int count, const PerDrawHandle& perDrawHandle);
         void SetPerFrameData(UINT perFrameBufferID);
         void SetPerPassData(UINT perPassBufferID);
-        void SetFrameContext(FrameContext* frameContext, uint32_t frameID);
+        void SetFrame(FrameTicket* frameContext, uint32_t frameID);
         
         void SetRenderState(const Material* mat, const RenderPassInfo &passinfo);
 
@@ -69,7 +67,10 @@ namespace EngineCore
         void SetBindLessMeshIB(uint32_t id);
         
         void DrawIndirect(Payload_DrawIndirect payload);
-        
+        void FlushPerFrameData();
+        void FlushPerPassData(const RenderContext& context);
+        void CreatePerFrameData();
+        void CreatePerPassForwardData();
         void RenderThreadMain() 
         {
             while (mRunning.load(std::memory_order_acquire) == true) 
@@ -147,9 +148,9 @@ namespace EngineCore
         };
         
 
+        void TryWakeUpRenderThread();
     private:
         void EnqueueCommand(const DrawCommand& cmd);
-        void TryWakeUpRenderThread();
         void WaitForQueueSpace();
 
         SPSCRingBuffer<DrawCommand, 16384> mRenderBuffer;
@@ -166,10 +167,7 @@ namespace EngineCore
         PerPassData_Forward mPerPassData_Forward;
 
         CpuEvent mDataAvailableEvent;
-        void FlushPerFrameData();
-        void FlushPerPassData(const RenderContext& context);
-        void CreatePerFrameData();
-        void CreatePerPassForwardData();
+
 
     };
 }

@@ -14,7 +14,7 @@ namespace EngineCore
     public:
         void Update(uint32_t frameID);
       
-        void ApplyDirtyNode(uint32_t renderID, NodeDirtyFlags cpuWorldRenderNodeFlag , NodeDirtyPayload& payload);
+        void ApplyDirtyNode(uint32_t renderID, NodeDirtyFlags cpuWorldRenderNodeFlag , const NodeDirtyPayload& payload);
         void EndFrame();
         CPUSceneView GetSceneView();
 
@@ -24,11 +24,11 @@ namespace EngineCore
         }
     private:
         void EnsureCapacity(uint32_t renderID);
-        void CreateRenderNode(uint32_t renderID, NodeDirtyPayload& payload);
+        void CreateRenderNode(uint32_t renderID, const NodeDirtyPayload& payload);
         void DeleteRenderNode(uint32_t renderID); 
-        void OnRenderNodeMaterialDirty(uint32_t renderID, NodeDirtyPayload& payload);
-        void OnRenderNodeTransformDirty(uint32_t renderID, NodeDirtyPayload& payload);
-        void OnRenderNodeMeshDirty(uint32_t renderID, NodeDirtyPayload& payload);
+        void OnRenderNodeMaterialDirty(uint32_t renderID, const NodeDirtyPayload& payload);
+        void OnRenderNodeTransformDirty(uint32_t renderID, const NodeDirtyPayload& payload);
+        void OnRenderNodeMeshDirty(uint32_t renderID, const NodeDirtyPayload& payload);
     
         
     private:

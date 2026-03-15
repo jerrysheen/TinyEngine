@@ -42,40 +42,6 @@ namespace EngineCore
         EnqueueCommand(temp);
     }
 
-    void RenderBackend::Prepare(RenderContext& context)
-    {
-        PROFILER_ZONE("MainThread::Renderer::Prepare");
-        BeginFrame();
-        FlushPerFrameData();
-        FrameContext* currentFrameContext = RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameContext();
-        ASSERT(currentFrameContext != nullptr);
-        SetFrameContext(currentFrameContext, RenderEngine::GetInstance()->GetGPUScene().GetCurrentFrameID());
-
-        for(auto* pass : context.camera->mRenderPassAsset.renderPasses)
-        {
-            FlushPerPassData(context);
-            pass->Configure(context);
-            pass->Filter(context);
-            pass->Prepare(context);
-        }
-    }
-    
-    void RenderBackend::Render(RenderContext& context)
-    {
-        //PROFILER_ZONE("MainThread::Renderer::Render");
-
-        for(auto* pass : context.camera->mRenderPassAsset.renderPasses)
-        {
-            pass->Execute(context);
-            TryWakeUpRenderThread();
-        }
-        
-        for (auto& pass : context.camera->mRenderPassAsset.renderPasses)
-        {
-            pass->Clear();
-        }
-       
-    }
 
     void RenderBackend::EndFrame()
     {
@@ -255,13 +221,13 @@ namespace EngineCore
         EnqueueCommand(temp);
     }
 
-    void RenderBackend::SetFrameContext(FrameContext* frameContext, uint32_t frameID)
+    void RenderBackend::SetFrame(FrameTicket* frameTicket, uint32_t frameID)
     {
-        ASSERT(frameContext != nullptr);
+        ASSERT(frameTicket != nullptr);
         DrawCommand temp;
         temp.op = RenderOp::kSetFrameContext;
-        temp.data.setFrameContext.frameContext = frameContext;
-        temp.data.setFrameContext.frameID = frameID;
+        temp.data.setFrame.frameTicket = frameTicket;
+        temp.data.setFrame.frameID = frameID;
         EnqueueCommand(temp);
     }
 
@@ -371,7 +337,7 @@ namespace EngineCore
             RenderAPI::GetInstance()->RenderAPISetPerFrameData(cmd.data.setPerFrameData);
             break;  
         case RenderOp::kSetFrameContext :
-            RenderAPI::GetInstance()->RenderAPISetFrameContext(cmd.data.setFrameContext);
+            RenderAPI::GetInstance()->RenderAPISetFrame(cmd.data.setFrame);
             break;
         case RenderOp::kWindowResize:
             hasResize = true;

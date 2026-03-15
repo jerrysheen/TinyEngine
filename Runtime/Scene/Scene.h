@@ -23,7 +23,7 @@ namespace EngineCore
         void EndFrame();
         GameObject* FindGameObject(const std::string& name);
         GameObject* CreateGameObject(const std::string& name);
-        void Scene::DestroyGameObject(const std::string& name);
+        void DestroyGameObject(const std::string& name);
 
         void AddCamToStack(Camera* cam);
         inline void SetMainCamera(Camera* cam) { mainCamera = cam; }
@@ -63,6 +63,8 @@ namespace EngineCore
         {
             mCurrentFrame = currentFrameIndex;
         }
+
+        SceneDelta FlushSceneDelta();
     public:
         std::string name;
         std::vector<GameObject*> allObjList;
@@ -80,7 +82,7 @@ namespace EngineCore
         std::vector<uint32_t> mNodeFrameStampList;
         std::vector<uint32_t> mNodeChangeFlagList;
         std::vector<NodeDirtyPayload> mNodeDirtyPayloadList;
-
+        SceneDelta mSceneDelta;
 
         std::vector<uint32_t> mPerFrameDirtyNodeList;
         

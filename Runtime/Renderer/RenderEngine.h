@@ -5,6 +5,7 @@
 #include "Renderer/RenderPath/GPUSceneRenderPipeline.h"
 #include "Scene/GPUScene.h"
 #include "Scene/CPUScene.h"
+#include "UploadPagePool.h"
 
 namespace EngineCore
 {
@@ -18,10 +19,10 @@ namespace EngineCore
     public:
         static RenderEngine* GetInstance(){return s_Instance.get();};
         static bool IsInitialized(){return s_Instance != nullptr;};
-        void Update(uint32_t frameID);
+        void PrepareFrame(uint32_t frameID, const SceneDelta& delta);
         static void Create();
-        void Tick();
-        void BeginFrame(uint32_t frameID);
+        void BuildFrame();
+        void WaitForFrameAvaliable(uint32_t frameID);
         void EndFrame();
         
         static void OnResize(int width, int height);
@@ -38,15 +39,28 @@ namespace EngineCore
             mCPUScene.SetCurrentFrame(currentFrame);
             mGPUScene.SetCurrentFrame(currentFrame);
         }
+
+        inline FrameTicket* GetCurrentFrameTicket(uint32_t frameID)
+        {
+            return &mFrameTicket[frameID % 3];
+        }
+
+        inline uint32_t GetCurrentFrame(){ return mCurrentFrameID;}
     private:
-        IRenderPipeline* mCurrentRenderPath;
+        IRenderPipeline* mCurrentRenderPipeline;
+        
         static std::unique_ptr<RenderEngine> s_Instance;
         RenderContext renderContext;
-
+        UploadPagePool* mUploadPagePool;
         GPUScene mGPUScene;
         CPUScene mCPUScene;
+        static constexpr int  MAX_FRAME_INFLIGHT = 3;
+        
+        FrameTicket* mCurrFrameTicket;
+        FrameTicket mFrameTicket[MAX_FRAME_INFLIGHT];
+        uint32_t mCurrentFrameID = 0;
 
-        void ComsumeDirtySceneRenderNode();
+        void ComsumeDirtySceneRenderNode(const SceneDelta& delta);
         void UploadCopyOp();
     };
     

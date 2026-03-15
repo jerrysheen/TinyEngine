@@ -7,11 +7,10 @@
 #include <vector>
 #include "Graphics/IGPUResource.h"
 #include "Graphics/Mesh.h"
+#include "Renderer/FrameTicket.h"
 
 namespace EngineCore
 {
-    class FrameContext;
-
     enum class RenderOp : uint8_t
     {
         kInvalid = 0,
@@ -172,14 +171,16 @@ namespace EngineCore
         UINT perPassBufferID;
     };
 
-    struct Payload_SetFrameContext
+    struct Payload_SetFrame
     {
-        FrameContext* frameContext = nullptr;
+        FrameTicket* frameTicket = nullptr;
         uint32_t frameID = 0;
     };
 
     struct alignas(16) CopyOp
     {
+        IGPUBuffer* srcUploadBuffer;
+        IGPUBuffer* destDefaultBuffer;
         uint32_t srcOffset;
         uint32_t dstOffset;
         uint32_t size;
@@ -305,7 +306,7 @@ namespace EngineCore
         Payload_DrawInstancedCommand setDrawInstanceCmd;
         Payload_SetPerFrameData setPerFrameData;
         Payload_SetPerPassData setPerPassData;
-        Payload_SetFrameContext setFrameContext;
+        Payload_SetFrame setFrame;
         Payload_CopyBufferRegion copyBufferRegion;
         Payload_DispatchComputeShader dispatchComputeShader;
         Payload_SetBufferResourceState setBufferResourceState;

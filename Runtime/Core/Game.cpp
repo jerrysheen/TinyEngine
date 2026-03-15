@@ -41,20 +41,20 @@ namespace EngineCore
     void Game::TickFrame(uint32_t frameIndex)
     {
         PROFILER_ZONE("MainThread::GameUpdate");
-        // 等待当前帧FrameContext可用
-        RenderEngine::GetInstance()->BeginFrame(frameIndex);
         ResourceManager::GetInstance()->Update();
 
         PROFILER_EVENT_BEGIN("TickFrame::TickSimulation");
         SceneManager::GetInstance()->TickSimulation(frameIndex);
         PROFILER_EVENT_END("TickFrame::TickSimulation");
 
+        SceneDelta sceneDelta = SceneManager::GetInstance()->FlushSceneDelta();
+
         PROFILER_EVENT_BEGIN("TickFrame::RenderEngineUpdate");
-        RenderEngine::GetInstance()->Update(frameIndex);
+        RenderEngine::GetInstance()->PrepareFrame(frameIndex, sceneDelta);
         PROFILER_EVENT_END("TickFrame::RenderEngineUpdate");
 
 
-        RenderEngine::GetInstance()->Tick();
+        RenderEngine::GetInstance()->BuildFrame();
 
 
         PROFILER_EVENT_BEGIN("TickFrame::EndFrame");
