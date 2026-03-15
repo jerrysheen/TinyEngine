@@ -47,7 +47,6 @@
 - `[32]` **Runtime/GameObject/MeshRenderer.h**
 - `[32]` **Runtime/Graphics/Mesh.cpp**
 - `[32]` **Assets/Shader/StandardPBR.hlsl**
-- `[31]` **Runtime/Scene/SceneManager.cpp**
 - `[31]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[30]` **Runtime/Graphics/Mesh.h**
 - `[30]` **Assets/Shader/include/Core.hlsl**
@@ -57,6 +56,7 @@
 - `[27]` **Runtime/Graphics/Shader.cpp**
 - `[27]` **Runtime/Graphics/Shader.h**
 - `[27]` **Runtime/Graphics/Texture.h**
+- `[27]` **Runtime/Scene/SceneManager.cpp**
 - `[27]` **Runtime/Platforms/D3D12/D3D12Texture.h**
 - `[26]` **Runtime/Graphics/ComputeShader.cpp**
 - `[26]` **Runtime/Graphics/ComputeShader.h**
@@ -69,14 +69,14 @@
 - `[24]` **Runtime/MaterialLibrary/StandardPBR.cpp**
 - `[24]` **Editor/Panel/EditorMainBar.h**
 - `[24]` **Assets/Shader/GPUCulling.hlsl**
-- `[23]` **Runtime/Renderer/Renderer.cpp**
 - `[22]` **Runtime/Renderer/RenderCommand.h**
 - `[22]` **Runtime/Resources/ResourceHandle.h**
 - `[21]` **Runtime/Core/Game.cpp**
+- `[21]` **Runtime/Scene/GPUScene.cpp**
 - `[20]` **Runtime/Entry.cpp**
 - `[20]` **Runtime/Renderer/BatchManager.cpp**
+- `[20]` **Runtime/Renderer/RenderBackend.cpp**
 - `[20]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
-- `[19]` **Runtime/Renderer/RenderAPI.h**
 
 ## Evidence & Implementation Details
 

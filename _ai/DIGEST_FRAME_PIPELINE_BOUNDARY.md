@@ -20,35 +20,34 @@
 - 关注同步策略现代化：避免每帧WaitForGpuFinished，转向frames-in-flight与fence驱动的延迟回收。
 
 ## Key Files Index
-- `[51]` **Runtime/Renderer/FrameContext.cpp** *(Content Included)*
-- `[44]` **Runtime/Renderer/FrameContext.h** *(Content Included)*
-- `[30]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
-- `[30]` **Runtime/Scene/GPUScene.cpp** *(Content Included)*
-- `[24]` **Runtime/Core/Game.cpp** *(Content Included)*
+- `[37]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
+- `[28]` **Runtime/Scene/GPUScene.cpp** *(Content Included)*
+- `[26]` **Runtime/Core/Game.cpp** *(Content Included)*
 - `[24]` **Assets/Shader/GPUCulling.hlsl** *(Content Included)*
-- `[21]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
-- `[20]` **Runtime/Renderer/Renderer.cpp** *(Content Included)*
-- `[16]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
-- `[14]` **Runtime/Scene/GPUScene.h** *(Content Included)*
-- `[14]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
-- `[13]` **Runtime/Renderer/RenderCommand.h** *(Content Included)*
-- `[13]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h** *(Content Included)*
-- `[12]` **Runtime/Renderer/Renderer.h** *(Content Included)*
-- `[12]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h** *(Content Included)*
-- `[10]` **Runtime/Renderer/RenderPath/LagacyRenderPath.cpp** *(Content Included)*
-- `[8]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
+- `[13]` **Runtime/Scene/GPUScene.h** *(Content Included)*
+- `[11]` **Runtime/Renderer/RenderPath/GPUSceneRenderPipeline.cpp** *(Content Included)*
+- `[11]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
+- `[9]` **Runtime/Renderer/RenderBackend.h** *(Content Included)*
+- `[9]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
+- `[8]` **Runtime/Renderer/RenderCommand.h** *(Content Included)*
+- `[8]` **Runtime/Scene/Scene.cpp** *(Content Included)*
 - `[7]` **Runtime/Renderer/BatchManager.h** *(Content Included)*
-- `[7]` **Runtime/Renderer/RenderAPI.h** *(Content Included)*
-- `[6]` **Runtime/Scene/CPUScene.cpp**
-- `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
-- `[6]` **Runtime/Platforms/D3D12/D3D12Struct.h**
+- `[7]` **Runtime/Renderer/FrameTicket.h** *(Content Included)*
+- `[7]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
+- `[6]` **Runtime/Renderer/RenderEngine.h** *(Content Included)*
+- `[6]` **Runtime/Scene/CPUScene.cpp** *(Content Included)*
+- `[6]` **Runtime/Scene/Scene.h** *(Content Included)*
+- `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h** *(Content Included)*
+- `[6]` **Runtime/Platforms/D3D12/D3D12Struct.h** *(Content Included)*
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[5]` **Runtime/Renderer/BatchManager.cpp**
+- `[5]` **Runtime/Renderer/RenderAPI.h**
+- `[5]` **Runtime/Renderer/RenderBackend.cpp**
 - `[5]` **Runtime/Renderer/RenderStruct.h**
-- `[5]` **Runtime/Scene/Scene.cpp**
+- `[5]` **Runtime/Scene/SceneManager.h**
 - `[5]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
-- `[4]` **Runtime/Renderer/RenderEngine.h**
+- `[5]` **Editor/D3D12/D3D12EditorGUIManager.cpp**
 - `[4]` **Runtime/Scene/CPUScene.h**
 - `[4]` **Runtime/Scene/SceneStruct.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
@@ -57,6 +56,7 @@
 - `[4]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[4]` **Assets/Shader/StandardPBR.hlsl**
 - `[4]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
+- `[3]` **Editor/D3D12/D3D12EditorGUIManager.h**
 - `[2]` **Editor/EditorGUIManager.h**
 - `[2]` **Editor/EditorSettings.h**
 - `[2]` **Runtime/CoreAssert.h**
@@ -83,14 +83,77 @@
 
 ## Evidence & Implementation Details
 
-### File: `Runtime/Renderer/FrameContext.cpp`
+### File: `Runtime/Renderer/RenderEngine.cpp`
 ```cpp
+        mCurrFrameTicket = GetCurrentFrameTicket(frameID);
 
+        PROFILER_ZONE("RenderEngine::Update");
+        mCPUScene.Update(frameID);
+        mGPUScene.Update(frameID);
+        ComsumeDirtySceneRenderNode(sceneDelta);
+        //PROFILER_EVENT_BEGIN("MainThread::RenderEngine::Update");
+        mCurrentRenderPipeline->Prepare(renderContext);
+        UploadCopyOp();
+        //PROFILER_EVENT_END("MainThread::RenderEngine::Update");
+    }    
+    
+    void RenderEngine::OnResize(int width, int height)
+    {
+```
+...
+```cpp
+    void RenderEngine::WaitForFrameAvaliable(uint32_t frameID)
+    {
+        PROFILER_ZONE("MainThread::WaitForFrameContextAvaliable()");
+        const FrameTicket* currentTicket = GetCurrentFrameTicket(frameID);
+        // 当开始复用 ring 槽位时，必须确保“上一任帧”的提交信息已经由渲染线程发布。
+        // 仅等 fence 值不够，因为渲染线程可能还未写入该槽位的最新 fence。
+        if (frameID >= MAX_FRAME_INFLIGHT)
+        {
+            const uint64_t expectedSubmittedFrameID = static_cast<uint64_t>(frameID - MAX_FRAME_INFLIGHT);
+
+            while (!currentTicket->IsSubmissionReadyForFrame(expectedSubmittedFrameID))
+            {
+                std::this_thread::yield();
+            }
+
+            const uint64_t frameFenceValue = currentTicket->GetFenceValue();
+            while (RenderAPI::GetInstance()->GetCurrentGPUCompletedFenceValue() < frameFenceValue)
+            {
+                std::this_thread::yield();
+            }
+        }
+```
+
+### File: `Runtime/Scene/GPUScene.cpp`
+```cpp
+#include "Scene/SceneStruct.h"
 
 namespace EngineCore
 {
-    FrameContext::FrameContext()
+    void GPUScene::Destroy()
     {
+        delete allMaterialDataBuffer;
+        delete allObjectDataBuffer;
+        delete allAABBBuffer;
+        delete renderProxyBuffer;
+        for (int i = 0; i < 3; i++) 
+        {
+            delete visibilityBuffer[i];
+        }
+    }
+
+    void GPUScene::EndFrame()
+    {
+    }
+
+    void GPUScene::Create()
+    {
+        // 强烈建议使用 512， 注意，这边都是Byte
+        // 理由：
+        // 1. 容纳 32 个 float4 向量，足够应对 Uber Shader + 矩阵 + 几十个 TextureID。
+        // 2. 即使浪费了一半空间，1万个材质也只多占 2.5MB 显存，完全可忽略。
+        // 3. 512 是 256 (D3D12 ConstantBuffer 对齐) 的倍数，也是 16 (float4) 的倍数，对齐非常友好。
         BufferDesc desc;
         desc.debugName = L"AllObjectBuffer";
         desc.memoryType = BufferMemoryType::Default;
@@ -106,13 +169,16 @@ namespace EngineCore
         desc.size = 10000 * sizeof(RenderProxy);
         desc.usage = BufferUsage::StructuredBuffer;
         renderProxyBuffer = new GPUBufferAllocator(desc);
-       
+
         desc.debugName = L"VisibilityBuffer";
         desc.memoryType = BufferMemoryType::Default;
         desc.size = 4 * 10000;
         desc.stride = 4 * 10000;
         desc.usage = BufferUsage::StructuredBuffer;
-        visibilityBuffer = new GPUBufferAllocator(desc);
+        for (int i = 0; i < 3; i++) 
+        {
+            visibilityBuffer[i] = new GPUBufferAllocator(desc);
+        }
        
        
         desc.debugName = L"allAABBBuffer";
@@ -121,203 +187,151 @@ namespace EngineCore
         desc.stride = 10000 * sizeof(AABB);
         desc.usage = BufferUsage::StructuredBuffer;
         allAABBBuffer = new GPUBufferAllocator(desc);
-       
- 
-        desc.debugName = L"PerFrameUploadBuffer";
-        desc.memoryType = BufferMemoryType::Upload;
-        desc.size = 1024 * 1024 * 4;
-        desc.stride = 1;
+  
+        desc.debugName = L"AllMaterialBuffer";
+        desc.memoryType = BufferMemoryType::Default;
+        desc.size = 512 * 10000; // 预分配约 5MB
+        desc.stride = 512;       // PageSize
         desc.usage = BufferUsage::ByteAddressBuffer;
-        perFrameUploadBuffer = new GPUBufferAllocator(desc);
+        allMaterialDataBuffer = new GPUBufferAllocator(desc);
+
+        // 创建Compute Shader
+        string path = PathSettings::ResolveAssetPath("Shader/GPUCulling.hlsl");
+        GPUCullingShaderHandler = ResourceManager::GetInstance()->CreateResource<ComputeShader>(path);
+
+        mCurrentCopyOp = &mFrameCopyOp[0];
+        mCurrVisibilityBuffer = visibilityBuffer[0];
     }
 
-    void FrameContext::EnsureCapacity(uint32_t renderID)
+    void GPUScene::Update(uint32_t currentFrameIndex)
     {
-        int count = mDirtyFlags.size();
-        int need = renderID + 1;
-        if(count < need)
-        {
-            mDirtyFlags.resize(need, 0);
-            mPerObjectDatas.resize(need);
-        }
-    }
-
-    BufferAllocation FrameContext::UploadDrawBatch(void *data, uint32_t size)
+        mCurrentFrameID = currentFrameIndex;
+        SetCurrentContext();
+```
+...
+```cpp
+    BufferAllocation GPUScene::UploadDrawBatch(void *data, uint32_t size)
     {
         ASSERT(data != nullptr);
         ASSERT(size > 0);
 
-        BufferAllocation destAllocation = visibilityBuffer->Allocate(size);
-        BufferAllocation srcAllocation = perFrameUploadBuffer->Allocate(size);
-        perFrameUploadBuffer->UploadBuffer(srcAllocation, data, size);
+        BufferAllocation destAllocation = GetVisibilityBufferByFrameID(mCurrentFrameID)->Allocate(size);
+        BufferAllocation srcAllocation = mUploadPagePool->Allocate(size, data);
 
         CopyOp op = {};
-        op.srcOffset = srcAllocation.offset;
-        op.dstOffset = destAllocation.offset;
-        op.size = size;
-        mCopyOpsVisibility.push_back(op);
-
-        return destAllocation;
+```
+...
+```cpp
+    {   
+        EnsureCapacity(renderID); 
+        UpdateDirtyFlags(renderID, flags);
+        // 记录我当前脏ID即可
+        UpdateShadowData(renderID, view);
     }
 
-    void FrameContext::UpdateDirtyFlags(uint32_t renderID, uint32_t flags)
+    void GPUScene::EnsureCapacity(uint32_t renderID)
+    {
+```
+...
+```cpp
     {
         uint32_t& oldFlag = mDirtyFlags[renderID];
         if(oldFlag == 0) mPerFrameDirtyID.push_back(renderID);
         if(oldFlag & (uint32_t)NodeDirtyFlags::Created)
+        {
+            if(flags & (uint32_t)NodeDirtyFlags::Destory)
+            {
+                oldFlag = (uint32_t)NodeDirtyFlags::None;
+            }
+            return;
+        }
 ```
 ...
 ```cpp
-            copyObject.copyList = mCopyOpsObject.data();
-            copyObject.count = mCopyOpsObject.size();
-            Renderer::GetInstance()->CopyBufferRegion(copyObject);
+        if(flags & (uint32_t)NodeDirtyFlags::Destory)
+        {
+            TryFreeRenderProxyByRenderIndex(renderID);
+            TryFreePerObjectDataAndAABBData(renderID);
+            mPerObjectDatas[renderID].renderProxyCount = 0;
+            return;
         }
 
-        if (mCopyOpsAABB.size() > 0)
+        if(flags & (uint32_t)NodeDirtyFlags::TransformDirty || flags & (uint32_t)NodeDirtyFlags::Created)
         {
 ```
-...
-```cpp
-            copyAABB.copyList = mCopyOpsAABB.data();
-            copyAABB.count = mCopyOpsAABB.size();
-            Renderer::GetInstance()->CopyBufferRegion(copyAABB);
-        }
 
-        if (mCopyOpsProxy.size() > 0)
-        {
-```
-...
+### File: `Runtime/Core/Game.cpp`
 ```cpp
-            copyRenderProxy.copyList = mCopyOpsProxy.data();
-            copyRenderProxy.count = mCopyOpsProxy.size();
-            Renderer::GetInstance()->CopyBufferRegion(copyRenderProxy);
-        }
+    void Game::Launch()
+    {
+        ProjectSettings::Initialize();
+        // InitManagers Here.
+        RenderEngine::Create();
+        ResourceManager::Create();
+        SceneManager::Create();
+        JobSystem::Create();
+        AssetRegistry::Create();
+        ASSERT(!(RenderSettings::s_EnableVertexPulling == true && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy));
+        //std::cout << "Launch Game" << std::endl;
+        // init Manager...
+        #ifdef EDITOR
+        EngineEditor::EditorGUIManager::Create();
+        #endif
+        while(!WindowManager::GetInstance()->WindowShouldClose())
+        {
+            PROFILER_FRAME_MARK("TinyProfiler");
+            TickFrame(mFrameIndex);
 
-        if (mCopyOpsVisibility.size() > 0)
-        {
+            mFrameIndex++;
+
+        }
 ```
 ...
 ```cpp
-            copyVisibility.copyList = mCopyOpsVisibility.data();
-            copyVisibility.count = mCopyOpsVisibility.size();
-            Renderer::GetInstance()->CopyBufferRegion(copyVisibility);
-        }
+
+        PROFILER_EVENT_BEGIN("TickFrame::RenderEngineUpdate");
+        RenderEngine::GetInstance()->PrepareFrame(frameIndex, sceneDelta);
+        PROFILER_EVENT_END("TickFrame::RenderEngineUpdate");
+
+
+        RenderEngine::GetInstance()->BuildFrame();
+
+
+        PROFILER_EVENT_BEGIN("TickFrame::EndFrame");
+        SceneManager::GetInstance()->EndFrame();
+        RenderEngine::GetInstance()->EndFrame();
+        PROFILER_EVENT_END("TickFrame::EndFrame");
 
     }
 
-    void FrameContext::UpdateShadowData(uint32_t renderID, CPUSceneView &view)
-    {
-```
-
-### File: `Runtime/Renderer/FrameContext.h`
-```cpp
-namespace EngineCore
-{
-    class FrameContext
-    {
-    public:
-        FrameContext();
-        GPUBufferAllocator* allObjectDataBuffer;
-        GPUBufferAllocator* allAABBBuffer;
-        GPUBufferAllocator* renderProxyBuffer;
-        //GPUBufferAllocator* perFrameBatchBuffer;
-        GPUBufferAllocator* perFrameUploadBuffer;
-        GPUBufferAllocator* visibilityBuffer;
-
-
-        vector<uint32_t> mDirtyFlags;
-        vector<PerObjectData> mPerObjectDatas;
-        void EnsureCapacity(uint32_t renderID);
-        BufferAllocation UploadDrawBatch(void *data, uint32_t size);
-
-        void Reset();
-        void UpdateShadowData(uint32_t renderID, CPUSceneView& cpuScene);
-        void UpdatePerFrameDirtyNode(CPUSceneView& cpuScene);
-        ~FrameContext();
-        void UpdateDirtyFlags(uint32_t renderID, uint32_t flags);
-        void UploadCopyOp();
-    private:
-        void TryFreeRenderProxyByRenderIndex(uint32_t renderID);
-        void TryFreePerObjectDataAndAABBData(uint32_t renderID);
-        
-        vector<uint32_t> mPerFrameDirtyID;   
-        vector<CopyOp> mCopyOpsObject;
-        vector<CopyOp> mCopyOpsAABB;
-        vector<CopyOp> mCopyOpsProxy;
-        vector<CopyOp> mCopyOpsVisibility;
-
-    };
-```
-
-### File: `Runtime/Renderer/RenderEngine.cpp`
-```cpp
-        s_Instance = std::make_unique<RenderEngine>();
-        s_Instance->GetGPUScene().Create();
-        WindowManager::Create();
-        RenderAPI::Create();
-        Renderer::Create();
-
-
-        if (RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy)
-        {
-            s_Instance->mCurrentRenderPath = new LagacyRenderPath();
-        }
-```
-...
-```cpp
-        PROFILER_EVENT_END("MainThread::WaitForGpuFinished");
-        mCurrentRenderPath->Prepare(renderContext);
-        UploadCopyOp();
-    }    
-    
-    void RenderEngine::OnResize(int width, int height)
+    void Game::Shutdown()
     {
 ```
 ...
 ```cpp
-        s_Instance->mCurrentRenderPath->Execute(renderContext);
-        
-        SignalMainThreadSubmited();
+        // 1. 先停止渲染线程（最重要！）
+        //    必须在销毁任何渲染资源之前停止
+        RenderEngine::Destory();
+        std::cout << "RenderEngine destroyed." << std::endl;
 
+        // 2. 销毁编辑器UI
+        #ifdef EDITOR
+        EngineEditor::EditorGUIManager::OnDestory();
+        std::cout << "EditorGUIManager destroyed." << std::endl;
+        #endif
+
+        // 3. 销毁场景（包含所有GameObject）
+        SceneManager::Destroy();
+        std::cout << "SceneManager destroyed." << std::endl;
+
+        // 4. 最后销毁资源管理器
+        ResourceManager::GetInstance()->Destroy();
+        std::cout << "ResourceManager destroyed." << std::endl;
+
+        std::cout << "Game shutdown complete." << std::endl;
     }
 
-    void RenderEngine::EndFrame()
-    {
-```
-...
-```cpp
-    {
-        // Renderer 的析构函数会自动停止渲染线程
-        Renderer::Destroy();
-        //RenderAPI::Destroy();
-        WindowManager::Destroy();
-        RenderEngine::GetInstance()->GetGPUScene().Destroy();
-
-        delete s_Instance->mCurrentRenderPath;
-        // 最后销毁 RenderEngine 自己
-        if (s_Instance)
-        {
-            // 先调用析构（智能指针自动管理）
-            s_Instance.reset();
-            // 此时：
-            // 1. 析构函数已完成
-            // 2. 内存已释放
-            // 3. s_Instance 已经是 nullptr
-            // 4. 后续 GetInstance() 不会返回野指针
-        }
-```
-...
-```cpp
-    void RenderEngine::WaitForLastFrameFinished()
-    {
-        PROFILER_EVENT_BEGIN("MainThread::WaitforSignalFromRenderThread");
-        CpuEvent::RenderThreadSubmited().Wait();
-        PROFILER_EVENT_END("MainThread::WaitforSignalFromRenderThread");
-
-    }
-
-    void RenderEngine::SignalMainThreadSubmited()
-    {
+}
 ```
 
 ### File: `Assets/Shader/GPUCulling.hlsl`
@@ -375,61 +389,124 @@ struct AABB
 
 ### File: `Runtime/Scene/GPUScene.h`
 ```cpp
-        BufferAllocation UploadDrawBatch(void *data, uint32_t size);
 
-        void UpdateDirtyNode(CPUSceneView& view);
+        void UpdatePerFrameDirtyNode(CPUSceneView& view);
         void UploadCopyOp();
-
-        void ApplyDirtyNode(uint32_t renderID, uint32_t flags, CPUSceneView& view);
-
-
-        void UpdateFrameContextDirtyFlags(uint32_t renderID, uint32_t flag);
-        void UpdateFrameContextShadowData(uint32_t renderID, CPUSceneView& view);
         
-        FrameContext* GetCurrentFrameContexts();
+        void ApplyDirtyNode(uint32_t renderID, uint32_t flags, CPUSceneView& view);
+        void UpdateDirtyFlags(uint32_t renderID, uint32_t flags);
+        void UpdateShadowData(uint32_t renderID, CPUSceneView& cpuScene);
+
         inline uint32_t GetCurrentFrameID() const { return mCurrentFrameID; }
+```
+...
+```cpp
+
+        inline GPUBufferAllocator* GetAllMaterialDataBuffer() { return allMaterialDataBuffer; }
+        inline ResourceHandle<ComputeShader> GetCullingShaderHandler() { return GPUCullingShaderHandler; }
+```
+
+### File: `Runtime/Renderer/RenderBackend.h`
+```cpp
+        void SetBindLessMeshIB(uint32_t id);
+        
+        void DrawIndirect(Payload_DrawIndirect payload);
+        void FlushPerFrameData();
+        void FlushPerPassData(const RenderContext& context);
+        void CreatePerFrameData();
+        void CreatePerPassForwardData();
+        void RenderThreadMain() 
+        {
+            while (mRunning.load(std::memory_order_acquire) == true) 
+            {
+                PROFILER_ZONE("RenderThread::RenderLoop");
+
+                // PROFILER_EVENT_BEGIN("RenderThread::WaitForSignalFromMainThread");
+                // CpuEvent::MainThreadSubmited().Wait();
+                // PROFILER_EVENT_END("RenderThread::WaitForSignalFromMainThread");
+
+
+                PROFILER_EVENT_BEGIN("RenderThread::ProcessDrawComand");
+                DrawCommand cmd;
+                if (!mRenderBuffer.TryPop(cmd)) 
+                {
+                    mDataAvailableEvent.Wait();
+                    continue;
+                }
+
+                bool hasBeginFrame = false;
+                bool hasEndFrame = false;
+                while (mRunning.load(std::memory_order_acquire) == true)
+                {
+                    if (cmd.op == RenderOp::kBeginFrame) hasBeginFrame = true;
+                    if (cmd.op == RenderOp::kEndFrame)
+                    {
+                        hasEndFrame = true;
+                        break;
+                    }
+
+                    ProcessDrawCommand(cmd);
+
+                    if (!mRenderBuffer.TryPop(cmd))
+                    {
+                        mDataAvailableEvent.Wait();
+                        if (!mRunning.load(std::memory_order_acquire)) break;
+                        if (!mRenderBuffer.TryPop(cmd)) continue;
+                    }
+                }
+                PROFILER_EVENT_END("RenderThread::ProcessDrawComand");
+
+                if (!hasBeginFrame || !hasEndFrame)
+                {
+                    continue;
+                }
+                
+                
+                // later do Gpu Fence...
+                RenderAPI::GetInstance()->RenderAPISubmit();
+
+#ifdef EDITOR          
+                PROFILER_EVENT_BEGIN("RenderThread::ProcessEditorGUI");
+                if (hasDrawGUI)
+                {
+                    EngineEditor::EditorGUIManager::GetInstance()->EndFrame();
+                    hasDrawGUI = false;
+                }
+                // ImGui DrawData 已消费完毕，通知主线程可以安全调用 ImGui::NewFrame()
+                CpuEvent::GUIDataConsumed().Signal();
+                PROFILER_EVENT_END("RenderThread::ProcessEditorGUI");
+#endif
+
+
+                RenderAPI::GetInstance()->RenderAPIPresentFrame();
+
+
+                if (hasResize)
+                {
+                    RenderAPI::GetInstance()->RenderAPIWindowResize(pendingResize);
+                    hasResize = false;
+                    pendingResize = { 0,0 };
+                }
+
+```
+...
+```cpp
+        
+
+        void TryWakeUpRenderThread();
+    private:
+        void EnqueueCommand(const DrawCommand& cmd);
+        void WaitForQueueSpace();
+
+        SPSCRingBuffer<DrawCommand, 16384> mRenderBuffer;
+        std::thread mRenderThread;
+        bool hasResize = false;
+        bool hasDrawGUI = false;
+        Payload_WindowResize pendingResize = { 0, 0 };
 ```
 
 ### File: `Runtime/Platforms/D3D12/D3D12RenderAPI.h`
 ```cpp
-namespace EngineCore
-{
-    class FrameContext;
-
-    class D3D12RenderAPI : public RenderAPI
-    {
-    public:
-
-        D3D12RenderAPI();
-        ~D3D12RenderAPI(){};
-
-        virtual void CompileShader(const string& path, Shader* shader) override;
-        virtual void CompileComputeShader(const string& path, ComputeShader* csShader) override;
-
-        inline TD3D12Fence* GetFrameFence() { return mFrameFence; };
-        virtual IGPUTexture* CreateTextureBuffer(unsigned char* data, const TextureDesc& textureDesc) override;
-        virtual IGPUTexture* CreateRenderTexture(const TextureDesc& textureDesc) override;
-        
-        // 渲染线程调用接口
-        virtual void RenderAPIBeginFrame() override;
-        virtual void RenderAPIConfigureRT(Payload_ConfigureRT payloadConfigureRT) override;
-        virtual void RenderAPIDrawIndexed(Payload_DrawCommand payloadDrawCommand) override;
-        virtual void RenderAPISetMaterial(Payload_SetMaterial payloadSetMaterial) override;
-        virtual void RenderAPISetBindlessMat(Payload_SetBindlessMat payloadSetBindlessMat) override;
-        virtual void RenderAPISetBindLessMeshIB() override;
-        virtual void RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState) override;
-        virtual void RenderAPISetSissorRect(Payload_SetSissorRect payloadSetSissorrect) override;
-        virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) override;
-        virtual void RenderAPISetViewPort(Payload_SetViewPort payloadSetViewport) override;
-        virtual void RenderAPIWindowResize(Payload_WindowResize payloadWindowResize) override;
-        virtual void RenderAPISubmit() override;
-        virtual void RenderAPIPresentFrame() override;
-        virtual void RenderAPISetPerDrawData(Payload_SetPerDrawData setPerDrawData) override;
-        virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) override;
-        virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) override;
-        virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) override;
-        virtual void RenderAPISetFrameContext(Payload_SetFrameContext setFrameContext) override;
-        virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) override;
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
         virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) override;
@@ -467,11 +544,6 @@ namespace EngineCore
                 mCurrBackBuffer,
                 mRtvDescriptorSize);
         }
-
-        D3D12_CPU_DESCRIPTOR_HANDLE D3D12RenderAPI::DepthStencilView()const
-        {
-            return mDsvHeap->GetCPUDescriptorHandleForHeapStart();
-        }
 ```
 ...
 ```cpp
@@ -484,6 +556,10 @@ namespace EngineCore
 ```
 ...
 ```cpp
+        virtual void UploadBuffer(IGPUBuffer* bufferResource, uint32_t offset, void* data, uint32_t size) override;
+        static D3D12_RESOURCE_STATES GetResourceState(BufferResourceState state);
+        virtual uint64_t GetCurrentGPUCompletedFenceValue() override;
+    private:
 
         bool InitDirect3D();
         void InitFence();
@@ -503,10 +579,10 @@ namespace EngineCore
 
 ### File: `Runtime/Renderer/RenderCommand.h`
 ```cpp
+#include "Renderer/FrameTicket.h"
+
 namespace EngineCore
 {
-    class FrameContext;
-
     enum class RenderOp : uint8_t
     {
         kInvalid = 0,
@@ -531,17 +607,112 @@ namespace EngineCore
         kDrawIndirect = 19,
         kSetBindlessMat = 20,
         kSetBindLessMeshIB = 21,
-        kSetFrameContext = 22,
+        kSetFrame = 22,
+    };
+
+    enum class DepthComparisonFunc : uint8_t
+    {
+        LESS = 0,
+        LEQUAL = 1,
+        EQUAL = 2,
+        GREATEQUAL = 3,
+        GREAT = 4
+    };
+
+    enum class CullMode : uint8_t
+    {
+        CULLOFF = 0,
+        CULLBACK = 1,
+        CULLFRONT = 2,
+    };
+
+    enum class BlendState : uint8_t
+    {
+        SRCALHPHA = 0,
+        ONEMINUSSRCALPHA = 2,
+        ONE = 3,
+        ZERO = 4,
+    };
+
+    // 和材质相关，关联材质后可以做合批操作。
+    struct MaterailRenderState
+    {
+        uint32_t shaderInstanceID = 0;
+        RootSignatureKey rootSignatureKey;
+        // depth stencil state:
+        bool enableDepthTest = true;
+        bool enableDepthWrite = true;
+        DepthComparisonFunc depthComparisonFunc = DepthComparisonFunc::LEQUAL;
+        bool isBindLessMaterial = false;
+        // blend mode
+        bool enableBlend = false;
+        BlendState srcBlend = (BlendState)0;
+        BlendState destBlend = (BlendState)0;
+        uint32_t hashID = 0;
+        uint32_t GetHash()
+        {
+            if(hashID != 0) return hashID;
+            hashID = 0;
+            HashCombine(hashID, shaderInstanceID);
+            HashCombine(hashID, static_cast<uint32_t>(enableDepthTest));
+            HashCombine(hashID, static_cast<uint32_t>(enableDepthWrite));
+            HashCombine(hashID, static_cast<uint32_t>(depthComparisonFunc));
+            HashCombine(hashID, static_cast<uint32_t>(enableBlend));
+            HashCombine(hashID, static_cast<uint32_t>(srcBlend));
+```
+...
+```cpp
+    };
+
+    struct PSODesc
+    {
+        MaterailRenderState matRenderState;
+
+        TextureFormat colorAttachment = TextureFormat::EMPTY;
+        TextureFormat depthAttachment = TextureFormat::EMPTY;
+        uint32_t GetHash()
+        {
+            if(hashID != 0) return hashID;
+            hashID = 0;
+            HashCombine(hashID, matRenderState.shaderInstanceID);
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.enableDepthTest));
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.depthComparisonFunc));
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.enableDepthWrite));
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.enableBlend));
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.srcBlend));
+            HashCombine(hashID, static_cast<uint32_t>(matRenderState.destBlend));
+            HashCombine(hashID, static_cast<uint32_t>(colorAttachment));
+            HashCombine(hashID, static_cast<uint32_t>(depthAttachment));
+            return hashID;
+        };
+    private:
+        uint32_t hashID = 0;
     };
 ```
 ...
 ```cpp
     };
 
-    struct Payload_SetFrameContext
+    struct ClearValue
     {
-        FrameContext* frameContext = nullptr;
-        uint32_t frameID = 0;
+        // todo :: vector3 -> vector4
+        Vector3 colorValue;
+        float depthValue;
+        ClearFlag flags;
+        ClearValue(Vector3 color, float depth, ClearFlag flag):colorValue(color), depthValue(depth), flags(flag){};
+    };
+```
+...
+```cpp
+    };
+
+    struct alignas(16) CopyOp
+    {
+        IGPUBuffer* srcUploadBuffer;
+        IGPUBuffer* destDefaultBuffer;
+        uint32_t srcOffset;
+        uint32_t dstOffset;
+        uint32_t size;
     };
 ```
 ...
@@ -556,147 +727,6 @@ namespace EngineCore
         uint32_t count;
         uint32_t startIndexInInstanceDataBuffer;
     };
-```
-
-### File: `Runtime/Renderer/RenderPath/GPUSceneRenderPath.h`
-```cpp
-#include "Renderer/FrameContext.h"
-
-namespace EngineCore
-{
-    class GPUSceneRenderPath : public IRenderPath
-    {
-    public:
-        virtual ~GPUSceneRenderPath() override 
-        {
-            delete cullingParamBuffer;
-            delete indirectDrawArgsBuffer;
-        };
-
-        virtual void Execute(RenderContext& context) override;
-        virtual void Prepare(RenderContext& context) override;
-
-
-        bool hasSetUpBuffer = false;
-        BufferAllocation cullingParamAlloc;
-        GPUBufferAllocator* cullingParamBuffer;
-        BufferAllocation indirectDrawArgsAlloc;
-        GPUBufferAllocator* indirectDrawArgsBuffer;
-
-    };
-}
-```
-
-### File: `Runtime/Renderer/Renderer.h`
-```cpp
-        void SetPerFrameData(UINT perFrameBufferID);
-        void SetPerPassData(UINT perPassBufferID);
-        void SetFrameContext(FrameContext* frameContext, uint32_t frameID);
-        
-        void SetRenderState(const Material* mat, const RenderPassInfo &passinfo);
-
-        void SetMaterialData(Material* mat);
-
-        void ConfigureRenderTarget(const RenderPassInfo& passInfo);
-
-        void SetMeshData(Mesh* meshFilter);
-
-        void SetViewPort(const Vector2& viewportStartXY, const Vector2& viewportEndXY);
-        // todo: complete this..
-        void SetSissorRect(const Vector2& viewportStartXY, const Vector2& viewportEndXY);
-
-        void ProcessDrawCommand(const DrawCommand& cmd);
-
-        void CopyBufferRegion(const Payload_CopyBufferRegion& copyCmd);
-
-        void DispatchComputeShader(const Payload_DispatchComputeShader& dispatchCmd);
-        
-        void SetResourceState(IGPUResource* resource, BufferResourceState state);
-        
-        void SetBindlessMat(Material* mat);
-        void SetBindLessMeshIB(uint32_t id);
-        
-        void DrawIndirect(Payload_DrawIndirect payload);
-        
-        void RenderThreadMain() 
-        {
-            while (mRunning.load(std::memory_order_acquire) == true) 
-            {
-                PROFILER_ZONE("RenderThread::RenderLoop");
-
-                PROFILER_EVENT_BEGIN("RenderThread::WaitForSignalFromMainThread");
-                CpuEvent::MainThreadSubmited().Wait();
-                PROFILER_EVENT_END("RenderThread::WaitForSignalFromMainThread");
-
-                RenderAPI::GetInstance()->RenderAPIBeginFrame();
-                DrawCommand cmd;
-
-                PROFILER_EVENT_BEGIN("RenderThread::ProcessDrawComand");
-                while(mRenderBuffer.PopBlocking(cmd))
-                {
-                    if (cmd.op == RenderOp::kEndFrame) break;
-                    ProcessDrawCommand(cmd);
-                }
-                PROFILER_EVENT_END("RenderThread::ProcessDrawComand");
-                // later do Gpu Fence...
-                RenderAPI::GetInstance()->RenderAPISubmit();
-
-#ifdef EDITOR          
-                PROFILER_EVENT_BEGIN("RenderThread::ProcessEditorGUI");
-                if (hasDrawGUI)
-                {
-                    EngineEditor::EditorGUIManager::GetInstance()->EndFrame();
-                    hasDrawGUI = false;
-                }
-                PROFILER_EVENT_END("RenderThread::ProcessEditorGUI");
-#endif
-
-
-                RenderAPI::GetInstance()->RenderAPIPresentFrame();
-
-                CpuEvent::RenderThreadSubmited().Signal();
-
-                if (hasResize)
-                {
-                    RenderAPI::GetInstance()->RenderAPIWindowResize(pendingResize);
-                    hasResize = false;
-                    pendingResize = { 0,0 };
-                }
-
-            }
-        };
-        
-
-    private:
-        SPSCRingBuffer<16384> mRenderBuffer;
-```
-...
-```cpp
-        PerPassData_Forward mPerPassData_Forward;
-
-        void FlushPerFrameData();
-        void FlushPerPassData(const RenderContext& context);
-        void CreatePerFrameData();
-        void CreatePerPassForwardData();
-
-    };
-}
-```
-
-### File: `Runtime/Renderer/RenderPath/LagacyRenderPath.h`
-```cpp
-#include "Scene/GPUSCene.h"
-
-namespace EngineCore
-{
-    class LagacyRenderPath : public IRenderPath
-    {
-    public:
-        virtual ~LagacyRenderPath() override {};
-        virtual void Execute(RenderContext& context) override;
-        virtual void Prepare(RenderContext& context) override;
-    };
-};
 ```
 
 ### File: `Runtime/Renderer/BatchManager.h`
@@ -740,82 +770,186 @@ namespace EngineCore
 }
 ```
 
-### File: `Runtime/Renderer/RenderAPI.h`
+### File: `Runtime/Renderer/FrameTicket.h`
 ```cpp
+        public:
+            
+            inline uint64_t GetFenceValue() const { return mGPUFenceValue.load(std::memory_order_acquire); }
+```
 
-
-namespace  EngineCore
-{
-    class RenderAPI
-    {
-    public:
-        inline static RenderAPI* GetInstance()
-        {
-            if (s_Instance == nullptr) 
-            {   
-                Create();
-            }
-            return s_Instance.get();
-        }
+### File: `Runtime/Renderer/RenderEngine.h`
+```cpp
+        static RenderEngine* GetInstance(){return s_Instance.get();};
         static bool IsInitialized(){return s_Instance != nullptr;};
-       
+        void PrepareFrame(uint32_t frameID, const SceneDelta& delta);
         static void Create();
-        virtual void  CompileShader(const string& path, Shader* shader) = 0;
-        virtual void  CompileComputeShader(const string& path, ComputeShader* csShader) = 0;
+        void BuildFrame();
+        void WaitForFrameAvaliable(uint32_t frameID);
+        void EndFrame();
         
+        static void OnResize(int width, int height);
+        static void OnDrawGUI();
+        static void Destory();
+        RenderEngine(){};
+```
+...
+```cpp
+        uint32_t mCurrentFrameID = 0;
 
-        virtual IGPUTexture* CreateTextureBuffer(unsigned char* data, const TextureDesc& textureDesc) = 0;
-        virtual IGPUTexture* CreateRenderTexture(const TextureDesc& textureDesc) = 0;
-        
-        //virtual void GetOrCreatePSO(const Material& mat, const RenderPassInfo &passinfo) = 0;
-        inline void AddRenderPassInfo(const RenderPassInfo& renderPassInfo){ mRenderPassInfoList.push_back(renderPassInfo); };
-        inline void ClearRenderPassInfo(){ mRenderPassInfoList.clear(); };
-        
-        virtual void RenderAPIBeginFrame() = 0;
-        virtual void RenderAPIConfigureRT(Payload_ConfigureRT payloadConfigureRT) = 0;
-        virtual void RenderAPIDrawIndexed(Payload_DrawCommand payloadDrawCommand) = 0;
-        virtual void RenderAPISetMaterial(Payload_SetMaterial payloadSetMaterial) = 0;
-        virtual void RenderAPISetBindlessMat(Payload_SetBindlessMat payloadSetBindlessMat) = 0;
-        virtual void RenderAPISetBindLessMeshIB() = 0;
-        virtual void RenderAPISetRenderState(Payload_SetRenderState payloadSetRenderState) = 0;
-        virtual void RenderAPISetSissorRect(Payload_SetSissorRect payloadSetSissorrect) = 0;
-        virtual void RenderAPISetVBIB(Payload_SetVBIB payloadSetVBIB) = 0;
-        virtual void RenderAPISetViewPort(Payload_SetViewPort payloadSetViewport) = 0;
-        virtual void RenderAPISubmit() = 0;
-        virtual void RenderAPIWindowResize(Payload_WindowResize payloadWindowResize) = 0;
-        virtual void RenderAPIPresentFrame() = 0;
-        virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) = 0;
-        virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) = 0;
-        virtual void RenderAPISetFrameContext(Payload_SetFrameContext setFrameContext) = 0;
-        virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) = 0;
-        
-        virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) = 0;
-        
-        virtual void RenderAPISetPerDrawData(Payload_SetPerDrawData setPerDrawData) = 0;
-        virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) = 0;
-        
-        virtual IGPUBuffer* CreateBuffer(const BufferDesc& desc, void* data) = 0;
-        virtual void UploadBuffer(IGPUBuffer* buffer, uint32_t offset, void* data, uint32_t size) = 0;
-        virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) = 0;
-        virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) = 0;
-        virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) = 0;
-        virtual RenderTexture* GetCurrentBackBuffer() = 0;
-        template<typename T>
-        void SetGlobalValue(uint32_t bufferID, uint32_t offset, T* value)
-        {
-            uint32_t size = sizeof(T);
-            SetGlobalDataImpl(bufferID, offset, size, static_cast<void*>(value));
-        }
-        virtual void WaitForGpuFinished() = 0;
-    public:
-        static std::unique_ptr<RenderAPI> s_Instance;
-    protected:
-        vector<RenderPassInfo> mRenderPassInfoList;
-    private:
-        virtual void SetGlobalDataImpl(uint32_t bufferID, uint32_t offset, uint32_t size, const void* value) = 0;
-
+        void ComsumeDirtySceneRenderNode(const SceneDelta& delta);
+        void UploadCopyOp();
     };
     
-} // namespace  EngineCore
+}
+```
 
+### File: `Runtime/Scene/Scene.h`
+```cpp
+    {
+    public:
+        Scene();
+        ~Scene();
+        Scene(const std::string& name):name(name){};
+```
+...
+```cpp
+        void Close(){};
+        void TickSimulation(uint32_t frameIndex);
+        void EndFrame();
+        GameObject* FindGameObject(const std::string& name);
+        GameObject* CreateGameObject(const std::string& name);
+        void DestroyGameObject(const std::string& name);
+
+        void AddCamToStack(Camera* cam);
+        inline void SetMainCamera(Camera* cam) { mainCamera = cam; }
+```
+...
+```cpp
+        
+        // 只在GameObject层用到，析构和SetParent的时候， 创建的时候调用
+        void RemoveGameObjectToSceneList(GameObject* object);
+        void AddGameObjectToSceneList(GameObject* object);
+
+        void AddRootGameObject(GameObject* object);
+        void TryRemoveRootGameObject(GameObject* object);
+
+        void PushNewTransformDirtyRoot(Transform* transform);
+
+        
+        //todo: 先用vector写死，后面要用priorityqueue之类的
+        std::vector<Camera*> cameraStack;
+
+        void RunLogicUpdate();
+        void RunTransformUpdate();
+        void RunRemoveInvalidDirtyRenderNode();
+
+        uint32_t CreateRenderNode();
+        
+        void DeleteRenderNode(MeshRenderer *renderer);
+        void MarkNodeCreated(MeshRenderer* renderer);
+        void MarkNodeTransformDirty(Transform* transform);
+        void MarkNodeMeshFilterDirty(MeshFilter* meshFilter);
+        void MarkNodeMeshRendererDirty(MeshRenderer* renderer);
+        void MarkNodeRenderableDirty(GameObject* object);
+        
+        inline std::vector<uint32_t>& GetPerFrameDirtyNodeList(){ return mPerFrameDirtyNodeList;}
+```
+...
+```cpp
+        }
+
+        SceneDelta FlushSceneDelta();
+    public:
+        std::string name;
+        std::vector<GameObject*> allObjList;
+        std::vector<GameObject*> rootObjList;
+        bool enabled = true;
+        Camera* mainCamera = nullptr;
+
+        std::vector<Transform*> dirtyRootDepthBucket[64];
+        
+    private:
+        uint32_t mCurrentFrame = 0;
+        void ApplyQueueNodeChange(uint32_t id, uint32_t flags, const NodeDirtyPayload& p);
+        void InternalMarkNodeDeleted(MeshRenderer* renderer);
+        
+        std::vector<uint32_t> mNodeFrameStampList;
+        std::vector<uint32_t> mNodeChangeFlagList;
+        std::vector<NodeDirtyPayload> mNodeDirtyPayloadList;
+        SceneDelta mSceneDelta;
+
+        std::vector<uint32_t> mPerFrameDirtyNodeList;
+        
+        uint32_t mCurrSceneIndex = 0;
+        std::vector<uint32_t> mFreeSceneIndex;
+        std::vector<uint32_t> mPendingFreeSceneIndex;
+
+        void EnsureNodeQueueSize(uint32_t size);
+        void ClearPerFrameData();
+        void ClearDirtyRootTransform();
+        void PushLastFrameFreeIndex();
+    };    
+} // namespace EngineCore
+```
+
+### File: `Runtime/Platforms/D3D12/D3D12ShaderUtils.h`
+```cpp
+#include "d3dUtil.h"
+
+namespace EngineCore
+{
+    class D3D12ShaderUtils
+    {
+    public:
+        static bool CompileShaderAndGetReflection(const string& path, Shader* shader);
+        static bool CompileShaderStageAndGetReflection(const string& path, string entryPoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob);
+        static bool D3D12ShaderUtils::CompileComputeShaderAndGetReflection(const string& path, ComputeShader* csShader);
+        
+        static Microsoft::WRL::ComPtr<ID3DBlob> GetVSBlob(uint32_t shaderID)
+        {
+            ASSERT(vsBlobMap.count(shaderID) > 0);
+            return vsBlobMap[shaderID];
+        }
+
+        static Microsoft::WRL::ComPtr<ID3DBlob> GetPSBlob(uint32_t shaderID)
+        {
+            ASSERT(psBlobMap.count(shaderID) > 0);
+            return psBlobMap[shaderID];
+        }
+
+        static Microsoft::WRL::ComPtr<ID3DBlob> GetCSBlob(uint32_t shaderID)
+        {
+            ASSERT(csBlobMap.count(shaderID) > 0);
+            return csBlobMap[shaderID];
+        }
+        static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> vsBlobMap;
+        static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> psBlobMap;
+        static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> csBlobMap;
+    };
+}
+```
+
+### File: `Runtime/Platforms/D3D12/D3D12Struct.h`
+```cpp
+    };
+
+    struct TD3D12Fence
+    {
+    public:
+        uint64_t mCurrentFence;
+        Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
+    };
+```
+...
+```cpp
+
+    // 存储创建PSO需要的信息
+    struct TD3D12PSO
+    {
+        PSODesc desc;
+        Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
+        std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayout;
+        ComPtr<ID3DBlob> vsBlob;
+        ComPtr<ID3DBlob> psBlob;
+    };
 ```

@@ -19,11 +19,11 @@
 - `[20]` **Win-GenProjects.bat** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
 - `[12]` **Runtime/Core/Game.cpp** *(Content Included)*
-- `[8]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
-- `[8]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
-- `[6]` **Runtime/Renderer/Renderer.h** *(Content Included)*
+- `[6]` **Runtime/Renderer/RenderBackend.h** *(Content Included)*
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h** *(Content Included)*
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h** *(Content Included)*
+- `[4]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
+- `[4]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[4]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp** *(Content Included)*
 - `[4]` **Runtime/Platforms/D3D12/d3dUtil.cpp** *(Content Included)*
 - `[4]` **Assets/Shader/BlitShader.hlsl** *(Content Included)*
@@ -206,22 +206,20 @@ PAUSE
 
 ```
 
-### File: `Runtime/Renderer/Renderer.h`
+### File: `Runtime/Renderer/RenderBackend.h`
 ```cpp
 
 
 namespace EngineCore
 {
-    class Renderer : public Manager<Renderer>
+    class RenderBackend : public Manager<RenderBackend>
     {
     public:
-        Renderer(): mRenderThread(&Renderer::RenderThreadMain, this), mRunning(true), mPerFrameData{}{};
-        ~Renderer();
+        RenderBackend(): mRenderThread(&RenderBackend::RenderThreadMain, this), mRunning(true), mPerFrameData{}{};
+        ~RenderBackend();
         static void Create();
 
         void BeginFrame();
-        void Prepare(RenderContext& context);
-        void Render(RenderContext& context);
         void EndFrame();
 
         void DrawIndexed(uint32_t vaoID, int count);
@@ -231,7 +229,7 @@ namespace EngineCore
         void DrawIndexedInstanced(Mesh* mesh, int count, const PerDrawHandle& perDrawHandle);
         void SetPerFrameData(UINT perFrameBufferID);
         void SetPerPassData(UINT perPassBufferID);
-        void SetFrameContext(FrameContext* frameContext, uint32_t frameID);
+        void SetFrame(FrameTicket* frameTicket, uint32_t frameID);
         
         void SetRenderState(const Material* mat, const RenderPassInfo &passinfo);
 
@@ -257,27 +255,54 @@ namespace EngineCore
         void SetBindLessMeshIB(uint32_t id);
         
         void DrawIndirect(Payload_DrawIndirect payload);
-        
+        void FlushPerFrameData();
+        void FlushPerPassData(const RenderContext& context);
+        void CreatePerFrameData();
+        void CreatePerPassForwardData();
         void RenderThreadMain() 
         {
             while (mRunning.load(std::memory_order_acquire) == true) 
             {
                 PROFILER_ZONE("RenderThread::RenderLoop");
 
-                PROFILER_EVENT_BEGIN("RenderThread::WaitForSignalFromMainThread");
-                CpuEvent::MainThreadSubmited().Wait();
-                PROFILER_EVENT_END("RenderThread::WaitForSignalFromMainThread");
+                // PROFILER_EVENT_BEGIN("RenderThread::WaitForSignalFromMainThread");
+                // CpuEvent::MainThreadSubmited().Wait();
+                // PROFILER_EVENT_END("RenderThread::WaitForSignalFromMainThread");
 
-                RenderAPI::GetInstance()->RenderAPIBeginFrame();
-                DrawCommand cmd;
 
                 PROFILER_EVENT_BEGIN("RenderThread::ProcessDrawComand");
-                while(mRenderBuffer.PopBlocking(cmd))
+                DrawCommand cmd;
+                if (!mRenderBuffer.TryPop(cmd)) 
                 {
-                    if (cmd.op == RenderOp::kEndFrame) break;
-                    ProcessDrawCommand(cmd);
+                    mDataAvailableEvent.Wait();
+                    continue;
+                }
+
+                bool hasBeginFrame = false;
+                bool hasEndFrame = false;
+                while (mRunning.load(std::memory_order_acquire) == true)
+                {
+                    if (cmd.op == RenderOp::kBeginFrame) hasBeginFrame = true;
+                    if (cmd.op == RenderOp::kEndFrame)
+                    {
+                        hasEndFrame = true;
+                        break;
+                    }
+```
+...
+```cpp
+                    }
                 }
                 PROFILER_EVENT_END("RenderThread::ProcessDrawComand");
+
+                if (!hasBeginFrame || !hasEndFrame)
+                {
+                    continue;
+                }
+```
+...
+```cpp
+                
                 // later do Gpu Fence...
                 RenderAPI::GetInstance()->RenderAPISubmit();
 
@@ -295,7 +320,6 @@ namespace EngineCore
 
                 RenderAPI::GetInstance()->RenderAPIPresentFrame();
 
-                CpuEvent::RenderThreadSubmited().Signal();
 
                 if (hasResize)
                 {
@@ -306,15 +330,18 @@ namespace EngineCore
 ```
 ...
 ```cpp
-        PerPassData_Forward mPerPassData_Forward;
+        
 
-        void FlushPerFrameData();
-        void FlushPerPassData(const RenderContext& context);
-        void CreatePerFrameData();
-        void CreatePerPassForwardData();
+        void TryWakeUpRenderThread();
+    private:
+        void EnqueueCommand(const DrawCommand& cmd);
+        void WaitForQueueSpace();
 
-    };
-}
+        SPSCRingBuffer<DrawCommand, 16384> mRenderBuffer;
+        std::thread mRenderThread;
+        bool hasResize = false;
+        bool hasDrawGUI = false;
+        Payload_WindowResize pendingResize = { 0, 0 };
 ```
 
 ### File: `Runtime/Platforms/D3D12/D3D12ShaderUtils.h`

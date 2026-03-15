@@ -30,16 +30,15 @@
 - `[26]` **Assets/Shader/StandardPBR.hlsl** *(Content Included)*
 - `[26]` **Assets/Shader/StandardPBR_VertexPulling.hlsl** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
-- `[13]` **Runtime/Renderer/Renderer.h** *(Content Included)*
+- `[13]` **Runtime/Renderer/RenderBackend.h** *(Content Included)*
 - `[12]` **Runtime/Core/Game.cpp** *(Content Included)*
 - `[12]` **Runtime/Renderer/RenderCommand.h** *(Content Included)*
-- `[12]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[11]` **Runtime/Renderer/RenderAPI.h** *(Content Included)*
 - `[11]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
-- `[10]` **Runtime/Renderer/Renderer.cpp** *(Content Included)*
-- `[10]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
-- `[8]` **Runtime/Renderer/RenderEngine.cpp**
+- `[10]` **Runtime/Renderer/RenderBackend.cpp** *(Content Included)*
+- `[10]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[8]` **Runtime/Renderer/RenderStruct.h**
+- `[8]` **Runtime/Scene/SceneManager.cpp**
 - `[8]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
 - `[7]` **Runtime/GameObject/MeshRenderer.h**
 - `[7]` **Runtime/Renderer/BatchManager.h**
@@ -70,13 +69,14 @@
 - `[5]` **Editor/Panel/EditorMainBar.cpp**
 - `[5]` **Assets/Shader/include/Core.hlsl**
 - `[4]` **Runtime/Renderer/Culling.cpp**
-- `[4]` **Runtime/Renderer/FrameContext.cpp**
+- `[4]` **Runtime/Renderer/RenderEngine.cpp**
 - `[4]` **Runtime/Scene/CPUScene.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp**
 - `[4]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[4]` **Runtime/Platforms/D3D12/d3dUtil.cpp**
 - `[4]` **Assets/Shader/GPUCulling.hlsl**
 - `[3]` **run_ai_analysis.bat**
+- `[3]` **Runtime/Renderer/RenderSorter.h**
 
 ## Evidence & Implementation Details
 
@@ -465,9 +465,9 @@ struct VertexInput
 };
 ```
 
-### File: `Runtime/Renderer/Renderer.h`
+### File: `Runtime/Renderer/RenderBackend.h`
 ```cpp
-        void SetFrameContext(FrameContext* frameContext, uint32_t frameID);
+        void SetFrame(FrameTicket* frameTicket, uint32_t frameID);
         
         void SetRenderState(const Material* mat, const RenderPassInfo &passinfo);
 
@@ -493,60 +493,60 @@ struct VertexInput
         void SetBindLessMeshIB(uint32_t id);
         
         void DrawIndirect(Payload_DrawIndirect payload);
-        
+        void FlushPerFrameData();
+        void FlushPerPassData(const RenderContext& context);
+        void CreatePerFrameData();
+        void CreatePerPassForwardData();
         void RenderThreadMain() 
         {
             while (mRunning.load(std::memory_order_acquire) == true) 
             {
                 PROFILER_ZONE("RenderThread::RenderLoop");
 
-                PROFILER_EVENT_BEGIN("RenderThread::WaitForSignalFromMainThread");
-                CpuEvent::MainThreadSubmited().Wait();
-                PROFILER_EVENT_END("RenderThread::WaitForSignalFromMainThread");
+                // PROFILER_EVENT_BEGIN("RenderThread::WaitForSignalFromMainThread");
+                // CpuEvent::MainThreadSubmited().Wait();
+                // PROFILER_EVENT_END("RenderThread::WaitForSignalFromMainThread");
 
-                RenderAPI::GetInstance()->RenderAPIBeginFrame();
-                DrawCommand cmd;
 
                 PROFILER_EVENT_BEGIN("RenderThread::ProcessDrawComand");
-                while(mRenderBuffer.PopBlocking(cmd))
+                DrawCommand cmd;
+                if (!mRenderBuffer.TryPop(cmd)) 
                 {
-                    if (cmd.op == RenderOp::kEndFrame) break;
+                    mDataAvailableEvent.Wait();
+                    continue;
+                }
+
+                bool hasBeginFrame = false;
+                bool hasEndFrame = false;
+                while (mRunning.load(std::memory_order_acquire) == true)
+                {
+                    if (cmd.op == RenderOp::kBeginFrame) hasBeginFrame = true;
+                    if (cmd.op == RenderOp::kEndFrame)
+                    {
+                        hasEndFrame = true;
+                        break;
+                    }
+
                     ProcessDrawCommand(cmd);
+
+                    if (!mRenderBuffer.TryPop(cmd))
+                    {
+                        mDataAvailableEvent.Wait();
+                        if (!mRunning.load(std::memory_order_acquire)) break;
+                        if (!mRenderBuffer.TryPop(cmd)) continue;
+                    }
                 }
                 PROFILER_EVENT_END("RenderThread::ProcessDrawComand");
+
+                if (!hasBeginFrame || !hasEndFrame)
+                {
+                    continue;
+                }
+                
+                
                 // later do Gpu Fence...
                 RenderAPI::GetInstance()->RenderAPISubmit();
 
-#ifdef EDITOR          
-                PROFILER_EVENT_BEGIN("RenderThread::ProcessEditorGUI");
-                if (hasDrawGUI)
-                {
-                    EngineEditor::EditorGUIManager::GetInstance()->EndFrame();
-                    hasDrawGUI = false;
-                }
-                PROFILER_EVENT_END("RenderThread::ProcessEditorGUI");
-#endif
-
-
-                RenderAPI::GetInstance()->RenderAPIPresentFrame();
-
-                CpuEvent::RenderThreadSubmited().Signal();
-
-                if (hasResize)
-                {
-                    RenderAPI::GetInstance()->RenderAPIWindowResize(pendingResize);
-                    hasResize = false;
-                    pendingResize = { 0,0 };
-                }
-
-            }
-        };
-        
-
-    private:
-        SPSCRingBuffer<16384> mRenderBuffer;
-        std::thread mRenderThread;
-        bool hasResize = false;
 ```
 
 ### File: `Runtime/Renderer/RenderCommand.h`
@@ -615,7 +615,7 @@ namespace  EngineCore
         virtual void RenderAPIPresentFrame() = 0;
         virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) = 0;
         virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) = 0;
-        virtual void RenderAPISetFrameContext(Payload_SetFrameContext setFrameContext) = 0;
+        virtual void RenderAPISetFrame(Payload_SetFrame setFrame) = 0;
         virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) = 0;
         
         virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) = 0;
@@ -636,6 +636,8 @@ namespace  EngineCore
             SetGlobalDataImpl(bufferID, offset, size, static_cast<void*>(value));
         }
         virtual void WaitForGpuFinished() = 0;
+
+        virtual uint64_t GetCurrentGPUCompletedFenceValue() = 0;
     public:
         static std::unique_ptr<RenderAPI> s_Instance;
     protected:
@@ -667,7 +669,7 @@ namespace  EngineCore
         virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) override;
         virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) override;
         virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) override;
-        virtual void RenderAPISetFrameContext(Payload_SetFrameContext setFrameContext) override;
+        virtual void RenderAPISetFrame(Payload_SetFrame setFrame) override;
         virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) override;
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
@@ -730,5 +732,5 @@ namespace  EngineCore
         virtual IGPUBuffer* CreateBuffer(const BufferDesc& desc, void* data) override;
         virtual void UploadBuffer(IGPUBuffer* bufferResource, uint32_t offset, void* data, uint32_t size) override;
         static D3D12_RESOURCE_STATES GetResourceState(BufferResourceState state);
-    private:
+        virtual uint64_t GetCurrentGPUCompletedFenceValue() override;
 ```

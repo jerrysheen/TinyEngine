@@ -18,7 +18,7 @@
 
 ## Key Files Index
 - `[66]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
-- `[63]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
+- `[64]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[59]` **Runtime/Graphics/MeshUtils.cpp** *(Content Included)*
 - `[57]` **Runtime/Graphics/MeshUtils.h** *(Content Included)*
 - `[56]` **Runtime/GameObject/MeshFilter.cpp** *(Content Included)*
@@ -32,28 +32,28 @@
 - `[42]` **Runtime/Graphics/GeometryManager.h** *(Content Included)*
 - `[42]` **Runtime/Graphics/Mesh.h** *(Content Included)*
 - `[42]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
-- `[41]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[40]` **Runtime/Scene/Scene.cpp** *(Content Included)*
 - `[40]` **Runtime/Scene/Scene.h** *(Content Included)*
+- `[37]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[33]` **Runtime/Scene/CPUScene.h** *(Content Included)*
 - `[33]` **Runtime/Scene/SceneManager.h** *(Content Included)*
 - `[33]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
 - `[32]` **Runtime/Scene/CPUScene.cpp**
+- `[31]` **Runtime/Scene/GPUScene.cpp**
 - `[31]` **Runtime/Scene/SceneStruct.h**
 - `[29]` **Runtime/Renderer/RenderAPI.h**
 - `[27]` **Runtime/Renderer/RenderAPI.cpp**
 - `[27]` **Runtime/Scene/GPUScene.h**
 - `[27]` **Runtime/Serialization/MeshLoader.h**
-- `[27]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
-- `[26]` **Runtime/Scene/GPUScene.cpp**
-- `[25]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
+- `[27]` **Runtime/Renderer/RenderPath/GPUSceneRenderPipeline.h**
+- `[25]` **Runtime/Renderer/RenderPath/GPUSceneRenderPipeline.cpp**
 - `[24]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
 - `[22]` **Editor/Panel/EditorMainBar.cpp**
 - `[20]` **Runtime/Entry.cpp**
-- `[19]` **Runtime/Renderer/RenderEngine.cpp**
 - `[17]` **Runtime/Core/Game.cpp**
-- `[17]` **Runtime/Renderer/Renderer.h**
+- `[17]` **Runtime/Renderer/RenderBackend.h**
 - `[16]` **Runtime/Graphics/Material.cpp**
+- `[15]` **Runtime/Renderer/RenderEngine.cpp**
 - `[13]` **Runtime/Graphics/GPUBufferAllocator.cpp**
 - `[12]` **Runtime/Graphics/ComputeShader.cpp**
 - `[12]` **Runtime/Graphics/ComputeShader.h**
@@ -69,14 +69,14 @@
 - `[12]` **Runtime/Graphics/Texture.cpp**
 - `[12]` **Runtime/Graphics/Texture.h**
 - `[12]` **Runtime/Renderer/Culling.cpp**
-- `[12]` **Runtime/Renderer/Renderer.cpp**
 - `[11]` **Runtime/GameObject/GameObject.h**
 - `[11]` **Runtime/Renderer/RenderContext.cpp**
 - `[10]` **Runtime/Renderer/BatchManager.h**
-- `[10]` **Runtime/Renderer/FrameContext.cpp**
+- `[10]` **Runtime/Renderer/RenderBackend.cpp**
 - `[10]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp**
 - `[10]` **Editor/Panel/EditorMainBar.h**
 - `[9]` **Runtime/Core/PublicStruct.h**
+- `[9]` **Runtime/Renderer/RenderEngine.h**
 
 ## Evidence & Implementation Details
 
@@ -265,9 +265,9 @@ namespace EngineCore {
 
 ### File: `Runtime/Platforms/D3D12/D3D12RenderAPI.h`
 ```cpp
-    class FrameContext;
+{
 
-    class D3D12RenderAPI : public RenderAPI
+    class D3D12RenderAPI final : public RenderAPI
     {
     public:
 
@@ -299,7 +299,7 @@ namespace EngineCore {
         virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) override;
         virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) override;
         virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) override;
-        virtual void RenderAPISetFrameContext(Payload_SetFrameContext setFrameContext) override;
+        virtual void RenderAPISetFrame(Payload_SetFrame setFrame) override;
         virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) override;
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
@@ -616,11 +616,11 @@ namespace EngineCore
         Scene(const std::string& name):name(name){};
         void Open();
         void Close(){};
-        void Update(uint32_t frameIndex);
+        void TickSimulation(uint32_t frameIndex);
         void EndFrame();
         GameObject* FindGameObject(const std::string& name);
         GameObject* CreateGameObject(const std::string& name);
-        void Scene::DestroyGameObject(const std::string& name);
+        void DestroyGameObject(const std::string& name);
 
         void AddCamToStack(Camera* cam);
         inline void SetMainCamera(Camera* cam) { mainCamera = cam; }
@@ -660,6 +660,8 @@ namespace EngineCore
         {
             mCurrentFrame = currentFrameIndex;
         }
+
+        SceneDelta FlushSceneDelta();
     public:
         std::string name;
         std::vector<GameObject*> allObjList;
@@ -677,15 +679,13 @@ namespace EngineCore
         std::vector<uint32_t> mNodeFrameStampList;
         std::vector<uint32_t> mNodeChangeFlagList;
         std::vector<NodeDirtyPayload> mNodeDirtyPayloadList;
-
+        SceneDelta mSceneDelta;
 
         std::vector<uint32_t> mPerFrameDirtyNodeList;
         
         uint32_t mCurrSceneIndex = 0;
         std::vector<uint32_t> mFreeSceneIndex;
         std::vector<uint32_t> mPendingFreeSceneIndex;
-
-        void EnsureNodeQueueSize(uint32_t size);
 ```
 
 ### File: `Runtime/Scene/CPUScene.h`
@@ -697,7 +697,7 @@ namespace EngineCore
     public:
         void Update(uint32_t frameID);
       
-        void ApplyDirtyNode(uint32_t renderID, NodeDirtyFlags cpuWorldRenderNodeFlag , NodeDirtyPayload& payload);
+        void ApplyDirtyNode(uint32_t renderID, NodeDirtyFlags cpuWorldRenderNodeFlag , const NodeDirtyPayload& payload);
         void EndFrame();
         CPUSceneView GetSceneView();
 
@@ -707,11 +707,11 @@ namespace EngineCore
         }
     private:
         void EnsureCapacity(uint32_t renderID);
-        void CreateRenderNode(uint32_t renderID, NodeDirtyPayload& payload);
+        void CreateRenderNode(uint32_t renderID, const NodeDirtyPayload& payload);
         void DeleteRenderNode(uint32_t renderID); 
-        void OnRenderNodeMaterialDirty(uint32_t renderID, NodeDirtyPayload& payload);
-        void OnRenderNodeTransformDirty(uint32_t renderID, NodeDirtyPayload& payload);
-        void OnRenderNodeMeshDirty(uint32_t renderID, NodeDirtyPayload& payload);
+        void OnRenderNodeMaterialDirty(uint32_t renderID, const NodeDirtyPayload& payload);
+        void OnRenderNodeTransformDirty(uint32_t renderID, const NodeDirtyPayload& payload);
+        void OnRenderNodeMeshDirty(uint32_t renderID, const NodeDirtyPayload& payload);
     
         
     private:
@@ -731,6 +731,7 @@ namespace EngineCore
 namespace EngineCore
 {
     class Scene;
+    class SceneDelta;
     class SceneManager
     {
         // 允许Manager类访问SceneManager私有函数。
@@ -741,7 +742,7 @@ namespace EngineCore
         GameObject* FindGameObject(const std::string& name);
 
         void RemoveScene(const std::string& name);
-        static void Update(uint32_t frameIndex);
+        static void TickSimulation(uint32_t frameIndex);
         static void Create();
         static void Destroy();
         static void EndFrame();
@@ -777,11 +778,13 @@ namespace EngineCore
         Scene* AddNewScene(const std::string& name);
         void SwitchSceneTo(const std::string& name);
         void SetCurrentFrame(uint32_t currentFrameIndex);
+
+        SceneDelta FlushSceneDelta();
     private:
         static SceneManager* s_Instance;
         Scene* mCurrentScene = nullptr;
-        unordered_map<std::string, Scene*> mSceneMap;
-        vector<ResourceHandle<Texture>> texHandler;
+        std::unordered_map<std::string, Scene*> mSceneMap;
+        std::vector<ResourceHandle<Texture>> texHandler;
     };
 
 }

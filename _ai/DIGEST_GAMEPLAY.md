@@ -26,9 +26,9 @@
 - `[38]` **Runtime/Scripts/CameraController.h** *(Content Included)*
 - `[37]` **Runtime/GameObject/Component.h** *(Content Included)*
 - `[37]` **Runtime/Managers/WindowManager.h** *(Content Included)*
+- `[36]` **Runtime/Scene/SceneStruct.h** *(Content Included)*
 - `[35]` **Runtime/GameObject/Transform.cpp** *(Content Included)*
 - `[35]` **Runtime/Managers/WindowManager.cpp** *(Content Included)*
-- `[35]` **Runtime/Scene/SceneStruct.h** *(Content Included)*
 - `[35]` **Runtime/Scripts/CameraController.cpp** *(Content Included)*
 - `[33]` **Runtime/GameObject/Component.cpp** *(Content Included)*
 - `[33]` **Runtime/GameObject/MonoBehaviour.cpp** *(Content Included)*
@@ -36,19 +36,19 @@
 - `[27]` **Runtime/Scene/CPUScene.cpp** *(Content Included)*
 - `[27]` **Runtime/Platforms/Windows/WindowManagerWindows.h** *(Content Included)*
 - `[26]` **Runtime/GameObject/GameObject.h** *(Content Included)*
-- `[26]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
-- `[25]` **Runtime/Scene/BistroSceneLoader.cpp**
+- `[25]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
 - `[25]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
+- `[22]` **Runtime/Scene/SceneManager.cpp**
 - `[21]` **Runtime/GameObject/GameObject.cpp**
+- `[21]` **Runtime/Scene/GPUScene.cpp**
 - `[20]` **Runtime/Entry.cpp**
 - `[20]` **Runtime/Scene/CPUScene.h**
-- `[19]` **Runtime/Renderer/RenderEngine.cpp**
 - `[18]` **Runtime/GameObject/MeshRenderer.h**
 - `[17]` **Runtime/GameObject/MeshFilter.h**
-- `[15]` **Runtime/Scene/GPUScene.h**
+- `[16]` **Runtime/Scene/GPUScene.h**
+- `[15]` **Runtime/Renderer/RenderEngine.cpp**
 - `[14]` **Runtime/Core/Game.cpp**
 - `[14]` **Runtime/Scene/SceneManager.h**
-- `[13]` **Runtime/Scene/GPUScene.cpp**
 - `[13]` **Editor/Panel/EditorMainBar.cpp**
 - `[12]` **Runtime/Managers/Manager.h**
 - `[12]` **Runtime/Scene/BistroSceneLoader.h**
@@ -58,11 +58,9 @@
 - `[11]` **Runtime/Serialization/SceneLoader.h**
 - `[11]` **Assets/Shader/StandardPBR.hlsl**
 - `[10]` **Runtime/GameObject/MeshFilter.cpp**
-- `[10]` **Runtime/Renderer/FrameContext.cpp**
-- `[10]` **Runtime/Renderer/Renderer.cpp**
 - `[10]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[10]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
-- `[9]` **Runtime/Renderer/Renderer.h**
+- `[9]` **Runtime/Renderer/RenderBackend.h**
 - `[9]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[9]` **Assets/Shader/BlitShader.hlsl**
 - `[9]` **Assets/Shader/GPUCulling.hlsl**
@@ -73,10 +71,12 @@
 - `[8]` **Editor/Panel/EditorInspectorPanel.h**
 - `[7]` **Editor/EditorSettings.h**
 - `[7]` **Runtime/PreCompiledHeader.h**
+- `[7]` **Runtime/Renderer/RenderBackend.cpp**
 - `[7]` **Runtime/Renderer/RenderSorter.h**
-- `[7]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
 - `[6]` **Runtime/Renderer/RenderCommand.h**
 - `[6]` **Runtime/Renderer/RenderContext.h**
+- `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
+- `[5]` **Runtime/Graphics/Mesh.cpp**
 
 ## Evidence & Implementation Details
 
@@ -355,7 +355,7 @@ namespace EngineCore
 
 ### File: `Runtime/Scene/Scene.h`
 ```cpp
-        void Scene::DestroyGameObject(const std::string& name);
+        void DestroyGameObject(const std::string& name);
 
         void AddCamToStack(Camera* cam);
         inline void SetMainCamera(Camera* cam) { mainCamera = cam; }
@@ -395,7 +395,7 @@ namespace EngineCore
         std::vector<uint32_t> mNodeFrameStampList;
         std::vector<uint32_t> mNodeChangeFlagList;
         std::vector<NodeDirtyPayload> mNodeDirtyPayloadList;
-
+        SceneDelta mSceneDelta;
 
         std::vector<uint32_t> mPerFrameDirtyNodeList;
         

@@ -20,10 +20,10 @@
 - `[63]` **Runtime/Settings/ProjectSettings.cpp** *(Content Included)*
 - `[59]` **Runtime/Core/Game.cpp** *(Content Included)*
 - `[59]` **Runtime/Settings/ProjectSettings.h** *(Content Included)*
-- `[44]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
-- `[41]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
+- `[39]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
 - `[38]` **Runtime/Core/Game.h** *(Content Included)*
 - `[37]` **Runtime/Entry.cpp** *(Content Included)*
+- `[37]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[35]` **Editor/Panel/EditorGameViewPanel.cpp** *(Content Included)*
 - `[33]` **Runtime/Scene/SceneManager.h** *(Content Included)*
 - `[30]` **Editor/EditorSettings.cpp** *(Content Included)*
@@ -53,11 +53,12 @@
 - `[12]` **Runtime/GameObject/Component.cpp**
 - `[12]` **Runtime/Renderer/RenderContext.cpp**
 - `[12]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
-- `[11]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
 - `[11]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[11]` **Editor/Panel/EditorMainBar.h**
 - `[10]` **Runtime/Serialization/MaterialLoader.h**
+- `[10]` **Runtime/Renderer/RenderPath/GPUSceneRenderPipeline.cpp**
 - `[10]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.cpp**
+- `[10]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[9]` **Runtime/Renderer/Culling.cpp**
 - `[9]` **Runtime/Renderer/RenderContext.h**
 - `[9]` **Runtime/Scene/Scene.h**
@@ -69,11 +70,10 @@
 - `[8]` **Runtime/Renderer/BatchManager.cpp**
 - `[8]` **Runtime/Scene/BistroSceneLoader.h**
 - `[8]` **Runtime/Serialization/MeshLoader.h**
-- `[8]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[8]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[8]` **Editor/Panel/EditorConsolePanel.cpp**
 - `[8]` **Editor/Panel/EditorInspectorPanel.cpp**
-- `[7]` **Runtime/Renderer/Renderer.h**
+- `[7]` **Runtime/Renderer/RenderBackend.h**
 - `[7]` **Runtime/Scene/Scene.cpp**
 - `[7]` **Runtime/Serialization/ShaderLoader.h**
 - `[7]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
@@ -188,17 +188,40 @@ namespace EngineCore
         while(!WindowManager::GetInstance()->WindowShouldClose())
         {
             PROFILER_FRAME_MARK("TinyProfiler");
-            Update(mFrameIndex);
+            TickFrame(mFrameIndex);
 
-            Render();
-
-            EndFrame();
             mFrameIndex++;
 
         }
 
         // 明确的关闭流程（顺序很重要！）
         Shutdown();
+    }
+
+    void Game::TickFrame(uint32_t frameIndex)
+    {
+        PROFILER_ZONE("MainThread::GameUpdate");
+        ResourceManager::GetInstance()->Update();
+
+        PROFILER_EVENT_BEGIN("TickFrame::TickSimulation");
+        SceneManager::GetInstance()->TickSimulation(frameIndex);
+        PROFILER_EVENT_END("TickFrame::TickSimulation");
+
+        SceneDelta sceneDelta = SceneManager::GetInstance()->FlushSceneDelta();
+
+        PROFILER_EVENT_BEGIN("TickFrame::RenderEngineUpdate");
+        RenderEngine::GetInstance()->PrepareFrame(frameIndex, sceneDelta);
+        PROFILER_EVENT_END("TickFrame::RenderEngineUpdate");
+
+
+        RenderEngine::GetInstance()->BuildFrame();
+
+
+        PROFILER_EVENT_BEGIN("TickFrame::EndFrame");
+        SceneManager::GetInstance()->EndFrame();
+        RenderEngine::GetInstance()->EndFrame();
+        PROFILER_EVENT_END("TickFrame::EndFrame");
+
     }
 
     void Game::Shutdown()
@@ -223,29 +246,6 @@ namespace EngineCore
         // 4. 最后销毁资源管理器
         ResourceManager::GetInstance()->Destroy();
         std::cout << "ResourceManager destroyed." << std::endl;
-
-        std::cout << "Game shutdown complete." << std::endl;
-    }
-
-    void Game::Update(uint32_t frameIndex)
-    {
-        PROFILER_ZONE("MainThread::GameUpdate");
-        SceneManager::GetInstance()->SetCurrentFrame(frameIndex);
-        RenderEngine::GetInstance()->SetCurrentFrame(frameIndex);
-        ResourceManager::GetInstance()->Update();
-        SceneManager::GetInstance()->Update(frameIndex);
-        RenderEngine::GetInstance()->Update(frameIndex);
-    }
-
-    void Game::Render()
-    {
-        PROFILER_ZONE("MainThread::RenderTick");
-        RenderEngine::GetInstance()->Tick();
-    }
-
-    void Game::EndFrame()
-    {
-        SceneManager::GetInstance()->EndFrame();
 ```
 
 ### File: `Runtime/Settings/ProjectSettings.h`
@@ -329,9 +329,7 @@ namespace EngineCore
 
         void Launch();
     private:
-        void Update(uint32_t frameIndex);
-        void Render();
-        void EndFrame();
+        void TickFrame(uint32_t frameIndex);
         void Shutdown();
 
         uint32_t mFrameIndex = 0;
@@ -342,11 +340,12 @@ namespace EngineCore
 
 ### File: `Runtime/Scene/SceneManager.h`
 ```cpp
-
+#include "Resources/ResourceHandle.h"
 
 namespace EngineCore
 {
     class Scene;
+    class SceneDelta;
     class SceneManager
     {
         // 允许Manager类访问SceneManager私有函数。
@@ -357,7 +356,7 @@ namespace EngineCore
         GameObject* FindGameObject(const std::string& name);
 
         void RemoveScene(const std::string& name);
-        static void Update(uint32_t frameIndex);
+        static void TickSimulation(uint32_t frameIndex);
         static void Create();
         static void Destroy();
         static void EndFrame();
@@ -393,11 +392,13 @@ namespace EngineCore
         Scene* AddNewScene(const std::string& name);
         void SwitchSceneTo(const std::string& name);
         void SetCurrentFrame(uint32_t currentFrameIndex);
+
+        SceneDelta FlushSceneDelta();
     private:
         static SceneManager* s_Instance;
         Scene* mCurrentScene = nullptr;
-        unordered_map<std::string, Scene*> mSceneMap;
-        vector<ResourceHandle<Texture>> texHandler;
+        std::unordered_map<std::string, Scene*> mSceneMap;
+        std::vector<ResourceHandle<Texture>> texHandler;
     };
 
 }
@@ -534,7 +535,7 @@ namespace EngineCore
 
 ### File: `Runtime/Renderer/RenderEngine.h`
 ```cpp
-#include "Scene/CPUScene.h"
+#include "UploadPagePool.h"
 
 namespace EngineCore
 {
@@ -548,9 +549,10 @@ namespace EngineCore
     public:
         static RenderEngine* GetInstance(){return s_Instance.get();};
         static bool IsInitialized(){return s_Instance != nullptr;};
-        void Update(uint32_t frameID);
+        void PrepareFrame(uint32_t frameID, const SceneDelta& delta);
         static void Create();
-        void Tick();
+        void BuildFrame();
+        void WaitForFrameAvaliable(uint32_t frameID);
         void EndFrame();
         
         static void OnResize(int width, int height);
@@ -558,8 +560,8 @@ namespace EngineCore
         static void Destory();
         RenderEngine(){};
         ~RenderEngine(){};
-        static void WaitForLastFrameFinished();
-        static void SignalMainThreadSubmited();
+        //static void WaitForLastFrameFinished();
+        //static void SignalMainThreadSubmited();
         inline CPUScene& GetCPUScene(){return mCPUScene;}
         inline GPUScene& GetGPUScene(){return mGPUScene;}
         inline void SetCurrentFrame(uint32_t currentFrame)
@@ -567,15 +569,28 @@ namespace EngineCore
             mCPUScene.SetCurrentFrame(currentFrame);
             mGPUScene.SetCurrentFrame(currentFrame);
         }
+
+        inline FrameTicket* GetCurrentFrameTicket(uint32_t frameID)
+        {
+            return &mFrameTicket[frameID % 3];
+        }
+
+        inline uint32_t GetCurrentFrame(){ return mCurrentFrameID;}
     private:
-        IRenderPath* mCurrentRenderPath;
+        IRenderPipeline* mCurrentRenderPipeline;
+        
         static std::unique_ptr<RenderEngine> s_Instance;
         RenderContext renderContext;
-
+        UploadPagePool* mUploadPagePool;
         GPUScene mGPUScene;
         CPUScene mCPUScene;
+        static constexpr int  MAX_FRAME_INFLIGHT = 3;
+        
+        FrameTicket* mCurrFrameTicket;
+        FrameTicket mFrameTicket[MAX_FRAME_INFLIGHT];
+        uint32_t mCurrentFrameID = 0;
 
-        void ComsumeDirtySceneRenderNode();
+        void ComsumeDirtySceneRenderNode(const SceneDelta& delta);
         void UploadCopyOp();
     };
     

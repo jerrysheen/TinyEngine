@@ -26,7 +26,7 @@
 - `[32]` **Runtime/Core/PublicEnum.h** *(Content Included)*
 - `[31]` **Runtime/Core/PublicEnum.cpp** *(Content Included)*
 - `[31]` **Runtime/Core/PublicStruct.cpp** *(Content Included)*
-- `[28]` **Runtime/Core/Game.cpp** *(Content Included)*
+- `[29]` **Runtime/Core/Game.cpp** *(Content Included)*
 - `[27]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
 - `[26]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h** *(Content Included)*
 - `[25]` **Runtime/Graphics/GPUBufferAllocator.cpp** *(Content Included)*
@@ -37,7 +37,6 @@
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
 - `[20]` **Runtime/Core/Concurrency/CpuEvent.cpp** *(Content Included)*
 - `[16]` **Runtime/Core/Object.h** *(Content Included)*
-- `[13]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[12]` **Runtime/CoreAssert.h**
 - `[12]` **Runtime/Core/Game.h**
 - `[12]` **Runtime/Core/ThreadSafeQueue.h**
@@ -50,8 +49,7 @@
 - `[12]` **Runtime/Math/Vector2.h**
 - `[12]` **Runtime/Math/Vector3.h**
 - `[12]` **Runtime/Math/Vector4.h**
-- `[12]` **Runtime/Renderer/RenderEngine.cpp**
-- `[12]` **Runtime/Renderer/Renderer.h**
+- `[12]` **Runtime/Renderer/RenderBackend.h**
 - `[12]` **Runtime/Serialization/AssetHeader.h**
 - `[12]` **Runtime/Serialization/DDSTextureLoader.h**
 - `[12]` **Runtime/Serialization/MaterialLoader.h**
@@ -61,6 +59,7 @@
 - `[12]` **Runtime/Serialization/StreamHelper.h**
 - `[12]` **Runtime/Serialization/TextureLoader.h**
 - `[12]` **Runtime/Utils/HashCombine.h**
+- `[11]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[10]` **Runtime/Math/AABB.cpp**
 - `[10]` **Runtime/Math/Frustum.cpp**
 - `[10]` **Runtime/Math/Matrix4x4.cpp**
@@ -69,14 +68,15 @@
 - `[10]` **Runtime/Math/Vector2.cpp**
 - `[10]` **Runtime/Math/Vector3.cpp**
 - `[10]` **Runtime/Math/Vector4.cpp**
+- `[9]` **Runtime/Renderer/RenderEngine.cpp**
 - `[9]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[8]` **Runtime/Scene/GPUScene.h**
-- `[8]` **Runtime/Scene/SceneManager.cpp**
+- `[8]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
 - `[8]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
 - `[7]` **Runtime/Graphics/GeometryManager.h**
-- `[7]` **Runtime/Renderer/FrameContext.h**
 - `[7]` **Runtime/Renderer/RenderCommand.h**
 - `[7]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
+- `[7]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 
 ## Evidence & Implementation Details
 
@@ -740,8 +740,11 @@ namespace EngineCore
     class CpuEvent
     {
     public:
-        static CpuEvent& RenderThreadSubmited();
-        static CpuEvent& MainThreadSubmited();
+        //static CpuEvent& RenderThreadSubmited();
+        //static CpuEvent& MainThreadSubmited();
+        // 渲染线程消费完ImGui DrawData后发出信号，主线程BeginFrame等待它
+        // 初始为true：第一帧不需要等待上一帧
+        static CpuEvent& GUIDataConsumed();
 
         CpuEvent(bool startCondition = false)
             : m_signaled(startCondition){}

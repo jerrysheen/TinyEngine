@@ -41,16 +41,15 @@
 - `[20]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp**
 - `[20]` **Runtime/Platforms/D3D12/D3D12DescManager.cpp**
 - `[17]` **Editor/D3D12/D3D12EditorGUIManager.cpp**
-- `[16]` **Runtime/Renderer/RenderEngine.cpp**
 - `[15]` **Runtime/Core/Game.cpp**
+- `[12]` **Runtime/Renderer/RenderEngine.cpp**
 - `[9]` **Runtime/PreCompiledHeader.h**
-- `[9]` **Runtime/Renderer/Renderer.h**
+- `[9]` **Runtime/Renderer/RenderBackend.h**
 - `[9]` **Assets/Shader/BlitShader.hlsl**
 - `[9]` **Assets/Shader/GPUCulling.hlsl**
 - `[9]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[9]` **Assets/Shader/StandardPBR.hlsl**
 - `[9]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
-- `[8]` **Runtime/Scene/SceneManager.cpp**
 - `[7]` **Editor/EditorSettings.h**
 - `[7]` **Runtime/Graphics/Mesh.h**
 - `[6]` **Runtime/Renderer/RenderCommand.h**
@@ -60,7 +59,7 @@
 - `[5]` **Editor/EditorSettings.cpp**
 - `[5]` **Runtime/Graphics/Mesh.cpp**
 - `[5]` **Runtime/Renderer/RenderAPI.h**
-- `[5]` **Runtime/Renderer/Renderer.cpp**
+- `[5]` **Runtime/Renderer/RenderBackend.cpp**
 - `[5]` **Runtime/Scene/BistroSceneLoader.cpp**
 - `[5]` **Runtime/Settings/ProjectSettings.h**
 - `[5]` **Editor/Panel/EditorConsolePanel.cpp**
@@ -69,6 +68,7 @@
 - `[4]` **Runtime/EngineCore.h**
 - `[4]` **Runtime/Graphics/MeshUtils.cpp**
 - `[4]` **Runtime/Graphics/Shader.h**
+- `[4]` **Runtime/Scene/SceneManager.cpp**
 - `[4]` **Runtime/Settings/ProjectSettings.cpp**
 - `[4]` **Editor/D3D12/D3D12EditorGUIManager.h**
 - `[4]` **Editor/Panel/EditorHierarchyPanel.cpp**
@@ -348,7 +348,7 @@ namespace EngineCore
         virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) override;
         virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) override;
         virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) override;
-        virtual void RenderAPISetFrameContext(Payload_SetFrameContext setFrameContext) override;
+        virtual void RenderAPISetFrame(Payload_SetFrame setFrame) override;
         virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) override;
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
@@ -406,6 +406,7 @@ namespace EngineCore
         virtual IGPUBuffer* CreateBuffer(const BufferDesc& desc, void* data) override;
         virtual void UploadBuffer(IGPUBuffer* bufferResource, uint32_t offset, void* data, uint32_t size) override;
         static D3D12_RESOURCE_STATES GetResourceState(BufferResourceState state);
+        virtual uint64_t GetCurrentGPUCompletedFenceValue() override;
     private:
 
         bool InitDirect3D();
@@ -459,7 +460,7 @@ namespace EngineCore
     struct TD3D12Fence
     {
     public:
-        int mCurrentFence;
+        uint64_t mCurrentFence;
         Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
     };
 

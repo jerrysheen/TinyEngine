@@ -22,13 +22,13 @@
 - `[37]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
 - `[35]` **Runtime/Graphics/GPUBufferAllocator.cpp** *(Content Included)*
 - `[35]` **Runtime/Graphics/IGPUBufferAllocator.h** *(Content Included)*
-- `[35]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
+- `[33]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[33]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
 - `[26]` **Runtime/Graphics/IGPUResource.h** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/D3D12DescManager.h** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
+- `[20]` **Runtime/Renderer/RenderCommand.h** *(Content Included)*
 - `[20]` **Runtime/Platforms/D3D12/D3D12DescManager.cpp** *(Content Included)*
-- `[18]` **Runtime/Renderer/RenderCommand.h** *(Content Included)*
 - `[18]` **Runtime/Platforms/D3D12/D3D12Buffer.h** *(Content Included)*
 - `[17]` **Runtime/Graphics/GeometryManager.h** *(Content Included)*
 - `[17]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
@@ -63,20 +63,20 @@
 - `[11]` **Runtime/Graphics/ComputeShader.cpp**
 - `[11]` **Runtime/Graphics/Material.cpp**
 - `[11]` **Runtime/Renderer/RenderAPI.h**
-- `[11]` **Runtime/Renderer/Renderer.cpp**
+- `[11]` **Runtime/Renderer/RenderBackend.cpp**
 - `[10]` **Runtime/Graphics/Mesh.cpp**
 - `[10]` **Runtime/Graphics/MeshUtils.cpp**
 - `[10]` **Runtime/Graphics/RenderTexture.cpp**
 - `[10]` **Runtime/Graphics/Shader.cpp**
 - `[10]` **Runtime/Graphics/Texture.cpp**
-- `[10]` **Runtime/Renderer/Renderer.h**
+- `[10]` **Runtime/Renderer/RenderBackend.h**
 - `[10]` **Runtime/Renderer/RenderStruct.h**
-- `[10]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp**
-- `[8]` **Runtime/Renderer/RenderEngine.cpp**
-- `[8]` **Runtime/Scene/SceneManager.cpp**
-- `[7]` **Runtime/Renderer/FrameContext.h**
+- `[10]` **Runtime/Renderer/RenderPath/GPUSceneRenderPipeline.cpp**
+- `[7]` **Runtime/Scene/GPUScene.h**
 - `[7]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
 - `[7]` **Editor/D3D12/D3D12EditorGUIManager.h**
+- `[5]` **Runtime/Resources/ResourceHandle.h**
+- `[5]` **Runtime/Scene/GPUScene.cpp**
 
 ## Evidence & Implementation Details
 
@@ -307,7 +307,7 @@ namespace EngineCore
         virtual void RenderAPIDrawInstanceCmd(Payload_DrawInstancedCommand setDrawInstanceCmd) override;
         virtual void RenderAPISetPerPassData(Payload_SetPerPassData setPerPassData) override;
         virtual void RenderAPISetPerFrameData(Payload_SetPerFrameData setPerFrameData) override;
-        virtual void RenderAPISetFrameContext(Payload_SetFrameContext setFrameContext) override;
+        virtual void RenderAPISetFrame(Payload_SetFrame setFrame) override;
         virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) override;
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
@@ -370,8 +370,8 @@ namespace EngineCore
         virtual IGPUBuffer* CreateBuffer(const BufferDesc& desc, void* data) override;
         virtual void UploadBuffer(IGPUBuffer* bufferResource, uint32_t offset, void* data, uint32_t size) override;
         static D3D12_RESOURCE_STATES GetResourceState(BufferResourceState state);
+        virtual uint64_t GetCurrentGPUCompletedFenceValue() override;
     private:
-
 ```
 
 ### File: `Runtime/Graphics/IGPUResource.h`

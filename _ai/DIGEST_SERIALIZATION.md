@@ -38,12 +38,12 @@
 - `[21]` **Runtime/Core/Game.cpp** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
 - `[19]` **Runtime/Resources/Resource.h**
-- `[17]` **Runtime/Scene/SceneManager.cpp**
 - `[14]` **Assets/Shader/BlitShader.hlsl**
 - `[14]` **Assets/Shader/GPUCulling.hlsl**
 - `[14]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[14]` **Assets/Shader/StandardPBR.hlsl**
 - `[14]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
+- `[13]` **Runtime/Scene/SceneManager.cpp**
 - `[11]` **Runtime/Graphics/Material.h**
 - `[10]` **Runtime/Renderer/BatchManager.cpp**
 - `[10]` **Editor/Panel/EditorMainBar.cpp**
@@ -51,24 +51,25 @@
 - `[10]` **Assets/Shader/include/Core.hlsl**
 - `[8]` **Runtime/Core/PublicStruct.h**
 - `[8]` **Runtime/Graphics/Material.cpp**
-- `[8]` **Runtime/Renderer/RenderEngine.cpp**
 - `[7]` **Runtime/GameObject/MeshRenderer.h**
 - `[7]` **Runtime/Renderer/BatchManager.h**
 - `[7]` **Runtime/Scene/SceneStruct.h**
 - `[7]` **Runtime/Settings/ProjectSettings.h**
 - `[6]` **Runtime/GameObject/MeshRenderer.cpp**
+- `[6]` **Runtime/Renderer/RenderBackend.h**
 - `[6]` **Runtime/Renderer/RenderContext.cpp**
-- `[6]` **Runtime/Renderer/Renderer.h**
 - `[6]` **Runtime/Scene/SceneManager.h**
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[5]` **premake5.lua**
+- `[5]` **Runtime/Scene/GPUScene.cpp**
 - `[5]` **Runtime/Scene/GPUScene.h**
 - `[5]` **Runtime/Scene/Scene.cpp**
 - `[5]` **Runtime/Settings/ProjectSettings.cpp**
 - `[4]` **Runtime/GameObject/Camera.h**
 - `[4]` **Runtime/GameObject/MeshFilter.h**
 - `[4]` **Runtime/MaterialLibrary/MaterialLayout.h**
+- `[4]` **Runtime/Renderer/RenderEngine.cpp**
 - `[4]` **Runtime/Scene/CPUScene.h**
 - `[4]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[4]` **Runtime/Platforms/D3D12/d3dUtil.cpp**
@@ -76,7 +77,6 @@
 - `[3]` **Runtime/GameObject/Camera.cpp**
 - `[3]` **Runtime/Graphics/Mesh.cpp**
 - `[3]` **Runtime/Graphics/Shader.cpp**
-- `[3]` **Runtime/Renderer/FrameContext.cpp**
 
 ## Evidence & Implementation Details
 
@@ -750,7 +750,7 @@ namespace EngineCore
         // todo: temp public for Editor Test
     public:
         static ResourceManager* sInstance;
-        int maxResourceLoadedInMainThread = 50;
+        int maxResourceLoadedInMainThread = 150;
         std::vector<Resource*> mPendingDeleteList;
         std::unordered_map<AssetType, IResourceLoader*> m_Loaders;
 

@@ -19,13 +19,13 @@
 ## Key Files Index
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
 - `[12]` **Runtime/Core/Game.cpp** *(Content Included)*
-- `[8]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
-- `[8]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[8]` **Runtime/Serialization/DDSTextureLoader.h** *(Content Included)*
-- `[6]` **Runtime/Renderer/Renderer.h** *(Content Included)*
+- `[6]` **Runtime/Renderer/RenderBackend.h** *(Content Included)*
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h** *(Content Included)*
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h** *(Content Included)*
 - `[4]` **premake5.lua** *(Content Included)*
+- `[4]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
+- `[4]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[4]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp** *(Content Included)*
 - `[4]` **Runtime/Platforms/D3D12/d3dUtil.cpp** *(Content Included)*
 - `[4]` **Assets/Shader/BlitShader.hlsl** *(Content Included)*
@@ -115,17 +115,40 @@ namespace EngineCore
         while(!WindowManager::GetInstance()->WindowShouldClose())
         {
             PROFILER_FRAME_MARK("TinyProfiler");
-            Update(mFrameIndex);
+            TickFrame(mFrameIndex);
 
-            Render();
-
-            EndFrame();
             mFrameIndex++;
 
         }
 
         // 明确的关闭流程（顺序很重要！）
         Shutdown();
+    }
+
+    void Game::TickFrame(uint32_t frameIndex)
+    {
+        PROFILER_ZONE("MainThread::GameUpdate");
+        ResourceManager::GetInstance()->Update();
+
+        PROFILER_EVENT_BEGIN("TickFrame::TickSimulation");
+        SceneManager::GetInstance()->TickSimulation(frameIndex);
+        PROFILER_EVENT_END("TickFrame::TickSimulation");
+
+        SceneDelta sceneDelta = SceneManager::GetInstance()->FlushSceneDelta();
+
+        PROFILER_EVENT_BEGIN("TickFrame::RenderEngineUpdate");
+        RenderEngine::GetInstance()->PrepareFrame(frameIndex, sceneDelta);
+        PROFILER_EVENT_END("TickFrame::RenderEngineUpdate");
+
+
+        RenderEngine::GetInstance()->BuildFrame();
+
+
+        PROFILER_EVENT_BEGIN("TickFrame::EndFrame");
+        SceneManager::GetInstance()->EndFrame();
+        RenderEngine::GetInstance()->EndFrame();
+        PROFILER_EVENT_END("TickFrame::EndFrame");
+
     }
 
     void Game::Shutdown()
@@ -150,126 +173,6 @@ namespace EngineCore
         // 4. 最后销毁资源管理器
         ResourceManager::GetInstance()->Destroy();
         std::cout << "ResourceManager destroyed." << std::endl;
-
-        std::cout << "Game shutdown complete." << std::endl;
-    }
-
-    void Game::Update(uint32_t frameIndex)
-    {
-        PROFILER_ZONE("MainThread::GameUpdate");
-        SceneManager::GetInstance()->SetCurrentFrame(frameIndex);
-        RenderEngine::GetInstance()->SetCurrentFrame(frameIndex);
-        ResourceManager::GetInstance()->Update();
-        SceneManager::GetInstance()->Update(frameIndex);
-        RenderEngine::GetInstance()->Update(frameIndex);
-    }
-
-    void Game::Render()
-    {
-        PROFILER_ZONE("MainThread::RenderTick");
-        RenderEngine::GetInstance()->Tick();
-    }
-
-    void Game::EndFrame()
-    {
-        SceneManager::GetInstance()->EndFrame();
-```
-
-### File: `Runtime/Renderer/RenderEngine.cpp`
-```cpp
-// 【优化】： 其实这个地方可以变成一个Tick操作， 里面包含begin， Render， end，更加简单。
-// RenderEngine不负责直接和RenderAPI沟通，那个在Renderer里面解决
-namespace EngineCore
-{
-    std::unique_ptr<RenderEngine> RenderEngine::s_Instance = nullptr;
-    void RenderEngine::Create()
-    {
-        s_Instance = std::make_unique<RenderEngine>();
-        s_Instance->GetGPUScene().Create();
-        WindowManager::Create();
-        RenderAPI::Create();
-        Renderer::Create();
-
-
-        if (RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy)
-        {
-            s_Instance->mCurrentRenderPath = new LagacyRenderPath();
-        }
-        else
-        {
-            s_Instance->mCurrentRenderPath = new GPUSceneRenderPath();
-        }
-    }
-
-    void RenderEngine::Update(uint32_t frameID)
-    {
-
-        mCPUScene.Update(frameID);
-        mGPUScene.Update(frameID);
-        ComsumeDirtySceneRenderNode();
-        WaitForLastFrameFinished();
-        PROFILER_EVENT_BEGIN("MainThread::WaitForGpuFinished");
-        RenderAPI::GetInstance()->WaitForGpuFinished();
-        PROFILER_EVENT_END("MainThread::WaitForGpuFinished");
-        mCurrentRenderPath->Prepare(renderContext);
-        UploadCopyOp();
-    }    
-    
-    void RenderEngine::OnResize(int width, int height)
-    {
-        Renderer::GetInstance()->ResizeWindow(width, height);
-    }
-
-    void RenderEngine::Tick()
-    {
-
-
-
-        s_Instance->mCurrentRenderPath->Execute(renderContext);
-        
-        SignalMainThreadSubmited();
-
-    }
-
-    void RenderEngine::EndFrame()
-    {
-        mCPUScene.EndFrame();
-    }
-
-    void RenderEngine::Destory()
-    {
-        // Renderer 的析构函数会自动停止渲染线程
-        Renderer::Destroy();
-        //RenderAPI::Destroy();
-        WindowManager::Destroy();
-        RenderEngine::GetInstance()->GetGPUScene().Destroy();
-
-        delete s_Instance->mCurrentRenderPath;
-        // 最后销毁 RenderEngine 自己
-        if (s_Instance)
-        {
-            // 先调用析构（智能指针自动管理）
-            s_Instance.reset();
-            // 此时：
-            // 1. 析构函数已完成
-            // 2. 内存已释放
-            // 3. s_Instance 已经是 nullptr
-            // 4. 后续 GetInstance() 不会返回野指针
-        }
-    }
-```
-...
-```cpp
-    void RenderEngine::WaitForLastFrameFinished()
-    {
-        PROFILER_EVENT_BEGIN("MainThread::WaitforSignalFromRenderThread");
-        CpuEvent::RenderThreadSubmited().Wait();
-        PROFILER_EVENT_END("MainThread::WaitforSignalFromRenderThread");
-
-    }
-
-    void RenderEngine::SignalMainThreadSubmited()
-    {
 ```
 
 ### File: `Runtime/Serialization/DDSTextureLoader.h`
@@ -478,22 +381,20 @@ namespace EngineCore{
             }
 ```
 
-### File: `Runtime/Renderer/Renderer.h`
+### File: `Runtime/Renderer/RenderBackend.h`
 ```cpp
 
 
 namespace EngineCore
 {
-    class Renderer : public Manager<Renderer>
+    class RenderBackend : public Manager<RenderBackend>
     {
     public:
-        Renderer(): mRenderThread(&Renderer::RenderThreadMain, this), mRunning(true), mPerFrameData{}{};
-        ~Renderer();
+        RenderBackend(): mRenderThread(&RenderBackend::RenderThreadMain, this), mRunning(true), mPerFrameData{}{};
+        ~RenderBackend();
         static void Create();
 
         void BeginFrame();
-        void Prepare(RenderContext& context);
-        void Render(RenderContext& context);
         void EndFrame();
 
         void DrawIndexed(uint32_t vaoID, int count);
@@ -503,7 +404,7 @@ namespace EngineCore
         void DrawIndexedInstanced(Mesh* mesh, int count, const PerDrawHandle& perDrawHandle);
         void SetPerFrameData(UINT perFrameBufferID);
         void SetPerPassData(UINT perPassBufferID);
-        void SetFrameContext(FrameContext* frameContext, uint32_t frameID);
+        void SetFrame(FrameTicket* frameTicket, uint32_t frameID);
         
         void SetRenderState(const Material* mat, const RenderPassInfo &passinfo);
 
@@ -529,27 +430,54 @@ namespace EngineCore
         void SetBindLessMeshIB(uint32_t id);
         
         void DrawIndirect(Payload_DrawIndirect payload);
-        
+        void FlushPerFrameData();
+        void FlushPerPassData(const RenderContext& context);
+        void CreatePerFrameData();
+        void CreatePerPassForwardData();
         void RenderThreadMain() 
         {
             while (mRunning.load(std::memory_order_acquire) == true) 
             {
                 PROFILER_ZONE("RenderThread::RenderLoop");
 
-                PROFILER_EVENT_BEGIN("RenderThread::WaitForSignalFromMainThread");
-                CpuEvent::MainThreadSubmited().Wait();
-                PROFILER_EVENT_END("RenderThread::WaitForSignalFromMainThread");
+                // PROFILER_EVENT_BEGIN("RenderThread::WaitForSignalFromMainThread");
+                // CpuEvent::MainThreadSubmited().Wait();
+                // PROFILER_EVENT_END("RenderThread::WaitForSignalFromMainThread");
 
-                RenderAPI::GetInstance()->RenderAPIBeginFrame();
-                DrawCommand cmd;
 
                 PROFILER_EVENT_BEGIN("RenderThread::ProcessDrawComand");
-                while(mRenderBuffer.PopBlocking(cmd))
+                DrawCommand cmd;
+                if (!mRenderBuffer.TryPop(cmd)) 
                 {
-                    if (cmd.op == RenderOp::kEndFrame) break;
-                    ProcessDrawCommand(cmd);
+                    mDataAvailableEvent.Wait();
+                    continue;
+                }
+
+                bool hasBeginFrame = false;
+                bool hasEndFrame = false;
+                while (mRunning.load(std::memory_order_acquire) == true)
+                {
+                    if (cmd.op == RenderOp::kBeginFrame) hasBeginFrame = true;
+                    if (cmd.op == RenderOp::kEndFrame)
+                    {
+                        hasEndFrame = true;
+                        break;
+                    }
+```
+...
+```cpp
+                    }
                 }
                 PROFILER_EVENT_END("RenderThread::ProcessDrawComand");
+
+                if (!hasBeginFrame || !hasEndFrame)
+                {
+                    continue;
+                }
+```
+...
+```cpp
+                
                 // later do Gpu Fence...
                 RenderAPI::GetInstance()->RenderAPISubmit();
 
@@ -567,7 +495,6 @@ namespace EngineCore
 
                 RenderAPI::GetInstance()->RenderAPIPresentFrame();
 
-                CpuEvent::RenderThreadSubmited().Signal();
 
                 if (hasResize)
                 {
@@ -578,15 +505,18 @@ namespace EngineCore
 ```
 ...
 ```cpp
-        PerPassData_Forward mPerPassData_Forward;
+        
 
-        void FlushPerFrameData();
-        void FlushPerPassData(const RenderContext& context);
-        void CreatePerFrameData();
-        void CreatePerPassForwardData();
+        void TryWakeUpRenderThread();
+    private:
+        void EnqueueCommand(const DrawCommand& cmd);
+        void WaitForQueueSpace();
 
-    };
-}
+        SPSCRingBuffer<DrawCommand, 16384> mRenderBuffer;
+        std::thread mRenderThread;
+        bool hasResize = false;
+        bool hasDrawGUI = false;
+        Payload_WindowResize pendingResize = { 0, 0 };
 ```
 
 ### File: `Runtime/Platforms/D3D12/D3D12ShaderUtils.h`

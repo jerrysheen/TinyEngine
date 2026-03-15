@@ -18,7 +18,7 @@
 - `[49]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
 - `[46]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
 - `[45]` **Runtime/Scene/Scene.h** *(Content Included)*
-- `[43]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
+- `[39]` **Runtime/Scene/SceneManager.cpp** *(Content Included)*
 - `[38]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
 - `[38]` **Runtime/GameObject/Transform.h** *(Content Included)*
 - `[37]` **Runtime/GameObject/MeshFilter.h** *(Content Included)*
@@ -32,15 +32,15 @@
 - `[30]` **Runtime/GameObject/Transform.cpp** *(Content Included)*
 - `[30]` **Runtime/Scene/CPUScene.h** *(Content Included)*
 - `[30]` **Runtime/Scene/SceneManager.h** *(Content Included)*
-- `[30]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp** *(Content Included)*
-- `[29]` **Runtime/GameObject/Component.h**
+- `[29]` **Runtime/GameObject/Component.h** *(Content Included)*
 - `[29]` **Runtime/Scene/BistroSceneLoader.h**
 - `[28]` **Runtime/GameObject/GameObject.h**
+- `[28]` **Runtime/Scene/GPUScene.cpp**
 - `[28]` **Runtime/Scripts/CameraController.h**
+- `[28]` **Runtime/Renderer/RenderPath/GPUSceneRenderPipeline.cpp**
 - `[27]` **Runtime/Scene/GPUScene.h**
-- `[27]` **Runtime/Renderer/RenderPath/GPUSceneRenderPath.h**
+- `[27]` **Runtime/Renderer/RenderPath/GPUSceneRenderPipeline.h**
 - `[27]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
-- `[25]` **Runtime/Scene/GPUScene.cpp**
 - `[25]` **Runtime/Scripts/CameraController.cpp**
 - `[24]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
 - `[23]` **Runtime/GameObject/Component.cpp**
@@ -49,20 +49,18 @@
 - `[20]` **Runtime/Entry.cpp**
 - `[18]` **Runtime/GameObject/GameObject.cpp**
 - `[17]` **Runtime/Core/Game.cpp**
-- `[14]` **Runtime/Renderer/RenderEngine.cpp**
+- `[12]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[11]` **Runtime/Renderer/Culling.cpp**
-- `[11]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
+- `[10]` **Runtime/Renderer/RenderEngine.cpp**
 - `[9]` **Editor/Panel/EditorHierarchyPanel.cpp**
 - `[9]` **Editor/Panel/EditorInspectorPanel.cpp**
 - `[8]` **Runtime/Graphics/Mesh.h**
-- `[8]` **Runtime/Renderer/FrameContext.cpp**
 - `[8]` **Editor/Panel/EditorInspectorPanel.h**
-- `[7]` **Runtime/Renderer/FrameContext.h**
+- `[7]` **Runtime/Renderer/RenderBackend.h**
 - `[7]` **Runtime/Renderer/RenderEngine.h**
-- `[7]` **Runtime/Renderer/Renderer.cpp**
-- `[7]` **Runtime/Renderer/Renderer.h**
 - `[7]` **Runtime/Renderer/RenderSorter.h**
-- `[7]` **Runtime/Renderer/RenderPath/LagacyRenderPath.h**
+- `[7]` **Runtime/Renderer/RenderPath/LagacyRenderPipeline.cpp**
+- `[7]` **Runtime/Renderer/RenderPath/LagacyRenderPipeline.h**
 - `[7]` **Editor/Panel/EditorMainBar.h**
 - `[6]` **Runtime/Core/PublicStruct.h**
 - `[6]` **Runtime/Renderer/RenderContext.cpp**
@@ -73,6 +71,8 @@
 - `[6]` **Assets/Shader/StandardPBR.hlsl**
 - `[5]` **Runtime/Graphics/Material.cpp**
 - `[5]` **Runtime/Graphics/Mesh.cpp**
+- `[5]` **Runtime/Renderer/BatchManager.h**
+- `[5]` **Assets/Shader/SimpleTestShader.hlsl**
 
 ## Evidence & Implementation Details
 
@@ -92,6 +92,10 @@ namespace EngineCore
 
 ### File: `Runtime/Scene/Scene.cpp`
 ```cpp
+    void Scene::TickSimulation(uint32_t frameIndex)
+    {
+        PROFILER_ZONE("MainThread::Scene::TickSimulation");
+        mCurrentFrame = frameIndex;
         PushLastFrameFreeIndex();
         RunLogicUpdate();
         RunTransformUpdate();
@@ -405,11 +409,11 @@ namespace EngineCore
         Scene(const std::string& name):name(name){};
         void Open();
         void Close(){};
-        void Update(uint32_t frameIndex);
+        void TickSimulation(uint32_t frameIndex);
         void EndFrame();
         GameObject* FindGameObject(const std::string& name);
         GameObject* CreateGameObject(const std::string& name);
-        void Scene::DestroyGameObject(const std::string& name);
+        void DestroyGameObject(const std::string& name);
 
         void AddCamToStack(Camera* cam);
         inline void SetMainCamera(Camera* cam) { mainCamera = cam; }
@@ -449,6 +453,8 @@ namespace EngineCore
         {
             mCurrentFrame = currentFrameIndex;
         }
+
+        SceneDelta FlushSceneDelta();
     public:
         std::string name;
         std::vector<GameObject*> allObjList;
@@ -466,15 +472,22 @@ namespace EngineCore
         std::vector<uint32_t> mNodeFrameStampList;
         std::vector<uint32_t> mNodeChangeFlagList;
         std::vector<NodeDirtyPayload> mNodeDirtyPayloadList;
-
+        SceneDelta mSceneDelta;
 
         std::vector<uint32_t> mPerFrameDirtyNodeList;
         
         uint32_t mCurrSceneIndex = 0;
         std::vector<uint32_t> mFreeSceneIndex;
         std::vector<uint32_t> mPendingFreeSceneIndex;
-
+```
+...
+```cpp
         void EnsureNodeQueueSize(uint32_t size);
+        void ClearPerFrameData();
+        void ClearDirtyRootTransform();
+        void PushLastFrameFreeIndex();
+    };    
+} // namespace EngineCore
 ```
 
 ### File: `Runtime/GameObject/MeshRenderer.h`
@@ -712,10 +725,16 @@ namespace EngineCore
 ```cpp
     };
 
-    struct GPUSceneDelta
+    struct SceneDelta
     {
-        vector<uint32_t> dirtyRenderNodeIDList;
-        vector<uint32_t> dirtyRenderNodeFlagsList;
+        std::vector<uint32_t> mPerFrameDirtyNodeList;
+        std::vector<uint32_t> mNodeChangeFlagList;
+        std::vector<NodeDirtyPayload> mNodeDirtyPayloadList;
+
+        inline const std::vector<uint32_t>& GetPerFrameDirtyNodeList() const {return mPerFrameDirtyNodeList;};
+        inline const std::vector<uint32_t>& GetNodeChangeFlagList() const {return mNodeChangeFlagList;};
+        inline const std::vector<NodeDirtyPayload>& GetNodeDirtyPayloadList() const {return mNodeDirtyPayloadList;};
+        
     };
 ```
 
@@ -728,7 +747,7 @@ namespace EngineCore
     public:
         void Update(uint32_t frameID);
       
-        void ApplyDirtyNode(uint32_t renderID, NodeDirtyFlags cpuWorldRenderNodeFlag , NodeDirtyPayload& payload);
+        void ApplyDirtyNode(uint32_t renderID, NodeDirtyFlags cpuWorldRenderNodeFlag , const NodeDirtyPayload& payload);
         void EndFrame();
         CPUSceneView GetSceneView();
 
@@ -738,11 +757,11 @@ namespace EngineCore
         }
     private:
         void EnsureCapacity(uint32_t renderID);
-        void CreateRenderNode(uint32_t renderID, NodeDirtyPayload& payload);
+        void CreateRenderNode(uint32_t renderID, const NodeDirtyPayload& payload);
         void DeleteRenderNode(uint32_t renderID); 
-        void OnRenderNodeMaterialDirty(uint32_t renderID, NodeDirtyPayload& payload);
-        void OnRenderNodeTransformDirty(uint32_t renderID, NodeDirtyPayload& payload);
-        void OnRenderNodeMeshDirty(uint32_t renderID, NodeDirtyPayload& payload);
+        void OnRenderNodeMaterialDirty(uint32_t renderID, const NodeDirtyPayload& payload);
+        void OnRenderNodeTransformDirty(uint32_t renderID, const NodeDirtyPayload& payload);
+        void OnRenderNodeMeshDirty(uint32_t renderID, const NodeDirtyPayload& payload);
     
         
     private:
@@ -762,6 +781,7 @@ namespace EngineCore
 namespace EngineCore
 {
     class Scene;
+    class SceneDelta;
     class SceneManager
     {
         // 允许Manager类访问SceneManager私有函数。
@@ -772,7 +792,7 @@ namespace EngineCore
         GameObject* FindGameObject(const std::string& name);
 
         void RemoveScene(const std::string& name);
-        static void Update(uint32_t frameIndex);
+        static void TickSimulation(uint32_t frameIndex);
         static void Create();
         static void Destroy();
         static void EndFrame();
@@ -808,12 +828,33 @@ namespace EngineCore
         Scene* AddNewScene(const std::string& name);
         void SwitchSceneTo(const std::string& name);
         void SetCurrentFrame(uint32_t currentFrameIndex);
+
+        SceneDelta FlushSceneDelta();
     private:
         static SceneManager* s_Instance;
         Scene* mCurrentScene = nullptr;
-        unordered_map<std::string, Scene*> mSceneMap;
-        vector<ResourceHandle<Texture>> texHandler;
+        std::unordered_map<std::string, Scene*> mSceneMap;
+        std::vector<ResourceHandle<Texture>> texHandler;
     };
 
 }
+```
+
+### File: `Runtime/GameObject/Component.h`
+```cpp
+{
+    class GameObject;
+    class Component
+    {
+    public:
+        Component(){};
+        virtual ~Component() = 0;
+        virtual ComponentType GetType() const = 0;
+        
+        GameObject* gameObject = nullptr;
+        bool enabled = true;
+        
+        // 每个类需要自己实现序列化和反序列化方法。
+        virtual const char* GetScriptName() const = 0;
+    };
 ```
