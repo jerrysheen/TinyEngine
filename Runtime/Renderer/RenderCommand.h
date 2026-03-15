@@ -35,7 +35,7 @@ namespace EngineCore
         kDrawIndirect = 19,
         kSetBindlessMat = 20,
         kSetBindLessMeshIB = 21,
-        kSetFrameContext = 22,
+        kSetFrame = 22,
     };
 
     enum class DepthComparisonFunc : uint8_t

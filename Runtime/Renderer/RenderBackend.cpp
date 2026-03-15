@@ -225,7 +225,7 @@ namespace EngineCore
     {
         ASSERT(frameTicket != nullptr);
         DrawCommand temp;
-        temp.op = RenderOp::kSetFrameContext;
+        temp.op = RenderOp::kSetFrame;
         temp.data.setFrame.frameTicket = frameTicket;
         temp.data.setFrame.frameID = frameID;
         EnqueueCommand(temp);
@@ -336,7 +336,7 @@ namespace EngineCore
         case RenderOp::kSetPerFrameData :
             RenderAPI::GetInstance()->RenderAPISetPerFrameData(cmd.data.setPerFrameData);
             break;  
-        case RenderOp::kSetFrameContext :
+        case RenderOp::kSetFrame :
             RenderAPI::GetInstance()->RenderAPISetFrame(cmd.data.setFrame);
             break;
         case RenderOp::kWindowResize:
