@@ -61,7 +61,6 @@ namespace EngineCore
         uint32_t mCurrentFrameID = 0;
 
         void ComsumeDirtySceneRenderNode(const SceneDelta& delta);
-        void UploadCopyOp();
     };
     
 }

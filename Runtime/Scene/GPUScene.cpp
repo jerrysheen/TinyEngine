@@ -311,11 +311,22 @@ namespace EngineCore
 
     void GPUScene::SetCurrentContext()
     {
+        PROFILER_ZONE("GPUScene::SetCurrentContext");
         int index = mCurrentFrameID % 3;
         mCurrentCopyOp = &mFrameCopyOp[index];
         mCurrentCopyOp->clear();
         mCurrVisibilityBuffer = visibilityBuffer[index];
         mCurrVisibilityBuffer->Reset();
+
+        uint32_t bufferSize = (uint32_t)mCurrVisibilityBuffer->bufferDesc.size;
+        static std::vector<uint8_t> zeros(bufferSize, 0);
+        BufferAllocation clearAlloc;
+        clearAlloc.isValid = true;
+        clearAlloc.offset = 0;
+        clearAlloc.buffer = mCurrVisibilityBuffer->GetGPUBuffer();
+        clearAlloc.gpuAddress = mCurrVisibilityBuffer->GetBaseGPUAddress();
+        clearAlloc.size = bufferSize;
+        mCurrVisibilityBuffer->UploadBuffer(clearAlloc, zeros.data(), bufferSize);
     }
 
     void GPUScene::TryFreeRenderProxyByRenderIndex(uint32_t renderID)

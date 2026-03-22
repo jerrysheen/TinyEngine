@@ -94,5 +94,8 @@ namespace EngineCore
         void ClearPerFrameData();
         void ClearDirtyRootTransform();
         void PushLastFrameFreeIndex();
+
+        AssetID GetMaterialID(MeshRenderer* meshRenderer);
+        AssetID GetMeshID(MeshFilter* meshFilter);
     };    
 } // namespace EngineCore

@@ -8,24 +8,26 @@
 namespace EngineCore
 {
     BatchManager* BatchManager::s_Instance = nullptr;
-    std::unordered_map<uint64_t, int> BatchManager::BatchMap;
-    std::unordered_map<uint64_t, DrawIndirectContext> BatchManager::drawIndirectContextMap;
-    std::unordered_map<uint64_t, DrawIndirectParam> BatchManager::drawIndirectParamMap;
 
     std::vector<RenderProxy> BatchManager::GetAvaliableRenderProxyList(AssetID meshID, AssetID materialID, uint32_t layer)
     {
-        if(!meshID.IsValid() || !materialID.IsValid()) return std::vector<RenderProxy>();
+        if (!meshID.IsValid() || !materialID.IsValid()) return std::vector<RenderProxy>();
 
         vector<RenderProxy> renderProxyList;
         uint32_t mask = layer;
-        for(int i = 0 ; i < 32; i++)
+        for (int i = 0; i < 32; i++)
         {
-            if ((mask & (1u<<i)) != 0)
+            if ((mask & (1u << i)) != 0)
             {
                 uint64_t hash = GetBatchHash(meshID, materialID, i);
                 RenderProxy proxy;
-                proxy.batchID = drawIndirectParamMap[hash].indexInDrawIndirectList;
-                renderProxyList.push_back(proxy);
+
+                auto it = drawIndirectContextMap.find(hash);
+                if (it != drawIndirectContextMap.end())
+                {
+                    proxy.batchID = it->second.batchIndex;
+                    renderProxyList.push_back(proxy);
+                }
             }
         }
 
@@ -34,7 +36,7 @@ namespace EngineCore
 
     uint64_t BatchManager::GetBatchHash(AssetID meshID, AssetID materialID, uint32_t layer)
     {
-        if(!meshID.IsValid() || !materialID.IsValid()) return 0;
+        if (!meshID.IsValid() || !materialID.IsValid()) return 0;
         Mesh* mesh = ResourceManager::GetInstance()->GetResource<Mesh>(meshID);
         Material* material = ResourceManager::GetInstance()->GetResource<Material>(materialID);
         uint64_t batchKey = 0;
@@ -45,72 +47,70 @@ namespace EngineCore
         uint32_t meshKey = vaoID;
         batchKey |= matKey;
         batchKey |= (static_cast<uint64_t>(meshKey) << 32);
-
-        if(drawIndirectContextMap.count(batchKey) == 0)
-        {
-            drawIndirectContextMap[batchKey] = {material, mesh};
-        }
-        return batchKey; 
+        return batchKey;
     }
 
     vector<DrawIndirectArgs> BatchManager::GetBatchInfo()
     {
         vector<DrawIndirectArgs> drawIndirectArgsList;
         int globalOffset = 0;
-    
-        // 【修改建议】: 将 unordered_map 转为 vector 并排序，确保遍历顺序稳定
-        // BatchMap 的 key 是 hash (uint64_t)，排序后顺序是固定的
-        std::vector<std::pair<uint64_t, int>> sortedBatches(BatchMap.begin(), BatchMap.end());
-        std::sort(sortedBatches.begin(), sortedBatches.end());
-    
+
+
         // 使用排序后的列表进行遍历
-        for(auto& [key, value] : sortedBatches)
+        for (uint64_t batchKey : BatchList)
         {
-            if(value <= 0) continue;
+            ASSERT(BatchMap.count(batchKey) > 0);
+            int count = BatchMap[batchKey];
             DrawIndirectArgs args;
-            ASSERT(drawIndirectParamMap.count(key) > 0);
-            DrawIndirectParam& argsParam = drawIndirectParamMap[key];
+            ASSERT(drawIndirectParamMap.count(batchKey) > 0);
+            DrawIndirectParam& argsParam = drawIndirectParamMap[batchKey];
             args.IndexCountPerInstanc = argsParam.indexCount;
             args.StartInstanceLocation = globalOffset; // 这个依旧需要设置， 不然GPU Culling会错。
             args.InstanceCount = 0;
             args.StartIndexLocation = 0;
             args.BaseVertexLocation = 0;
-            if(RenderSettings::s_EnableVertexPulling)
+            if (RenderSettings::s_EnableVertexPulling)
             {
                 args.StartIndexLocation = argsParam.startIndexLocation;
-                args.BaseVertexLocation = argsParam.baseVertexLocation;
+                //args.BaseVertexLocation = argsParam.baseVertexLocation;
+                args.BaseVertexLocation = 0;
             }
             drawIndirectArgsList.push_back(args);
-            
+
             // 更新 BatchID
             argsParam.startIndexInInstanceDataList = globalOffset;
             argsParam.indexInDrawIndirectList = drawIndirectArgsList.size() - 1;
-            globalOffset += value;
-        }   
+            globalOffset += count;
+        }
         return drawIndirectArgsList;
     }
 
+    // 新增一个Batch，相当于一个渲染类型
     void BatchManager::TryAddBatches(AssetID meshID, AssetID materialID, uint32_t layer)
     {
-        if(!meshID.IsValid() || !materialID.IsValid()) return;
+        if (!meshID.IsValid() || !materialID.IsValid()) 
+        {
+            return;
+        }
         Mesh* mesh = ResourceManager::GetInstance()->GetResource<Mesh>(meshID);
         Material* material = ResourceManager::GetInstance()->GetResource<Material>(materialID);
         uint32_t mask = layer;
-        for(int i = 0 ; i < 32; i++)
+        for (int i = 0; i < 32; i++)
         {
-            if ((mask & (1u<<i)) != 0)
+            if ((mask & (1u << i)) != 0)
             {
                 uint64_t batchKey = GetBatchHash(meshID, materialID, i);
-                if(BatchMap.count(batchKey) > 0)
+                if (BatchMap.count(batchKey) > 0)
                 {
-                    BatchMap[batchKey] = BatchMap[batchKey] +1;;
+                    BatchMap[batchKey] = BatchMap[batchKey] + 1;;
                 }
                 else
                 {
                     BatchMap[batchKey] = 1;
-                    if(!RenderSettings::s_EnableVertexPulling)
+                    BatchList.push_back(batchKey);
+                    if (!RenderSettings::s_EnableVertexPulling)
                     {
-                        drawIndirectParamMap[batchKey] = 
+                        drawIndirectParamMap[batchKey] =
                         {
                             (uint32_t)mesh->indexAllocation->size / (uint32_t)sizeof(uint32_t), // 比如这个Mesh有300个索引
                             0,
@@ -119,12 +119,17 @@ namespace EngineCore
                     }
                     else
                     {
-                        drawIndirectParamMap[batchKey] = 
+                        drawIndirectParamMap[batchKey] =
                         {
                             (uint32_t)mesh->indexAllocation->size / (uint32_t)sizeof(uint32_t), // 比如这个Mesh有300个索引
-                            (uint32_t)mesh->indexAllocation->offset, 
+                            (uint32_t)mesh->indexAllocation->offset,
                             (uint32_t)mesh->vertexAllocation->offset,
                         };
+                    }
+
+                    if (drawIndirectContextMap.count(batchKey) == 0)
+                    {
+                        drawIndirectContextMap[batchKey] = { (int)BatchList.size() - 1, material, mesh };
                     }
                 }
             }
@@ -135,11 +140,12 @@ namespace EngineCore
     void BatchManager::TryDecreaseBatches(AssetID meshID, AssetID materialID, uint32_t layer)
     {
         uint32_t mask = layer;
-        for(int i = 0 ; i < 32; i++)
+        for (int i = 0; i < 32; i++)
         {
-            if ((mask & (1u<<i)) != 0)
+            if ((mask & (1u << i)) != 0)
             {
                 uint64_t batchKey = GetBatchHash(meshID, materialID, i);
+                ASSERT(BatchMap.count(batchKey) > 0);
                 BatchMap[batchKey] = BatchMap[batchKey] - 1;
             }
         }
@@ -147,7 +153,7 @@ namespace EngineCore
 
     void BatchManager::Create()
     {
-        if(s_Instance == nullptr)
+        if (s_Instance == nullptr)
         {
             s_Instance = new BatchManager();
         }

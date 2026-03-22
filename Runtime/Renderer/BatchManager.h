@@ -26,10 +26,11 @@ namespace EngineCore
 
     struct DrawIndirectContext
     {
+        int batchIndex = -1;
         Material* material;
         Mesh* mesh;
         DrawIndirectContext() = default;
-        DrawIndirectContext(Material* mat, Mesh* mesh): material(mat), mesh(mesh){}
+        DrawIndirectContext(int index, Material* mat, Mesh* mesh) : material(mat), mesh(mesh), batchIndex(index) {}
     };
 
     class MeshRenderer;
@@ -38,24 +39,30 @@ namespace EngineCore
     public:
         static BatchManager* GetInstance()
         {
-            if(s_Instance == nullptr)
+            if (s_Instance == nullptr)
             {
                 Create();
             }
             return s_Instance;
         }
-        void TryAddBatches(AssetID meshID, AssetID materialID, uint32_t layer); 
+        void TryAddBatches(AssetID meshID, AssetID materialID, uint32_t layer);
         void TryDecreaseBatches(AssetID meshID, AssetID materialID, uint32_t layer);
-        static std::unordered_map<uint64_t, DrawIndirectParam> drawIndirectParamMap;
-        static std::unordered_map<uint64_t, DrawIndirectContext> drawIndirectContextMap;
-        static std::unordered_map<uint64_t, int> BatchMap;
-        
-        std::vector<RenderProxy> GetAvaliableRenderProxyList(AssetID meshID, AssetID materialID, uint32_t layer); 
-        
+        std::unordered_map<uint64_t, DrawIndirectParam> drawIndirectParamMap;
+        std::unordered_map<uint64_t, DrawIndirectContext> drawIndirectContextMap;
+        std::unordered_map<uint64_t, int> BatchMap;
+        // 记录Batch的顺序，保证每次GetBatchInfo得到的数据稳定， 只会添加
+        std::vector<uint64_t> BatchList;
+
+        std::vector<RenderProxy> GetAvaliableRenderProxyList(AssetID meshID, AssetID materialID, uint32_t layer);
+
         vector<DrawIndirectArgs> GetBatchInfo();
+
+        inline const std::unordered_map<uint64_t, DrawIndirectContext>& GetDrawIndirectContextMap() const { return drawIndirectContextMap; }
+
+        inline std::unordered_map<uint64_t, DrawIndirectParam>& GetDrawIndirectParamMap() { return drawIndirectParamMap; }
     private:
-        uint64_t GetBatchHash(AssetID meshID, AssetID materialID, uint32_t layer); 
-        
+        uint64_t GetBatchHash(AssetID meshID, AssetID materialID, uint32_t layer);
+
         static void Create();
         static BatchManager* s_Instance;
 

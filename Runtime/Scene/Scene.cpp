@@ -220,10 +220,11 @@ namespace EngineCore
         EnsureNodeQueueSize(renderID);
 
         Transform* transform = renderer->gameObject->transform;
+
         MeshFilter* meshFilter = renderer->gameObject->GetComponent<MeshFilter>();
         NodeDirtyPayload payload(transform, 
-            meshFilter == nullptr ? AssetID() : meshFilter->mMeshHandle.GetAssetID(),
-            renderer->GetMaterial().GetAssetID());
+            GetMeshID(meshFilter),
+            GetMaterialID(renderer));
         ApplyQueueNodeChange(renderID, (uint32_t)NodeDirtyFlags::Created, payload);
     }
 
@@ -252,32 +253,33 @@ namespace EngineCore
         if(!renderer) return;
         uint32_t renderID = renderer->GetCPUWorldIndex();
         NodeDirtyPayload payload(meshFilter->gameObject->transform,
-                                  meshFilter->mMeshHandle->GetAssetID(),
-                                  AssetID{});
+            GetMeshID(meshFilter),
+            GetMaterialID(renderer));
         ApplyQueueNodeChange(renderID, (uint32_t)NodeDirtyFlags::MeshDirty, payload);
     }
 
     void Scene::MarkNodeMeshRendererDirty(MeshRenderer *renderer)
     {
+        MeshFilter* meshFiler = renderer->gameObject->GetComponent<MeshFilter>();
         uint32_t renderID = renderer->GetCPUWorldIndex();
         NodeDirtyPayload payload(renderer->gameObject->transform,
-            AssetID{},
-            renderer->GetMaterial().GetAssetID());
+            GetMeshID(meshFiler),
+            GetMaterialID(renderer));
         ApplyQueueNodeChange(renderID, (uint32_t)NodeDirtyFlags::MaterialDirty, payload);
     }
 
     void Scene::MarkNodeRenderableDirty(GameObject *object)
     {
-        MeshRenderer* mr  = object->GetComponent<MeshRenderer>();
-        if(mr == nullptr) return;
-        uint32_t renderID = mr->GetCPUWorldIndex();
+        MeshRenderer* meshRenderer  = object->GetComponent<MeshRenderer>();
+        if(meshRenderer == nullptr) return;
+        uint32_t renderID = meshRenderer->GetCPUWorldIndex();
 
 
         Transform* transform = object->transform;
         MeshFilter* meshFilter = object->GetComponent<MeshFilter>();
         NodeDirtyPayload payload(transform, 
-            meshFilter == nullptr ? AssetID() : meshFilter->mMeshHandle.GetAssetID(),
-            mr->GetMaterial().GetAssetID());
+            GetMeshID(meshFilter),
+            GetMaterialID(meshRenderer));
         uint32_t flags = ((uint32_t)NodeDirtyFlags::MaterialDirty | (uint32_t)NodeDirtyFlags::TransformDirty);
         if(meshFilter) 
         {
@@ -292,7 +294,7 @@ namespace EngineCore
         delta.mPerFrameDirtyNodeList = std::move(mPerFrameDirtyNodeList);
         delta.mNodeChangeFlagList = std::move(mNodeChangeFlagList);
         delta.mNodeDirtyPayloadList = std::move(mNodeDirtyPayloadList);
-
+            
         // Scene 自己仍然会在后续帧继续按 renderID 下标写入这两份数组，
         // move 之后必须立刻恢复到与 frame stamp 一致的容量。
         mNodeChangeFlagList.resize(mNodeFrameStampList.size(), 0);
@@ -330,6 +332,20 @@ namespace EngineCore
             // 2. 清空隔离区，准备接收下一帧的删除请求
             mPendingFreeSceneIndex.clear();
         }
+    }
+
+    AssetID Scene::GetMaterialID(MeshRenderer *meshRenderer)
+    {
+        if(meshRenderer == nullptr) return AssetID();
+        AssetID id = meshRenderer->GetMaterial().GetAssetID();
+        return ResourceManager::GetInstance()->GetResource<Material>(id)->GetAssetID();
+    }
+
+    AssetID Scene::GetMeshID(MeshFilter *meshFilter)
+    {
+        if(meshFilter == nullptr) return AssetID();
+        AssetID id = meshFilter->mMeshHandle.GetAssetID();
+        return ResourceManager::GetInstance()->GetResource<Mesh>(id)->GetAssetID();
     }
 
     void Scene::ApplyQueueNodeChange(uint32_t id, uint32_t flags, const NodeDirtyPayload& p)

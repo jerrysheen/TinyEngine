@@ -2,6 +2,7 @@
 #include "PreCompiledHeader.h"
 #include "GameObject/Camera.h"
 #include "Core/PublicStruct.h"
+#include "Graphics/IGPUResource.h"
 
 namespace EngineCore
 {
@@ -16,8 +17,7 @@ namespace EngineCore
         Camera* camera;
         vector<LightData*> visibleLights;
         vector<RenderPacket> visibleItems;
-        int currentMaxIndex = 0;
-
+        
         inline void Reset()
         {
             camera = nullptr;
@@ -34,6 +34,9 @@ namespace EngineCore
 
         static bool CanBatch(const RenderBatch& batch, const RenderPacket item);
 
+        IGPUBuffer* IndirectDrawArgsBuffer = nullptr;
+        IGPUBuffer* CullingParamBuffer = nullptr;
+        uint32_t currFrameIndex = 0;
     private:
 
     };

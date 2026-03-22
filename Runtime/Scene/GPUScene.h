@@ -49,9 +49,13 @@ namespace EngineCore
             mUploadPagePool = pool;
         }
 
+        inline IGPUBuffer* GetRenderProxyBuffer() { return renderProxyBuffer->GetGPUBuffer(); }
         inline uint64_t GetAllObjectDataBufferAddress() { return allObjectDataBuffer->GetBaseGPUAddress(); }
+        inline IGPUBuffer* GetAllObjectDataBuffer() { return allObjectDataBuffer->GetGPUBuffer(); }
         inline uint64_t GetAllAABBDataBufferAddress() { return allAABBBuffer->GetBaseGPUAddress(); }
-        inline uint64_t GetCurrentVisibilityBuffer(uint32_t frameID) { return GetVisibilityBufferByFrameID(frameID)->GetBaseGPUAddress(); }
+        inline IGPUBuffer* GetAllAABBDataBuffer() { return allAABBBuffer->GetGPUBuffer(); }
+
+        inline IGPUBuffer* GetCurrentVisibilityBuffer(uint32_t frameID) { return GetVisibilityBufferByFrameID(frameID)->GetGPUBuffer(); }
         inline GPUBufferAllocator* GetVisibilityBufferByFrameID(uint32_t frameID) { return visibilityBuffer[frameID % 3]; }
     private:
         void EnsureCapacity(uint32_t renderID);

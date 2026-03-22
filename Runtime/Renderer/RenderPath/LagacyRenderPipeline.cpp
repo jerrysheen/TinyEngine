@@ -16,12 +16,6 @@ namespace EngineCore
         context.camera = cam;
         Culling::Run(cam, context);
 
-        RenderBackend::GetInstance()->BeginFrame();
-        RenderBackend::GetInstance()->FlushPerFrameData();
-        uint32_t frameIndex = RenderEngine::GetInstance()->GetCurrentFrame();
-        FrameTicket* currentFrameTicket= RenderEngine::GetInstance()->GetCurrentFrameTicket(frameIndex);
-        RenderBackend::GetInstance()->SetFrame(currentFrameTicket, frameIndex);
-
         for(auto* pass : context.camera->mRenderPassAsset.renderPasses)
         {
             RenderBackend::GetInstance()->FlushPerPassData(context);
@@ -44,13 +38,6 @@ namespace EngineCore
         {
             pass->Clear();
         }
-
-#ifdef EDITOR
-        RenderBackend::GetInstance()->OnDrawGUI();
-        EngineEditor::EditorGUIManager::GetInstance()->BeginFrame();
-        EngineEditor::EditorGUIManager::GetInstance()->Render();
-#endif
-        RenderBackend::GetInstance()->EndFrame();
     }
 
     

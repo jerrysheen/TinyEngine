@@ -47,13 +47,23 @@ namespace EngineCore
         mCurrentFrameID = frameID;
         mCurrFrameTicket = GetCurrentFrameTicket(frameID);
 
+        mUploadPagePool->Recycle(*mCurrFrameTicket);
         PROFILER_ZONE("RenderEngine::Update");
         mCPUScene.Update(frameID);
         mGPUScene.Update(frameID);
         ComsumeDirtySceneRenderNode(sceneDelta);
         //PROFILER_EVENT_BEGIN("MainThread::RenderEngine::Update");
+
+        RenderBackend::GetInstance()->BeginFrame();
+        // todo:  Remove
+        RenderBackend::GetInstance()->FlushPerFrameData();
+        uint32_t frameIndex = RenderEngine::GetInstance()->GetCurrentFrame();
+        FrameTicket* currentFrameTicket = RenderEngine::GetInstance()->GetCurrentFrameTicket(frameIndex);
+        RenderBackend::GetInstance()->SetFrame(currentFrameTicket, frameIndex);
+
+
         mCurrentRenderPipeline->Prepare(renderContext);
-        UploadCopyOp();
+        mGPUScene.UploadCopyOp();
         //PROFILER_EVENT_END("MainThread::RenderEngine::Update");
     }    
     
@@ -99,6 +109,13 @@ namespace EngineCore
     void RenderEngine::EndFrame()
     {
         mCPUScene.EndFrame();
+#ifdef EDITOR
+        RenderBackend::GetInstance()->OnDrawGUI();
+        EngineEditor::EditorGUIManager::GetInstance()->BeginFrame();
+        EngineEditor::EditorGUIManager::GetInstance()->Render();
+#endif
+        mUploadPagePool->OnSubmitted(*GetCurrentFrameTicket(mCurrentFrameID));
+        RenderBackend::GetInstance()->EndFrame();
     }
 
     void RenderEngine::Destory()
@@ -156,8 +173,4 @@ namespace EngineCore
         mGPUScene.UpdatePerFrameDirtyNode(view);
     }
 
-    void RenderEngine::UploadCopyOp()
-    {
-        mGPUScene.UploadCopyOp();
-    }
 }

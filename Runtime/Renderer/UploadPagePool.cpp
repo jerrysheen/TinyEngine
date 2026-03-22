@@ -38,8 +38,8 @@ namespace EngineCore
             if(mCurrentPage)
             {
                 mPendingList.push_back(mCurrentPage);
-                mCurrentPage = AcquireFreePage();
             }
+            mCurrentPage = AcquireFreePage();
         }
         return mCurrentPage->Allocate(size, data);
     }
@@ -51,8 +51,8 @@ namespace EngineCore
             page->ticket = frameTicket;
             mInFlightList.push_back(page);
         }
-        if(mCurrentPage == nullptr) return;
         mPendingList.clear();
+        if(mCurrentPage == nullptr) return;
         mCurrentPage->ticket = frameTicket;
         mInFlightList.push_back(mCurrentPage);
         mCurrentPage = nullptr;
@@ -60,7 +60,8 @@ namespace EngineCore
 
     void UploadPagePool::Recycle(const FrameTicket &frameTicket)
     {
-        while(!mInFlightList.empty() && mInFlightList.front()->ticket <= frameTicket)
+        if(frameTicket.GetSubmittedFrameID() <= 3) return;
+        while(!mInFlightList.empty() && mInFlightList.front()->ticket.GetFenceValue() <= frameTicket.GetFenceValue())
         {
             auto* page = mInFlightList.front();
             mInFlightList.pop_front();

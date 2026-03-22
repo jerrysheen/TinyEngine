@@ -15,22 +15,26 @@ namespace EngineCore
     class GPUSceneRenderPipeline : public IRenderPipeline
     {
     public:
+        GPUSceneRenderPipeline();
         virtual ~GPUSceneRenderPipeline() override 
         {
             delete cullingParamBuffer;
             delete indirectDrawArgsBuffer;
         };
-
-        virtual void Prepare(RenderContext& context) override {};
+        virtual void Prepare(RenderContext& context) override;
         //virtual void Record(const CommandStream& cmdStream, RenderContext& context) override;
         virtual void RecordAndFlush(RenderContext& context) override;
 
+        GPUBufferAllocator* GetCurrentCullingParamBuffer(uint32_t frameID);
+        GPUBufferAllocator* GetCurrentIndirectDrawArgsBuffer(uint32_t frameID);
 
-        bool hasSetUpBuffer = false;
         BufferAllocation cullingParamAlloc;
-        GPUBufferAllocator* cullingParamBuffer;
+        GPUBufferAllocator* currCullingParamBuffer;
+        GPUBufferAllocator* cullingParamBuffer[3];
+
         BufferAllocation indirectDrawArgsAlloc;
-        GPUBufferAllocator* indirectDrawArgsBuffer;
+        GPUBufferAllocator* currIndirectDrawArgsBuffer;
+        GPUBufferAllocator* indirectDrawArgsBuffer[3];
 
     };
 }
