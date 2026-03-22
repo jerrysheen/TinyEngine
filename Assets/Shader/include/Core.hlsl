@@ -58,6 +58,9 @@ struct PerMaterialData
     float Metallic;
     float2 TilingFactor;
     uint DiffuseTextureIndex;
+    uint NormalTextureIndex;
+    uint MetallicTextureID;
+    uint EmissiveTextureID;
 };
 
 StructuredBuffer<PerObjectData> g_InputPerObjectDatas : register(t0, space1);
@@ -82,6 +85,9 @@ PerMaterialData LoadPerMaterialData(uint index)
 
     uint4 TextureIndexRaw = AllPerMaterialData.Load4(index + 48);
     data.DiffuseTextureIndex = TextureIndexRaw.x;
+    data.NormalTextureIndex = TextureIndexRaw.y;
+    data.MetallicTextureID = TextureIndexRaw.z;
+    data.EmissiveTextureID = TextureIndexRaw.w;
     return data;
 }
 

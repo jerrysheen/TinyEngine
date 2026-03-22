@@ -27,9 +27,15 @@ namespace Mat::StandardPBR
         materialLayout.AddProp("TilingFactor", ShaderVariableType::VECTOR2, 8);
         
         materialLayout.AddProp("DiffuseTextureID", ShaderVariableType::FLOAT, 4);
+        materialLayout.AddProp("NormalTextureID", ShaderVariableType::FLOAT, 4);
+        materialLayout.AddProp("MetallicTextureID", ShaderVariableType::FLOAT, 4);
+        materialLayout.AddProp("EmissiveTextureID", ShaderVariableType::FLOAT, 4);
         
-        materialLayout.AddProp("PaddingLast", ShaderVariableType::VECTOR3, 12);
-        
+        materialLayout.AddTextureToBlockOffset("DiffuseTexture", 48);
+        materialLayout.AddTextureToBlockOffset("NormalTexture", 52);
+        materialLayout.AddTextureToBlockOffset("MetallicTexture", 56);
+        materialLayout.AddTextureToBlockOffset("EmissiveTexture", 60);
+
         return materialLayout;
     }    
 };

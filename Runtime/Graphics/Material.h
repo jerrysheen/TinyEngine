@@ -83,5 +83,6 @@ namespace EngineCore
     private:
         void SetUpRenderState();
         void GetTextureInfoFromShaderReflection();
+        void FlushBindlessIndicesToInstance();
     };
 }

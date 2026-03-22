@@ -216,6 +216,7 @@ namespace EngineCore
             AssetID meshID  = view.meshList[renderID];
             AssetID materialID = view.materialList[renderID];
             uint32_t layer = view.layerList[renderID];
+            Material* mat = ResourceManager::GetInstance()->GetResource<Material>(view.materialList[renderID]);
 
             // 要先释放旧RenderProxy
             TryFreeRenderProxyByRenderIndex(renderID);
@@ -225,7 +226,7 @@ namespace EngineCore
             dstAllocation.buffer = renderProxyBuffer->GetGPUBuffer();
             mPerObjectDatas[renderID].renderProxyCount = proxyList.size();
             mPerObjectDatas[renderID].renderProxyStartIndex = static_cast<uint32_t>(dstAllocation.offset / sizeof(RenderProxy));
-
+            mPerObjectDatas[renderID].matIndex = mat->materialAllocation.offset;
             // copyop:
             BufferAllocation tempAllocation = mUploadPagePool->Allocate(proxyList.size() * sizeof(RenderProxy),  proxyList.data());
             CopyOp op;
@@ -263,7 +264,7 @@ namespace EngineCore
                 mCopyOpsObject.push_back(op);
 
                 allocation = allAABBBuffer->Allocate(sizeof(AABB));
-                tempAllocation = mUploadPagePool->Allocate(sizeof(AABB), &mPerObjectDatas[renderID]);
+                tempAllocation = mUploadPagePool->Allocate(sizeof(AABB),(void*)&cpuScene.worldBoundsList[renderID]);
                 op.srcUploadBuffer = tempAllocation.buffer;
                 op.destDefaultBuffer = allocation.buffer;
                 op.srcOffset = tempAllocation.offset;
@@ -272,7 +273,7 @@ namespace EngineCore
                 mCopyOpsAABB.push_back(op);
             }
 
-            if((dirtyFlags & (uint32_t)NodeDirtyFlags::TransformDirty) || (dirtyFlags & (uint32_t)NodeDirtyFlags::MeshDirty))
+            if((dirtyFlags & (uint32_t)NodeDirtyFlags::TransformDirty) || (dirtyFlags & (uint32_t)NodeDirtyFlags::MaterialDirty))
             {
                 BufferAllocation dstAlloc;
                 dstAlloc.offset = renderID * sizeof(PerObjectData);  // 固定位置！

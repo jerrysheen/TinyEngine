@@ -40,7 +40,7 @@ namespace EngineCore
 
         void AddTextureToBlockOffset(const std::string& name, uint32_t offset)
         {
-            ASSERT(textureToBlockIndexMap.count(name) < 0);
+            ASSERT(textureToBlockIndexMap.count(name) <= 0);
             textureToBlockIndexMap[name] = offset;
             
         }

@@ -97,12 +97,34 @@ namespace EngineCore
         }
     }
 
+    void Material::FlushBindlessIndicesToInstance()
+    {
+        // 将TextureMap转化成对应的 bindlessIndex
+        if(!matInstance) return;
+        auto blockMap = matInstance->GetLayout().textureToBlockIndexMap;
+        for (auto& [texName, blockOffset] : blockMap)
+        {
+            IGPUTexture* tex = nullptr;
+            if (textureHandleMap.count(texName) && textureHandleMap[texName].IsValid())
+                tex = textureHandleMap[texName].Get()->textureBuffer;
+            else if (textureData.count(texName))
+                tex = textureData[texName];
+            if (tex && tex->bindlessHandle.isValid())
+            {
+                uint32_t idx = tex->bindlessHandle.descriptorIdx;
+                matInstance->SetValueAtOffset(blockOffset, &idx, sizeof(uint32_t));
+            }
+        }
+    }
+
     // 根据Shader信息，创建GPU buffer，进行数据映射。
 
     
     
     void Material::UploadDataToGpu()
     {
+        FlushBindlessIndicesToInstance();
+
         if (matInstance)
         {
             RenderEngine::GetInstance()->GetGPUScene().GetAllMaterialDataBuffer()

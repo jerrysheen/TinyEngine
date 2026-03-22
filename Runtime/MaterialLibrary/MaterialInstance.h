@@ -20,6 +20,11 @@ namespace EngineCore
             memcpy(m_DataBlob.data() + offset, data, size);
         }
 
+        inline void SetValueAtOffset(uint32_t offset, void* data, uint32_t size)
+        {
+            memcpy(m_DataBlob.data() + offset, data, size);
+        }
+
         std::vector<uint8_t> GetInstanceData(){ return m_DataBlob; }
         inline void SetInstanceData(const std::vector<uint8_t> data){ m_DataBlob = data; }
         uint32_t GetSize(){return m_Layout.GetSize();}
