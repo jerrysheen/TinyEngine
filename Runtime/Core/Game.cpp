@@ -41,6 +41,7 @@ namespace EngineCore
     void Game::TickFrame(uint32_t frameIndex)
     {
         PROFILER_ZONE("MainThread::GameUpdate");
+        SceneManager::GetInstance()->SetCurrentFrame(frameIndex);
         ResourceManager::GetInstance()->Update();
 
         PROFILER_EVENT_BEGIN("TickFrame::TickSimulation");

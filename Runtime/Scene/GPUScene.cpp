@@ -211,7 +211,7 @@ namespace EngineCore
             mPerObjectDatas[renderID].baseVertexLocation = mesh->vertexAllocation->offset;
         }
 
-        if(flags & (uint32_t)NodeDirtyFlags::MaterialDirty || flags & (uint32_t)NodeDirtyFlags::Created)
+        if(flags & (uint32_t)NodeDirtyFlags::MeshDirty || flags & (uint32_t)NodeDirtyFlags::MaterialDirty || flags & (uint32_t)NodeDirtyFlags::Created)
         {
             AssetID meshID  = view.meshList[renderID];
             AssetID materialID = view.materialList[renderID];
@@ -273,7 +273,7 @@ namespace EngineCore
                 mCopyOpsAABB.push_back(op);
             }
 
-            if((dirtyFlags & (uint32_t)NodeDirtyFlags::TransformDirty) || (dirtyFlags & (uint32_t)NodeDirtyFlags::MaterialDirty))
+            if((dirtyFlags & (uint32_t)NodeDirtyFlags::TransformDirty) || (dirtyFlags & (uint32_t)NodeDirtyFlags::MaterialDirty) || (dirtyFlags & (uint32_t)NodeDirtyFlags::MeshDirty))
             {
                 BufferAllocation dstAlloc;
                 dstAlloc.offset = renderID * sizeof(PerObjectData);  // 固定位置！
