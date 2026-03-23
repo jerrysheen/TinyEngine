@@ -20,6 +20,8 @@ namespace EngineCore
         JobSystem::Create();
         AssetRegistry::Create();
         ASSERT(!(RenderSettings::s_EnableVertexPulling == true && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy));
+        // 当前GPUScene + false vertexpulling有问题主要是 shader选择，用bindless的即可
+        ASSERT(!(RenderSettings::s_EnableVertexPulling == false && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::GPUScene));
         //std::cout << "Launch Game" << std::endl;
         // init Manager...
         #ifdef EDITOR

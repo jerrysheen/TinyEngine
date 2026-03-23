@@ -83,6 +83,7 @@ namespace EngineCore
     int WindowSettings::s_WindowWidth = 1920;
 
     RenderSettings::RenderPathType RenderSettings::s_RenderPath = RenderSettings::RenderPathType::GPUScene;
+    // 当前GPUScene + false vertexpulling有问题主要是 shader选择，用bindless的即可
     bool RenderSettings::s_EnableVertexPulling = true;
 
 };
