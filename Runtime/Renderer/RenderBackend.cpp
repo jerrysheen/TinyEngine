@@ -32,6 +32,8 @@ namespace EngineCore
         s_Instance = std::make_unique<RenderBackend>();
         s_Instance->CreatePerFrameData();
         s_Instance->CreatePerPassForwardData();
+        s_Instance->mStagedBuffer = new UploadPagePool(16 * 1024 * 1024);
+        s_Instance->mStagedBuffer->AcquireFreePage();
     }
 
 
@@ -93,6 +95,12 @@ namespace EngineCore
     void RenderBackend::CreatePerPassForwardData()
     {
         RenderAPI::GetInstance()->CreateGlobalConstantBuffer((uint32_t)UniformBufferType::PerPassData_Foraward, sizeof(mPerPassData_Forward));
+    }
+
+    // 根据传入的FrameTicket重置，
+    void RenderBackend::ResetByLastFrameTicket(Payload_SetFrame setFrame)
+    {
+        mStagedBuffer->Recycle(*setFrame.frameTicket);
     }
 
     // 从PSOManager创建一个PSO，可以复用
@@ -278,6 +286,27 @@ namespace EngineCore
         EnqueueCommand(cmd);
     }
 
+    void RenderBackend::UploadBufferStaged(const BufferAllocation& alloc, void* data, uint32_t size)
+    {
+        Payload_CopyBufferStaged payload;
+
+        BufferAllocation destAllocation = alloc;
+        BufferAllocation srcAllocation = mStagedBuffer->Allocate(size, data);
+
+        CopyOp op = {};
+        op.srcUploadBuffer = srcAllocation.buffer;
+        op.destDefaultBuffer = destAllocation.buffer;
+        op.srcOffset = srcAllocation.offset;
+        op.dstOffset = destAllocation.offset;
+        op.size = size;
+        payload.copyOp = op;
+
+        DrawCommand temp;
+        temp.op = RenderOp::kCopyBufferStaged;
+        temp.data.copyBufferStaged = payload;
+        EnqueueCommand(temp);
+    }
+
     void RenderBackend::DrawIndirect(Payload_DrawIndirect payload)
     {
         DrawCommand cmd;
@@ -337,6 +366,9 @@ namespace EngineCore
             RenderAPI::GetInstance()->RenderAPISetPerFrameData(cmd.data.setPerFrameData);
             break;  
         case RenderOp::kSetFrame :
+            // todo: set current Frame
+            ResetByLastFrameTicket(cmd.data.setFrame);
+            mCurrentFrameTicket = cmd.data.setFrame.frameTicket;
             RenderAPI::GetInstance()->RenderAPISetFrame(cmd.data.setFrame);
             break;
         case RenderOp::kWindowResize:
@@ -354,6 +386,9 @@ namespace EngineCore
             break;
         case RenderOp::kDrawIndirect:
             RenderAPI::GetInstance()->RenderAPIExecuteIndirect(cmd.data.setDrawIndirect);
+            break;
+        case RenderOp::kCopyBufferStaged:
+            RenderAPI::GetInstance()->RenderAPICopyBufferStaged(cmd.data.copyBufferStaged);
             break;
         default:
             break;

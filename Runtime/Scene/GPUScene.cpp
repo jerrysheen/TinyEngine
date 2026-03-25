@@ -327,7 +327,7 @@ namespace EngineCore
         clearAlloc.buffer = mCurrVisibilityBuffer->GetGPUBuffer();
         clearAlloc.gpuAddress = mCurrVisibilityBuffer->GetBaseGPUAddress();
         clearAlloc.size = bufferSize;
-        mCurrVisibilityBuffer->UploadBuffer(clearAlloc, zeros.data(), bufferSize);
+        //mCurrVisibilityBuffer->UploadBuffer(clearAlloc, zeros.data(), bufferSize);
     }
 
     void GPUScene::TryFreeRenderProxyByRenderIndex(uint32_t renderID)

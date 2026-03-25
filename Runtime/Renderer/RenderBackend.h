@@ -14,6 +14,8 @@
 #include "RenderAPI.h"
 #include <chrono>
 #include "RenderUniforms.h"
+#include "Renderer/UploadPagePool.h"
+
 
 #ifdef EDITOR
 #include "EditorGUIManager.h"
@@ -66,11 +68,16 @@ namespace EngineCore
         void SetBindlessMat(Material* mat);
         void SetBindLessMeshIB(uint32_t id);
         
+        void UploadBufferStaged(const BufferAllocation& alloc, void* data, uint32_t size);
+
+
         void DrawIndirect(Payload_DrawIndirect payload);
         void FlushPerFrameData();
         void FlushPerPassData(const RenderContext& context);
         void CreatePerFrameData();
         void CreatePerPassForwardData();
+
+        void ResetByLastFrameTicket(Payload_SetFrame setFrame);
         void RenderThreadMain() 
         {
             while (mRunning.load(std::memory_order_acquire) == true) 
@@ -117,9 +124,10 @@ namespace EngineCore
                     continue;
                 }
                 
-                
+                // todo Submit UploadPage 打上帧标签
                 // later do Gpu Fence...
                 RenderAPI::GetInstance()->RenderAPISubmit();
+                mStagedBuffer->OnSubmitted(*mCurrentFrameTicket);
 
 #ifdef EDITOR          
                 PROFILER_EVENT_BEGIN("RenderThread::ProcessEditorGUI");
@@ -165,9 +173,8 @@ namespace EngineCore
         PerFrameData mPerFrameData;
         // todo： 后面可能不应该这么设置？ 丧失灵活性了， 至少保证Core里面的内容改了这边同步
         PerPassData_Forward mPerPassData_Forward;
-
+        UploadPagePool* mStagedBuffer = nullptr;
         CpuEvent mDataAvailableEvent;
-
-
+        FrameTicket* mCurrentFrameTicket;
     };
 }

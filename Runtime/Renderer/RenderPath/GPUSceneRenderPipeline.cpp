@@ -53,7 +53,8 @@ namespace EngineCore
         vector<DrawIndirectArgs> batchInfo = BatchManager::GetInstance()->GetBatchInfo();
         if (batchInfo.size() != 0) 
         {
-            currIndirectDrawArgsBuffer->UploadBuffer(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
+            //currIndirectDrawArgsBuffer->UploadBuffer(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
+            currIndirectDrawArgsBuffer->UploadBufferStaged(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
         }
 
         auto* visibilityBuffer = RenderEngine::GetInstance()->GetGPUScene().GetCurrentVisibilityBuffer(frameID);

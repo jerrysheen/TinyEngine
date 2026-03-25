@@ -31,6 +31,7 @@ namespace EngineCore
         
         virtual uint64_t GetBaseGPUAddress() const override;
         virtual void UploadBuffer(const BufferAllocation& alloc, void* data, uint32_t size) override;
+        virtual void UploadBufferStaged(const BufferAllocation& alloc, void* data, uint32_t size) override;
         virtual IGPUBuffer* GetGPUBuffer() override;
         BufferDesc bufferDesc;
     private:

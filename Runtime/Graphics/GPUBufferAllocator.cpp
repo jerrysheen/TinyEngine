@@ -3,6 +3,7 @@
 #include "Renderer/RenderAPI.h"
 #include "CoreAssert.h"
 #include <algorithm>
+#include "Renderer/RenderBackend.h"
 
 namespace EngineCore
 {
@@ -45,6 +46,12 @@ namespace EngineCore
     {
         ASSERT(alloc.isValid && data && m_Buffer && size > 0);
         RenderAPI::GetInstance()->UploadBuffer(m_Buffer, alloc.offset, data, size);
+    }
+
+    void GPUBufferAllocator::UploadBufferStaged(const BufferAllocation& alloc, void* data, uint32_t size)
+    {
+        ASSERT(alloc.isValid && data && m_Buffer && size > 0);
+        RenderBackend::GetInstance()->UploadBufferStaged(alloc, data, size);
     }
 
     void GPUBufferAllocator::Reset()

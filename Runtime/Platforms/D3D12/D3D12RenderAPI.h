@@ -63,7 +63,7 @@ namespace EngineCore
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
         virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) override;
-
+        virtual void RenderAPICopyBufferStaged(Payload_CopyBufferStaged copyBufferStaged) override;
         
         virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) override;
         virtual RenderTexture* GetCurrentBackBuffer() override;

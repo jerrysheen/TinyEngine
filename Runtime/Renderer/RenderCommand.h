@@ -36,6 +36,7 @@ namespace EngineCore
         kSetBindlessMat = 20,
         kSetBindLessMeshIB = 21,
         kSetFrame = 22,
+        kCopyBufferStaged = 23,
     };
 
     enum class DepthComparisonFunc : uint8_t
@@ -289,6 +290,11 @@ namespace EngineCore
         uint32_t id;
     };
 
+    struct Payload_CopyBufferStaged
+    {
+        CopyOp copyOp;
+    };
+
     union CommandData 
     {
         Payload_BeginFrame beginFrame;
@@ -313,6 +319,7 @@ namespace EngineCore
         Payload_DrawIndirect setDrawIndirect;
         Payload_SetBindlessMat setBindlessMat;
         Payload_SetBindLessMeshIB SetBindLessMeshIB;
+        Payload_CopyBufferStaged copyBufferStaged;
         CommandData() {};
     };
 

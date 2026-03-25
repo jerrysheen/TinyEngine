@@ -1469,4 +1469,32 @@ namespace EngineCore
         );
     }
 
+    void D3D12RenderAPI::RenderAPICopyBufferStaged(Payload_CopyBufferStaged copyBufferStaged)
+    {
+        CopyOp uploadOp = copyBufferStaged.copyOp;
+        ASSERT(uploadOp.size > 0);
+        ID3D12Resource* destHandle = static_cast<ID3D12Resource*>(uploadOp.destDefaultBuffer->GetNativeHandle());
+        ID3D12Resource* srcHandle = static_cast<ID3D12Resource*>(uploadOp.srcUploadBuffer->GetNativeHandle());
+        auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            destHandle,
+            D3D12_RESOURCE_STATE_COMMON,
+            D3D12_RESOURCE_STATE_COPY_DEST
+        );
+        mCommandList->ResourceBarrier(1, &barrier);
+        mCommandList->CopyBufferRegion(
+            destHandle,                      // pDstBuffer
+            (UINT64)uploadOp.dstOffset,     // DstOffset (注意转为UINT64防止溢出)
+            srcHandle,                       // pSrcBuffer
+            (UINT64)uploadOp.srcOffset,     // SrcOffset (紧凑排列的源数据)
+            uploadOp.size                   // NumBytes
+        );
+
+        barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            destHandle,
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            D3D12_RESOURCE_STATE_COMMON
+        );
+        mCommandList->ResourceBarrier(1, &barrier);
+    }
+
 } // namespace EngineCore
