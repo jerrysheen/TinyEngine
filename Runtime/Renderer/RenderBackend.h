@@ -77,7 +77,9 @@ namespace EngineCore
         void CreatePerFrameData();
         void CreatePerPassForwardData();
 
-        void ResetByLastFrameTicket(Payload_SetFrame setFrame);
+        void RecycleStagedBuffer(const FrameTicket* ticket);
+        void SubmitStagedBuffer(const FrameTicket* ticket);
+        
         void RenderThreadMain() 
         {
             while (mRunning.load(std::memory_order_acquire) == true) 
@@ -127,7 +129,6 @@ namespace EngineCore
                 // todo Submit UploadPage 打上帧标签
                 // later do Gpu Fence...
                 RenderAPI::GetInstance()->RenderAPISubmit();
-                mStagedBuffer->OnSubmitted(*mCurrentFrameTicket);
 
 #ifdef EDITOR          
                 PROFILER_EVENT_BEGIN("RenderThread::ProcessEditorGUI");

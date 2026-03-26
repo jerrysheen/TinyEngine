@@ -3,6 +3,7 @@
 #include "RenderAPI.h"
 #include "Core/PublicEnum.h"
 #include "Core/Concurrency/CpuEvent.h"
+#include "Graphics/ComputeShader.h"
 #include "Graphics/GPUBufferAllocator.h"
 #include "Renderer/RenderEngine.h"
 namespace EngineCore
@@ -97,10 +98,14 @@ namespace EngineCore
         RenderAPI::GetInstance()->CreateGlobalConstantBuffer((uint32_t)UniformBufferType::PerPassData_Foraward, sizeof(mPerPassData_Forward));
     }
 
-    // 根据传入的FrameTicket重置，
-    void RenderBackend::ResetByLastFrameTicket(Payload_SetFrame setFrame)
+    void RenderBackend::RecycleStagedBuffer(const FrameTicket* ticket)
     {
-        mStagedBuffer->Recycle(*setFrame.frameTicket);
+        mStagedBuffer->Recycle(*ticket);
+    }
+
+    void RenderBackend::SubmitStagedBuffer(const FrameTicket* ticket)
+    {
+        mStagedBuffer->OnSubmitted(*ticket);
     }
 
     // 从PSOManager创建一个PSO，可以复用
@@ -251,6 +256,30 @@ namespace EngineCore
     {
         DrawCommand cmd;
         cmd.data.dispatchComputeShader = dispatchCmd;
+        ComputeShader* csShader = dispatchCmd.csShader;
+        ASSERT(csShader != nullptr);
+
+        auto* bindingSnapshot = new ComputeDispatchBindingSnapshot();
+        bindingSnapshot->cbvBuffers.reserve(csShader->mShaderReflectionInfo.mConstantBufferInfo.size());
+        bindingSnapshot->srvBuffers.reserve(csShader->mShaderReflectionInfo.mTextureInfo.size());
+        bindingSnapshot->uavBuffers.reserve(csShader->mShaderReflectionInfo.mUavInfo.size());
+
+        for (const auto& cbv : csShader->mShaderReflectionInfo.mConstantBufferInfo)
+        {
+            bindingSnapshot->cbvBuffers.push_back(csShader->GetBufferResource(cbv.resourceName));
+        }
+
+        for (const auto& srv : csShader->mShaderReflectionInfo.mTextureInfo)
+        {
+            bindingSnapshot->srvBuffers.push_back(csShader->GetBufferResource(srv.resourceName));
+        }
+
+        for (const auto& uav : csShader->mShaderReflectionInfo.mUavInfo)
+        {
+            bindingSnapshot->uavBuffers.push_back(csShader->GetBufferResource(uav.resourceName));
+        }
+
+        cmd.data.dispatchComputeShader.bindingSnapshot = bindingSnapshot;
         cmd.op = RenderOp::kDispatchComputeShader;
         EnqueueCommand(cmd);
     }
@@ -367,7 +396,6 @@ namespace EngineCore
             break;  
         case RenderOp::kSetFrame :
             // todo: set current Frame
-            ResetByLastFrameTicket(cmd.data.setFrame);
             mCurrentFrameTicket = cmd.data.setFrame.frameTicket;
             RenderAPI::GetInstance()->RenderAPISetFrame(cmd.data.setFrame);
             break;
@@ -380,6 +408,7 @@ namespace EngineCore
             break;
         case RenderOp::kDispatchComputeShader:
             RenderAPI::GetInstance()->RenderAPIDispatchComputeShader(cmd.data.dispatchComputeShader);
+            delete cmd.data.dispatchComputeShader.bindingSnapshot;
             break;
         case RenderOp::kSetBufferResourceState:
             RenderAPI::GetInstance()->RenderAPISetBufferResourceState(cmd.data.setBufferResourceState);

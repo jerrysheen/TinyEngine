@@ -1392,6 +1392,7 @@ namespace EngineCore
     void D3D12RenderAPI::RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader)
     {
         ComputeShader* csShader = dispatchComputeShader.csShader;
+        const ComputeDispatchBindingSnapshot* bindingSnapshot = dispatchComputeShader.bindingSnapshot;
         // 1. set PSO
         ComPtr<ID3D12RootSignature> rootSig = D3D12RootSignature::GetOrCreateAComputeShaderRootSig(md3dDevice, csShader);
         if(currentRootSignature != rootSig)
@@ -1415,24 +1416,60 @@ namespace EngineCore
         std::vector<ShaderBindingInfo> uavs = csShader->mShaderReflectionInfo.mUavInfo;
         std::vector<ShaderBindingInfo> samplersInfo = csShader->mShaderReflectionInfo.mSamplerInfo;
         int rootParamIndex = 0;
+        int cbvIndex = 0;
         for (const auto& cbv : cbvs)
         {
-            D3D12Buffer* buffer = static_cast<D3D12Buffer*>(csShader->GetBufferResource(cbv.resourceName));
+            D3D12Buffer* buffer = nullptr;
+            if (bindingSnapshot)
+            {
+                ASSERT(cbvIndex < static_cast<int>(bindingSnapshot->cbvBuffers.size()));
+                buffer = static_cast<D3D12Buffer*>(bindingSnapshot->cbvBuffers[cbvIndex]);
+            }
+            else
+            {
+                buffer = static_cast<D3D12Buffer*>(csShader->GetBufferResource(cbv.resourceName));
+            }
+            ASSERT(buffer != nullptr);
             mCommandList->SetComputeRootConstantBufferView(rootParamIndex++, buffer->GetGPUVirtualAddress());
+            cbvIndex++;
         }
 
         // Note: Root SRV only supports buffers (e.g., StructuredBuffer/ByteAddressBuffer), not textures.
         // This matches current engine's ComputeShader::SetBuffer(name, gpuVA) usage.
+        int srvIndex = 0;
         for (const auto& srv : srvs)
         {
-            D3D12Buffer* buffer = static_cast<D3D12Buffer*>(csShader->GetBufferResource(srv.resourceName));
+            D3D12Buffer* buffer = nullptr;
+            if (bindingSnapshot)
+            {
+                ASSERT(srvIndex < static_cast<int>(bindingSnapshot->srvBuffers.size()));
+                buffer = static_cast<D3D12Buffer*>(bindingSnapshot->srvBuffers[srvIndex]);
+            }
+            else
+            {
+                buffer = static_cast<D3D12Buffer*>(csShader->GetBufferResource(srv.resourceName));
+            }
+            ASSERT(buffer != nullptr);
             mCommandList->SetComputeRootShaderResourceView(rootParamIndex++, buffer->GetGPUVirtualAddress());
+            srvIndex++;
         }
 
+        int uavIndex = 0;
         for (const auto& uav : uavs)
         {
-            D3D12Buffer* buffer = static_cast<D3D12Buffer*>(csShader->GetBufferResource(uav.resourceName));
+            D3D12Buffer* buffer = nullptr;
+            if (bindingSnapshot)
+            {
+                ASSERT(uavIndex < static_cast<int>(bindingSnapshot->uavBuffers.size()));
+                buffer = static_cast<D3D12Buffer*>(bindingSnapshot->uavBuffers[uavIndex]);
+            }
+            else
+            {
+                buffer = static_cast<D3D12Buffer*>(csShader->GetBufferResource(uav.resourceName));
+            }
+            ASSERT(buffer != nullptr);
             mCommandList->SetComputeRootUnorderedAccessView(rootParamIndex++, buffer->GetGPUVirtualAddress());  
+            uavIndex++;
         }
         
         // 3. dispatch

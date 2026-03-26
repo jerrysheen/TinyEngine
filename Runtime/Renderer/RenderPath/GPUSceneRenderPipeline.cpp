@@ -27,7 +27,9 @@ namespace EngineCore
         desc.stride = sizeof(DrawIndirectArgs);
         desc.usage = BufferUsage::StructuredBuffer;
         for (int i = 0; i < 3; i++) 
-        {
+        {    
+            std::wstring name = L"IndirectDrawArgsBuffer" + std::to_wstring(i + 1);
+            desc.debugName = name.c_str();
             indirectDrawArgsBuffer[i] = new GPUBufferAllocator(desc);
         }
         indirectDrawArgsAlloc = indirectDrawArgsBuffer[0]->Allocate(sizeof(DrawIndirectArgs) * 3000);

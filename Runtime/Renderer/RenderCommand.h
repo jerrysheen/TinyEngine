@@ -257,12 +257,20 @@ namespace EngineCore
     };
 
     class ComputeShader;
+    struct ComputeDispatchBindingSnapshot
+    {
+        std::vector<IGPUBuffer*> cbvBuffers;
+        std::vector<IGPUBuffer*> srvBuffers;
+        std::vector<IGPUBuffer*> uavBuffers;
+    };
+
     struct Payload_DispatchComputeShader
     {
-        ComputeShader* csShader;
-        uint32_t groupX;
-        uint32_t groupY;
-        uint32_t groupZ;
+        ComputeShader* csShader = nullptr;
+        ComputeDispatchBindingSnapshot* bindingSnapshot = nullptr;
+        uint32_t groupX = 0;
+        uint32_t groupY = 0;
+        uint32_t groupZ = 0;
     };
 
     struct Payload_SetBufferResourceState

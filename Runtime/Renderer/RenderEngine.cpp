@@ -48,6 +48,7 @@ namespace EngineCore
         mCurrFrameTicket = GetCurrentFrameTicket(frameID);
 
         mUploadPagePool->Recycle(*mCurrFrameTicket);
+        RenderBackend::GetInstance()->RecycleStagedBuffer(mCurrFrameTicket);
         PROFILER_ZONE("RenderEngine::Update");
         mCPUScene.Update(frameID);
         mGPUScene.Update(frameID);
@@ -115,6 +116,7 @@ namespace EngineCore
         EngineEditor::EditorGUIManager::GetInstance()->Render();
 #endif
         mUploadPagePool->OnSubmitted(*GetCurrentFrameTicket(mCurrentFrameID));
+        RenderBackend::GetInstance()->SubmitStagedBuffer(GetCurrentFrameTicket(mCurrentFrameID));
         RenderBackend::GetInstance()->EndFrame();
     }
 
