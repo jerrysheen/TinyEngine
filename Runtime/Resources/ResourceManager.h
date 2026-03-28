@@ -69,10 +69,6 @@ namespace EngineCore
             if (task->loadState == LoadState::Finalized)
             {
                 if (callback) callback();
-                if (parentTask)
-                {
-                    TryFinalize(parentTask);
-                }
                 return ResourceHandle<T>(assetPathID);
             }
 

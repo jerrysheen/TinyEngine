@@ -80,6 +80,7 @@ namespace EngineCore
         inline MaterailRenderState GetMaterialRenderState() const { return mRenderState; };
         
         virtual void OnLoadComplete() override;
+
     private:
         void SetUpRenderState();
         void GetTextureInfoFromShaderReflection();

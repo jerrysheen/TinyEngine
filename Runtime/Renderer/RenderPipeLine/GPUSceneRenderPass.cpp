@@ -12,9 +12,36 @@
 #include "Renderer/RenderEngine.h"
 #include "Graphics/RenderTexture.h"
 #include "Renderer/RenderBackend.h"
+#include <algorithm>
 
 namespace EngineCore
 {
+    namespace
+    {
+        static std::vector<uint64_t> BuildSortedBatchKeys(BatchManager* batchManager)
+        {
+            std::vector<uint64_t> sortedKeys;
+            if (batchManager == nullptr)
+            {
+                return sortedKeys;
+            }
+
+            const auto& contextMap = batchManager->GetDrawIndirectContextMap();
+            sortedKeys.reserve(batchManager->BatchList.size());
+            for (uint64_t batchKey : batchManager->BatchList)
+            {
+                if (contextMap.count(batchKey) > 0)
+                {
+                    sortedKeys.push_back(batchKey);
+                }
+            }
+
+            std::sort(sortedKeys.begin(), sortedKeys.end());
+
+            return sortedKeys;
+        }
+    }
+
     GPUSceneRenderPass::GPUSceneRenderPass()
     {
         Create();
@@ -42,6 +69,8 @@ namespace EngineCore
     {
         // 每Pass设置一次
         m_LastMatState.Reset();
+        BatchManager* batchManager = BatchManager::GetInstance();
+        std::vector<uint64_t> sortedBatchKeys = BuildSortedBatchKeys(batchManager);
 
         RenderBackend::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
         RenderBackend::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);
@@ -50,10 +79,11 @@ namespace EngineCore
         RenderBackend::GetInstance()->SetPerPassData((UINT)mRenderPassInfo.mRootSigSlot);
         if (!RenderSettings::s_EnableVertexPulling)
         {
-            auto& indirectContextMap = BatchManager::GetInstance()->GetDrawIndirectContextMap();
-            auto& indirectParamMap = BatchManager::GetInstance()->GetDrawIndirectParamMap();
-            for (auto& [hashID, renderContext] : indirectContextMap)
+            auto& indirectContextMap = batchManager->GetDrawIndirectContextMap();
+            auto& indirectParamMap = batchManager->GetDrawIndirectParamMap();
+            for (uint64_t hashID : sortedBatchKeys)
             {
+                const DrawIndirectContext& renderContext = indirectContextMap.at(hashID);
                 int batchID = indirectParamMap[hashID].indexInDrawIndirectList;
                 int stratIndex = indirectParamMap[hashID].startIndexInInstanceDataList;
                 Material* mat = renderContext.material;
@@ -75,10 +105,11 @@ namespace EngineCore
         }
         else
         {
-            auto& indirectContextMap = BatchManager::GetInstance()->GetDrawIndirectContextMap();
-            auto& indirectParamMap = BatchManager::GetInstance()->GetDrawIndirectParamMap();
-            for (auto& [hashID, renderContext] : BatchManager::GetInstance()->drawIndirectContextMap)
+            auto& indirectContextMap = batchManager->GetDrawIndirectContextMap();
+            auto& indirectParamMap = batchManager->GetDrawIndirectParamMap();
+            for (uint64_t hashID : sortedBatchKeys)
             {
+                const DrawIndirectContext& renderContext = indirectContextMap.at(hashID);
 
                 int batchID = indirectParamMap[hashID].indexInDrawIndirectList;
                 int stratIndex = indirectParamMap[hashID].startIndexInInstanceDataList;

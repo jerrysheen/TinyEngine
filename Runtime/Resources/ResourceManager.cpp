@@ -189,9 +189,8 @@ namespace EngineCore
         temp.SetAssetID(AssetIDGenerator::NewFromFile(defaultTexturePath));
         AssetRegistry::GetInstance()->RegisterAsset(&temp);
 
-        mDefaultTexture = static_cast<Texture*>(m_Loaders[AssetType::Texture2D]->Load(defaultTexturePath).resource);
-        mDefaultTexture->OnLoadComplete();
-        mResourceCache[temp.GetAssetID()] = static_cast<Resource*>(mDefaultTexture);
+        ResourceHandle<Texture> defaultTextureHandle = LoadAsset<Texture>(defaultTexturePath);
+        mDefaultTexture = defaultTextureHandle.Get();
     }
 
     void ResourceManager::EnsureDefaultShader()
@@ -209,9 +208,8 @@ namespace EngineCore
         temp.SetAssetID(AssetIDGenerator::NewFromFile(defaultShaderPath));
         AssetRegistry::GetInstance()->RegisterAsset(&temp);
 
-        mDefaultShader = static_cast<Shader*>(m_Loaders[AssetType::Shader]->Load(defaultShaderPath).resource);
-        mDefaultShader->OnLoadComplete();
-        mResourceCache[temp.GetAssetID()] = static_cast<Resource*>(mDefaultShader);
+        ResourceHandle<Shader> defaultShaderHandle = LoadAsset<Shader>(defaultShaderPath);
+        mDefaultShader = defaultShaderHandle.Get();
     }
 
     void ResourceManager::EnsureDefaultMaterial()
@@ -226,10 +224,9 @@ namespace EngineCore
         temp.SetAssetID(AssetIDGenerator::NewFromFile(defaultMaterialPath));
         AssetRegistry::GetInstance()->RegisterAsset(&temp);
 
-        mDefaultMaterial = static_cast<Material*>(m_Loaders[AssetType::Material]->Load(defaultMaterialPath).resource);
+        ResourceHandle<Material> defaultMaterialHandle = LoadAsset<Material>(defaultMaterialPath);
+        mDefaultMaterial = defaultMaterialHandle.Get();
         mDefaultMaterial->mShader = ResourceHandle<Shader>(mDefaultShader->GetAssetID());
-        mDefaultMaterial->OnLoadComplete();
-        mResourceCache[temp.GetAssetID()] = static_cast<Resource*>(mDefaultMaterial);
     }
 
     void ResourceManager::InitDefaultResources()

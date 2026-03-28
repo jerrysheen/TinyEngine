@@ -45,8 +45,8 @@ namespace EngineCore
         // 这个相当于VAOID
         uint32_t vaoID = mesh->GetInstanceID();
         uint32_t meshKey = vaoID;
-        batchKey |= matKey;
-        batchKey |= (static_cast<uint64_t>(meshKey) << 32);
+        batchKey |= meshKey;
+        batchKey |= (static_cast<uint64_t>(matKey) << 32);
         return batchKey;
     }
 
