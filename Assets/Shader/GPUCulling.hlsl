@@ -23,6 +23,7 @@ cbuffer CullingParams : register(b0)
 
 struct IndirectDrawCallArgs
 {
+    uint StartIndexInVisibilityBuffer;
     uint IndexCountPerInstance;
     uint InstanceCount;
     uint StartIndexLocation;

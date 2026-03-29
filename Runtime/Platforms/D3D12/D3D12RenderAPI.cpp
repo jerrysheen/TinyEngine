@@ -257,14 +257,22 @@ namespace EngineCore
 
         // 创建IndirectDrawArgs的commandSignature，并不是RootSignature，只是用来描述
         // DrawIndirectArgs
-        D3D12_INDIRECT_ARGUMENT_DESC argumentDescs = {};
+        D3D12_INDIRECT_ARGUMENT_DESC argumentDescs[2] = {};
+        // 1. 先设置 root constant
+        argumentDescs[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT;
+        argumentDescs[0].Constant.RootParameterIndex = (UINT)RootSigSlot::DrawIndiceConstant;
+        argumentDescs[0].Constant.DestOffsetIn32BitValues = 0;
+        argumentDescs[0].Constant.Num32BitValuesToSet = 1;
 
-        argumentDescs.Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
+        argumentDescs[1].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED;
         D3D12_COMMAND_SIGNATURE_DESC commandSignatureDesc = {};
-        commandSignatureDesc.pArgumentDescs = &argumentDescs;
-        commandSignatureDesc.NumArgumentDescs = 1;
+        commandSignatureDesc.pArgumentDescs = argumentDescs;
+        commandSignatureDesc.NumArgumentDescs = _countof(argumentDescs);
         commandSignatureDesc.ByteStride = sizeof(DrawIndirectArgs);
-        ThrowIfFailed(md3dDevice->CreateCommandSignature(&commandSignatureDesc, nullptr, IID_PPV_ARGS(&mCommandSignature)));
+
+        ComPtr<ID3D12RootSignature> indirectRootSig =
+            D3D12RootSignature::GetOrCreateGPUSceneGraphicsRootSig(md3dDevice);
+        ThrowIfFailed(md3dDevice->CreateCommandSignature(&commandSignatureDesc, indirectRootSig.Get(), IID_PPV_ARGS(&mCommandSignature)));
     
     }
     
@@ -1495,7 +1503,7 @@ namespace EngineCore
     {
         D3D12Buffer* argsBuffer = static_cast<D3D12Buffer*>(drawIndirect.indirectArgsBuffer);
         uint32_t stride = sizeof(DrawIndirectArgs);
-        mCommandList->SetGraphicsRoot32BitConstants((UINT)RootSigSlot::DrawIndiceConstant, 1, &drawIndirect.startIndexInInstanceDataBuffer, 0);
+        //mCommandList->SetGraphicsRoot32BitConstants((UINT)RootSigSlot::DrawIndiceConstant, 1, &drawIndirect.startIndexInInstanceDataBuffer, 0);
         mCommandList->ExecuteIndirect(
             mCommandSignature.Get(),
             drawIndirect.count,   // 绘制几个

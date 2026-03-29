@@ -28,5 +28,7 @@ namespace EngineCore
             ASSERT(mRootSigMap.count(key) > 0);
             return mRootSigMap[key];
         }
+
+        static ComPtr<ID3D12RootSignature> D3D12RootSignature::GetOrCreateGPUSceneGraphicsRootSig(ComPtr<ID3D12Device> md3dDevice);
     };
 }

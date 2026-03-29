@@ -64,6 +64,7 @@ namespace EngineCore
             DrawIndirectArgs args;
             ASSERT(drawIndirectParamMap.count(batchKey) > 0);
             DrawIndirectParam& argsParam = drawIndirectParamMap[batchKey];
+            args.StartIndexInVisibilityBuffer = globalOffset;
             args.IndexCountPerInstanc = argsParam.indexCount;
             args.StartInstanceLocation = globalOffset; // 这个依旧需要设置， 不然GPU Culling会错。
             args.InstanceCount = 0;

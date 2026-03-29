@@ -234,4 +234,90 @@ namespace EngineCore
         mRootSigMap[key] = rootSig;
         return rootSig;
     }
+
+    ComPtr<ID3D12RootSignature> D3D12RootSignature::GetOrCreateGPUSceneGraphicsRootSig(ComPtr<ID3D12Device> device)
+    {
+        std::vector<CD3DX12_ROOT_PARAMETER> rootParams;
+        std::vector<CD3DX12_DESCRIPTOR_RANGE> ranges;
+        rootParams.reserve(8);
+        ranges.reserve(1);
+  
+        // 0. DrawIndiceConstant : b0, space0
+        rootParams.emplace_back();
+        auto indiceBind = GetRootSigBinding(RootSigSlot::DrawIndiceConstant);
+        rootParams.back().InitAsConstants(1, indiceBind.RegisterIndex, indiceBind.RegisterSpace);
+  
+        // 1. PerFrameData : b1, space0
+        rootParams.emplace_back();
+        auto frameBind = GetRootSigBinding(RootSigSlot::PerFrameData);
+        rootParams.back().InitAsConstantBufferView(frameBind.RegisterIndex, frameBind.RegisterSpace);
+  
+        // 2. PerPassData : b2, space0
+        rootParams.emplace_back();
+        auto passBind = GetRootSigBinding(RootSigSlot::PerPassData);
+        rootParams.back().InitAsConstantBufferView(passBind.RegisterIndex, passBind.RegisterSpace);
+  
+        // 3. AllObjectData : t0, space1
+        rootParams.emplace_back();
+        auto allObjectBind = GetRootSigBinding(RootSigSlot::AllObjectData);
+        rootParams.back().InitAsShaderResourceView(allObjectBind.RegisterIndex, allObjectBind.RegisterSpace);
+  
+        // 4. AllMaterialData : t1, space1
+        rootParams.emplace_back();
+        auto allMaterialBind = GetRootSigBinding(RootSigSlot::AllMaterialData);
+        rootParams.back().InitAsShaderResourceView(allMaterialBind.RegisterIndex, allMaterialBind.RegisterSpace);
+  
+        // 5. PerDrawInstanceObjectsList : t2, space1
+        rootParams.emplace_back();
+        auto perDrawBind = GetRootSigBinding(RootSigSlot::PerDrawInstanceObjectsList);
+        rootParams.back().InitAsShaderResourceView(perDrawBind.RegisterIndex, perDrawBind.RegisterSpace);
+  
+        // 6. Textures : t0, space0 descriptor table
+        ranges.emplace_back();
+        ranges.back().Init(
+            D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+            1024,   // 对齐 g_Textures[1024]
+            0,
+            0,
+            0);
+  
+        rootParams.emplace_back();
+        rootParams.back().InitAsDescriptorTable(1, &ranges.back());
+  
+        // 7. LargeVertexBuffer : t3, space1
+        if (RenderSettings::s_EnableVertexPulling)
+        {
+            rootParams.emplace_back();
+            auto largeVB = GetRootSigBinding(RootSigSlot::LargeVertexBuffer);
+            rootParams.back().InitAsShaderResourceView(largeVB.RegisterIndex, largeVB.RegisterSpace);
+        }
+  
+        CD3DX12_STATIC_SAMPLER_DESC staticSampler(
+            0,
+            D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+            D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+            D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+            D3D12_TEXTURE_ADDRESS_MODE_WRAP);
+  
+        CD3DX12_ROOT_SIGNATURE_DESC desc(
+            (UINT)rootParams.size(),
+            rootParams.data(),
+            1,
+            &staticSampler,
+            D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+  
+        ComPtr<ID3DBlob> serialized;
+        ComPtr<ID3DBlob> error;
+        ThrowIfFailed(D3D12SerializeRootSignature(
+            &desc, D3D_ROOT_SIGNATURE_VERSION_1, &serialized, &error));
+  
+        ComPtr<ID3D12RootSignature> rootSig;
+        ThrowIfFailed(device->CreateRootSignature(
+            0,
+            serialized->GetBufferPointer(),
+            serialized->GetBufferSize(),
+            IID_PPV_ARGS(&rootSig)));
+  
+        return rootSig;
+    }
 }

@@ -112,6 +112,7 @@ namespace EngineCore
 
     struct DrawIndirectArgs
     {
+        uint32_t StartIndexInVisibilityBuffer = 0;
         uint32_t IndexCountPerInstanc = 0;      // 比如这个Mesh有300个索引
         uint32_t InstanceCount = 0;             // 【重置为0】等待GPU计数
         uint32_t StartIndexLocation = 0;        // 从indexbuffer的什么位置开始读

@@ -107,7 +107,7 @@ namespace EngineCore
         {
             auto& indirectContextMap = batchManager->GetDrawIndirectContextMap();
             auto& indirectParamMap = batchManager->GetDrawIndirectParamMap();
-            for (uint64_t hashID : sortedBatchKeys)
+            for (uint64_t hashID : sortedBatchKeys) 
             {
                 const DrawIndirectContext& renderContext = indirectContextMap.at(hashID);
 
