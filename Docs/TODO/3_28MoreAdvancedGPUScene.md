@@ -59,81 +59,60 @@ mCommandList->ExecuteIndirect(
 
 
 
+//。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。
+第二步：  优化Drawcall， 只issue实际的drawcall（稀疏drawcall dence化）， 
+记录每个pass的 count 和 offset， 一次性issue。
+我们之前的优化， 相当于把所有的Drawcall都优化成了一个Drawcall就能绘制一批物体， 
+但是这还是意味着我们要issue这么多次， 并且中间还有一些visibility false的没办法剔除。
+为了解决这个问题， 我们需要一个dence的 indirctdrawcall buffer， 并且还需要尽量减少前后端通信， 后者我们会用一个countbuffer来记录， 这个就是ExecuteIndirect里面的参数而已， 就是我们在GPU上算出来每个不同的PSOBatch/ pass，会有几个Drawcall， 然后位置在哪里。
+这些Drawcall我们已经在GPU端生成好了， 这个地方只要告诉GPU一次性读这部分内容，并且设置好这个Batch的状态， GPU就能一次性执行所有的Drawcall了。
+这一步的主要做法就是在我们之前的处理模式之后， 生成CompactIndirectCommandBuffer+ countBUffer， 然后执行这个就行。
+我们现在可以先把Group撇了， 后续再去想这个问题， 先跑通流程。
 
+  1. 先按旧逻辑做 culling
+      - 写“原始/稀疏”的 IndirectDrawArgs
+      - 写 VisibilityBuffer
+      - 每个 DrawTemplate 仍然有自己固定的 visibility 段
+      - InstanceCount 也还是先累计到这张原始表里
+  2. 再做一次 command compaction
+      - 扫描这张原始 IndirectDrawArgs
+      - 找出 InstanceCount > 0 的项
+      - 按 groupID / PSOGroup 把它们写入 CompactIndirectCommandBuffer
+      - 同时 groupCountBuffer[groupID]++
+  3. 最后按 group 执行
+      - CPU 只管按 group 绑定 PSO / RootSignature
+      - 每个 group 一次 ExecuteIndirect
+      - count 由 groupCountBuffer 控制
 
-  所以，“生成可见列表”和“GPU 发起 draw”之间的关系是：
+  也就是：
 
-  第一档：
-  GPU 只生成 VisibleObjectList
-  CPU 仍然组织 draw
-  这个提升有限。
+  Pass 1: Cull
+  SparseIndirectArgsBuffer + VisibilityBuffer
 
-  第二档：
-  GPU 生成 IndirectDrawArgsBuffer
-  CPU 仍然逐 batch 调 ExecuteIndirect(count=1)
-  这就是你们现在，提升也有限。
+  Pass 2: Compact
+  SparseIndirectArgsBuffer -> CompactIndirectCommandBuffer
+                      -> GroupCountBuffer
 
-  第三档：
-  GPU 生成 CommandBuffer + CountBuffer
-  CPU 每个大桶只调一次 ExecuteIndirect(..., countBuffer ...)
-  这才是明显进入正经 GPU-driven。
-
-  第四档：
-  再往后是 mesh shader / cluster culling / work graph 一类，更激进。
-
-  ———
-
-  结合你们当前代码，第一任务我建议这样定
-
-  不是先做“visible batch list”本身，
-  而是做：
-
-  按状态桶输出 GPU command list。
-
-  具体目标可以定成：
-
-  1. CPU 只维护稳定的状态桶
-     按 PSO + Pass + MaterialPolicy 分桶。
-  2. GPU culling 后，向每个桶的 CommandBuffer 追加命令
-     命令里至少包含：
-
-  - drawID 或 instanceBaseOffset
-  - DrawIndexedArgs 或 DrawArgs
-
-  3. 渲染阶段每个桶只调用一次 ExecuteIndirect
-     并使用 CountBuffer 控制实际命令数。
-
-  这样有几个直接收益：
-
-  - 不需要 GPU readback
-  - 不需要 CPU 遍历所有 batch
-  - 空批次自然消失
-  - 真正减少 draw submission 次数
-  - 后续接 HiZ 非常自然，因为 HiZ 只是影响“命令生成阶段”的过滤条件
+  Pass 3: Render
+  for each group:
+      SetPSO(...)
+      SetRootSignature(...)
+      ExecuteIndirect(...)
 
   ———
 
-  HiZ 怎么和这个架构接
-  HiZ 最好接在“生成 command list 之前”。
+  这样做的好处是：
 
-  建议链路是：
+  - 不需要一开始就把 visibility 也改成全局紧密
+  - 不需要维护 PerObject -> CompactIndex
+  - 你现有 culling 逻辑几乎可以保留
+  - 新增复杂度主要集中在第二步 Compact Pass
 
-  1. Frustum culling
-  2. HiZ occlusion culling
-  3. surviving object -> append 到对应状态桶 command buffer
-  4. ExecuteIndirect per bucket
+  你现在可以把它理解成：
 
-  这样 HiZ 只是多了一层“决定是否 append command”的逻辑，不需要改渲染阶段。
+  - 第一步解决“哪些 draw 有内容”
+  - 第二步解决“把这些 draw 整理成适合 ExecuteIndirect 批量提交的格式”
+  - 第三步才是真正提交
 
-  ———
-
-  一句话总结
-  你现在的正确方向不是“GPU 回读一份 visible list 给 CPU”，而是“GPU 直接写出每个状态桶真正要执行的 indirect command
-  buffer，CPU 只发少量 ExecuteIndirect 总控命令”。
-
-  如果你愿意，我下一步可以直接把这件事落成一份更贴近你们工程的设计稿，明确：
-
-  - 现在的 BatchManager 应该保留什么
-  - RenderProxy 应该删成什么
-  - GPUCulling.hlsl 最终要输出哪两类 buffer
-  - GPUSceneRenderPass 最终如何从“遍历 batch”改成“每桶一次 ExecuteIndirect”
+  这个思路是对的。
+  下一步你真正要设计清楚的，就是第二步 compact pass 的输入输出结构。

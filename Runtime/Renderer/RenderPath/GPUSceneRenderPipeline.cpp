@@ -13,49 +13,40 @@ namespace EngineCore
         desc.size = sizeof(GPUCullingParam);
         desc.stride = sizeof(GPUCullingParam);
         desc.usage = BufferUsage::ConstantBuffer;
-        for (int i = 0; i < 3; i++) 
-        {
-            cullingParamBuffer[i] = new GPUBufferAllocator(desc);
-        
-        }
-        cullingParamAlloc = cullingParamBuffer[0]->Allocate(sizeof(GPUCullingParam));
-
+        cullingParamBuffers = new PerFrameBufferRing(desc);
 
         desc.debugName = L"IndirectDrawArgsBuffer";
         desc.memoryType = BufferMemoryType::Default;
         desc.size = sizeof(DrawIndirectArgs) * 3000;
         desc.stride = sizeof(DrawIndirectArgs);
         desc.usage = BufferUsage::StructuredBuffer;
-        for (int i = 0; i < 3; i++) 
-        {    
-            std::wstring name = L"IndirectDrawArgsBuffer" + std::to_wstring(i + 1);
-            desc.debugName = name.c_str();
-            indirectDrawArgsBuffer[i] = new GPUBufferAllocator(desc);
-        }
-        indirectDrawArgsAlloc = indirectDrawArgsBuffer[0]->Allocate(sizeof(DrawIndirectArgs) * 3000);
-
+        indirectDrawArgsBuffers = new PerFrameBufferRing(desc);
     }
 
     void GPUSceneRenderPipeline::Prepare(RenderContext& context)
     {
         PROFILER_ZONE("GPUSceneRenderPipeline::Prepare");
         uint32_t frameID = RenderEngine::GetInstance()->GetCurrentFrame();
-        currCullingParamBuffer = GetCurrentCullingParamBuffer(frameID);
+        GPUBufferAllocator* currCullingParamBuffer = GetCurrentCullingParamBuffer(frameID);
+        BufferAllocation cullingParamAlloc;
         cullingParamAlloc.buffer = currCullingParamBuffer->GetGPUBuffer();
         cullingParamAlloc.offset = 0;
         cullingParamAlloc.gpuAddress = currCullingParamBuffer->GetBaseGPUAddress();
+        cullingParamAlloc.isValid = true;
 
+
+        GPUBufferAllocator* currIndirectDrawArgsBuffer = GetCurrentCullingParamBuffer(frameID);
         currIndirectDrawArgsBuffer = GetCurrentIndirectDrawArgsBuffer(frameID);
+        BufferAllocation indirectDrawArgsAlloc;
         indirectDrawArgsAlloc.buffer = currIndirectDrawArgsBuffer->GetGPUBuffer();
         indirectDrawArgsAlloc.offset = 0;
         indirectDrawArgsAlloc.gpuAddress = currIndirectDrawArgsBuffer->GetBaseGPUAddress();
-        
+        indirectDrawArgsAlloc.isValid = true;
 
         // Get Current BatchInfo:
         vector<DrawIndirectArgs> batchInfo = BatchManager::GetInstance()->GetBatchInfo();
         if (batchInfo.size() != 0) 
         {
-            //currIndirectDrawArgsBuffer->UploadBuffer(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
             currIndirectDrawArgsBuffer->UploadBufferStaged(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
         }
 
@@ -133,13 +124,11 @@ namespace EngineCore
 
     GPUBufferAllocator* GPUSceneRenderPipeline::GetCurrentCullingParamBuffer(uint32_t frameID)
     {
-        int index = frameID % 3;
-        return cullingParamBuffer[index];
+        return cullingParamBuffers->GetCurrentBufferByFrameID(frameID);
     } 
 
     GPUBufferAllocator* GPUSceneRenderPipeline::GetCurrentIndirectDrawArgsBuffer(uint32_t frameID)
     {
-        int index = frameID % 3;
-        return indirectDrawArgsBuffer[index];
+        return indirectDrawArgsBuffers->GetCurrentBufferByFrameID(frameID);
     }
 }

@@ -9,6 +9,8 @@
 #include "Renderer/BatchManager.h"
 #include "Scene/SceneManager.h"
 #include "Renderer/FrameTicket.h"
+#include "Graphics/PerFrameBufferRing.h"
+
 
 namespace EngineCore
 {
@@ -18,8 +20,8 @@ namespace EngineCore
         GPUSceneRenderPipeline();
         virtual ~GPUSceneRenderPipeline() override 
         {
-            delete cullingParamBuffer;
-            delete indirectDrawArgsBuffer;
+            delete cullingParamBuffers;
+            delete indirectDrawArgsBuffers;
         };
         virtual void Prepare(RenderContext& context) override;
         //virtual void Record(const CommandStream& cmdStream, RenderContext& context) override;
@@ -28,13 +30,15 @@ namespace EngineCore
         GPUBufferAllocator* GetCurrentCullingParamBuffer(uint32_t frameID);
         GPUBufferAllocator* GetCurrentIndirectDrawArgsBuffer(uint32_t frameID);
 
-        BufferAllocation cullingParamAlloc;
-        GPUBufferAllocator* currCullingParamBuffer;
-        GPUBufferAllocator* cullingParamBuffer[3];
+        PerFrameBufferRing* cullingParamBuffers;
+        PerFrameBufferRing* indirectDrawArgsBuffers;
+        //BufferAllocation cullingParamAlloc;
+        //GPUBufferAllocator* currCullingParamBuffer;
+        //GPUBufferAllocator* cullingParamBuffer[3];
 
-        BufferAllocation indirectDrawArgsAlloc;
-        GPUBufferAllocator* currIndirectDrawArgsBuffer;
-        GPUBufferAllocator* indirectDrawArgsBuffer[3];
+        //BufferAllocation indirectDrawArgsAlloc;
+        //GPUBufferAllocator* currIndirectDrawArgsBuffer;
+        //GPUBufferAllocator* indirectDrawArgsBuffer[3];
 
     };
 }

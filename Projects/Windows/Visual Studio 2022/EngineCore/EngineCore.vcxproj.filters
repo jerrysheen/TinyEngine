@@ -240,6 +240,9 @@
     <ClInclude Include="..\..\..\..\Runtime\Graphics\MeshUtils.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\..\Runtime\Graphics\PerFrameBufferRing.h">
+      <Filter>Runtime\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\..\Runtime\Graphics\RenderTexture.h">
       <Filter>Runtime\Graphics</Filter>
     </ClInclude>
