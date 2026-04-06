@@ -145,6 +145,7 @@ namespace EngineCore
         Vector3 colorValue;
         float depthValue;
         ClearFlag flags;
+        ClearValue() : colorValue(Vector3::Zero), depthValue(1.0f), flags(ClearFlag::None) {};
         ClearValue(Vector3 color, float depth, ClearFlag flag):colorValue(color), depthValue(depth), flags(flag){};
     };
 
@@ -257,17 +258,19 @@ namespace EngineCore
     };
 
     class ComputeShader;
-    struct ComputeDispatchBindingSnapshot
+    struct ComputeDispatchBindingSpan
     {
-        std::vector<IGPUBuffer*> cbvBuffers;
-        std::vector<IGPUBuffer*> srvBuffers;
-        std::vector<IGPUBuffer*> uavBuffers;
+        IGPUBuffer** buffers = nullptr;
+        uint32_t count = 0;
     };
 
     struct Payload_DispatchComputeShader
     {
         ComputeShader* csShader = nullptr;
-        ComputeDispatchBindingSnapshot* bindingSnapshot = nullptr;
+        uint32_t frameID = 0;
+        ComputeDispatchBindingSpan cbvBindings;
+        ComputeDispatchBindingSpan srvBindings;
+        ComputeDispatchBindingSpan uavBindings;
         uint32_t groupX = 0;
         uint32_t groupY = 0;
         uint32_t groupZ = 0;
@@ -283,6 +286,7 @@ namespace EngineCore
     {
         // 这个payload只关心， 我绘制哪几个IndirectDraw，怎么找到，
         IGPUBuffer* indirectArgsBuffer;
+        IGPUBuffer* indirectDrawCountBuffer;
         uint32_t startIndex;
         uint32_t count;
         uint32_t startIndexInInstanceDataBuffer;

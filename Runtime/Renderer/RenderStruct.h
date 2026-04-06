@@ -110,7 +110,18 @@ namespace EngineCore
         uint32_t totalItem;
     };
 
-    struct DrawIndirectArgs
+    struct IndirectDrawSource
+    {
+        uint32_t StartIndexInVisibilityBuffer = 0;
+        uint32_t IndexCountPerInstanc = 0;      // 比如这个Mesh有300个索引
+        uint32_t InstanceCount = 0;             // 【重置为0】等待GPU计数
+        uint32_t StartIndexLocation = 0;        // 从indexbuffer的什么位置开始读
+        uint32_t BaseVertexLocation = 0;        // vertexpulling下无效，需要手动传
+        uint32_t StartInstanceLocation = 0;     // 我们没用到，这个需要绑定到IA中
+        uint32_t PassIndex = 0;
+    };
+
+    struct IndirectDrawDest
     {
         uint32_t StartIndexInVisibilityBuffer = 0;
         uint32_t IndexCountPerInstanc = 0;      // 比如这个Mesh有300个索引
@@ -119,6 +130,8 @@ namespace EngineCore
         uint32_t BaseVertexLocation = 0;        // vertexpulling下无效，需要手动传
         uint32_t StartInstanceLocation = 0;     // 我们没用到，这个需要绑定到IA中
     };
+
+
 
     struct RenderProxy
     {

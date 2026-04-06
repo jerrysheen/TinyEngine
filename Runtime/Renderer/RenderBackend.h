@@ -15,6 +15,7 @@
 #include <chrono>
 #include "RenderUniforms.h"
 #include "Renderer/UploadPagePool.h"
+#include "Core/Allocator/LinearAllocator.h"
 
 
 #ifdef EDITOR
@@ -159,6 +160,9 @@ namespace EngineCore
 
         void TryWakeUpRenderThread();
     private:
+        static constexpr uint32_t kComputeBindingArenaSize = 64 * 1024;
+        static constexpr uint32_t kComputeBindingAllocatorCount = 3;
+
         void EnqueueCommand(const DrawCommand& cmd);
         void WaitForQueueSpace();
 
@@ -167,6 +171,13 @@ namespace EngineCore
         bool hasResize = false;
         bool hasDrawGUI = false;
         Payload_WindowResize pendingResize = { 0, 0 };
+        LinearAllocator mComputeBindingAllocators[kComputeBindingAllocatorCount] =
+        {
+            LinearAllocator(kComputeBindingArenaSize),
+            LinearAllocator(kComputeBindingArenaSize),
+            LinearAllocator(kComputeBindingArenaSize)
+        };
+        uint32_t mCurrentRecordingFrameID = 0;
 
         std::mutex mSleepRenderThreadMutex;
         std::condition_variable mSleepRenderThreadCV;

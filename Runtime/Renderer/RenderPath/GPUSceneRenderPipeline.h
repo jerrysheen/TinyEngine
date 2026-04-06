@@ -21,7 +21,7 @@ namespace EngineCore
         virtual ~GPUSceneRenderPipeline() override 
         {
             delete cullingParamBuffers;
-            delete indirectDrawArgsBuffers;
+            delete indirectDrawSourceBuffers;
         };
         virtual void Prepare(RenderContext& context) override;
         //virtual void Record(const CommandStream& cmdStream, RenderContext& context) override;
@@ -31,7 +31,10 @@ namespace EngineCore
         GPUBufferAllocator* GetCurrentIndirectDrawArgsBuffer(uint32_t frameID);
 
         PerFrameBufferRing* cullingParamBuffers;
-        PerFrameBufferRing* indirectDrawArgsBuffers;
+        PerFrameBufferRing* indirectDrawSourceBuffers;
+        PerFrameBufferRing* indirectDrawDestBuffers;
+        PerFrameBufferRing* indirectDrawCountBuffers;
+        PerFrameBufferRing* batchCounterBuffers;
         //BufferAllocation cullingParamAlloc;
         //GPUBufferAllocator* currCullingParamBuffer;
         //GPUBufferAllocator* cullingParamBuffer[3];
@@ -39,6 +42,7 @@ namespace EngineCore
         //BufferAllocation indirectDrawArgsAlloc;
         //GPUBufferAllocator* currIndirectDrawArgsBuffer;
         //GPUBufferAllocator* indirectDrawArgsBuffer[3];
-
+        ResourceHandle<ComputeShader> IndirectDrawCombineShaderHandler;
+        
     };
 }

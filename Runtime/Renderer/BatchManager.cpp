@@ -50,9 +50,9 @@ namespace EngineCore
         return batchKey;
     }
 
-    vector<DrawIndirectArgs> BatchManager::GetBatchInfo()
+    vector<IndirectDrawSource> BatchManager::GetBatchInfo()
     {
-        vector<DrawIndirectArgs> drawIndirectArgsList;
+        vector<IndirectDrawSource> IndirectDrawSourceList;
         int globalOffset = 0;
 
 
@@ -61,7 +61,7 @@ namespace EngineCore
         {
             ASSERT(BatchMap.count(batchKey) > 0);
             int count = BatchMap[batchKey];
-            DrawIndirectArgs args;
+            IndirectDrawSource args;
             ASSERT(drawIndirectParamMap.count(batchKey) > 0);
             DrawIndirectParam& argsParam = drawIndirectParamMap[batchKey];
             args.StartIndexInVisibilityBuffer = globalOffset;
@@ -76,14 +76,14 @@ namespace EngineCore
                 //args.BaseVertexLocation = argsParam.baseVertexLocation;
                 args.BaseVertexLocation = 0;
             }
-            drawIndirectArgsList.push_back(args);
+            IndirectDrawSourceList.push_back(args);
 
             // 更新 BatchID
             argsParam.startIndexInInstanceDataList = globalOffset;
-            argsParam.indexInDrawIndirectList = drawIndirectArgsList.size() - 1;
+            argsParam.indexInDrawIndirectList = IndirectDrawSourceList.size() - 1;
             globalOffset += count;
         }
-        return drawIndirectArgsList;
+        return IndirectDrawSourceList;
     }
 
     // 新增一个Batch，相当于一个渲染类型

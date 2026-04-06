@@ -106,13 +106,9 @@ namespace EngineCore
         else
         {
             auto& indirectContextMap = batchManager->GetDrawIndirectContextMap();
-            auto& indirectParamMap = batchManager->GetDrawIndirectParamMap();
-            for (uint64_t hashID : sortedBatchKeys) 
+            if (!sortedBatchKeys.empty())
             {
-                const DrawIndirectContext& renderContext = indirectContextMap.at(hashID);
-
-                int batchID = indirectParamMap[hashID].indexInDrawIndirectList;
-                int stratIndex = indirectParamMap[hashID].startIndexInInstanceDataList;
+                const DrawIndirectContext& renderContext = indirectContextMap.at(sortedBatchKeys.front());
                 Material* mat = renderContext.material;
                 if (mat->GetMaterialRenderState().GetHash() != m_LastMatState.GetHash())
                 {
@@ -123,11 +119,11 @@ namespace EngineCore
                 }
 
                 Payload_DrawIndirect indirectPayload;
-                // temp:
                 indirectPayload.indirectArgsBuffer = context.IndirectDrawArgsBuffer;
-                indirectPayload.count = 1;
-                indirectPayload.startIndex = batchID;
-                indirectPayload.startIndexInInstanceDataBuffer = stratIndex;
+                indirectPayload.indirectDrawCountBuffer = context.IndirectDrawCountCountBuffer;
+                indirectPayload.count = static_cast<uint32_t>(sortedBatchKeys.size());
+                indirectPayload.startIndex = 0;
+                indirectPayload.startIndexInInstanceDataBuffer = 0;
                 RenderBackend::GetInstance()->DrawIndirect(indirectPayload);
             }
         }

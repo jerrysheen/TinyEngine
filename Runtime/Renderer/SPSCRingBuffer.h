@@ -32,8 +32,8 @@ namespace EngineCore
 
         bool TryPop(T& out)
         {
-            auto h = mHead.load(std::memory_order_relaxed);
-            auto t = mTail.load(std::memory_order_acquire);
+            auto h = mHead.load(std::memory_order_acquire);
+            auto t = mTail.load(std::memory_order_relaxed);
             if (h == t) return false;
             out = std::move(mBuffer[t & mask]);
             mTail.store(t + 1, std::memory_order_release);

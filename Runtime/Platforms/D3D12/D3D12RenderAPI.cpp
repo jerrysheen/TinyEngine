@@ -256,7 +256,7 @@ namespace EngineCore
 
 
         // 创建IndirectDrawArgs的commandSignature，并不是RootSignature，只是用来描述
-        // DrawIndirectArgs
+        // IndirectDrawSource
         D3D12_INDIRECT_ARGUMENT_DESC argumentDescs[2] = {};
         // 1. 先设置 root constant
         argumentDescs[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT;
@@ -268,7 +268,7 @@ namespace EngineCore
         D3D12_COMMAND_SIGNATURE_DESC commandSignatureDesc = {};
         commandSignatureDesc.pArgumentDescs = argumentDescs;
         commandSignatureDesc.NumArgumentDescs = _countof(argumentDescs);
-        commandSignatureDesc.ByteStride = sizeof(DrawIndirectArgs);
+        commandSignatureDesc.ByteStride = sizeof(IndirectDrawDest);
 
         ComPtr<ID3D12RootSignature> indirectRootSig =
             D3D12RootSignature::GetOrCreateGPUSceneGraphicsRootSig(md3dDevice);
@@ -1400,7 +1400,7 @@ namespace EngineCore
     void D3D12RenderAPI::RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader)
     {
         ComputeShader* csShader = dispatchComputeShader.csShader;
-        const ComputeDispatchBindingSnapshot* bindingSnapshot = dispatchComputeShader.bindingSnapshot;
+        ASSERT(dispatchComputeShader.frameID == mCurrentFrameID);
         // 1. set PSO
         ComPtr<ID3D12RootSignature> rootSig = D3D12RootSignature::GetOrCreateAComputeShaderRootSig(md3dDevice, csShader);
         if(currentRootSignature != rootSig)
@@ -1427,16 +1427,8 @@ namespace EngineCore
         int cbvIndex = 0;
         for (const auto& cbv : cbvs)
         {
-            D3D12Buffer* buffer = nullptr;
-            if (bindingSnapshot)
-            {
-                ASSERT(cbvIndex < static_cast<int>(bindingSnapshot->cbvBuffers.size()));
-                buffer = static_cast<D3D12Buffer*>(bindingSnapshot->cbvBuffers[cbvIndex]);
-            }
-            else
-            {
-                buffer = static_cast<D3D12Buffer*>(csShader->GetBufferResource(cbv.resourceName));
-            }
+            ASSERT(cbvIndex < static_cast<int>(dispatchComputeShader.cbvBindings.count));
+            D3D12Buffer* buffer = static_cast<D3D12Buffer*>(dispatchComputeShader.cbvBindings.buffers[cbvIndex]);
             ASSERT(buffer != nullptr);
             mCommandList->SetComputeRootConstantBufferView(rootParamIndex++, buffer->GetGPUVirtualAddress());
             cbvIndex++;
@@ -1447,16 +1439,8 @@ namespace EngineCore
         int srvIndex = 0;
         for (const auto& srv : srvs)
         {
-            D3D12Buffer* buffer = nullptr;
-            if (bindingSnapshot)
-            {
-                ASSERT(srvIndex < static_cast<int>(bindingSnapshot->srvBuffers.size()));
-                buffer = static_cast<D3D12Buffer*>(bindingSnapshot->srvBuffers[srvIndex]);
-            }
-            else
-            {
-                buffer = static_cast<D3D12Buffer*>(csShader->GetBufferResource(srv.resourceName));
-            }
+            ASSERT(srvIndex < static_cast<int>(dispatchComputeShader.srvBindings.count));
+            D3D12Buffer* buffer = static_cast<D3D12Buffer*>(dispatchComputeShader.srvBindings.buffers[srvIndex]);
             ASSERT(buffer != nullptr);
             mCommandList->SetComputeRootShaderResourceView(rootParamIndex++, buffer->GetGPUVirtualAddress());
             srvIndex++;
@@ -1465,16 +1449,8 @@ namespace EngineCore
         int uavIndex = 0;
         for (const auto& uav : uavs)
         {
-            D3D12Buffer* buffer = nullptr;
-            if (bindingSnapshot)
-            {
-                ASSERT(uavIndex < static_cast<int>(bindingSnapshot->uavBuffers.size()));
-                buffer = static_cast<D3D12Buffer*>(bindingSnapshot->uavBuffers[uavIndex]);
-            }
-            else
-            {
-                buffer = static_cast<D3D12Buffer*>(csShader->GetBufferResource(uav.resourceName));
-            }
+            ASSERT(uavIndex < static_cast<int>(dispatchComputeShader.uavBindings.count));
+            D3D12Buffer* buffer = static_cast<D3D12Buffer*>(dispatchComputeShader.uavBindings.buffers[uavIndex]);
             ASSERT(buffer != nullptr);
             mCommandList->SetComputeRootUnorderedAccessView(rootParamIndex++, buffer->GetGPUVirtualAddress());  
             uavIndex++;
@@ -1502,14 +1478,15 @@ namespace EngineCore
     void D3D12RenderAPI::RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect)
     {
         D3D12Buffer* argsBuffer = static_cast<D3D12Buffer*>(drawIndirect.indirectArgsBuffer);
-        uint32_t stride = sizeof(DrawIndirectArgs);
+        D3D12Buffer* countBuffer = static_cast<D3D12Buffer*>(drawIndirect.indirectDrawCountBuffer);
+        uint32_t stride = sizeof(IndirectDrawSource);
         //mCommandList->SetGraphicsRoot32BitConstants((UINT)RootSigSlot::DrawIndiceConstant, 1, &drawIndirect.startIndexInInstanceDataBuffer, 0);
         mCommandList->ExecuteIndirect(
             mCommandSignature.Get(),
-            drawIndirect.count,   // 绘制几个
+            1000,   // 绘制几个
             static_cast<ID3D12Resource*>(argsBuffer->GetNativeHandle()),
-            drawIndirect.startIndex * stride,  // 从哪个offset 开始，按照byte算
-            nullptr,
+            0,  // 从哪个offset 开始，按照byte算
+            static_cast<ID3D12Resource*>(countBuffer->GetNativeHandle()),
             0
         );
     }

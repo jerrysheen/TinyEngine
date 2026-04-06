@@ -15,12 +15,39 @@ namespace EngineCore
         desc.usage = BufferUsage::ConstantBuffer;
         cullingParamBuffers = new PerFrameBufferRing(desc);
 
-        desc.debugName = L"IndirectDrawArgsBuffer";
+        desc.debugName = L"IndirectDrawSourceBuffer";
         desc.memoryType = BufferMemoryType::Default;
-        desc.size = sizeof(DrawIndirectArgs) * 3000;
-        desc.stride = sizeof(DrawIndirectArgs);
+        desc.size = sizeof(IndirectDrawSource) * 3000;
+        desc.stride = sizeof(IndirectDrawSource);
         desc.usage = BufferUsage::StructuredBuffer;
-        indirectDrawArgsBuffers = new PerFrameBufferRing(desc);
+        indirectDrawSourceBuffers = new PerFrameBufferRing(desc);
+
+        desc.debugName = L"IndirectDrawArgsDestBuffer";
+        desc.memoryType = BufferMemoryType::Default;
+        desc.size = sizeof(IndirectDrawDest) * 3000;
+        desc.stride = sizeof(IndirectDrawDest);
+        desc.usage = BufferUsage::StructuredBuffer;
+        indirectDrawDestBuffers = new PerFrameBufferRing(desc);
+
+
+        desc.debugName = L"IndirectDrawCountBuffer";
+        desc.memoryType = BufferMemoryType::Default;
+        desc.size = sizeof(uint32_t) * 3000;
+        desc.stride = sizeof(uint32_t);
+        desc.usage = BufferUsage::ByteAddressBuffer;
+        indirectDrawCountBuffers = new PerFrameBufferRing(desc);
+
+        desc.debugName = L"BatchCountBuffer";
+        desc.memoryType = BufferMemoryType::Upload;
+        desc.size = sizeof(uint32_t);
+        desc.stride = sizeof(uint32_t);
+        desc.usage = BufferUsage::ConstantBuffer;
+        batchCounterBuffers = new PerFrameBufferRing(desc);
+
+        //创建Compute Shader
+        string path = PathSettings::ResolveAssetPath("Shader/IndirectDrawCallCombineComputeShader.hlsl");
+        IndirectDrawCombineShaderHandler = ResourceManager::GetInstance()->CreateResource<ComputeShader>(path);
+
     }
 
     void GPUSceneRenderPipeline::Prepare(RenderContext& context)
@@ -44,10 +71,10 @@ namespace EngineCore
         indirectDrawArgsAlloc.isValid = true;
 
         // Get Current BatchInfo:
-        vector<DrawIndirectArgs> batchInfo = BatchManager::GetInstance()->GetBatchInfo();
+        vector<IndirectDrawSource> batchInfo = BatchManager::GetInstance()->GetBatchInfo();
         if (batchInfo.size() != 0) 
         {
-            currIndirectDrawArgsBuffer->UploadBufferStaged(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(DrawIndirectArgs));
+            currIndirectDrawArgsBuffer->UploadBufferStaged(indirectDrawArgsAlloc, batchInfo.data(), batchInfo.size() * sizeof(IndirectDrawSource));
         }
 
         auto* visibilityBuffer = RenderEngine::GetInstance()->GetGPUScene().GetCurrentVisibilityBuffer(frameID);
@@ -66,7 +93,7 @@ namespace EngineCore
         currCullingParamBuffer->UploadBuffer(cullingParamAlloc, &cullingParam, sizeof(GPUCullingParam));
 
         
-
+        // GPUScenePass:
 
         auto& GPUScene = RenderEngine::GetInstance()->GetGPUScene();
         ComputeShader* csShader = GPUScene.GetCullingShaderHandler().Get();
@@ -80,21 +107,61 @@ namespace EngineCore
         csShader->SetBuffer("g_RenderProxies", renderProxyBuffer);
         csShader->SetBuffer("g_VisibleInstanceIndices", visibilityBuffer);
         csShader->SetBuffer("g_IndirectDrawCallArgs", currIndirectDrawArgsBuffer->GetGPUBuffer());
-
         
-        Payload_DispatchComputeShader payload;
+        Payload_DispatchComputeShader payload = {};
         payload.csShader = RenderEngine::GetInstance()->GetGPUScene().GetCullingShaderHandler().Get();
         payload.groupX = gameObjectCount / 64 + 1;
         payload.groupY = 1;
         payload.groupZ = 1;
         RenderBackend::GetInstance()->DispatchComputeShader(payload);
-        // 先把shader跑起来， 渲染到RT上， 后续blit啥的接入后面再说
+
+        
+
+        IGPUBuffer* currIndirectDrawCountBuffer = indirectDrawCountBuffers->GetCurrentBufferByFrameID(frameID)->GetGPUBuffer();
+        IGPUBuffer* currIndirectDrawDestBuffer = indirectDrawDestBuffers->GetCurrentBufferByFrameID(frameID)->GetGPUBuffer();
+        vector<uint32_t> buffer{ 0, 3000 };
+        BufferAllocation alloc;
+        alloc.isValid = true;
+        alloc.offset = 0;
+        alloc.buffer = indirectDrawCountBuffers->GetCurrentBufferByFrameID(frameID)->GetGPUBuffer();
+        indirectDrawCountBuffers->GetCurrentBufferByFrameID(frameID)->UploadBufferStaged(alloc, buffer.data(), buffer.size() * sizeof(uint32_t));
+
+        RenderBackend::GetInstance()->SetResourceState(currIndirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
+        RenderBackend::GetInstance()->SetResourceState(indirectDrawCountBuffers->GetCurrentBufferByFrameID(frameID)->GetGPUBuffer(), BufferResourceState::STATE_UNORDERED_ACCESS);
+
+
+        RenderBackend::GetInstance()->SetResourceState(currIndirectDrawDestBuffer, BufferResourceState::STATE_UNORDERED_ACCESS);
+        RenderBackend::GetInstance()->SetResourceState(currIndirectDrawCountBuffer, BufferResourceState::STATE_UNORDERED_ACCESS);
+
+        //---------------- IndirectDrawCall Combine Pass
+        ComputeShader* combineCSShader = IndirectDrawCombineShaderHandler.Get();
+        combineCSShader->SetBuffer("IndirectDrawSourceBuffer", currIndirectDrawArgsBuffer->GetGPUBuffer());
+        combineCSShader->SetBuffer("IndirectDrawDestBuffer", currIndirectDrawDestBuffer);
+        combineCSShader->SetBuffer("IndirectDrawCount", currIndirectDrawCountBuffer);
+        
+        BufferAllocation allocation;
+        allocation.isValid = true;
+        allocation.offset = 0;
+        allocation.size = sizeof(uint32_t);
+
+        uint32_t batchCount = BatchManager::GetInstance()->GetBatchInfo().size();
+        batchCounterBuffers->GetCurrentBufferByFrameID(frameID)->UploadBuffer(allocation, &batchCount, sizeof(uint32_t));
+        combineCSShader->SetBuffer("BatchCountBuffer", batchCounterBuffers->GetCurrentBufferByFrameID(frameID)->GetGPUBuffer());
+        
+        Payload_DispatchComputeShader combinePayload = {};
+        combinePayload.csShader = combineCSShader;
+        combinePayload.groupX = batchCount / 64 + 1;
+        combinePayload.groupY = 1;
+        combinePayload.groupZ = 1;
+        RenderBackend::GetInstance()->DispatchComputeShader(combinePayload);
 
         // 这个地方简单跑个绑定测试？
         RenderBackend::GetInstance()->SetResourceState(visibilityBuffer, BufferResourceState::STATE_SHADER_RESOURCE);
-        RenderBackend::GetInstance()->SetResourceState(currIndirectDrawArgsBuffer->GetGPUBuffer(), BufferResourceState::STATE_INDIRECT_ARGUMENT);
+        RenderBackend::GetInstance()->SetResourceState(currIndirectDrawDestBuffer, BufferResourceState::STATE_INDIRECT_ARGUMENT);
+        RenderBackend::GetInstance()->SetResourceState(currIndirectDrawCountBuffer, BufferResourceState::STATE_INDIRECT_ARGUMENT);
 
-        context.IndirectDrawArgsBuffer = currIndirectDrawArgsBuffer->GetGPUBuffer();
+        context.IndirectDrawArgsBuffer = currIndirectDrawDestBuffer;
+        context.IndirectDrawCountCountBuffer = currIndirectDrawCountBuffer;
         context.CullingParamBuffer = currCullingParamBuffer->GetGPUBuffer();
         for(auto* pass : context.camera->mRenderPassAsset.renderPasses)
         {
@@ -129,6 +196,6 @@ namespace EngineCore
 
     GPUBufferAllocator* GPUSceneRenderPipeline::GetCurrentIndirectDrawArgsBuffer(uint32_t frameID)
     {
-        return indirectDrawArgsBuffers->GetCurrentBufferByFrameID(frameID);
+        return indirectDrawSourceBuffers->GetCurrentBufferByFrameID(frameID);
     }
 }

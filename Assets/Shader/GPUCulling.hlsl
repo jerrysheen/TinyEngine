@@ -29,6 +29,7 @@ struct IndirectDrawCallArgs
     uint StartIndexLocation;
     uint BaseVertexLocation;
     uint StartInstanceLocation;
+    uint PassIndex;
 };
 
 // // 1. AABB 包围盒定义 (对应 C++ 结构体)

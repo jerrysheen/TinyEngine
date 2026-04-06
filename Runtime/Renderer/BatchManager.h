@@ -55,7 +55,7 @@ namespace EngineCore
 
         std::vector<RenderProxy> GetAvaliableRenderProxyList(AssetID meshID, AssetID materialID, uint32_t layer);
 
-        vector<DrawIndirectArgs> GetBatchInfo();
+        vector<IndirectDrawSource> GetBatchInfo();
 
         inline const std::unordered_map<uint64_t, DrawIndirectContext>& GetDrawIndirectContextMap() const { return drawIndirectContextMap; }
 

@@ -237,6 +237,8 @@ namespace EngineCore
     void RenderBackend::SetFrame(FrameTicket* frameTicket, uint32_t frameID)
     {
         ASSERT(frameTicket != nullptr);
+        mCurrentRecordingFrameID = frameID;
+        mComputeBindingAllocators[frameID % kComputeBindingAllocatorCount].Reset();
         DrawCommand temp;
         temp.op = RenderOp::kSetFrame;
         temp.data.setFrame.frameTicket = frameTicket;
@@ -258,28 +260,50 @@ namespace EngineCore
         cmd.data.dispatchComputeShader = dispatchCmd;
         ComputeShader* csShader = dispatchCmd.csShader;
         ASSERT(csShader != nullptr);
+        LinearAllocator& allocator = mComputeBindingAllocators[mCurrentRecordingFrameID % kComputeBindingAllocatorCount];
+        Payload_DispatchComputeShader& payload = cmd.data.dispatchComputeShader;
+        payload.frameID = mCurrentRecordingFrameID;
 
-        auto* bindingSnapshot = new ComputeDispatchBindingSnapshot();
-        bindingSnapshot->cbvBuffers.reserve(csShader->mShaderReflectionInfo.mConstantBufferInfo.size());
-        bindingSnapshot->srvBuffers.reserve(csShader->mShaderReflectionInfo.mTextureInfo.size());
-        bindingSnapshot->uavBuffers.reserve(csShader->mShaderReflectionInfo.mUavInfo.size());
+        const uint32_t cbvCount = static_cast<uint32_t>(csShader->mShaderReflectionInfo.mConstantBufferInfo.size());
+        const uint32_t srvCount = static_cast<uint32_t>(csShader->mShaderReflectionInfo.mTextureInfo.size());
+        const uint32_t uavCount = static_cast<uint32_t>(csShader->mShaderReflectionInfo.mUavInfo.size());
 
-        for (const auto& cbv : csShader->mShaderReflectionInfo.mConstantBufferInfo)
+        payload.cbvBindings.buffers = nullptr;
+        payload.cbvBindings.count = cbvCount;
+        if (cbvCount > 0)
         {
-            bindingSnapshot->cbvBuffers.push_back(csShader->GetBufferResource(cbv.resourceName));
+            payload.cbvBindings.buffers = allocator.allocArray<IGPUBuffer*>(cbvCount);
+            for (uint32_t i = 0; i < cbvCount; ++i)
+            {
+                const auto& cbv = csShader->mShaderReflectionInfo.mConstantBufferInfo[i];
+                payload.cbvBindings.buffers[i] = csShader->GetBufferResource(cbv.resourceName);
+            }
         }
 
-        for (const auto& srv : csShader->mShaderReflectionInfo.mTextureInfo)
+        payload.srvBindings.buffers = nullptr;
+        payload.srvBindings.count = srvCount;
+        if (srvCount > 0)
         {
-            bindingSnapshot->srvBuffers.push_back(csShader->GetBufferResource(srv.resourceName));
+            payload.srvBindings.buffers = allocator.allocArray<IGPUBuffer*>(srvCount);
+            for (uint32_t i = 0; i < srvCount; ++i)
+            {
+                const auto& srv = csShader->mShaderReflectionInfo.mTextureInfo[i];
+                payload.srvBindings.buffers[i] = csShader->GetBufferResource(srv.resourceName);
+            }
         }
 
-        for (const auto& uav : csShader->mShaderReflectionInfo.mUavInfo)
+        payload.uavBindings.buffers = nullptr;
+        payload.uavBindings.count = uavCount;
+        if (uavCount > 0)
         {
-            bindingSnapshot->uavBuffers.push_back(csShader->GetBufferResource(uav.resourceName));
+            payload.uavBindings.buffers = allocator.allocArray<IGPUBuffer*>(uavCount);
+            for (uint32_t i = 0; i < uavCount; ++i)
+            {
+                const auto& uav = csShader->mShaderReflectionInfo.mUavInfo[i];
+                payload.uavBindings.buffers[i] = csShader->GetBufferResource(uav.resourceName);
+            }
         }
 
-        cmd.data.dispatchComputeShader.bindingSnapshot = bindingSnapshot;
         cmd.op = RenderOp::kDispatchComputeShader;
         EnqueueCommand(cmd);
     }
@@ -408,7 +432,6 @@ namespace EngineCore
             break;
         case RenderOp::kDispatchComputeShader:
             RenderAPI::GetInstance()->RenderAPIDispatchComputeShader(cmd.data.dispatchComputeShader);
-            delete cmd.data.dispatchComputeShader.bindingSnapshot;
             break;
         case RenderOp::kSetBufferResourceState:
             RenderAPI::GetInstance()->RenderAPISetBufferResourceState(cmd.data.setBufferResourceState);

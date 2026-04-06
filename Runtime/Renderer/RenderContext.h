@@ -35,6 +35,7 @@ namespace EngineCore
         static bool CanBatch(const RenderBatch& batch, const RenderPacket item);
 
         IGPUBuffer* IndirectDrawArgsBuffer = nullptr;
+        IGPUBuffer* IndirectDrawCountCountBuffer = nullptr;
         IGPUBuffer* CullingParamBuffer = nullptr;
         uint32_t currFrameIndex = 0;
     private:
