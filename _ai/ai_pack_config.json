@@ -23,111 +23,89 @@
     "subsystem_notes": {
       "CORE_SYSTEM": [
         "核心数据结构、内存分配、标识系统与序列化元数据是其他模块的基础。",
-        "优先记录公开结构体/枚举/Allocator/Profiler接口。"
+        "优先记录公开结构体/枚举/Allocator/Profiler接口，包含Math数学库、JobSystem多线程系统。"
       ],
-      "GAMEPLAY": [
-        "围绕GameObject、Component、Transform、Camera与Scene的生命周期。",
-        "关注运行时脚本与管理器如何驱动渲染与资源依赖，强调GameObject/Component与场景更新职责解耦。"
+      "SCENE_GAMEPLAY": [
+        "统一的场景与游戏对象模块，围绕GameObject、Component、Transform、Camera与Scene的生命周期。",
+        "包含CPUScene逻辑场景、GPUScene GPU场景数据、脏标记更新流程，强调GameObject/Component与场景更新职责解耦。"
       ],
       "RHI_D3D12": [
-        "D3D12实现决定现代渲染器能力上限（资源状态、PSO、RootSignature等）。",
-        "需要抽取关键API与资源/命令上下文结构。"
+        "D3D12渲染硬件接口实现，决定现代渲染器能力上限（资源状态、PSO、RootSignature、DescriptorHeap等）。",
+        "抽取关键API与资源/命令上下文结构，包含D3D12RenderAPI、D3D12DescAllocator等核心类。"
       ],
       "RHI_OPENGL": [
         "OpenGL平台层用于探索或备用渲染后端。",
         "关注上下文创建、资源绑定与状态管理。"
       ],
-      "GRAPHICS_RES": [
-        "资源层是材质、纹理、模型与GPU缓冲的核心纽带。",
-        "提取资源描述、布局、GPU缓冲与材质接口。"
+      "GRAPHICS_ASSETS": [
+        "统一的图形资源模块，包含材质、纹理、模型、GPU缓冲、材质系统的核心纽带。",
+        "提取资源描述、布局、GPU缓冲、MaterialLayout/MaterialInstance/Bindless材质系统接口，Mesh/GeometryManager几何系统。"
       ],
-      "RENDER_PIPE": [
+      "RENDER_PIPELINE": [
         "渲染管线负责Pass组织、排序、裁剪与FrameGraph思路。",
-        "强调RenderContext、RenderPass与RenderPath的接口。"
+        "强调RenderContext、RenderPass、RenderPath、FrameContext的接口，包含GPUCulling、BatchManager批处理、IndirectDraw间接绘制。"
       ],
       "EDITOR_SYSTEM": [
         "编辑器提供调试与可视化界面，支撑迭代与资产编辑。",
-        "关注面板/GUI管理与场景交互。"
+        "关注面板/GUI管理与场景交互，包含ImGui集成、Inspector、Hierarchy、Gizmo等组件。"
       ],
       "SHADER_LIB": [
         "Shader库是GPU驱动渲染的核心资产。",
-        "关注通用Shader结构、CBuffer布局与Pass一致性。"
+        "关注通用Shader结构、CBuffer布局与Pass一致性，包含PBR、Lighting等核心Shader。"
       ],
       "ENGINE_OVERVIEW": [
         "引擎入口、主循环与模块初始化/销毁流程。",
-        "定位Game/Render/Scene之间的耦合与调度关系。"
-      ],
-      "SCENE_SYSTEM": [
-        "Scene与GameObject/Component的组织结构。",
-        "场景管理、加载与切换流程，关注Transform分层更新与DirtyList汇聚（dirtyRootDepthBucket、mPerFrameDirtyNodeList）。"
+        "定位Game/Render/Scene之间的耦合与调度关系，明确Update/Render/EndFrame主流程。"
       ],
       "ASSET_PIPELINE": [
         "资源导入、序列化、元数据与运行时缓存关系。",
-        "关注资源句柄、依赖管理与加载策略。"
+        "关注资源句柄、依赖管理与加载策略，包含glTF模型加载、纹理/材质/Shader加载器。"
       ],
       "PLATFORM_WINDOWING": [
         "窗口、输入与平台层抽象决定跨平台能力。",
-        "关注窗口创建、消息循环与输入采样接口。"
+        "关注窗口创建、消息循环与输入采样接口，包含Win32平台实现。"
       ],
       "CONCURRENCY": [
-        "CPU和GPU的同步，渲染线程和主线程的同步，多queue之间的同步",
-        "关注CpuEvent、Fence、WaitForLastFrameFinished、SignalMainThreadSubmited与多帧FrameContext协同是否合理"
+        "CPU和GPU的同步，渲染线程和主线程的同步，多queue之间的同步。",
+        "关注CpuEvent、Fence、WaitForLastFrameFinished、SignalMainThreadSubmitted与多帧FrameContext协同是否合理。"
       ],
       "SERIALIZATION": [
         "序列化涉及AssetHeader、StreamHelper与各类Loader。",
-        "关注二进制格式、版本兼容与加载时的依赖解析。"
+        "关注二进制格式、版本兼容与加载时的依赖解析，包含JSON解析器。"
       ],
-      "MODEL": [
-        "模型与几何系统关注Mesh/GeometryManager与GPU上传路径。",
-        "提取网格数据组织、索引/顶点布局与批处理入口。"
-      ],
-      "GameLogicUpdate": [
-        "围绕主循环的Update/Render/EndFrame与场景刷新顺序。",
-        "关注渲染路径选择与关键Pass调用链，明确Resource/Scene/RenderEngine时序和首帧行为。"
-      ],
-      "GPUScene": [
-        "GPUScene关注GPU驱动裁剪、批处理与间接绘制数据结构。",
-        "提取GPUSceneManager、BatchManager与相关Buffer布局，关注FrameContext多帧脏标记同步与CopyOp上传流程。"
-      ],
-      "GPU_ARCHITECTURE": [
-        "GPU体系结构聚焦资源布局、绑定方式与跨API抽象。",
-        "关注GPUBuffer、Texture与Bindless/Descriptor策略。"
-      ],
-      "MATERIAL_SYSTEM": [
-        "材质序列化与反序列化，运行时设置系统，生成MaterialInstance/MaterialLayout，并配合Bindless材质绑定。",
-        "关注序列化反序列化是否合理"
-      ],
-      "FRAME_PIPELINE_BOUNDARY": [
+      "FRAME_FLOW": [
         "明确主循环阶段边界：SimulationUpdate（游戏逻辑）/ RenderBuild（渲染前端构建）/ RenderSubmit（渲染后端提交）。",
         "重点识别当前混用点：Game::Update/Render、RenderEngine::Update/Tick、GPUScene::Update/ApplyDirtyNode/UpdateDirtyNode 的职责交叉。",
         "强调FrameContext应仅承载每帧临时数据（Upload/CopyOp/临时可见性），持久GPU场景数据应独立管理。",
         "区分RenderPath差异但统一阶段模型：Legacy与GPUScene路径都应Build与Submit分离，仅构建产物不同（DrawList vs Copy+Culling+Indirect）。",
         "关注同步策略现代化：避免每帧WaitForGpuFinished，转向frames-in-flight与fence驱动的延迟回收。"
+      ],
+      "GUI_FRAMEWORK": [
+        "ImGui GUI框架集成与扩展，包含核心、Widgets、Tables等所有ImGui模块。",
+        "关注编辑器UI实现、自定义控件、ImGui后端适配。"
+      ],
+      "UTILITY_LIBRARIES": [
+        "第三方工具库集成，包含stb_image图像加载、stb_rect_pack矩形打包、stb_truetype字体解析、nlohmann/json解析等。",
+        "关注工具库版本、封装接口、与引擎其他模块的集成点。"
       ]
     },
     "subsystems": {
-      "CORE_SYSTEM": ["Runtime/Core", "Runtime/Core/Allocator", "Runtime/Core/Concurrency", "Runtime/Math", "Runtime/Serialization", "Runtime/Utils", "PublicStruct", "PublicEnum", "Profiler", "Job", "JobSystem", "InstanceID", "Allocator"],
-      "GAMEPLAY": ["Runtime/GameObject", "Runtime/Scene", "Runtime/Scripts", "Runtime/Managers", "Runtime/Scene/SceneStruct.h", "Window", "Input", "Camera", "Transform", "Component", "MonoBehaviour", "NodeDirtyFlags", "NodeDirtyPayload", "CPUSceneView", "RunLogicUpdate", "RunTransformUpdate", "RunRemoveInvalidDirtyRenderNode"],
-      "RHI_D3D12": ["Runtime/Platforms/D3D12", "RenderAPI", "Descriptor", "RootSignature", "PSO", "SwapChain", "Barrier", "Command", "Fence", "Context"],
-      "COMPONENT_SYSTEM": ["Camera", "Component", "ComponentType", "MeshFilter", "MeshRenderer", "MonoBehaviour", "Transform", "Scene"],
-      "GRAPHICS_RES": ["Runtime/Graphics", "Runtime/Resources", "Runtime/MaterialLibrary", "Runtime/MaterialLibrary/MaterialLayout.h", "Runtime/MaterialLibrary/MaterialInstance.h", "Runtime/MaterialLibrary/MaterialArchetypeRegistry.h", "Material", "MaterialLayout", "MaterialInstance", "MaterialArchetypeRegistry", "Texture", "GPUBuffer", "Mesh", "GPUScene", "Vertex", "Index", "Layout", "Bindless"],
-      "RENDER_PIPE": ["Runtime/Renderer", "Runtime/Renderer/RenderPipeLine", "Runtime/Renderer/RenderPath", "RenderPipeLine", "RenderPass", "RenderPath", "RenderContext", "Batch", "Culling", "RenderEngine", "Sort", "Blit"],
-      "EDITOR_SYSTEM": ["Editor", "Editor/Panel", "Editor/D3D12", "Editor/EditorSerialization", "Editor/Mac", "Panel", "Inspector", "Hierarchy", "Gizmo", "GUI", "Widget", "Console"],
-      "SHADER_LIB": ["Assets/Shader", "Assets/Shader/include", "hlsl", "include", "Lighting", "Surface", "PBR"],
+      "CORE_SYSTEM": ["Runtime/Core", "Runtime/Core/Allocator", "Runtime/Core/Concurrency", "Runtime/Math", "Runtime/Serialization", "Runtime/Utils", "PublicStruct", "PublicEnum", "Profiler", "Job", "JobSystem", "InstanceID", "Allocator", "Math", "Vector3", "Matrix4x4", "Plane", "Cross", "Dot", "Perspective"],
+      "SCENE_GAMEPLAY": ["Runtime/GameObject", "Runtime/Scene", "Runtime/Scripts", "Runtime/Managers", "Runtime/Scene/SceneStruct.h", "Camera", "Transform", "Component", "MonoBehaviour", "NodeDirtyFlags", "NodeDirtyPayload", "CPUSceneView", "RunLogicUpdate", "RunTransformUpdate", "RunRemoveInvalidDirtyRenderNode", "SceneManager", "Scene", "SceneLoader", "BistroSceneLoader", "GameObject", "MeshFilter", "MeshRenderer", "CPUScene", "GPUScene", "dirtyRootDepthBucket", "mPerFrameDirtyNodeList", "MarkNodeTransformDirty", "MarkNodeMeshFilterDirty", "MarkNodeMeshRendererDirty", "MarkNodeRenderableDirty", "Game"],
+      "RHI_D3D12": ["Runtime/Platforms/D3D12", "RenderAPI", "Descriptor", "RootSignature", "PSO", "SwapChain", "Barrier", "Command", "Fence", "Context", "D3D12RenderAPI", "D3D12DescAllocator", "D3D12DescManager", "InitDescritorHeap", "CreateRenderTexture", "CreateConstantBuffer", "ResourceState"],
+      "GRAPHICS_ASSETS": ["Runtime/Graphics", "Runtime/Resources", "Runtime/MaterialLibrary", "Runtime/MaterialLibrary/MaterialLayout.h", "Runtime/MaterialLibrary/MaterialInstance.h", "Runtime/MaterialLibrary/MaterialArchetypeRegistry.h", "Material", "MaterialLayout", "MaterialInstance", "MaterialArchetypeRegistry", "Texture", "GPUBuffer", "Mesh", "Vertex", "Index", "Layout", "Bindless", "GeometryManager", "MeshUtils", "StandardPBR", "IGPUResource", "GPUBufferAllocator"],
+      "RENDER_PIPELINE": ["Runtime/Renderer", "Runtime/Renderer/RenderPipeLine", "Runtime/Renderer/RenderPath", "RenderPipeLine", "RenderPass", "RenderPath", "RenderContext", "Batch", "Culling", "RenderEngine", "Sort", "Blit", "GPUSceneRenderPath", "LegacyRenderPath", "Renderer", "FrameContext", "SetCurrentFrame", "UpdateDirtyNode", "ApplyDirtyNode", "UploadCopyOp", "FinalBlitPass", "GPUSceneRenderPass", "OpaqueRenderPass", "EndFrame", "BatchManager", "GPUCulling", "Indirect", "DrawIndirectArgs", "visibilityBuffer", "CopyOp", "PerObjectData", "perFrameUploadBuffer", "PersistentGPUScene", "SceneDelta", "DirtyFlags", "RenderBuild", "RenderSubmit", "BuildVsSubmit", "MainThreadFrontend", "RenderThreadBackend"],
+      "EDITOR_SYSTEM": ["Editor", "Editor/Panel", "Editor/D3D12", "Editor/Serialization", "Editor/Mac", "Panel", "Inspector", "Hierarchy", "Gizmo", "GUI", "Widget", "Console"],
+      "SHADER_LIB": ["Assets/Shader", "Assets/Shader/include", "hlsl", "include", "Lighting", "Surface", "PBR", "StandardPBR"],
       "ENGINE_OVERVIEW": ["Runtime/Entry.cpp", "Runtime/Core/Game.h", "Runtime/Settings", "EngineCore", "Game", "RenderEngine", "SceneManager", "Settings", "ProjectSettings", "RenderSettings", "Runtime/Utils"],
-      "SCENE_SYSTEM": ["Runtime/Scene", "Runtime/Scene/SceneStruct.h", "SceneManager", "Scene", "SceneLoader", "BistroSceneLoader", "GameObject", "Component", "Transform", "Hierarchy", "MeshFilter", "MeshRenderer", "CPUScene", "GPUScene", "NodeDirtyFlags", "NodeDirtyPayload", "dirtyRootDepthBucket", "mPerFrameDirtyNodeList", "MarkNodeTransformDirty", "MarkNodeMeshFilterDirty", "MarkNodeMeshRendererDirty", "MarkNodeRenderableDirty", "Game"],
-      "ASSET_PIPELINE": ["Runtime/Resources", "Runtime/Serialization", "Runtime/MaterialLibrary", "Asset", "AssetRegistry", "ResourceManager", "Importer", "Texture", "Material", "Shader", "Mesh", "MeshLoader", "TextureLoader", "MaterialLoader", "SceneLoader", "StreamHelper"],
-      "PLATFORM_WINDOWING": ["Runtime/Platforms", "Runtime/Platforms/Windows", "Window", "WindowManager", "WindowManagerWindows", "Input", "Platform", "Win32", "MessageLoop"],
+      "ASSET_PIPELINE": ["Runtime/Resources", "Runtime/Serialization", "Runtime/MaterialLibrary", "Asset", "AssetRegistry", "ResourceManager", "Importer", "Texture", "Material", "Shader", "Mesh", "MeshLoader", "TextureLoader", "MaterialLoader", "SceneLoader", "StreamHelper", "AssetHeader", "DDSTextureLoader", "IResourceLoader", "ResourceHandle", "tinygltf", "glTF Loader", "SerializeGltfAccessor", "SerializeGltfImage"],
+      "PLATFORM_WINDOWING": ["Runtime/Platforms", "Runtime/Platforms/Windows", "Window", "WindowManager", "WindowManagerWindows", "Input", "Platform", "Win32", "MessageLoop", "WindowProcedure", "ResizeWindow"],
       "RHI_OPENGL": ["Runtime/Platforms/Opengl", "OpenGL", "Opengl"],
-      "SERIALIZATION": ["Runtime/Serialization", "Runtime/Resources", "AssetHeader", "StreamHelper", "MeshLoader", "SceneLoader", "MaterialLoader", "ShaderLoader", "TextureLoader", "DDSTextureLoader", "IResourceLoader", "ResourceManager", "ResourceHandle", "AssetRegistry", "Asset"],
-      "MODEL": ["Runtime/Graphics", "Mesh", "MeshUtils", "GeometryManager", "MeshFilter", "Scene", "D3D12RenderAPI", "RenderAPI", "MeshRenderer", "BistroSceneLoader"],
-      "GameLogicUpdate": ["Runtime/Core/Game.h", "Runtime/Core/Game.cpp", "Game", "SceneManager", "Scene", "CPUScene", "GPUScene", "RenderEngine", "LagacyRenderPath", "GPUSceneRenderPath", "Renderer", "RenderContext", "FrameContext", "SetCurrentFrame", "UpdateDirtyNode", "ApplyDirtyNode", "UploadCopyOp", "FinalBlitPass", "GPUSceneRenderPass", "OpaqueRenderPass", "RenderPipeLine", "EndFrame"],
-      "GPUScene": ["GPUSceneRenderPath", "Runtime/Scene/GPUScene.h", "Runtime/Scene/GPUScene.cpp", "Runtime/Renderer/FrameContext.h", "Runtime/Renderer/FrameContext.cpp", "GPUSceneManager", "FrameContext", "mCPUFrameContext", "CPUSceneView", "NodeDirtyFlags", "UpdateFrameContextDirtyFlags", "UpdateFrameContextShadowData", "UploadCopyOp", "CopyOp", "PerObjectData", "DrawIndirectArgs", "visibilityBuffer", "GeometryManager", "Mesh", "Texture", "IGPUResource", "GPUBufferAllocator", "ComputeShader", "D3D12RenderAPI", "GPUSceneRenderPass", "BatchManager", "GPUCulling", "Indirect"],
-      "CONCURRENCY": ["Runtime/Core/Concurrency", "JobSystem", "CpuEvent", "Renderer", "RenderThreadMain", "RenderAPI", "D3D12RenderAPI", "Fence", "Wait", "WaitForLastFrameFinished", "SignalMainThreadSubmited", "FrameContext", "mMaxFrameCount"],
-      "GPU_ARCHITECTURE": ["Runtime/Platforms/D3D12", "Runtime/Graphics", "Runtime/Serialization", "GPUBuffer", "Descriptor", "RootSignature", "Bindless", "ResourceState"],
-      "MATERIAL_SYSTEM": ["Runtime/MaterialLibrary", "Runtime/MaterialLibrary/MaterialLayout.h", "Runtime/MaterialLibrary/MaterialInstance.h", "Runtime/MaterialLibrary/MaterialArchetypeRegistry.h", "BistroSceneLoader", "Material", "MaterialInstance", "MaterialLayout", "MaterialArchetypeRegistry", "StandardPBR", "Bindless"],
-      "FRAME_PIPELINE_BOUNDARY": ["Runtime/Core/Game.cpp", "Runtime/Renderer/RenderEngine.cpp", "Runtime/Scene/GPUScene.cpp", "Runtime/Renderer/FrameContext.h", "Runtime/Renderer/FrameContext.cpp", "Runtime/Renderer/RenderPath/LagacyRenderPath.h", "Runtime/Renderer/RenderPath/LagacyRenderPath.cpp", "Runtime/Renderer/RenderPath/GPUSceneRenderPath.h", "Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp", "Runtime/Renderer/Renderer.cpp", "Game::Update", "Game::Render", "RenderEngine::Update", "RenderEngine::Tick", "GPUScene::Update", "ApplyDirtyNode", "UpdateDirtyNode", "UploadCopyOp", "FrameContext", "CopyOp", "perFrameUploadBuffer", "PersistentGPUScene", "SceneDelta", "DirtyFlags", "RenderBuild", "RenderSubmit", "BuildVsSubmit", "MainThreadFrontend", "RenderThreadBackend", "GPUCulling", "DrawIndirect", "LegacyPath", "GPUScenePath", "frames-in-flight", "fence", "deferred free"],
-      "BUILD_TOOLING": ["premake5.lua", "WinBuildAndRun", "Win-GenProjects", "run_ai_analysis", "msbuild", "Tools/premake"]
-      
+      "CONCURRENCY": ["Runtime/Core/Concurrency", "JobSystem", "CpuEvent", "Renderer", "RenderThreadMain", "RenderAPI", "D3D12RenderAPI", "Fence", "Wait", "WaitForLastFrameFinished", "SignalMainThreadSubmitted", "FrameContext", "mMaxFrameCount", "TryExecuteOneJob", "WorkerThreadLoop", "GetAvailableCounter", "InternalKickJob"],
+      "GPU_ARCHITECTURE": ["Runtime/Platforms/D3D12", "Runtime/Graphics", "Runtime/Serialization", "GPUBuffer", "Descriptor", "RootSignature", "Bindless", "ResourceState", "GetBaseGPUAddress"],
+      "FRAME_FLOW": ["Runtime/Core/Game.cpp", "Runtime/Renderer/RenderEngine.cpp", "Runtime/Scene/GPUScene.cpp", "Runtime/Renderer/FrameContext.h", "Runtime/Renderer/FrameContext.cpp", "Runtime/Renderer/RenderPath/LegacyRenderPath.h", "Runtime/Renderer/RenderPath/LegacyRenderPath.cpp", "Runtime/Renderer/RenderPath/GPUSceneRenderPath.h", "Runtime/Renderer/RenderPath/GPUSceneRenderPath.cpp", "Runtime/Renderer/Renderer.cpp", "Game::Update", "Game::Render", "RenderEngine::Update", "RenderEngine::Tick", "GPUScene::Update", "ApplyDirtyNode", "UpdateDirtyNode", "UploadCopyOp", "FrameContext", "CopyOp", "perFrameUploadBuffer", "PersistentGPUScene", "SceneDelta", "DirtyFlags", "RenderBuild", "RenderSubmit", "BuildVsSubmit", "MainThreadFrontend", "RenderThreadBackend", "GPUCulling", "DrawIndirect", "LegacyPath", "GPUScenePath", "frames-in-flight", "fence", "deferred free"],
+      "GUI_FRAMEWORK": ["Runtime/External/Imgui", "ImGui Core", "ImGui Widgets", "ImGui Tables", "ImGui_ImplDX12", "ImGui_ImplWin32", "BeginFrame", "EndFrame", "RenderText", "SliderAngle", "DragInt", "DragFloat", "BeginTable", "TableHeadersRow", "ItemAdd", "IsItemVisible"],
+      "UTILITY_LIBRARIES": ["Runtime/External", "stb_image", "stb_rect_pack", "stb_truetype", "nlohmann/json", "JSON Parsing", "Image Utilities", "Texture Loading", "Rect Packing", "TrueType Fonts", "Text Editor", "stbi_load", "stbi_write_png", "stbrp_pack_rects", "stbtt_GetGlyphHMetrics", "stb_textedit", "json::parse"],
+      "BUILD_TOOLING": ["premake5.lua", "WinBuildAndRun", "WinGenProjects", "run_ai_analysis", "msbuild", "Tools/premake"]
     }
-  }
+}

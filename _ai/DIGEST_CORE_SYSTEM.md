@@ -1,5 +1,5 @@
 # Architecture Digest: CORE_SYSTEM
-> Auto-generated. Focus: Runtime/Core, Runtime/Core/Allocator, Runtime/Core/Concurrency, Runtime/Math, Runtime/Serialization, Runtime/Utils, PublicStruct, PublicEnum, Profiler, Job, JobSystem, InstanceID, Allocator
+> Auto-generated. Focus: Runtime/Core, Runtime/Core/Allocator, Runtime/Core/Concurrency, Runtime/Math, Runtime/Serialization, Runtime/Utils, PublicStruct, PublicEnum, Profiler, Job, JobSystem, InstanceID, Allocator, Math, Vector3, Matrix4x4, Plane, Cross, Dot, Perspective
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
@@ -14,69 +14,69 @@
 
 ## Understanding Notes
 - 核心数据结构、内存分配、标识系统与序列化元数据是其他模块的基础。
-- 优先记录公开结构体/枚举/Allocator/Profiler接口。
+- 优先记录公开结构体/枚举/Allocator/Profiler接口，包含Math数学库、JobSystem多线程系统。
 
 ## Key Files Index
 - `[67]` **Runtime/Core/Concurrency/JobSystem.h** *(Content Included)*
 - `[65]` **Runtime/Core/Concurrency/JobSystem.cpp** *(Content Included)*
+- `[53]` **Runtime/Math/Matrix4x4.cpp** *(Content Included)*
+- `[53]` **Runtime/Math/Matrix4x4.h** *(Content Included)*
+- `[50]` **Runtime/Math/Plane.h** *(Content Included)*
+- `[48]` **Runtime/Math/Vector3.h** *(Content Included)*
+- `[46]` **Runtime/Math/Vector3.cpp** *(Content Included)*
+- `[44]` **Runtime/Math/Plane.cpp** *(Content Included)*
 - `[44]` **Runtime/Core/Allocator/LinearAllocator.h** *(Content Included)*
+- `[39]` **Runtime/Core/PublicStruct.h** *(Content Included)*
 - `[37]` **Runtime/Core/Profiler.h** *(Content Included)*
 - `[36]` **Runtime/Core/InstanceID.h** *(Content Included)*
-- `[33]` **Runtime/Core/PublicStruct.h** *(Content Included)*
-- `[32]` **Runtime/Core/PublicEnum.h** *(Content Included)*
+- `[36]` **Runtime/Math/Math.h** *(Content Included)*
+- `[34]` **Runtime/Core/PublicEnum.h** *(Content Included)*
+- `[32]` **Runtime/Math/Frustum.cpp** *(Content Included)*
 - `[31]` **Runtime/Core/PublicEnum.cpp** *(Content Included)*
 - `[31]` **Runtime/Core/PublicStruct.cpp** *(Content Included)*
 - `[29]` **Runtime/Core/Game.cpp** *(Content Included)*
-- `[27]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
-- `[26]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h** *(Content Included)*
-- `[25]` **Runtime/Graphics/GPUBufferAllocator.cpp** *(Content Included)*
-- `[25]` **Runtime/Renderer/PerDrawAllocator.h** *(Content Included)*
-- `[25]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp** *(Content Included)*
-- `[23]` **Runtime/Graphics/IGPUBufferAllocator.h** *(Content Included)*
-- `[22]` **Runtime/Core/Concurrency/CpuEvent.h** *(Content Included)*
-- `[20]` **Runtime/Entry.cpp** *(Content Included)*
-- `[20]` **Runtime/Core/Concurrency/CpuEvent.cpp** *(Content Included)*
-- `[16]` **Runtime/Core/Object.h** *(Content Included)*
+- `[29]` **Runtime/Math/AABB.h** *(Content Included)*
+- `[28]` **Runtime/Math/Frustum.h** *(Content Included)*
+- `[27]` **Runtime/Graphics/GPUBufferAllocator.h**
+- `[27]` **Runtime/Math/AABB.cpp**
+- `[27]` **Runtime/Math/Quaternion.h**
+- `[26]` **Runtime/Math/Quaternion.cpp**
+- `[26]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h**
+- `[25]` **Runtime/Graphics/GPUBufferAllocator.cpp**
+- `[25]` **Runtime/Renderer/PerDrawAllocator.h**
+- `[25]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp**
+- `[23]` **Runtime/Graphics/IGPUBufferAllocator.h**
+- `[23]` **Runtime/Math/Vector4.h**
+- `[22]` **Runtime/Math/Vector2.h**
+- `[22]` **Runtime/Core/Concurrency/CpuEvent.h**
+- `[21]` **Runtime/Math/Vector4.cpp**
+- `[20]` **Runtime/Entry.cpp**
+- `[20]` **Runtime/Math/Vector2.cpp**
+- `[20]` **Runtime/Core/Concurrency/CpuEvent.cpp**
+- `[17]` **Runtime/Renderer/RenderBackend.h**
+- `[16]` **Runtime/Core/Object.h**
+- `[16]` **Runtime/Serialization/SceneLoader.h**
+- `[15]` **Runtime/GameObject/Camera.cpp**
+- `[13]` **Runtime/GameObject/Transform.h**
 - `[12]` **Runtime/CoreAssert.h**
 - `[12]` **Runtime/Core/Game.h**
 - `[12]` **Runtime/Core/ThreadSafeQueue.h**
-- `[12]` **Runtime/Math/AABB.h**
-- `[12]` **Runtime/Math/Frustum.h**
-- `[12]` **Runtime/Math/Math.h**
-- `[12]` **Runtime/Math/Matrix4x4.h**
-- `[12]` **Runtime/Math/Plane.h**
-- `[12]` **Runtime/Math/Quaternion.h**
-- `[12]` **Runtime/Math/Vector2.h**
-- `[12]` **Runtime/Math/Vector3.h**
-- `[12]` **Runtime/Math/Vector4.h**
-- `[12]` **Runtime/Renderer/RenderBackend.h**
+- `[12]` **Runtime/Renderer/RenderSorter.h**
+- `[12]` **Runtime/Renderer/RenderUniforms.h**
 - `[12]` **Runtime/Serialization/AssetHeader.h**
 - `[12]` **Runtime/Serialization/DDSTextureLoader.h**
 - `[12]` **Runtime/Serialization/MaterialLoader.h**
 - `[12]` **Runtime/Serialization/MeshLoader.h**
-- `[12]` **Runtime/Serialization/SceneLoader.h**
 - `[12]` **Runtime/Serialization/ShaderLoader.h**
 - `[12]` **Runtime/Serialization/StreamHelper.h**
 - `[12]` **Runtime/Serialization/TextureLoader.h**
 - `[12]` **Runtime/Utils/HashCombine.h**
-- `[11]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
-- `[10]` **Runtime/Math/AABB.cpp**
-- `[10]` **Runtime/Math/Frustum.cpp**
-- `[10]` **Runtime/Math/Matrix4x4.cpp**
-- `[10]` **Runtime/Math/Plane.cpp**
-- `[10]` **Runtime/Math/Quaternion.cpp**
-- `[10]` **Runtime/Math/Vector2.cpp**
-- `[10]` **Runtime/Math/Vector3.cpp**
-- `[10]` **Runtime/Math/Vector4.cpp**
-- `[9]` **Runtime/Renderer/RenderEngine.cpp**
-- `[9]` **Runtime/Platforms/D3D12/d3dUtil.h**
-- `[8]` **Runtime/Scene/GPUScene.h**
-- `[8]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h**
-- `[8]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
-- `[7]` **Runtime/Graphics/GeometryManager.h**
-- `[7]` **Runtime/Renderer/RenderCommand.h**
-- `[7]` **Runtime/Platforms/D3D12/D3D12DescManager.h**
-- `[7]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
+- `[12]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
+- `[11]` **Runtime/Renderer/RenderCommand.h**
+- `[10]` **Runtime/GameObject/Transform.cpp**
+- `[10]` **Runtime/Renderer/RenderBackend.cpp**
+- `[10]` **Runtime/Scene/BistroSceneLoader.cpp**
+- `[10]` **Runtime/Scene/GPUScene.h**
 
 ## Evidence & Implementation Details
 
@@ -260,6 +260,203 @@ namespace EngineCore
     {
 ```
 
+### File: `Runtime/Math/Matrix4x4.cpp`
+```cpp
+#include "Vector4.h"
+
+namespace EngineCore
+{
+    //-------------------------------------------
+    // RowMajor的形式
+    // D3D12驱动读取的时候会当成ColMajor，相当于做了一次隐式Transpose()
+    // 用mul(pos, Matrix)刚好又能和RowMajor对上
+    //-------------------------------------------
+    Matrix4x4 Matrix4x4::Identity = Matrix4x4();
+    Matrix4x4::Matrix4x4()
+    {
+        m00 = 1.0f; m01 = 0.0f; m02 = 0.0f; m03 = 0.0f;
+		m10 = 0.0f; m11 = 1.0f; m12 = 0.0f; m13 = 0.0f;
+		m20 = 0.0f; m21 = 0.0f; m22 = 1.0f; m23 = 0.0f;
+		m30 = 0.0f; m31 = 0.0f; m32 = 0.0f; m33 = 1.0f;
+    }
+
+    Matrix4x4::Matrix4x4(float m00, float m01, float m02, float m03, float m10, float m11, float m12, float m13, float m20, float m21, float m22, float m23, float m30, float m31, float m32, float m33):
+        m00(m00), m01(m01), m02(m02), m03(m03),
+        m10(m10), m11(m11), m12(m12), m13(m13),
+        m20(m20), m21(m21), m22(m22), m23(m23),
+        m30(m30), m31(m31), m32(m32), m33(m33)
+    {
+    }
+
+
+    // 统一处理成， 左手坐标系，z轴正方向指向target
+    // 后续变化在ViewSpace中完成
+    Matrix4x4 Matrix4x4::LookAt(const Vector3 &position, const Vector3 &target, const Vector3 &up)
+    {
+        Vector3 zAxis = Vector3::Normalized((target - position));
+        // 左手坐标系：up × forward = right
+        Vector3 xAxis = Vector3::Normalized((Vector3::Cross(up, zAxis)));
+        // 左手坐标系：forward × right = up
+        Vector3 yAxis = Vector3::Normalized((Vector3::Cross(zAxis, xAxis)));
+    
+        // 这个问题这么理解，首先思考从View -> World，很快能的出来R也就是旋转部分
+        // 为什么，因为col方向是原先的基向量（view）在新的空间下的表示（world的xyz）
+        //  xAxis.x, yAxis.y, zAxis.z;
+        //  xAxis.x, yAxis.y, zAxis.z;
+        //  xAxis.x, yAxis.y, zAxis.z;
+        // 又因为R的逆矩阵， 是正交矩阵，所以就是 R^T
+        // 剩下来的p怎么思考， 就思考p代表世界空间， 需要先根据相机矩阵做一个旋转，得到正确的值
+        // 也就是 R^T T， 这是行列式表示，变成公式就是点积
+        return Matrix4x4(
+            xAxis.x, xAxis.y, xAxis.z, -Vector3::Dot(position, xAxis),
+            yAxis.x, yAxis.y, yAxis.z, -Vector3::Dot(position, yAxis),
+            zAxis.x, zAxis.y, zAxis.z, -Vector3::Dot(position, zAxis),
+                0,      0,      0,          1
+        );
+    }   
+
+    Matrix4x4 Matrix4x4::Perspective(float mFov, float mAspect, float mNear, float mFar)
+    {
+        float fovRadians = mFov * 3.14159265359f / 180.0f; 
+        //[NDC 0, 1] z轴已经对齐，不用转化
+        #ifdef D3D12_API
+            return Matrix4x4(
+                1.0f/(mAspect * std::tan(fovRadians/2)), 0.0f, 0.0f, 0.0f,
+                0.0f, 1.0f / (std::tan(fovRadians/2)), 0.0f, 0.0f,
+                0.0f, 0.0f, mFar / (mFar - mNear), -(mFar * mNear) / (mFar - mNear),  // DirectX风格
+                0.0f, 0.0f, 1.0f, 0.0f
+            );
+        #elif
+        //[NDC -1, 1] z轴需要反向，不用转化
+        #endif
+    }
+
+    Matrix4x4 Matrix4x4::TRS(const Vector3 &position, const Quaternion &rotation, const Vector3 &scale)
+    {
+        // 从四元数计算旋转矩阵的元素
+        float xx = rotation.x * rotation.x;
+        float yy = rotation.y * rotation.y;
+        float zz = rotation.z * rotation.z;
+        float xy = rotation.x * rotation.y;
+        float xz = rotation.x * rotation.z;
+        float yz = rotation.y * rotation.z;
+        float wx = rotation.w * rotation.x;
+        float wy = rotation.w * rotation.y;
+```
+...
+```cpp
+        scale.z = Vector3::Length(axisZ);
+
+        ASSERT(scale.x != 0);
+        axisX /= scale.x;
+        axisY /= scale.y;
+        axisZ /= scale.z;
+
+        quaternion = Quaternion::FromRotationMatrix(axisX, axisY, axisZ);
+    }
+
+    // 矩阵乘法 RawMajor
+    // 结果矩阵 C = A * B
+    // C[i][j] = sum(A[i][k] * B[k][j])
+    Matrix4x4 Matrix4x4::operator*(const Matrix4x4& other) const
+    {
+```
+
+### File: `Runtime/Math/Matrix4x4.h`
+```cpp
+namespace EngineCore
+{
+    class Matrix4x4
+    {
+    public:
+      static Matrix4x4 Identity;
+      Matrix4x4();
+      Matrix4x4(float m00, float m01, float m02, float m03,
+                  float m10, float m11, float m12, float m13,
+                  float m20, float m21, float m22, float m23,
+                  float m30, float m31, float m32, float m33);
+      static Matrix4x4 LookAt(const Vector3& position, const Vector3& target, const Vector3& up);
+      static Matrix4x4 Perspective(float mFov, float mAspect, float mNear, float mFar);
+      static Matrix4x4 TRS(const Vector3& position, const Quaternion& rotation, const Vector3& scale);
+      // 旋转矩阵生成 (参数为角度)
+      static Matrix4x4 RotateX(float degrees);
+      static Matrix4x4 RotateY(float degrees);
+      static Matrix4x4 RotateZ(float degrees);
+      
+      static Vector4 Matrix4x4::Multiply(const Matrix4x4& matrixA, const Vector4& vector);
+      static Matrix4x4 Matrix4x4::Multiply(const Matrix4x4& matrixA, const Matrix4x4& matrixB);
+      static void WorldMatrixDecompose(const Matrix4x4& matrix, Vector3& position, Quaternion& quaternion, Vector3& scale); 
+      // 矩阵乘法运算符
+      Matrix4x4 operator*(const Matrix4x4& other) const;
+      inline Vector3 ExtractWorldPosition() const
+      {
+          return Vector3{m03, m13, m23};
+      }
+    public:
+		  float m00; float m01; float m02; float m03;
+		  float m10; float m11; float m12; float m13;
+		  float m20; float m21; float m22; float m23;
+		  float m30; float m31; float m32; float m33;
+    };
+```
+
+### File: `Runtime/Math/Plane.h`
+```cpp
+namespace EngineCore
+{
+    struct alignas(16) Plane
+    {
+        // Ax + By + Cz + D = 0 ;
+        // normal = (A, B, C) / sqrt(a*a + b*b + c*c);
+        // distance = normal * p
+        // (A, B, C) / sqrt(a*a + b*b + c*c) * p = distance
+        // 又  (A, B, C) · p = -D
+        // 同除 sqrt(a*a + b*b + c*c)，左边为distance
+        Vector3 normal;
+        float distance;
+        Plane() = default;
+        Plane(const Vector3& normal, float distance);
+
+        // 规定大于0为正向，
+        // 假设 0，0，-1， 200， 可以得到平面为正方向为 -z，在z轴200处。
+        // p(0, 0, 190)，在平面内， 所以是相加大于0在平面内
+        float GetDistanceToPoint(const Vector3& point)
+        {
+            return (Vector3::Dot(normal, point) + distance);
+        }
+    };
+```
+
+### File: `Runtime/Math/Vector3.h`
+```cpp
+namespace EngineCore
+{
+    class Vector3
+    {
+    public:
+        float x;
+        float y;
+        float z;
+    public:
+        static Vector3 One;
+        static Vector3 Zero;
+        static Vector3 Normalized(const Vector3& value);
+        static Vector3 Cross(const Vector3& a, const Vector3& b);
+        static float Distance(const Vector3& a, const Vector3& b);
+        static float Length(const Vector3& a);
+        static float Dot(const Vector3& a, const Vector3& b);
+        Vector3(){x = 0; y = 0; z = 0;};
+        Vector3(float x);
+        Vector3(float x, float y, float z);
+    
+        Vector3 operator-(const Vector3& value) const;
+        Vector3 operator+(const Vector3& value) const;
+        Vector3 operator*(float value) const;
+        Vector3 operator/(float value) const;
+        Vector3& operator/=(float value);
+    };
+```
+
 ### File: `Runtime/Core/Allocator/LinearAllocator.h`
 ```cpp
 namespace EngineCore
@@ -305,90 +502,6 @@ namespace EngineCore
     private:
         std::vector<uint8_t> buffer;
         size_t currentOffset = 0;
-    };
-```
-
-### File: `Runtime/Core/Profiler.h`
-```cpp
-{
-    // 函数打点
-    struct ProfilerEvent
-    {
-        const char* name        = nullptr;
-        uint32_t    threadID    = 0;
-        float       startMs     = 0.0f;
-        float       endMs       = 0.0f;
-        uint8_t     depth       = 0;
-    };
-```
-...
-```cpp
-    };
-    
-    struct ProfilerFrame
-    {
-        float frameStartMs = 0;
-        const char* frameTag = nullptr;
-
-        std::vector<ProfilerEvent> events;
-
-        std::unordered_map<std::string, uint32_t> counterIndex;
-
-        void Clear()
-        {
-            events.clear();
-            counterIndex.clear();
-            frameTag = nullptr;
-            frameStartMs = 0.0f;
-        }
-    };
-```
-...
-```cpp
-
-    
-    struct ProfilerZoneScope
-    {
-        explicit ProfilerZoneScope(const char* name)
-            : m_name(name)
-        {
-            Profiler& p = Profiler::Get();
-            m_startMs = p.GetTimeMs();
-            m_threadId = GetThreadId();
-            //m_depth = p.PushDepth();
-        }
-
-        ~ProfilerZoneScope()
-        {
-            Profiler& p = Profiler::Get();
-            float end = p.GetTimeMs();
-            p.RecordEvent(m_name, m_threadId, m_startMs, end, m_depth);
-            //p.PopDepth();
-        }
-    private:
-        static uint32_t GetThreadId()
-        {
-            auto id = std::this_thread::get_id();
-            std::hash<std::thread::id> hasher;
-            return static_cast<uint32_t>(hasher(id));
-        }
-
-        const char* m_name;
-        float       m_startMs = 0.0f;
-        uint32_t    m_threadId = 0;
-        uint8_t     m_depth = 0;
-    };
-```
-
-### File: `Runtime/Core/InstanceID.h`
-```cpp
-namespace EngineCore
-{
-    struct InstanceID
-    {
-        uint64_t v{0};
-        explicit operator bool() const { return v != 0; };
-    public:
     };
 ```
 
@@ -524,6 +637,90 @@ namespace EngineCore
         inline bool isValid() const {return perObejectIndex != UINT32_MAX;}
 ```
 
+### File: `Runtime/Core/Profiler.h`
+```cpp
+{
+    // 函数打点
+    struct ProfilerEvent
+    {
+        const char* name        = nullptr;
+        uint32_t    threadID    = 0;
+        float       startMs     = 0.0f;
+        float       endMs       = 0.0f;
+        uint8_t     depth       = 0;
+    };
+```
+...
+```cpp
+    };
+    
+    struct ProfilerFrame
+    {
+        float frameStartMs = 0;
+        const char* frameTag = nullptr;
+
+        std::vector<ProfilerEvent> events;
+
+        std::unordered_map<std::string, uint32_t> counterIndex;
+
+        void Clear()
+        {
+            events.clear();
+            counterIndex.clear();
+            frameTag = nullptr;
+            frameStartMs = 0.0f;
+        }
+    };
+```
+...
+```cpp
+
+    
+    struct ProfilerZoneScope
+    {
+        explicit ProfilerZoneScope(const char* name)
+            : m_name(name)
+        {
+            Profiler& p = Profiler::Get();
+            m_startMs = p.GetTimeMs();
+            m_threadId = GetThreadId();
+            //m_depth = p.PushDepth();
+        }
+
+        ~ProfilerZoneScope()
+        {
+            Profiler& p = Profiler::Get();
+            float end = p.GetTimeMs();
+            p.RecordEvent(m_name, m_threadId, m_startMs, end, m_depth);
+            //p.PopDepth();
+        }
+    private:
+        static uint32_t GetThreadId()
+        {
+            auto id = std::this_thread::get_id();
+            std::hash<std::thread::id> hasher;
+            return static_cast<uint32_t>(hasher(id));
+        }
+
+        const char* m_name;
+        float       m_startMs = 0.0f;
+        uint32_t    m_threadId = 0;
+        uint8_t     m_depth = 0;
+    };
+```
+
+### File: `Runtime/Core/InstanceID.h`
+```cpp
+namespace EngineCore
+{
+    struct InstanceID
+    {
+        uint64_t v{0};
+        explicit operator bool() const { return v != 0; };
+    public:
+    };
+```
+
 ### File: `Runtime/Core/PublicEnum.h`
 ```cpp
 #pragma once
@@ -603,179 +800,38 @@ namespace EngineCore
 }
 ```
 
-### File: `Runtime/Graphics/GPUBufferAllocator.h`
+### File: `Runtime/Math/AABB.h`
 ```cpp
-    // Allocates small chunks of memory from a large GPU buffer.
-    // Handles free list management for reusable blocks.
-    class GPUBufferAllocator : public IGPUBufferAllocator
-    {
-    public:
-        GPUBufferAllocator(const BufferDesc &usage);
-        virtual ~GPUBufferAllocator();
-        
-        void Destory();
-
-        // Allocates a block of 'size' bytes.
-        // The allocator will search for a suitable free block or append to the end.
-        virtual BufferAllocation Allocate(uint32_t size) override;
-        
-        // Frees an allocation, making its range available for reuse.
-        virtual void Free(const BufferAllocation& allocation) override;
-        
-        // Resets the allocator, clearing all allocations (effectively freeing everything).
-        // Useful for per-frame allocators.
-        virtual void Reset() override;
-        
-        virtual uint64_t GetBaseGPUAddress() const override;
-        virtual void UploadBuffer(const BufferAllocation& alloc, void* data, uint32_t size) override;
-        virtual IGPUBuffer* GetGPUBuffer() override;
-        BufferDesc bufferDesc;
-    private:
-
-        IGPUBuffer* m_Buffer = nullptr;
-        uint64_t m_MaxSize = 0;
-        uint64_t m_CurrOffset = 0; // Tracks the end of the used contiguous space
-
-        // Keeps track of free ranges [offset, size]
-        // This is a simple implementation; for high fragmentation scenarios, 
-        // a more complex structure (like a segregated free list or RB tree) might be needed.
-        struct FreeRange
-        {
-            uint64_t offset;
-            uint32_t size;
-        };
-        std::vector<FreeRange> m_FreeRanges;
-        
-        // Helper to find a free block
-        bool FindFreeBlock(uint32_t size, uint64_t& outOffset);
-    };
+        AABB() = default;
+        AABB(const Vector3& minPoint, const Vector3& maxPoint)
+            : minValue(minPoint), maxValue(maxPoint) {}
 ```
-
-### File: `Runtime/Platforms/D3D12/D3D12DescAllocator.h`
+...
 ```cpp
-namespace EngineCore
-{
-    class D3D12DescAllocator
-    {
-    public:
-        D3D12DescAllocator(D3D12_DESCRIPTOR_HEAP_TYPE heapType, bool isFrameHeap, bool isShaderVisible = false);
-        ~D3D12DescAllocator(){};
-        inline D3D12_DESCRIPTOR_HEAP_TYPE GetHeapType(){ return mHeapType;};
 
-        DescriptorHandle CreateDescriptor(const D3D12_SAMPLER_DESC& desc){};
-		DescriptorHandle CreateDescriptor(const D3D12_CONSTANT_BUFFER_VIEW_DESC& desc);
-		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc);
-		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc);
-		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc);
-        DescriptorHandle AllocateStaticHandle();
-        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mHeap;
-
-        void Reset();
-        void CleanPerFrameData();
-
-        // 设置动态分配的起始位置（用于混合 Heap 模式）
-        void SetDynamicStartOffset(int offset) 
-        { 
-            dynamicStartOffset = offset;
-            currDynamicoffset = offset;
-        }
-        // 专门用于 Global Heap 的动态分配
-        DescriptorHandle AllocateDynamicSpace(int count);
-
-    private:
-        D3D12_DESCRIPTOR_HEAP_TYPE mHeapType;
-        D3D12_DESCRIPTOR_HEAP_FLAGS GetHeapVisible(D3D12_DESCRIPTOR_HEAP_TYPE heapType, bool isFrameHeap);
-        int ConfigAllocatorDescSize(D3D12_DESCRIPTOR_HEAP_TYPE heapType);
-
-        //std::vector<bool> isInUse;
-        std::vector<int> freeIndexList;
-
-        int dynamicStartOffset = 0; // 记录动态分配的起始点，Reset 时回到这里
-        int currDynamicoffset = 0;
-        
-        int currentOffset = 0;
-        uint32_t startIndex = 0;
-        uint32_t mDescriptorSize = 0;
-        int maxCount = 0;
-    };
-```
-
-### File: `Runtime/Renderer/PerDrawAllocator.h`
-```cpp
-{
-
-    class PerDrawAllocator
-    {
-    public:
-        virtual ~PerDrawAllocator() = default;
-
-        virtual PerDrawHandle Allocate(uint32_t size) = 0;
-        virtual uint8_t*    GetCPUAddress(PerDrawHandle h) = 0; // 用来 memcpy
-        virtual uint64_t    GetGPUBaseAddress() const = 0;  // 大 buffer 的 base GPU VA
-        virtual void        ResetFrame() = 0;
-    };
-```
-
-### File: `Runtime/Graphics/IGPUBufferAllocator.h`
-```cpp
-namespace EngineCore
-{
-    class IGPUBufferAllocator
-    {
-        virtual BufferAllocation Allocate(uint32_t size) = 0;
-        virtual void Free(const BufferAllocation& allocation) = 0;
-        virtual void Reset() = 0;
-        virtual uint64_t GetBaseGPUAddress() const = 0; 
-        virtual void UploadBuffer(const BufferAllocation& alloc, void* data, uint32_t size) = 0;
-        virtual IGPUBuffer* GetGPUBuffer() = 0;
-    };
-```
-
-### File: `Runtime/Core/Concurrency/CpuEvent.h`
-```cpp
-#include <condition_variable>
-
-namespace EngineCore
-{
-    class CpuEvent
-    {
-    public:
-        //static CpuEvent& RenderThreadSubmited();
-        //static CpuEvent& MainThreadSubmited();
-        // 渲染线程消费完ImGui DrawData后发出信号，主线程BeginFrame等待它
-        // 初始为true：第一帧不需要等待上一帧
-        static CpuEvent& GUIDataConsumed();
-
-        CpuEvent(bool startCondition = false)
-            : m_signaled(startCondition){}
-
-        void Signal()
-        {
-            {
-                std::lock_guard<std::mutex> lock(m_mutex);
-                m_signaled = true;
-            }
-            m_cv.notify_all();
-        }
-
-        void Wait()
-        {
-            std::unique_lock<std::mutex> lock(m_mutex);
-            m_cv.wait(lock, [&]{ return m_signaled;});
-            m_signaled = false;
-        }
-
-    private:
-        std::mutex  m_mutex;
-        std::condition_variable m_cv;
-        bool    m_signaled = false;
+        /// Transform变换后的AABB（考虑旋转和缩放）
+        void Transform(const Matrix4x4& matrix);
     };
 }
 ```
 
-### File: `Runtime/Core/Object.h`
+### File: `Runtime/Math/Frustum.h`
 ```cpp
-        InstanceID id;
-        inline const uint64_t GetInstanceID() const{ return id.v;};
-        Object(){ id = InstanceIDGenerator::New();};
+namespace EngineCore
+{
+    enum class IntersectResult
+    {
+        Inside = 0,
+        Outside = 1,
+        Intersect = 2
+    };
+```
+...
+```cpp
+        Plane frustumPlane[6];
+        Frustum() = default;
+        void UpdateFrustumPlane(const Matrix4x4& matrix);
+        IntersectResult TestAABB(const AABB& bound);
+    };
+}
 ```

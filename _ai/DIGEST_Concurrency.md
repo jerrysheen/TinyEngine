@@ -1,5 +1,5 @@
 # Architecture Digest: CONCURRENCY
-> Auto-generated. Focus: Runtime/Core/Concurrency, JobSystem, CpuEvent, Renderer, RenderThreadMain, RenderAPI, D3D12RenderAPI, Fence, Wait, WaitForLastFrameFinished, SignalMainThreadSubmited, FrameContext, mMaxFrameCount
+> Auto-generated. Focus: Runtime/Core/Concurrency, JobSystem, CpuEvent, Renderer, RenderThreadMain, RenderAPI, D3D12RenderAPI, Fence, Wait, WaitForLastFrameFinished, SignalMainThreadSubmitted, FrameContext, mMaxFrameCount, TryExecuteOneJob, WorkerThreadLoop, GetAvailableCounter, InternalKickJob
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
@@ -13,25 +13,25 @@
 - 重点识别NodeDirtyFlags、NodeDirtyPayload、PerFrameDirtyList、CopyOp等脏数据传播与跨帧同步结构。
 
 ## Understanding Notes
-- CPU和GPU的同步，渲染线程和主线程的同步，多queue之间的同步
-- 关注CpuEvent、Fence、WaitForLastFrameFinished、SignalMainThreadSubmited与多帧FrameContext协同是否合理
+- CPU和GPU的同步，渲染线程和主线程的同步，多queue之间的同步。
+- 关注CpuEvent、Fence、WaitForLastFrameFinished、SignalMainThreadSubmitted与多帧FrameContext协同是否合理。
 
 ## Key Files Index
 - `[64]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[63]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
+- `[43]` **Runtime/Core/Concurrency/JobSystem.cpp** *(Content Included)*
+- `[42]` **Runtime/Core/Concurrency/JobSystem.h** *(Content Included)*
 - `[41]` **Runtime/Renderer/RenderAPI.h** *(Content Included)*
-- `[41]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
+- `[40]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
 - `[39]` **Runtime/Core/Concurrency/CpuEvent.h** *(Content Included)*
-- `[38]` **Runtime/Core/Concurrency/JobSystem.cpp** *(Content Included)*
-- `[38]` **Runtime/Core/Concurrency/JobSystem.h** *(Content Included)*
 - `[37]` **Runtime/Renderer/RenderAPI.cpp** *(Content Included)*
 - `[35]` **Runtime/Core/Concurrency/CpuEvent.cpp** *(Content Included)*
-- `[33]` **Runtime/Renderer/RenderBackend.h** *(Content Included)*
+- `[34]` **Runtime/Renderer/RenderBackend.h** *(Content Included)*
 - `[27]` **Runtime/GameObject/MeshRenderer.h** *(Content Included)*
 - `[25]` **Runtime/GameObject/MeshRenderer.cpp** *(Content Included)*
 - `[21]` **Runtime/Renderer/RenderBackend.cpp** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
-- `[20]` **Runtime/Renderer/RenderEngine.h** *(Content Included)*
+- `[19]` **Runtime/Renderer/RenderEngine.h** *(Content Included)*
 - `[18]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp** *(Content Included)*
 - `[18]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.cpp** *(Content Included)*
 - `[17]` **Runtime/Renderer/FrameTicket.h** *(Content Included)*
@@ -48,7 +48,7 @@
 - `[14]` **Runtime/Renderer/RenderPath/LagacyRenderPipeline.h**
 - `[13]` **Runtime/Renderer/RenderContext.h**
 - `[13]` **Runtime/Renderer/RenderSorter.h**
-- `[13]` **Runtime/Renderer/RenderPath/GPUSceneRenderPipeline.cpp**
+- `[13]` **Runtime/Renderer/UploadPagePool.cpp**
 - `[13]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.h**
 - `[13]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.h**
 - `[13]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.h**
@@ -58,8 +58,8 @@
 - `[12]` **Runtime/Renderer/RenderStruct.h**
 - `[12]` **Runtime/Renderer/RenderUniforms.h**
 - `[12]` **Runtime/Renderer/SPSCRingBuffer.h**
+- `[12]` **Runtime/Renderer/RenderPath/GPUSceneRenderPipeline.cpp**
 - `[12]` **Runtime/Renderer/RenderPath/LagacyRenderPipeline.cpp**
-- `[11]` **Runtime/Renderer/UploadPagePool.cpp**
 - `[11]` **Runtime/Renderer/RenderPipeLine/RenderPass.cpp**
 - `[11]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp**
 - `[10]` **Runtime/Renderer/BatchManager.cpp**
@@ -72,11 +72,11 @@
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[5]` **Runtime/Core/PublicStruct.h**
+- `[5]` **Runtime/Graphics/GPUBufferAllocator.cpp**
+- `[5]` **Runtime/Graphics/PerFrameBufferRing.h**
 - `[5]` **Runtime/Scene/GPUScene.h**
 - `[5]` **Runtime/Scene/Scene.cpp**
 - `[5]` **Runtime/Scene/SceneManager.cpp**
-- `[5]` **Editor/Panel/EditorMainBar.cpp**
-- `[4]` **Runtime/Core/ThreadSafeQueue.h**
 
 ## Evidence & Implementation Details
 
@@ -218,7 +218,7 @@
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
         virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) override;
-
+        virtual void RenderAPICopyBufferStaged(Payload_CopyBufferStaged copyBufferStaged) override;
         
         virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) override;
         virtual RenderTexture* GetCurrentBackBuffer() override;
@@ -292,6 +292,169 @@
         }
 ```
 
+### File: `Runtime/Core/Concurrency/JobSystem.cpp`
+```cpp
+#include "JobSystem.h"
+
+namespace EngineCore
+{
+    JobSystem* JobSystem::s_Instance = nullptr;
+
+    JobSystem::JobSystem()
+    {
+        isRunning = true;
+
+        unsigned int numThreads = std::thread::hardware_concurrency();
+        ASSERT(numThreads >= 2);
+        numThreads = numThreads - 2;
+
+        // job会优先起在空闲核内， 如果要指定核，要用别的接口
+        for(unsigned int i = 0; i < numThreads; i++)
+        {
+            m_Workers.emplace_back(&JobSystem::WorkerThreadLoop, this);
+        }
+    }
+
+    JobSystem::~JobSystem()
+    {
+        {
+            std::unique_lock<std::mutex> lock(queueMutex);
+            isRunning = false;
+        }
+
+        wakeWorker.notify_all();
+
+        for(std::thread& worker : m_Workers)
+        {
+            if(worker.joinable())
+            {
+                worker.join();
+            }
+        }
+
+        while(!counterQueue.empty())
+        {
+            delete counterQueue.front();
+            counterQueue.pop_front();
+        }
+    }
+
+    void JobSystem::Create()
+    {
+        if(s_Instance != nullptr)
+        {
+            return;
+        }
+        s_Instance = new JobSystem();
+    }
+
+    void JobSystem::Shutdown()
+    {
+    }
+
+    JobSystem *JobSystem::GetInstance()
+    {
+        if(s_Instance == nullptr)
+        {
+            Create();
+        }
+        return s_Instance;
+    }
+
+    void JobSystem::WaitForJob(JobHandle handle)
+    {
+        while(handle.counter->value > 0)
+        {
+            bool executed = TryExecuteOneJob();
+        }
+    }
+
+    void JobSystem::InternalKickJob(void (*function)(void *, void *), void *JobData, void *rawCounter)
+    {
+        {
+            std::unique_lock<std::mutex> lock(queueMutex);
+            jobQueue.push_front({function, JobData, rawCounter});
+```
+...
+```cpp
+            InternalJob job;
+            {
+                std::unique_lock<std::mutex> lock(queueMutex);
+                // wait 为true，就是不sleep，继续走的条件是，
+                // isRunning为false了，需要往下走逻辑， 或者是jobQueue有东西了
+                // 需要往下pop()； 不然这个线程关不掉？
+                wakeWorker.wait(lock, [&]{ return !isRunning || !jobQueue.empty();});
+```
+...
+```cpp
+        InternalJob job;
+        {
+            std::unique_lock<std::mutex> lock(queueMutex);
+            if(jobQueue.empty()) return false;
+            job = jobQueue.front();
+            jobQueue.pop_front();
+        }
+        job.function(job.JobData, job.rawCounter);
+    }
+
+    JobCounter *JobSystem::GetAvaliableCounter()
+    {
+```
+
+### File: `Runtime/Core/Concurrency/JobSystem.h`
+```cpp
+    };
+
+    class JobSystem
+    {
+    public:
+        JobSystem();
+        ~JobSystem();
+        static void Create();
+        static void Shutdown();
+        static JobSystem* GetInstance();
+
+        template<typename CallableJob>
+        void KickJob(CallableJob job, JobHandle& handler, JobCounter* counter)
+        {
+            if(counter == nullptr)
+            {
+                counter = GetAvaliableCounter();
+            }
+
+            void* jobData = new CallableJob(job);
+
+            counter->value.fetch_add(1);
+            auto lambda = [](void* jobData, void* rawCounter)
+            {
+                CallableJob* job = (CallableJob*)jobData;
+                job();
+                JobCounter* counter = (JobCounter*)rawCounter;
+                counter->value.fetch_sub(1);
+                delete jobData;
+            }
+            handler.counter = counter;
+            InternalKickJob(lambda, jobData, counter);
+        }
+
+        std::deque<InternalJob> jobQueue;
+        bool isRunning = false;
+        std::mutex queueMutex;
+        std::condition_variable wakeWorker;
+        std::vector<std::thread> m_Workers;
+
+        void WaitForJob(JobHandle handle);
+
+    private:
+        void InternalKickJob(void (*function)(void*, void*), void* JobData, void* rawCounter);
+        void WorkerThreadLoop(); 
+        bool TryExecuteOneJob();
+        static JobSystem* s_Instance;
+        JobCounter* GetAvaliableCounter();
+        std::deque<JobCounter*> counterQueue;
+    };
+```
+
 ### File: `Runtime/Renderer/RenderAPI.h`
 ```cpp
 namespace  EngineCore
@@ -349,6 +512,7 @@ namespace  EngineCore
         virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) = 0;
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) = 0;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) = 0;
+        virtual void RenderAPICopyBufferStaged(Payload_CopyBufferStaged copyBufferStaged) = 0;
         virtual RenderTexture* GetCurrentBackBuffer() = 0;
         template<typename T>
         void SetGlobalValue(uint32_t bufferID, uint32_t offset, T* value)
@@ -411,63 +575,9 @@ namespace EngineCore
     };
 ```
 
-### File: `Runtime/Core/Concurrency/JobSystem.h`
-```cpp
-    };
-
-    class JobSystem
-    {
-    public:
-        JobSystem();
-        ~JobSystem();
-        static void Create();
-        static void Shutdown();
-        static JobSystem* GetInstance();
-
-        template<typename CallableJob>
-        void KickJob(CallableJob job, JobHandle& handler, JobCounter* counter)
-        {
-            if(counter == nullptr)
-            {
-                counter = GetAvaliableCounter();
-            }
-
-            void* jobData = new CallableJob(job);
-
-            counter->value.fetch_add(1);
-            auto lambda = [](void* jobData, void* rawCounter)
-            {
-                CallableJob* job = (CallableJob*)jobData;
-                job();
-                JobCounter* counter = (JobCounter*)rawCounter;
-                counter->value.fetch_sub(1);
-                delete jobData;
-            }
-            handler.counter = counter;
-            InternalKickJob(lambda, jobData, counter);
-        }
-
-        std::deque<InternalJob> jobQueue;
-        bool isRunning = false;
-        std::mutex queueMutex;
-        std::condition_variable wakeWorker;
-        std::vector<std::thread> m_Workers;
-
-        void WaitForJob(JobHandle handle);
-
-    private:
-        void InternalKickJob(void (*function)(void*, void*), void* JobData, void* rawCounter);
-        void WorkerThreadLoop(); 
-        bool TryExecuteOneJob();
-        static JobSystem* s_Instance;
-        JobCounter* GetAvaliableCounter();
-        std::deque<JobCounter*> counterQueue;
-    };
-```
-
 ### File: `Runtime/Renderer/RenderBackend.h`
 ```cpp
-                
+                // todo Submit UploadPage 打上帧标签
                 // later do Gpu Fence...
                 RenderAPI::GetInstance()->RenderAPISubmit();
 
@@ -495,7 +605,7 @@ namespace EngineCore
 ```
 ...
 ```cpp
-    private:
+
         void EnqueueCommand(const DrawCommand& cmd);
         void WaitForQueueSpace();
 
@@ -584,7 +694,6 @@ namespace EngineCore
         uint32_t mCurrentFrameID = 0;
 
         void ComsumeDirtySceneRenderNode(const SceneDelta& delta);
-        void UploadCopyOp();
     };
     
 }

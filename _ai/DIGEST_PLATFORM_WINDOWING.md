@@ -1,5 +1,5 @@
 # Architecture Digest: PLATFORM_WINDOWING
-> Auto-generated. Focus: Runtime/Platforms, Runtime/Platforms/Windows, Window, WindowManager, WindowManagerWindows, Input, Platform, Win32, MessageLoop
+> Auto-generated. Focus: Runtime/Platforms, Runtime/Platforms/Windows, Window, WindowManager, WindowManagerWindows, Input, Platform, Win32, MessageLoop, WindowProcedure, ResizeWindow
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
@@ -14,11 +14,11 @@
 
 ## Understanding Notes
 - 窗口、输入与平台层抽象决定跨平台能力。
-- 关注窗口创建、消息循环与输入采样接口。
+- 关注窗口创建、消息循环与输入采样接口，包含Win32平台实现。
 
 ## Key Files Index
-- `[109]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp** *(Content Included)*
-- `[103]` **Runtime/Platforms/Windows/WindowManagerWindows.h** *(Content Included)*
+- `[111]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp** *(Content Included)*
+- `[104]` **Runtime/Platforms/Windows/WindowManagerWindows.h** *(Content Included)*
 - `[55]` **Runtime/Managers/WindowManager.cpp** *(Content Included)*
 - `[52]` **Runtime/Managers/WindowManager.h** *(Content Included)*
 - `[29]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp** *(Content Included)*
@@ -27,13 +27,13 @@
 - `[26]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h** *(Content Included)*
 - `[25]` **Runtime/Platforms/D3D12/D3D12PSO.cpp** *(Content Included)*
 - `[25]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
+- `[24]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp** *(Content Included)*
 - `[24]` **Runtime/Platforms/D3D12/D3D12Struct.h** *(Content Included)*
 - `[24]` **Runtime/Platforms/D3D12/d3dUtil.cpp** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/D3D12Buffer.h** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/D3D12DescManager.h** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/D3D12PSO.h** *(Content Included)*
-- `[22]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/D3D12RootSignature.h** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/D3D12Texture.h** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/d3dx12.h** *(Content Included)*
@@ -42,9 +42,9 @@
 - `[20]` **Runtime/Platforms/D3D12/D3D12DescManager.cpp**
 - `[17]` **Editor/D3D12/D3D12EditorGUIManager.cpp**
 - `[15]` **Runtime/Core/Game.cpp**
-- `[12]` **Runtime/Renderer/RenderEngine.cpp**
+- `[13]` **Runtime/Renderer/RenderEngine.cpp**
+- `[10]` **Runtime/Renderer/RenderBackend.h**
 - `[9]` **Runtime/PreCompiledHeader.h**
-- `[9]` **Runtime/Renderer/RenderBackend.h**
 - `[9]` **Assets/Shader/BlitShader.hlsl**
 - `[9]` **Assets/Shader/GPUCulling.hlsl**
 - `[9]` **Assets/Shader/SimpleTestShader.hlsl**
@@ -52,6 +52,7 @@
 - `[9]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
 - `[7]` **Editor/EditorSettings.h**
 - `[7]` **Runtime/Graphics/Mesh.h**
+- `[6]` **Runtime/Renderer/RenderBackend.cpp**
 - `[6]` **Runtime/Renderer/RenderCommand.h**
 - `[6]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[5]` **premake5.lua**
@@ -59,7 +60,6 @@
 - `[5]` **Editor/EditorSettings.cpp**
 - `[5]` **Runtime/Graphics/Mesh.cpp**
 - `[5]` **Runtime/Renderer/RenderAPI.h**
-- `[5]` **Runtime/Renderer/RenderBackend.cpp**
 - `[5]` **Runtime/Scene/BistroSceneLoader.cpp**
 - `[5]` **Runtime/Settings/ProjectSettings.h**
 - `[5]` **Editor/Panel/EditorConsolePanel.cpp**
@@ -74,9 +74,9 @@
 - `[4]` **Editor/Panel/EditorHierarchyPanel.cpp**
 - `[4]` **Editor/Panel/EditorInspectorPanel.cpp**
 - `[4]` **Editor/Panel/EditorProjectPanel.cpp**
+- `[4]` **Assets/Shader/IndirectDrawCallCombineComputeShader.hlsl**
 - `[2]` **Editor/EditorGUIManager.h**
 - `[2]` **Runtime/CoreAssert.h**
-- `[2]` **Runtime/Core/Game.h**
 
 ## Evidence & Implementation Details
 
@@ -353,7 +353,7 @@ namespace EngineCore
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
         virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) override;
-
+        virtual void RenderAPICopyBufferStaged(Payload_CopyBufferStaged copyBufferStaged) override;
         
         virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) override;
         virtual RenderTexture* GetCurrentBackBuffer() override;
@@ -590,6 +590,7 @@ namespace EngineCore
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc);
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc);
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc);
+		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_UNORDERED_ACCESS_VIEW_DESC& desc);
         DescriptorHandle AllocateStaticHandle();
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mHeap;
 
@@ -645,6 +646,7 @@ namespace EngineCore
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc);
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc);
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc, bool isShaderVisible = false);
+		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_UNORDERED_ACCESS_VIEW_DESC& desc);
 
         inline DescriptorHandle GetFrameCbvSrvUavAllocator(int count) 
         {
@@ -722,6 +724,8 @@ namespace EngineCore
             ASSERT(mRootSigMap.count(key) > 0);
             return mRootSigMap[key];
         }
+
+        static ComPtr<ID3D12RootSignature> D3D12RootSignature::GetOrCreateGPUSceneGraphicsRootSig(ComPtr<ID3D12Device> md3dDevice);
     };
 }
 ```

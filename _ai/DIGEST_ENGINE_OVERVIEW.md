@@ -14,11 +14,11 @@
 
 ## Understanding Notes
 - 引擎入口、主循环与模块初始化/销毁流程。
-- 定位Game/Render/Scene之间的耦合与调度关系。
+- 定位Game/Render/Scene之间的耦合与调度关系，明确Update/Render/EndFrame主流程。
 
 ## Key Files Index
 - `[63]` **Runtime/Settings/ProjectSettings.cpp** *(Content Included)*
-- `[59]` **Runtime/Core/Game.cpp** *(Content Included)*
+- `[61]` **Runtime/Core/Game.cpp** *(Content Included)*
 - `[59]` **Runtime/Settings/ProjectSettings.h** *(Content Included)*
 - `[39]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
 - `[38]` **Runtime/Core/Game.h** *(Content Included)*
@@ -52,11 +52,11 @@
 - `[13]` **Editor/Panel/EditorHierarchyPanel.cpp**
 - `[12]` **Runtime/GameObject/Component.cpp**
 - `[12]` **Runtime/Renderer/RenderContext.cpp**
-- `[12]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
+- `[12]` **Runtime/Renderer/RenderPath/GPUSceneRenderPipeline.cpp**
 - `[11]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[11]` **Editor/Panel/EditorMainBar.h**
 - `[10]` **Runtime/Serialization/MaterialLoader.h**
-- `[10]` **Runtime/Renderer/RenderPath/GPUSceneRenderPipeline.cpp**
+- `[10]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
 - `[10]` **Runtime/Renderer/RenderPipeLine/OpaqueRenderPass.cpp**
 - `[10]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 - `[9]` **Runtime/Renderer/Culling.cpp**
@@ -70,13 +70,13 @@
 - `[8]` **Runtime/Renderer/BatchManager.cpp**
 - `[8]` **Runtime/Scene/BistroSceneLoader.h**
 - `[8]` **Runtime/Serialization/MeshLoader.h**
+- `[8]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp**
 - `[8]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[8]` **Editor/Panel/EditorConsolePanel.cpp**
 - `[8]` **Editor/Panel/EditorInspectorPanel.cpp**
 - `[7]` **Runtime/Renderer/RenderBackend.h**
 - `[7]` **Runtime/Scene/Scene.cpp**
 - `[7]` **Runtime/Serialization/ShaderLoader.h**
-- `[7]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 
 ## Evidence & Implementation Details
 
@@ -180,6 +180,8 @@ namespace EngineCore
         JobSystem::Create();
         AssetRegistry::Create();
         ASSERT(!(RenderSettings::s_EnableVertexPulling == true && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy));
+        // 当前GPUScene + false vertexpulling有问题主要是 shader选择，用bindless的即可
+        ASSERT(!(RenderSettings::s_EnableVertexPulling == false && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::GPUScene));
         //std::cout << "Launch Game" << std::endl;
         // init Manager...
         #ifdef EDITOR
@@ -201,6 +203,7 @@ namespace EngineCore
     void Game::TickFrame(uint32_t frameIndex)
     {
         PROFILER_ZONE("MainThread::GameUpdate");
+        SceneManager::GetInstance()->SetCurrentFrame(frameIndex);
         ResourceManager::GetInstance()->Update();
 
         PROFILER_EVENT_BEGIN("TickFrame::TickSimulation");
@@ -243,9 +246,6 @@ namespace EngineCore
         SceneManager::Destroy();
         std::cout << "SceneManager destroyed." << std::endl;
 
-        // 4. 最后销毁资源管理器
-        ResourceManager::GetInstance()->Destroy();
-        std::cout << "ResourceManager destroyed." << std::endl;
 ```
 
 ### File: `Runtime/Settings/ProjectSettings.h`
@@ -591,7 +591,6 @@ namespace EngineCore
         uint32_t mCurrentFrameID = 0;
 
         void ComsumeDirtySceneRenderNode(const SceneDelta& delta);
-        void UploadCopyOp();
     };
     
 }

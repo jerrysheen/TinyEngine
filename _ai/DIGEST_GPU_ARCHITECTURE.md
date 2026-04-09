@@ -1,5 +1,5 @@
 # Architecture Digest: GPU_ARCHITECTURE
-> Auto-generated. Focus: Runtime/Platforms/D3D12, Runtime/Graphics, Runtime/Serialization, GPUBuffer, Descriptor, RootSignature, Bindless, ResourceState
+> Auto-generated. Focus: Runtime/Platforms/D3D12, Runtime/Graphics, Runtime/Serialization, GPUBuffer, Descriptor, RootSignature, Bindless, ResourceState, GetBaseGPUAddress
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
@@ -12,17 +12,13 @@
 - 针对更新链路重点追踪：Game::Update/Render/EndFrame -> SceneManager/Scene -> CPUScene -> GPUScene -> FrameContext。
 - 重点识别NodeDirtyFlags、NodeDirtyPayload、PerFrameDirtyList、CopyOp等脏数据传播与跨帧同步结构。
 
-## Understanding Notes
-- GPU体系结构聚焦资源布局、绑定方式与跨API抽象。
-- 关注GPUBuffer、Texture与Bindless/Descriptor策略。
-
 ## Key Files Index
 - `[40]` **Runtime/Platforms/D3D12/D3D12RootSignature.cpp** *(Content Included)*
 - `[39]` **Runtime/Platforms/D3D12/D3D12RootSignature.h** *(Content Included)*
-- `[37]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
-- `[35]` **Runtime/Graphics/GPUBufferAllocator.cpp** *(Content Included)*
-- `[35]` **Runtime/Graphics/IGPUBufferAllocator.h** *(Content Included)*
-- `[33]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
+- `[38]` **Runtime/Graphics/GPUBufferAllocator.h** *(Content Included)*
+- `[36]` **Runtime/Graphics/GPUBufferAllocator.cpp** *(Content Included)*
+- `[36]` **Runtime/Graphics/IGPUBufferAllocator.h** *(Content Included)*
+- `[35]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp** *(Content Included)*
 - `[33]` **Runtime/Platforms/D3D12/D3D12RenderAPI.h** *(Content Included)*
 - `[26]` **Runtime/Graphics/IGPUResource.h** *(Content Included)*
 - `[22]` **Runtime/Platforms/D3D12/D3D12DescManager.h** *(Content Included)*
@@ -31,21 +27,24 @@
 - `[20]` **Runtime/Platforms/D3D12/D3D12DescManager.cpp** *(Content Included)*
 - `[18]` **Runtime/Platforms/D3D12/D3D12Buffer.h** *(Content Included)*
 - `[17]` **Runtime/Graphics/GeometryManager.h** *(Content Included)*
+- `[17]` **Runtime/Graphics/Material.cpp** *(Content Included)*
 - `[17]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
 - `[17]` **Runtime/Platforms/D3D12/D3D12DescAllocator.cpp** *(Content Included)*
 - `[17]` **Runtime/Platforms/D3D12/D3D12DescAllocator.h** *(Content Included)*
 - `[17]` **Runtime/Platforms/D3D12/D3D12Texture.h** *(Content Included)*
 - `[17]` **Runtime/Platforms/D3D12/d3dx12.h** *(Content Included)*
-- `[16]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h** *(Content Included)*
+- `[16]` **Runtime/Graphics/PerFrameBufferRing.h**
+- `[16]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[16]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[15]` **Runtime/Graphics/ComputeShader.h**
 - `[15]` **Runtime/Platforms/D3D12/D3D12PSO.cpp**
 - `[15]` **Runtime/Platforms/D3D12/D3D12Struct.h**
+- `[14]` **Runtime/Graphics/Material.h**
 - `[14]` **Runtime/Graphics/Mesh.h**
+- `[14]` **Runtime/Renderer/RenderBackend.cpp**
 - `[14]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
 - `[14]` **Runtime/Platforms/D3D12/d3dUtil.cpp**
-- `[13]` **Runtime/Graphics/Material.h**
-- `[12]` **Runtime/Core/Game.cpp**
+- `[13]` **Runtime/Core/Game.cpp**
 - `[12]` **Runtime/Graphics/GeometryManager.cpp**
 - `[12]` **Runtime/Graphics/GPUTexture.h**
 - `[12]` **Runtime/Graphics/MeshUtils.h**
@@ -59,11 +58,10 @@
 - `[12]` **Runtime/Serialization/ShaderLoader.h**
 - `[12]` **Runtime/Serialization/StreamHelper.h**
 - `[12]` **Runtime/Serialization/TextureLoader.h**
+- `[12]` **Runtime/Renderer/RenderPath/GPUSceneRenderPipeline.cpp**
 - `[12]` **Runtime/Platforms/D3D12/D3D12PSO.h**
 - `[11]` **Runtime/Graphics/ComputeShader.cpp**
-- `[11]` **Runtime/Graphics/Material.cpp**
 - `[11]` **Runtime/Renderer/RenderAPI.h**
-- `[11]` **Runtime/Renderer/RenderBackend.cpp**
 - `[10]` **Runtime/Graphics/Mesh.cpp**
 - `[10]` **Runtime/Graphics/MeshUtils.cpp**
 - `[10]` **Runtime/Graphics/RenderTexture.cpp**
@@ -71,12 +69,10 @@
 - `[10]` **Runtime/Graphics/Texture.cpp**
 - `[10]` **Runtime/Renderer/RenderBackend.h**
 - `[10]` **Runtime/Renderer/RenderStruct.h**
-- `[10]` **Runtime/Renderer/RenderPath/GPUSceneRenderPipeline.cpp**
-- `[7]` **Runtime/Scene/GPUScene.h**
-- `[7]` **Runtime/Renderer/RenderPipeLine/GPUSceneRenderPass.cpp**
+- `[9]` **Runtime/Scene/GPUScene.h**
+- `[7]` **Runtime/Renderer/RenderPath/GPUSceneRenderPipeline.h**
 - `[7]` **Editor/D3D12/D3D12EditorGUIManager.h**
-- `[5]` **Runtime/Resources/ResourceHandle.h**
-- `[5]` **Runtime/Scene/GPUScene.cpp**
+- `[6]` **Runtime/Scene/GPUScene.cpp**
 
 ## Evidence & Implementation Details
 
@@ -203,6 +199,18 @@ namespace EngineCore
         mRootSigMap[key] = rootSig;
         return rootSig;
     }
+
+    ComPtr<ID3D12RootSignature> D3D12RootSignature::GetOrCreateGPUSceneGraphicsRootSig(ComPtr<ID3D12Device> device)
+    {
+```
+...
+```cpp
+            serialized->GetBufferPointer(),
+            serialized->GetBufferSize(),
+            IID_PPV_ARGS(&rootSig)));
+  
+        return rootSig;
+    }
 }
 ```
 
@@ -224,6 +232,8 @@ namespace EngineCore
             ASSERT(mRootSigMap.count(key) > 0);
             return mRootSigMap[key];
         }
+
+        static ComPtr<ID3D12RootSignature> D3D12RootSignature::GetOrCreateGPUSceneGraphicsRootSig(ComPtr<ID3D12Device> md3dDevice);
     };
 ```
 
@@ -252,6 +262,7 @@ namespace EngineCore
         
         virtual uint64_t GetBaseGPUAddress() const override;
         virtual void UploadBuffer(const BufferAllocation& alloc, void* data, uint32_t size) override;
+        virtual void UploadBufferStaged(const BufferAllocation& alloc, void* data, uint32_t size) override;
         virtual IGPUBuffer* GetGPUBuffer() override;
         BufferDesc bufferDesc;
     private:
@@ -286,6 +297,7 @@ namespace EngineCore
         virtual void Reset() = 0;
         virtual uint64_t GetBaseGPUAddress() const = 0; 
         virtual void UploadBuffer(const BufferAllocation& alloc, void* data, uint32_t size) = 0;
+        virtual void UploadBufferStaged(const BufferAllocation& alloc, void* data, uint32_t size) = 0;
         virtual IGPUBuffer* GetGPUBuffer() = 0;
     };
 ```
@@ -312,7 +324,7 @@ namespace EngineCore
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
         virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) override;
-
+        virtual void RenderAPICopyBufferStaged(Payload_CopyBufferStaged copyBufferStaged) override;
         
         virtual void CreateGlobalConstantBuffer(uint32_t enumID, uint32_t size) override;
         virtual RenderTexture* GetCurrentBackBuffer() override;
@@ -437,6 +449,7 @@ namespace EngineCore
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc);
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc);
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc, bool isShaderVisible = false);
+		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_UNORDERED_ACCESS_VIEW_DESC& desc);
 
         inline DescriptorHandle GetFrameCbvSrvUavAllocator(int count) 
         {
@@ -632,6 +645,7 @@ namespace EngineCore
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc);
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc);
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc);
+		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_UNORDERED_ACCESS_VIEW_DESC& desc);
         DescriptorHandle AllocateStaticHandle();
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mHeap;
 
@@ -837,41 +851,4 @@ struct CD3DX12_ROOT_DESCRIPTOR : public D3D12_ROOT_DESCRIPTOR
         UINT registerSpace = 0,
         D3D12_SHADER_VISIBILITY visibility = D3D12_SHADER_VISIBILITY_ALL)
     {
-```
-
-### File: `Runtime/Platforms/D3D12/D3D12ShaderUtils.h`
-```cpp
-#include "d3dUtil.h"
-
-namespace EngineCore
-{
-    class D3D12ShaderUtils
-    {
-    public:
-        static bool CompileShaderAndGetReflection(const string& path, Shader* shader);
-        static bool CompileShaderStageAndGetReflection(const string& path, string entryPoint, string target, Shader* shader, ShaderStageType type, Microsoft::WRL::ComPtr<ID3DBlob>& blob);
-        static bool D3D12ShaderUtils::CompileComputeShaderAndGetReflection(const string& path, ComputeShader* csShader);
-        
-        static Microsoft::WRL::ComPtr<ID3DBlob> GetVSBlob(uint32_t shaderID)
-        {
-            ASSERT(vsBlobMap.count(shaderID) > 0);
-            return vsBlobMap[shaderID];
-        }
-
-        static Microsoft::WRL::ComPtr<ID3DBlob> GetPSBlob(uint32_t shaderID)
-        {
-            ASSERT(psBlobMap.count(shaderID) > 0);
-            return psBlobMap[shaderID];
-        }
-
-        static Microsoft::WRL::ComPtr<ID3DBlob> GetCSBlob(uint32_t shaderID)
-        {
-            ASSERT(csBlobMap.count(shaderID) > 0);
-            return csBlobMap[shaderID];
-        }
-        static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> vsBlobMap;
-        static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> psBlobMap;
-        static unordered_map<uint32_t, Microsoft::WRL::ComPtr<ID3DBlob>> csBlobMap;
-    };
-}
 ```

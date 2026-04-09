@@ -30,13 +30,14 @@
 - `[4]` **Runtime/Platforms/D3D12/d3dUtil.cpp** *(Content Included)*
 - `[4]` **Assets/Shader/BlitShader.hlsl** *(Content Included)*
 - `[4]` **Assets/Shader/GPUCulling.hlsl** *(Content Included)*
+- `[4]` **Assets/Shader/IndirectDrawCallCombineComputeShader.hlsl** *(Content Included)*
 - `[4]` **Assets/Shader/SimpleTestShader.hlsl** *(Content Included)*
 - `[4]` **Assets/Shader/StandardPBR.hlsl** *(Content Included)*
 - `[4]` **Assets/Shader/StandardPBR_VertexPulling.hlsl** *(Content Included)*
 - `[2]` **Editor/EditorGUIManager.h** *(Content Included)*
 - `[2]` **Editor/EditorSettings.h** *(Content Included)*
 - `[2]` **Runtime/CoreAssert.h** *(Content Included)*
-- `[2]` **Runtime/EngineCore.h** *(Content Included)*
+- `[2]` **Runtime/EngineCore.h**
 - `[2]` **Runtime/PreCompiledHeader.h**
 - `[2]` **Runtime/Core/Game.h**
 - `[2]` **Runtime/Core/InstanceID.h**
@@ -62,6 +63,7 @@
 - `[2]` **Runtime/Graphics/Material.h**
 - `[2]` **Runtime/Graphics/Mesh.h**
 - `[2]` **Runtime/Graphics/MeshUtils.h**
+- `[2]` **Runtime/Graphics/PerFrameBufferRing.h**
 - `[2]` **Runtime/Graphics/RenderTexture.h**
 - `[2]` **Runtime/Graphics/Shader.h**
 - `[2]` **Runtime/Graphics/Texture.h**
@@ -75,8 +77,6 @@
 - `[2]` **Runtime/Math/Frustum.h**
 - `[2]` **Runtime/Math/Math.h**
 - `[2]` **Runtime/Math/Matrix4x4.h**
-- `[2]` **Runtime/Math/Plane.h**
-- `[2]` **Runtime/Math/Quaternion.h**
 
 ## Evidence & Implementation Details
 
@@ -107,6 +107,8 @@ namespace EngineCore
         JobSystem::Create();
         AssetRegistry::Create();
         ASSERT(!(RenderSettings::s_EnableVertexPulling == true && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy));
+        // 当前GPUScene + false vertexpulling有问题主要是 shader选择，用bindless的即可
+        ASSERT(!(RenderSettings::s_EnableVertexPulling == false && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::GPUScene));
         //std::cout << "Launch Game" << std::endl;
         // init Manager...
         #ifdef EDITOR
@@ -128,6 +130,7 @@ namespace EngineCore
     void Game::TickFrame(uint32_t frameIndex)
     {
         PROFILER_ZONE("MainThread::GameUpdate");
+        SceneManager::GetInstance()->SetCurrentFrame(frameIndex);
         ResourceManager::GetInstance()->Update();
 
         PROFILER_EVENT_BEGIN("TickFrame::TickSimulation");
@@ -170,9 +173,6 @@ namespace EngineCore
         SceneManager::Destroy();
         std::cout << "SceneManager destroyed." << std::endl;
 
-        // 4. 最后销毁资源管理器
-        ResourceManager::GetInstance()->Destroy();
-        std::cout << "ResourceManager destroyed." << std::endl;
 ```
 
 ### File: `Runtime/Serialization/DDSTextureLoader.h`
@@ -429,11 +429,18 @@ namespace EngineCore
         void SetBindlessMat(Material* mat);
         void SetBindLessMeshIB(uint32_t id);
         
+        void UploadBufferStaged(const BufferAllocation& alloc, void* data, uint32_t size);
+
+
         void DrawIndirect(Payload_DrawIndirect payload);
         void FlushPerFrameData();
         void FlushPerPassData(const RenderContext& context);
         void CreatePerFrameData();
         void CreatePerPassForwardData();
+
+        void RecycleStagedBuffer(const FrameTicket* ticket);
+        void SubmitStagedBuffer(const FrameTicket* ticket);
+        
         void RenderThreadMain() 
         {
             while (mRunning.load(std::memory_order_acquire) == true) 
@@ -456,28 +463,23 @@ namespace EngineCore
                 bool hasBeginFrame = false;
                 bool hasEndFrame = false;
                 while (mRunning.load(std::memory_order_acquire) == true)
-                {
-                    if (cmd.op == RenderOp::kBeginFrame) hasBeginFrame = true;
-                    if (cmd.op == RenderOp::kEndFrame)
-                    {
-                        hasEndFrame = true;
-                        break;
-                    }
 ```
 ...
 ```cpp
                     }
-                }
-                PROFILER_EVENT_END("RenderThread::ProcessDrawComand");
 
-                if (!hasBeginFrame || !hasEndFrame)
-                {
-                    continue;
-                }
+                    ProcessDrawCommand(cmd);
+
+                    if (!mRenderBuffer.TryPop(cmd))
+                    {
+                        mDataAvailableEvent.Wait();
+                        if (!mRunning.load(std::memory_order_acquire)) break;
+                        if (!mRenderBuffer.TryPop(cmd)) continue;
+                    }
 ```
 ...
 ```cpp
-                
+                // todo Submit UploadPage 打上帧标签
                 // later do Gpu Fence...
                 RenderAPI::GetInstance()->RenderAPISubmit();
 
@@ -509,6 +511,9 @@ namespace EngineCore
 
         void TryWakeUpRenderThread();
     private:
+        static constexpr uint32_t kComputeBindingArenaSize = 64 * 1024;
+        static constexpr uint32_t kComputeBindingAllocatorCount = 3;
+
         void EnqueueCommand(const DrawCommand& cmd);
         void WaitForQueueSpace();
 
@@ -752,6 +757,43 @@ struct AABB
 }
 ```
 
+### File: `Assets/Shader/IndirectDrawCallCombineComputeShader.hlsl`
+```hlsl
+struct IndirectDrawDest
+{
+    uint StartIndexInVisibilityBuffer;
+    uint IndexCountPerInstance;
+    uint InstanceCount;
+    uint StartIndexLocation;
+    uint BaseVertexLocation;
+    uint StartInstanceLocation;
+};
+```
+...
+```hlsl
+
+
+cbuffer BatchCountBuffer : register(b0)
+{
+    uint bacthCount; 
+};
+```
+...
+```hlsl
+    if(IndirectDrawSourceBuffer[instanceIndex].InstanceCount == 0) return;
+    uint instanceCount;
+    InterlockedAdd(IndirectDrawCount[passIndex], 1, instanceCount);
+    instanceCount = instanceCount + passIndex * 1000;
+    IndirectDrawDestBuffer[instanceCount].StartIndexInVisibilityBuffer = IndirectDrawSourceBuffer[instanceIndex].StartIndexInVisibilityBuffer;
+    IndirectDrawDestBuffer[instanceCount].IndexCountPerInstance = IndirectDrawSourceBuffer[instanceIndex].IndexCountPerInstance;
+    IndirectDrawDestBuffer[instanceCount].InstanceCount = IndirectDrawSourceBuffer[instanceIndex].InstanceCount;
+    IndirectDrawDestBuffer[instanceCount].StartIndexLocation = IndirectDrawSourceBuffer[instanceIndex].StartIndexLocation;
+    IndirectDrawDestBuffer[instanceCount].BaseVertexLocation = IndirectDrawSourceBuffer[instanceIndex].BaseVertexLocation;
+    IndirectDrawDestBuffer[instanceCount].StartInstanceLocation = IndirectDrawSourceBuffer[instanceIndex].StartInstanceLocation;
+
+}
+```
+
 ### File: `Assets/Shader/SimpleTestShader.hlsl`
 ```hlsl
 
@@ -845,6 +887,10 @@ struct VertexInput
 ### File: `Assets/Shader/StandardPBR_VertexPulling.hlsl`
 ```hlsl
 
+// 纹理资源
+Texture2D g_Textures[1024] : register(t0, space0);
+
+
 // 采样器
 SamplerState LinearSampler : register(s0, space0);
 SamplerState PointSampler : register(s1, space0);
@@ -857,7 +903,15 @@ struct VertexInput
     float3 Position : POSITION;
     float3 Normal : NORMAL;
     float2 TexCoord : TEXCOORD0;
+    float4 Tangent : TANGENT;
 };
+```
+...
+```hlsl
+    //float3 color = direct + ambient + emissive;
+    float3 color = direct + ambient;
+    return float4(color, 1.0f);
+}
 ```
 
 ### File: `Editor/EditorGUIManager.h`

@@ -1,5 +1,5 @@
-# Architecture Digest: BUILD_TOOLING
-> Auto-generated. Focus: premake5.lua, WinBuildAndRun, WinGenProjects, run_ai_analysis, msbuild, Tools/premake
+# Architecture Digest: UTILITY_LIBRARIES
+> Auto-generated. Focus: Runtime/External, stb_image, stb_rect_pack, stb_truetype, nlohmann/json, JSON Parsing, Image Utilities, Texture Loading, Rect Packing, TrueType Fonts, Text Editor, stbi_load, stbi_write_png, stbrp_pack_rects, stbtt_GetGlyphHMetrics, stb_textedit, json::parse
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
@@ -12,13 +12,16 @@
 - 针对更新链路重点追踪：Game::Update/Render/EndFrame -> SceneManager/Scene -> CPUScene -> GPUScene -> FrameContext。
 - 重点识别NodeDirtyFlags、NodeDirtyPayload、PerFrameDirtyList、CopyOp等脏数据传播与跨帧同步结构。
 
+## Understanding Notes
+- 第三方工具库集成，包含stb_image图像加载、stb_rect_pack矩形打包、stb_truetype字体解析、nlohmann/json解析等。
+- 关注工具库版本、封装接口、与引擎其他模块的集成点。
+
 ## Key Files Index
-- `[22]` **WinBuildAndRun.bat** *(Content Included)*
-- `[21]` **premake5.lua** *(Content Included)*
-- `[20]` **run_ai_analysis.bat** *(Content Included)*
 - `[20]` **Runtime/Entry.cpp** *(Content Included)*
 - `[12]` **Runtime/Core/Game.cpp** *(Content Included)*
+- `[9]` **premake5.lua** *(Content Included)*
 - `[6]` **Runtime/Renderer/RenderBackend.h** *(Content Included)*
+- `[6]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h** *(Content Included)*
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h** *(Content Included)*
 - `[4]` **Runtime/Renderer/RenderEngine.cpp** *(Content Included)*
@@ -33,7 +36,7 @@
 - `[4]` **Assets/Shader/StandardPBR_VertexPulling.hlsl** *(Content Included)*
 - `[2]` **Editor/EditorGUIManager.h** *(Content Included)*
 - `[2]` **Editor/EditorSettings.h** *(Content Included)*
-- `[2]` **Runtime/CoreAssert.h**
+- `[2]` **Runtime/CoreAssert.h** *(Content Included)*
 - `[2]` **Runtime/EngineCore.h**
 - `[2]` **Runtime/PreCompiledHeader.h**
 - `[2]` **Runtime/Core/Game.h**
@@ -73,48 +76,103 @@
 - `[2]` **Runtime/Math/AABB.h**
 - `[2]` **Runtime/Math/Frustum.h**
 - `[2]` **Runtime/Math/Math.h**
+- `[2]` **Runtime/Math/Matrix4x4.h**
 
 ## Evidence & Implementation Details
 
-### File: `WinBuildAndRun.bat`
-```bat
-    
-    :: 快速检查（只在必要时编译）
-    msbuild TinyEngine.sln /p:Configuration=Debug /p:Platform=x64 /v:minimal /nologo
-    
-    if !ERRORLEVEL! == 0 (
-        echo Starting Editor...
-        
-        :: 关键修改：切换到 exe 所在目录再运行
-        cd "%EXE_DIR%"
-        "EngineCore.exe"
-        
-        :: 返回原始目录
-        cd "%ORIGINAL_DIR%"
-    ) else (
-        echo Build failed 1!
-        pause
-    )
-) else (
-    echo Executable not found. Full build required...
-    msbuild TinyEngine.sln /p:Configuration=Debug /p:Platform=x64
-    
-    if !ERRORLEVEL! == 0 (
-        echo Build successful! Starting TinyEngine...
-        
-        :: 关键修改：切换到 exe 所在目录再运行
-        cd "%EXE_DIR%"
-        "EngineCore.exe"
-        
-        :: 返回原始目录
-        cd "%ORIGINAL_DIR%"
-    ) else (
-        echo Build failed 2!
-        pause
-    )
-)
+### File: `Runtime/Entry.cpp`
+```cpp
+{
+    std::cout << "APP Runing!!!!" << std::endl;
+    EngineCore::Game::GetInstance()->Launch();
+    std::cout << "APP ShutDown!!!!" << std::endl;
+    return 0;
 
-pause
+}
+```
+
+### File: `Runtime/Core/Game.cpp`
+```cpp
+#include "Settings/ProjectSettings.h"
+#include "Resources/AssetRegistry.h"
+namespace EngineCore
+{
+    void Game::Launch()
+    {
+        ProjectSettings::Initialize();
+        // InitManagers Here.
+        RenderEngine::Create();
+        ResourceManager::Create();
+        SceneManager::Create();
+        JobSystem::Create();
+        AssetRegistry::Create();
+        ASSERT(!(RenderSettings::s_EnableVertexPulling == true && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::Legacy));
+        // 当前GPUScene + false vertexpulling有问题主要是 shader选择，用bindless的即可
+        ASSERT(!(RenderSettings::s_EnableVertexPulling == false && RenderSettings::s_RenderPath == RenderSettings::RenderPathType::GPUScene));
+        //std::cout << "Launch Game" << std::endl;
+        // init Manager...
+        #ifdef EDITOR
+        EngineEditor::EditorGUIManager::Create();
+        #endif
+        while(!WindowManager::GetInstance()->WindowShouldClose())
+        {
+            PROFILER_FRAME_MARK("TinyProfiler");
+            TickFrame(mFrameIndex);
+
+            mFrameIndex++;
+
+        }
+
+        // 明确的关闭流程（顺序很重要！）
+        Shutdown();
+    }
+
+    void Game::TickFrame(uint32_t frameIndex)
+    {
+        PROFILER_ZONE("MainThread::GameUpdate");
+        SceneManager::GetInstance()->SetCurrentFrame(frameIndex);
+        ResourceManager::GetInstance()->Update();
+
+        PROFILER_EVENT_BEGIN("TickFrame::TickSimulation");
+        SceneManager::GetInstance()->TickSimulation(frameIndex);
+        PROFILER_EVENT_END("TickFrame::TickSimulation");
+
+        SceneDelta sceneDelta = SceneManager::GetInstance()->FlushSceneDelta();
+
+        PROFILER_EVENT_BEGIN("TickFrame::RenderEngineUpdate");
+        RenderEngine::GetInstance()->PrepareFrame(frameIndex, sceneDelta);
+        PROFILER_EVENT_END("TickFrame::RenderEngineUpdate");
+
+
+        RenderEngine::GetInstance()->BuildFrame();
+
+
+        PROFILER_EVENT_BEGIN("TickFrame::EndFrame");
+        SceneManager::GetInstance()->EndFrame();
+        RenderEngine::GetInstance()->EndFrame();
+        PROFILER_EVENT_END("TickFrame::EndFrame");
+
+    }
+
+    void Game::Shutdown()
+    {
+        std::cout << "Game shutting down..." << std::endl;
+
+        // 1. 先停止渲染线程（最重要！）
+        //    必须在销毁任何渲染资源之前停止
+        RenderEngine::Destory();
+        std::cout << "RenderEngine destroyed." << std::endl;
+
+        // 2. 销毁编辑器UI
+        #ifdef EDITOR
+        EngineEditor::EditorGUIManager::OnDestory();
+        std::cout << "EditorGUIManager destroyed." << std::endl;
+        #endif
+
+        // 3. 销毁场景（包含所有GameObject）
+        SceneManager::Destroy();
+        std::cout << "SceneManager destroyed." << std::endl;
+
 ```
 
 ### File: `premake5.lua`
@@ -150,51 +208,6 @@ workspace "TinyEngine"
 		"Release",
 		"Dist"
 	}
-```
-
-### File: `run_ai_analysis.bat`
-```bat
-
-echo [2/3] Generating Architecture Digests (Python)...
-python _ai\ai_digest.py
-if errorlevel 1 (
-    echo Error running Python script. Make sure python is installed.
-    pause
-    exit /b
-)
-
-echo [3/3] Preparing Context for AI...
-
-REM 生成一个“聚合文件”或者提示词模板
-set PROMPT_FILE=_ai\PROMPT_ARCH_REVIEW.txt
-(
-echo I am providing you with the "Architecture Digests" of my current C++ Renderer.
-echo These files contain the key structs, classes, and flow logic for each subsystem.
-echo.
-echo Please review the following contexts:
-echo [1] @_ai/DIGEST_RENDER_FLOW.md (How we execute a frame)
-echo [2] @_ai/DIGEST_MATERIAL.md (How we handle shaders/data)
-echo [3] @_ai/DIGEST_RESOURCE.md (How we handle memory/barriers)
-echo [4] @_ai/DIGEST_RHI.md (Low level abstraction)
-echo.
-echo Based strictly on this evidence:
-echo 1. Describe my current architecture style (e.g., Immediate mode vs FrameGraph, Bindless vs Slot-based).
-echo 2. Identify the top 3 bottlenecks that prevent this from being a "Modern Renderer".
-echo 3. Propose a specific refactoring roadmap for the Material System to support [Insert Goal, e.g., GPU-Driven].
-) > "%PROMPT_FILE%"
-
-type "%PROMPT_FILE%" | clip
-
-echo.
-echo ========================================================
-echo DONE!
-echo.
-echo 1. Digests are in: root/_ai/
-echo 2. A prompt has been COPIED to your clipboard.
-echo.
-echo Just open Cursor/Chat and PASTE (Ctrl+V).
-echo ========================================================
-pause
 ```
 
 ### File: `Runtime/Renderer/RenderBackend.h`
@@ -795,4 +808,16 @@ using Vector2 = EngineCore::Vector2;
 
 
 }
+```
+
+### File: `Runtime/CoreAssert.h`
+```cpp
+    #define ASSERT_MSG(condition, message) \
+        do { \
+            if (!(condition)) { \
+                std::wcout << L"Assert Failed: " << L#condition << L"\n"; \
+                std::wcout << L"Message: " << message << L"\n"; \
+                std::wcout << L"File: " << __FILEW__ << L", Line: " << __LINE__ << L"\n"; \
+                __debugbreak(); \
+            } \
 ```

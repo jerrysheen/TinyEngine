@@ -1,5 +1,5 @@
 # Architecture Digest: ASSET_PIPELINE
-> Auto-generated. Focus: Runtime/Resources, Runtime/Serialization, Runtime/MaterialLibrary, Asset, AssetRegistry, ResourceManager, Importer, Texture, Material, Shader, Mesh, MeshLoader, TextureLoader, MaterialLoader, SceneLoader, StreamHelper
+> Auto-generated. Focus: Runtime/Resources, Runtime/Serialization, Runtime/MaterialLibrary, Asset, AssetRegistry, ResourceManager, Importer, Texture, Material, Shader, Mesh, MeshLoader, TextureLoader, MaterialLoader, SceneLoader, StreamHelper, AssetHeader, DDSTextureLoader, IResourceLoader, ResourceHandle, tinygltf, glTF Loader, SerializeGltfAccessor, SerializeGltfImage
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
@@ -14,43 +14,46 @@
 
 ## Understanding Notes
 - 资源导入、序列化、元数据与运行时缓存关系。
-- 关注资源句柄、依赖管理与加载策略。
+- 关注资源句柄、依赖管理与加载策略，包含glTF模型加载、纹理/材质/Shader加载器。
 
 ## Key Files Index
-- `[82]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
-- `[72]` **Runtime/Resources/ResourceManager.cpp** *(Content Included)*
-- `[69]` **Runtime/Serialization/MeshLoader.h** *(Content Included)*
-- `[67]` **Runtime/Serialization/DDSTextureLoader.h** *(Content Included)*
-- `[66]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
+- `[92]` **Runtime/Serialization/DDSTextureLoader.h** *(Content Included)*
+- `[90]` **Runtime/Serialization/MaterialLoader.h** *(Content Included)*
+- `[80]` **Runtime/Resources/ResourceManager.cpp** *(Content Included)*
+- `[78]` **Runtime/Scene/BistroSceneLoader.cpp** *(Content Included)*
+- `[74]` **Runtime/Serialization/MeshLoader.h** *(Content Included)*
+- `[69]` **Runtime/Resources/ResourceManager.h** *(Content Included)*
 - `[65]` **Runtime/Resources/AssetRegistry.cpp** *(Content Included)*
-- `[62]` **Runtime/Resources/ResourceManager.h** *(Content Included)*
+- `[63]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
 - `[60]` **Runtime/Resources/AssetRegistry.h** *(Content Included)*
-- `[57]` **Runtime/Serialization/SceneLoader.h** *(Content Included)*
+- `[57]` **Runtime/Serialization/AssetHeader.h** *(Content Included)*
 - `[52]` **Runtime/Serialization/TextureLoader.h** *(Content Included)*
 - `[49]` **Runtime/Resources/AssetTypeTraits.h** *(Content Included)*
+- `[49]` **Runtime/Scene/BistroSceneLoader.h** *(Content Included)*
+- `[47]` **Runtime/Resources/ResourceHandle.h** *(Content Included)*
+- `[46]` **Runtime/Graphics/Material.h** *(Content Included)*
 - `[45]` **Runtime/MaterialLibrary/MaterialLayout.h** *(Content Included)*
-- `[42]` **Runtime/Graphics/Material.cpp** *(Content Included)*
+- `[43]` **Runtime/Graphics/Material.cpp** *(Content Included)*
 - `[42]` **Runtime/Resources/Asset.h** *(Content Included)*
 - `[42]` **Assets/Shader/SimpleTestShader.hlsl** *(Content Included)*
-- `[41]` **Runtime/Graphics/Material.h** *(Content Included)*
-- `[41]` **Runtime/Scene/BistroSceneLoader.h** *(Content Included)*
 - `[40]` **Assets/Shader/BlitShader.hlsl** *(Content Included)*
-- `[38]` **Runtime/Serialization/ShaderLoader.h** *(Content Included)*
-- `[37]` **Runtime/MaterialLibrary/MaterialArchetypeRegistry.h** *(Content Included)*
+- `[39]` **Runtime/Serialization/ShaderLoader.h**
+- `[38]` **Runtime/Resources/IResourceLoader.h**
+- `[37]` **Runtime/GameObject/MeshRenderer.h**
+- `[37]` **Runtime/MaterialLibrary/MaterialArchetypeRegistry.h**
 - `[37]` **Runtime/MaterialLibrary/MaterialInstance.h**
-- `[36]` **Runtime/Serialization/AssetHeader.h**
-- `[34]` **Runtime/Serialization/StreamHelper.h**
+- `[37]` **Runtime/MaterialLibrary/StandardPBR.h**
+- `[36]` **Runtime/GameObject/MeshRenderer.cpp**
+- `[35]` **Runtime/Serialization/StreamHelper.h**
 - `[34]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.cpp**
-- `[33]` **Runtime/GameObject/MeshRenderer.cpp**
-- `[33]` **Runtime/MaterialLibrary/StandardPBR.h**
+- `[34]` **Assets/Shader/IndirectDrawCallCombineComputeShader.hlsl**
 - `[33]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
-- `[32]` **Runtime/GameObject/MeshRenderer.h**
 - `[32]` **Runtime/Graphics/Mesh.cpp**
 - `[32]` **Assets/Shader/StandardPBR.hlsl**
 - `[31]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
+- `[31]` **Assets/Shader/include/Core.hlsl**
 - `[30]` **Runtime/Graphics/Mesh.h**
-- `[30]` **Assets/Shader/include/Core.hlsl**
-- `[27]` **Runtime/GameObject/MeshFilter.h**
+- `[29]` **Runtime/GameObject/MeshFilter.h**
 - `[27]` **Runtime/Graphics/MeshUtils.h**
 - `[27]` **Runtime/Graphics/RenderTexture.h**
 - `[27]` **Runtime/Graphics/Shader.cpp**
@@ -58,10 +61,10 @@
 - `[27]` **Runtime/Graphics/Texture.h**
 - `[27]` **Runtime/Scene/SceneManager.cpp**
 - `[27]` **Runtime/Platforms/D3D12/D3D12Texture.h**
+- `[26]` **Runtime/Core/PublicStruct.h**
+- `[26]` **Runtime/GameObject/MeshFilter.cpp**
 - `[26]` **Runtime/Graphics/ComputeShader.cpp**
 - `[26]` **Runtime/Graphics/ComputeShader.h**
-- `[25]` **Runtime/Core/PublicStruct.h**
-- `[25]` **Runtime/GameObject/MeshFilter.cpp**
 - `[25]` **Runtime/Graphics/GPUTexture.h**
 - `[25]` **Runtime/Graphics/MeshUtils.cpp**
 - `[25]` **Runtime/Graphics/RenderTexture.cpp**
@@ -69,226 +72,13 @@
 - `[24]` **Runtime/MaterialLibrary/StandardPBR.cpp**
 - `[24]` **Editor/Panel/EditorMainBar.h**
 - `[24]` **Assets/Shader/GPUCulling.hlsl**
+- `[22]` **Runtime/Core/Game.cpp**
 - `[22]` **Runtime/Renderer/RenderCommand.h**
-- `[22]` **Runtime/Resources/ResourceHandle.h**
-- `[21]` **Runtime/Core/Game.cpp**
-- `[21]` **Runtime/Scene/GPUScene.cpp**
+- `[22]` **Runtime/Scene/GPUScene.cpp**
 - `[20]` **Runtime/Entry.cpp**
 - `[20]` **Runtime/Renderer/BatchManager.cpp**
-- `[20]` **Runtime/Renderer/RenderBackend.cpp**
-- `[20]` **Runtime/Platforms/D3D12/D3D12RenderAPI.cpp**
 
 ## Evidence & Implementation Details
-
-### File: `Runtime/Serialization/MaterialLoader.h`
-```cpp
-namespace EngineCore
-{
-    struct alignas(16) MetaMaterialHeader
-    {
-        bool     enable;
-        uint64_t shaderID;
-    };
-```
-...
-```cpp
-    };
-
-    struct alignas(16) MetaTextureToBindlessBlockIndex
-    {
-        char name[50];
-        uint32_t offset;
-    };
-```
-...
-```cpp
-            in.seekg(sizeof(AssetHeader));
-            bool isBindless = false;
-            StreamHelper::Read(in, isBindless);
-
-            std::string archyTypeName;
-            StreamHelper::ReadString(in, archyTypeName);
-            if (archyTypeName.empty())
-            {
-                archyTypeName = "StandardPBR";
-            }
-```
-...
-```cpp
-            }
-
-            ASSERT(!shaderPath.empty());
-
-            Material* mat = new Material();
-            mat->SetAssetCreateMethod(AssetCreateMethod::Serialization);
-            mat->SetPath(relativePath);
-            mat->SetAssetID(AssetIDGenerator::NewFromFile(relativePath));
-            mat->isBindLessMaterial = isBindless;
-            mat->archyTypeName = archyTypeName;
-
-            uint64_t assetPathID = AssetRegistry::GetInstance()->GetAssetIDFromPath(shaderPath);
-            result.dependencyList.emplace_back
-            (
-                assetPathID,
-                AssetType::Shader,
-                [=](){
-                    mat->mShader = ResourceHandle<Shader>(assetPathID);
-                }
-```
-...
-```cpp
-
-            std::vector<MetatextureDependency> textureDependencyList;
-            StreamHelper::ReadVector(in, textureDependencyList);
-            for(auto& textureDependency : textureDependencyList)
-            {
-                std::string texName = std::string(textureDependency.name);
-                mat->textureData[texName] = nullptr;
-                result.dependencyList.emplace_back
-                    (
-                        textureDependency.ASSETID, 
-                        AssetType::Texture2D,
-                        [=](){
-                            ResourceHandle<Texture> texID(textureDependency.ASSETID);
-                            mat->SetTexture(texName, texID);
-                        }
-                    );
-                //mat->SetTexture(texName, ResourceHandle<Texture>(ResourceManager::GetInstance()->mDefaultTexture->GetAssetID()));
-            }
-```
-
-### File: `Runtime/Resources/ResourceManager.cpp`
-```cpp
-    Resource* ResourceManager::GetDefaultResource(AssetType fileType)
-    {
-        ASSERT(fileType != AssetType::Default);
-        AssetID id;
-        switch (fileType)
-        {
-        case AssetType::Mesh:
-            ASSERT(defaultMesh != nullptr);
-            return defaultMesh;
-            break;
-        case AssetType::Texture2D:
-            EnsureDefaultTexture();
-            return mDefaultTexture;
-            break;
-        case AssetType::Shader:
-            EnsureDefaultShader();
-            return mDefaultShader;
-            break;
-        case AssetType::Material:
-            EnsureDefaultMaterial();
-            return mDefaultMaterial;
-            break;
-        default:
-            ASSERT(false);
-            break;
-        }
-```
-...
-```cpp
-    LoadTask *ResourceManager::GetOrCreateALoadTask(uint64_t assetid, AssetType assetType)
-    {
-        AssetID id(assetid);
-        if(mLoadTaskCache.count(id) > 0) return mLoadTaskCache[id];
-
-        if(freeTaskList.size() > 0)
-        {
-            LoadTask* task = freeTaskList.back();
-            task->Reset();
-            mLoadTaskCache[id] = task;
-            freeTaskList.pop_back();
-            return task;
-        }
-```
-...
-```cpp
-        temp.SetPath(defaultTexturePath);
-        temp.SetAssetID(AssetIDGenerator::NewFromFile(defaultTexturePath));
-        AssetRegistry::GetInstance()->RegisterAsset(&temp);
-
-        mDefaultTexture = static_cast<Texture*>(m_Loaders[AssetType::Texture2D]->Load(defaultTexturePath).resource);
-        mDefaultTexture->OnLoadComplete();
-        mResourceCache[temp.GetAssetID()] = static_cast<Resource*>(mDefaultTexture);
-    }
-
-    void ResourceManager::EnsureDefaultShader()
-    {
-```
-...
-```cpp
-        temp.SetPath(defaultShaderPath);
-        temp.SetAssetID(AssetIDGenerator::NewFromFile(defaultShaderPath));
-        AssetRegistry::GetInstance()->RegisterAsset(&temp);
-
-        mDefaultShader = static_cast<Shader*>(m_Loaders[AssetType::Shader]->Load(defaultShaderPath).resource);
-        mDefaultShader->OnLoadComplete();
-        mResourceCache[temp.GetAssetID()] = static_cast<Resource*>(mDefaultShader);
-    }
-
-    void ResourceManager::EnsureDefaultMaterial()
-    {
-```
-...
-```cpp
-        temp.SetPath(defaultMaterialPath);
-        temp.SetAssetID(AssetIDGenerator::NewFromFile(defaultMaterialPath));
-        AssetRegistry::GetInstance()->RegisterAsset(&temp);
-
-        mDefaultMaterial = static_cast<Material*>(m_Loaders[AssetType::Material]->Load(defaultMaterialPath).resource);
-        mDefaultMaterial->mShader = ResourceHandle<Shader>(mDefaultShader->GetAssetID());
-        mDefaultMaterial->OnLoadComplete();
-        mResourceCache[temp.GetAssetID()] = static_cast<Resource*>(mDefaultMaterial);
-    }
-
-    void ResourceManager::InitDefaultResources()
-    {
-```
-
-### File: `Runtime/Serialization/MeshLoader.h`
-```cpp
-namespace EngineCore
-{
-    class MeshLoader : public IResourceLoader
-    {
-    public:
-        virtual ~MeshLoader() = default;
-        virtual LoadResult Load(const std::string& relativePath) override
-        {
-            LoadResult result;
-            std::string path = PathSettings::ResolveAssetPath(relativePath);
-            std::ifstream in(path, std::ios::binary);
-            in.seekg(sizeof(AssetHeader));
-
-            Mesh* mesh = new Mesh();
-            mesh->SetAssetCreateMethod(AssetCreateMethod::Serialization);
-            mesh->SetAssetID(AssetIDGenerator::NewFromFile(relativePath));
-            StreamHelper::Read(in, mesh->bounds);
-            StreamHelper::ReadVector(in, mesh->vertex);
-            StreamHelper::ReadVector(in, mesh->index);
-            result.resource = mesh; 
-            return result;
-        }
-
-        void SaveMeshToBin(const Mesh* mesh, const std::string& relativePath, uint64_t id)
-        {
-            ASSERT(mesh && mesh->vertex.size() > 0 && mesh->index.size() > 0);
-            std::string binPath = PathSettings::ResolveAssetPath(relativePath);
-            std::ofstream out(binPath, std::ios::binary);
-
-            AssetHeader header;
-            header.assetID =id;
-            header.type = 2;
-            StreamHelper::Write(out, header);
-
-            StreamHelper::Write(out, mesh->bounds);
-            StreamHelper::WriteVector(out, mesh->vertex);
-            StreamHelper::WriteVector(out, mesh->index);
-        }
-
-    };
-```
 
 ### File: `Runtime/Serialization/DDSTextureLoader.h`
 ```cpp
@@ -496,6 +286,213 @@ namespace EngineCore{
             }
 ```
 
+### File: `Runtime/Serialization/MaterialLoader.h`
+```cpp
+namespace EngineCore
+{
+    struct alignas(16) MetaMaterialHeader
+    {
+        bool     enable;
+        uint64_t shaderID;
+    };
+```
+...
+```cpp
+    };
+
+    struct alignas(16) MetaTextureToBindlessBlockIndex
+    {
+        char name[50];
+        uint32_t offset;
+    };
+```
+...
+```cpp
+            in.seekg(sizeof(AssetHeader));
+            bool isBindless = false;
+            StreamHelper::Read(in, isBindless);
+
+            std::string archyTypeName;
+            StreamHelper::ReadString(in, archyTypeName);
+            if (archyTypeName.empty())
+            {
+                archyTypeName = "StandardPBR";
+            }
+```
+...
+```cpp
+            }
+
+            ASSERT(!shaderPath.empty());
+
+            Material* mat = new Material();
+            mat->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+            mat->SetPath(relativePath);
+            mat->SetAssetID(AssetIDGenerator::NewFromFile(relativePath));
+            mat->isBindLessMaterial = isBindless;
+            mat->archyTypeName = archyTypeName;
+
+            uint64_t assetPathID = AssetRegistry::GetInstance()->GetAssetIDFromPath(shaderPath);
+            result.dependencyList.emplace_back
+            (
+                assetPathID,
+                AssetType::Shader,
+                [=](){
+                    mat->mShader = ResourceHandle<Shader>(assetPathID);
+                }
+```
+...
+```cpp
+
+            std::vector<MetatextureDependency> textureDependencyList;
+            StreamHelper::ReadVector(in, textureDependencyList);
+            for(auto& textureDependency : textureDependencyList)
+            {
+                std::string texName = std::string(textureDependency.name);
+                mat->textureData[texName] = nullptr;
+                result.dependencyList.emplace_back
+                    (
+                        textureDependency.ASSETID, 
+                        AssetType::Texture2D,
+                        [=](){
+                            ResourceHandle<Texture> texID(textureDependency.ASSETID);
+                            mat->SetTexture(texName, texID);
+                        }
+                    );
+                //mat->SetTexture(texName, ResourceHandle<Texture>(ResourceManager::GetInstance()->mDefaultTexture->GetAssetID()));
+            }
+```
+
+### File: `Runtime/Resources/ResourceManager.cpp`
+```cpp
+    Resource* ResourceManager::GetDefaultResource(AssetType fileType)
+    {
+        ASSERT(fileType != AssetType::Default);
+        AssetID id;
+        switch (fileType)
+        {
+        case AssetType::Mesh:
+            ASSERT(defaultMesh != nullptr);
+            return defaultMesh;
+            break;
+        case AssetType::Texture2D:
+            EnsureDefaultTexture();
+            return mDefaultTexture;
+            break;
+        case AssetType::Shader:
+            EnsureDefaultShader();
+            return mDefaultShader;
+            break;
+        case AssetType::Material:
+            EnsureDefaultMaterial();
+            return mDefaultMaterial;
+            break;
+        default:
+            ASSERT(false);
+            break;
+        }
+```
+...
+```cpp
+    LoadTask *ResourceManager::GetOrCreateALoadTask(uint64_t assetid, AssetType assetType)
+    {
+        AssetID id(assetid);
+        if(mLoadTaskCache.count(id) > 0) return mLoadTaskCache[id];
+
+        if(freeTaskList.size() > 0)
+        {
+            LoadTask* task = freeTaskList.back();
+            task->Reset();
+            mLoadTaskCache[id] = task;
+            freeTaskList.pop_back();
+            return task;
+        }
+```
+...
+```cpp
+        temp.SetPath(defaultTexturePath);
+        temp.SetAssetID(AssetIDGenerator::NewFromFile(defaultTexturePath));
+        AssetRegistry::GetInstance()->RegisterAsset(&temp);
+
+        ResourceHandle<Texture> defaultTextureHandle = LoadAsset<Texture>(defaultTexturePath);
+        mDefaultTexture = defaultTextureHandle.Get();
+    }
+
+    void ResourceManager::EnsureDefaultShader()
+    {
+```
+...
+```cpp
+        temp.SetPath(defaultShaderPath);
+        temp.SetAssetID(AssetIDGenerator::NewFromFile(defaultShaderPath));
+        AssetRegistry::GetInstance()->RegisterAsset(&temp);
+
+        ResourceHandle<Shader> defaultShaderHandle = LoadAsset<Shader>(defaultShaderPath);
+        mDefaultShader = defaultShaderHandle.Get();
+    }
+
+    void ResourceManager::EnsureDefaultMaterial()
+    {
+```
+...
+```cpp
+        temp.SetPath(defaultMaterialPath);
+        temp.SetAssetID(AssetIDGenerator::NewFromFile(defaultMaterialPath));
+        AssetRegistry::GetInstance()->RegisterAsset(&temp);
+
+        ResourceHandle<Material> defaultMaterialHandle = LoadAsset<Material>(defaultMaterialPath);
+        mDefaultMaterial = defaultMaterialHandle.Get();
+        mDefaultMaterial->mShader = ResourceHandle<Shader>(mDefaultShader->GetAssetID());
+    }
+
+    void ResourceManager::InitDefaultResources()
+    {
+```
+
+### File: `Runtime/Serialization/MeshLoader.h`
+```cpp
+namespace EngineCore
+{
+    class MeshLoader : public IResourceLoader
+    {
+    public:
+        virtual ~MeshLoader() = default;
+        virtual LoadResult Load(const std::string& relativePath) override
+        {
+            LoadResult result;
+            std::string path = PathSettings::ResolveAssetPath(relativePath);
+            std::ifstream in(path, std::ios::binary);
+            in.seekg(sizeof(AssetHeader));
+
+            Mesh* mesh = new Mesh();
+            mesh->SetAssetCreateMethod(AssetCreateMethod::Serialization);
+            mesh->SetAssetID(AssetIDGenerator::NewFromFile(relativePath));
+            StreamHelper::Read(in, mesh->bounds);
+            StreamHelper::ReadVector(in, mesh->vertex);
+            StreamHelper::ReadVector(in, mesh->index);
+            result.resource = mesh; 
+            return result;
+        }
+
+        void SaveMeshToBin(const Mesh* mesh, const std::string& relativePath, uint64_t id)
+        {
+            ASSERT(mesh && mesh->vertex.size() > 0 && mesh->index.size() > 0);
+            std::string binPath = PathSettings::ResolveAssetPath(relativePath);
+            std::ofstream out(binPath, std::ios::binary);
+
+            AssetHeader header;
+            header.assetID =id;
+            header.type = 2;
+            StreamHelper::Write(out, header);
+
+            StreamHelper::Write(out, mesh->bounds);
+            StreamHelper::WriteVector(out, mesh->vertex);
+            StreamHelper::WriteVector(out, mesh->index);
+        }
+
+    };
+```
+
 ### File: `Runtime/Resources/ResourceManager.h`
 ```cpp
     };
@@ -524,10 +521,6 @@ namespace EngineCore{
             if (task->loadState == LoadState::Finalized)
             {
                 if (callback) callback();
-                if (parentTask)
-                {
-                    TryFinalize(parentTask);
-                }
                 return ResourceHandle<T>(assetPathID);
             }
 
@@ -578,6 +571,10 @@ namespace EngineCore{
 
         void ApplyLoadResult(LoadResult& result, LoadPolicy policy)
         {
+            LoadTask* task = result.task;
+            ASSERT(task && result.resource != nullptr);
+
+            task->loadState = LoadState::Loaded;
 ```
 ...
 ```cpp
@@ -611,6 +608,29 @@ namespace EngineCore{
 ```
 ...
 ```cpp
+            AssetID id = resource->GetAssetID();
+            mResourceCache[id] = resource;
+            return ResourceHandle<T>(id);
+        }
+
+
+        inline void AddRef(AssetID id)
+        {
+```
+...
+```cpp
+            AssetID id = resource->GetAssetID();
+            mResourceCache[id] = resource;
+            return ResourceHandle<T>(id);
+        }
+
+        Resource* GetDefaultResource(AssetType fileType);
+
+        // todo: temp public for Editor Test
+    public:
+        static ResourceManager* sInstance;
+        int maxResourceLoadedInMainThread = 150;
+        std::vector<Resource*> mPendingDeleteList;
         std::unordered_map<AssetType, IResourceLoader*> m_Loaders;
 
         ResourceHandle<Material> GetDefaultMaterialHandle();
@@ -639,30 +659,6 @@ namespace EngineCore{
     };
 
 }
-```
-
-### File: `Runtime/Resources/AssetRegistry.h`
-```cpp
-namespace EngineCore
-{
-    class AssetRegistry
-    {
-    public:
-        static void Create();
-        static void Destroy();
-        static AssetRegistry* GetInstance();
-        void RegisterAsset(Resource* resource);
-        std::string GetAssetPathFromID(uint64_t id);
-        uint64_t GetAssetIDFromPath(const std::string& path);
-        void SaveToDisk(const std::string& manifestPath);
-        void LoadFromDisk(const std::string& manifestPath);
-    private:
-        static AssetRegistry* s_Instacnce;
-        std::unordered_map<uint64_t, std::string> assetIDToPathMap;
-        std::unordered_map<std::string, uint64_t> pathToAssetIDMap;
-
-        std::mutex  m_mutex;;
-    };
 ```
 
 ### File: `Runtime/Serialization/SceneLoader.h`
@@ -759,6 +755,43 @@ namespace EngineCore
         {
 ```
 
+### File: `Runtime/Resources/AssetRegistry.h`
+```cpp
+namespace EngineCore
+{
+    class AssetRegistry
+    {
+    public:
+        static void Create();
+        static void Destroy();
+        static AssetRegistry* GetInstance();
+        void RegisterAsset(Resource* resource);
+        std::string GetAssetPathFromID(uint64_t id);
+        uint64_t GetAssetIDFromPath(const std::string& path);
+        void SaveToDisk(const std::string& manifestPath);
+        void LoadFromDisk(const std::string& manifestPath);
+    private:
+        static AssetRegistry* s_Instacnce;
+        std::unordered_map<uint64_t, std::string> assetIDToPathMap;
+        std::unordered_map<std::string, uint64_t> pathToAssetIDMap;
+
+        std::mutex  m_mutex;;
+    };
+```
+
+### File: `Runtime/Serialization/AssetHeader.h`
+```cpp
+    // type 1 = Texture
+    // type 2 = Mesh
+    struct AssetHeader
+    {
+        char magic[4] = {'E', 'N', 'G', 'N'};
+        uint32_t version = 1;
+        uint32_t assetID = 0;
+        uint32_t type = 0; 
+    };
+```
+
 ### File: `Runtime/Resources/AssetTypeTraits.h`
 ```cpp
 namespace EngineCore
@@ -769,6 +802,244 @@ namespace EngineCore
     class Shader;
 
     template<typename T> struct AssetTypeTraits { static const AssetType Type = AssetType::Default; };
+```
+
+### File: `Runtime/Scene/BistroSceneLoader.h`
+```cpp
+#include "Graphics/Mesh.h"
+
+namespace tinygltf {
+    class Node;
+    class Model;
+    class Mesh;
+}
+```
+...
+```cpp
+    class Scene;
+
+    class BistroSceneLoader {
+    public:
+        static Scene* Load(const std::string& path);
+        static void SaveToCache(Scene* scene, const std::string& path);
+        static Scene* LoadFromCache(const std::string& path);
+        static ResourceHandle<Material> commonMatHandle;
+        
+    private:
+        Scene* LoadInternal(const std::string& path);
+        void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
+        void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
+        void ProcessMaterials(const tinygltf::Model& model);
+        void ProcessShaders();
+        void ProcessTexture(const tinygltf::Model& model);
+        void CreateDefaultResources();
+        void AttachMaterialToGameObject(GameObject* gameObject, int materialIndex);
+        AssetID GetTextureAssetID(const tinygltf::Model& model, int textureIndex);
+        std::map<int, std::vector<std::pair<ResourceHandle<Mesh>, int>>> m_MeshCache;
+        std::vector<AssetID> m_ImageIndexToID;
+        std::vector<ResourceHandle<Material>> m_MaterialMap;
+    };
+```
+
+### File: `Runtime/Resources/ResourceHandle.h`
+```cpp
+    // 但是Resource的拷贝，移动等，会涉及到Ref++；
+    template<typename T>
+    class ResourceHandle
+    {
+    public:
+        ResourceHandle() = default;
+
+        ResourceHandle(AssetID id);
+        
+        // 拷贝构造：
+        ResourceHandle(const ResourceHandle& other);
+
+        ResourceHandle(ResourceHandle&& other) noexcept : mAssetID(other.mAssetID)
+        {
+            // 原来的要 releaseRef， 新的要AddRef所以刚刚好抵消。
+            // 当前内容已经在初始化列表中赋值了
+            other.mAssetID.Reset();
+        }
+
+        ~ResourceHandle();
+
+        // 赋值拷贝
+        ResourceHandle& operator=(const ResourceHandle& other);
+
+        //移动赋值：
+        ResourceHandle& operator=(ResourceHandle&& other) noexcept;
+
+        // ReourceHandle.Get()， 获得具体的Resource，
+        T* Get() const;
+
+        T* operator ->() const 
+        {
+            return Get();
+        }
+
+        // 解引用
+        T& operator*() const {
+            return *Get();
+        }
+
+        // 判断是否有效
+        bool IsValid() const {
+            return mAssetID.IsValid() && Get() != nullptr;
+        }
+
+        // ResourceState GetResourecState()
+        // {
+        //     return ResourceManager::GetInstance()->GetResourceStateByID(mAssetID.value);
+        // }
+
+        inline AssetID GetAssetID() const {return mAssetID;};
+    // todo : temp data for jason sereilization;
+    public :
+        AssetID mAssetID;
+    };
+}
+#include "ResourceManager.h"
+namespace EngineCore
+{
+    template<typename T>
+    inline ResourceHandle<T>::ResourceHandle(AssetID id)
+        : mAssetID(id)
+    {
+        if (mAssetID.IsValid())
+        {
+            ResourceManager::GetInstance()->AddRef(mAssetID);
+        }
+    }
+
+    template <typename T>
+    inline ResourceHandle<T>::ResourceHandle(const ResourceHandle &other)
+        : mAssetID(other.GetAssetID())
+    {
+        if(mAssetID.IsValid())
+        {
+            ResourceManager::GetInstance()->AddRef(mAssetID);
+        }
+    }
+    
+    template <typename T>
+```
+...
+```cpp
+        if(mAssetID.IsValid())
+        {
+            ResourceManager::GetInstance()->DecreaseRef(mAssetID);
+        }
+    }
+
+    
+    template <typename T>
+    inline ResourceHandle<T>& ResourceHandle<T>::operator=(const ResourceHandle& other)
+    {
+```
+...
+```cpp
+            if(mAssetID.IsValid())
+            {
+                ResourceManager::GetInstance()->AddRef(mAssetID);
+            }
+
+            //  释放现在的
+           if(oldID.IsValid())
+           {
+```
+...
+```cpp
+                if(mAssetID.IsValid())
+                {
+                    ResourceManager::GetInstance()->AddRef(mAssetID);
+                }
+                // 转移所有权
+                mAssetID = other.mAssetID;
+                other.mAssetID.Reset();  // 清空 other
+            }
+            // 如果两者一样的话，就不做操作， 将亡值走自己的析构函数 decrease ref
+            return *this;
+
+    }
+
+    template <typename T>
+    inline T *ResourceHandle<T>::Get() const
+    {
+```
+
+### File: `Runtime/Graphics/Material.h`
+```cpp
+    };
+
+    class Material : public Resource
+    {
+    public:
+        bool isDirty = true;
+        bool isBindLessMaterial = false;
+        AlphaMode alphaMode = AlphaMode::Opaque;
+        float alphaCutoff = 0.5f;
+        float transmissionFactor = 0.0f;
+        string archyTypeName = "";
+        std::unique_ptr<MaterialInstance> matInstance;
+        ResourceHandle<Shader> mShader;
+        unordered_map<string, IGPUTexture*> textureData;
+        unordered_map<std::string, ResourceHandle<Texture>> textureHandleMap;
+        MaterailRenderState mRenderState;
+        BufferAllocation materialAllocation;
+
+        Material() = default;
+        Material(ResourceHandle<Shader> shader);
+        Material(const Material& other);
+        void UploadDataToGpu();
+        ~Material();
+
+
+        void SetValue(const string& name, void* data, uint32_t size) 
+        {
+            ASSERT(matInstance != nullptr);
+            matInstance->SetValue(name, data, size);
+        }
+
+        // 通用设置材质texture的接口
+        void SetTexture(const string& name, IGPUTexture* texture)
+        {
+            ASSERT(textureData.count(name) > 0);
+            if(textureHandleMap.count(name))
+            {
+                textureHandleMap.erase(name);
+            }
+            textureData[name] = texture;
+        }
+
+        // 运行时关联一个临时资源，建立一个引用， 防止资源因为0引用被销毁
+        void SetTexture(const string& name, ResourceHandle<Texture> texture)
+        {
+            ASSERT(textureData.count(name) > 0);
+            textureHandleMap[name] = texture;
+            if(texture.IsValid())
+            {
+                textureData[name] = texture.Get()->textureBuffer;
+            }
+        }
+
+        // only for serialization
+        void SetTexture(const string& name, uint64_t asset)
+        {
+            ResourceHandle<Texture> texHandle;
+            texHandle.mAssetID = AssetID(asset);
+            textureHandleMap[name] = texHandle;
+        }
+        inline MaterailRenderState GetMaterialRenderState() const { return mRenderState; };
+        
+        virtual void OnLoadComplete() override;
+
+    private:
+        void SetUpRenderState();
+        void GetTextureInfoFromShaderReflection();
+        void FlushBindlessIndicesToInstance();
+    };
+}
 ```
 
 ### File: `Runtime/MaterialLibrary/MaterialLayout.h`
@@ -804,7 +1075,7 @@ namespace EngineCore
 
         void AddTextureToBlockOffset(const std::string& name, uint32_t offset)
         {
-            ASSERT(textureToBlockIndexMap.count(name) < 0);
+            ASSERT(textureToBlockIndexMap.count(name) <= 0);
             textureToBlockIndexMap[name] = offset;
             
         }
@@ -900,114 +1171,6 @@ struct VertexInput
 };
 ```
 
-### File: `Runtime/Graphics/Material.h`
-```cpp
-    };
-
-    class Material : public Resource
-    {
-    public:
-        bool isDirty = true;
-        bool isBindLessMaterial = false;
-        AlphaMode alphaMode = AlphaMode::Opaque;
-        float alphaCutoff = 0.5f;
-        float transmissionFactor = 0.0f;
-        string archyTypeName = "";
-        std::unique_ptr<MaterialInstance> matInstance;
-        ResourceHandle<Shader> mShader;
-        unordered_map<string, IGPUTexture*> textureData;
-        unordered_map<std::string, ResourceHandle<Texture>> textureHandleMap;
-        MaterailRenderState mRenderState;
-        BufferAllocation materialAllocation;
-
-        Material() = default;
-        Material(ResourceHandle<Shader> shader);
-        Material(const Material& other);
-        void UploadDataToGpu();
-        ~Material();
-
-
-        void SetValue(const string& name, void* data, uint32_t size) 
-        {
-            ASSERT(matInstance != nullptr);
-            matInstance->SetValue(name, data, size);
-        }
-
-        // 通用设置材质texture的接口
-        void SetTexture(const string& name, IGPUTexture* texture)
-        {
-            ASSERT(textureData.count(name) > 0);
-            if(textureHandleMap.count(name))
-            {
-                textureHandleMap.erase(name);
-            }
-            textureData[name] = texture;
-        }
-
-        // 运行时关联一个临时资源，建立一个引用， 防止资源因为0引用被销毁
-        void SetTexture(const string& name, ResourceHandle<Texture> texture)
-        {
-            ASSERT(textureData.count(name) > 0);
-            textureHandleMap[name] = texture;
-            if(texture.IsValid())
-            {
-                textureData[name] = texture.Get()->textureBuffer;
-            }
-        }
-
-        // only for serialization
-        void SetTexture(const string& name, uint64_t asset)
-        {
-            ResourceHandle<Texture> texHandle;
-            texHandle.mAssetID = AssetID(asset);
-            textureHandleMap[name] = texHandle;
-        }
-        inline MaterailRenderState GetMaterialRenderState() const { return mRenderState; };
-        
-        virtual void OnLoadComplete() override;
-    private:
-        void SetUpRenderState();
-        void GetTextureInfoFromShaderReflection();
-    };
-}
-```
-
-### File: `Runtime/Scene/BistroSceneLoader.h`
-```cpp
-    class Node;
-    class Model;
-    class Mesh;
-}
-
-namespace EngineCore {
-```
-...
-```cpp
-    class Scene;
-
-    class BistroSceneLoader {
-    public:
-        static Scene* Load(const std::string& path);
-        static void SaveToCache(Scene* scene, const std::string& path);
-        static Scene* LoadFromCache(const std::string& path);
-        static ResourceHandle<Material> commonMatHandle;
-        
-    private:
-        Scene* LoadInternal(const std::string& path);
-        void ProcessNode(const tinygltf::Node& node, const tinygltf::Model& model, GameObject* parent, Scene* targetScene);
-        void ProcessMesh(int meshIndex, const tinygltf::Model& model, GameObject* go, Scene* targetScene);
-        void ProcessMaterials(const tinygltf::Model& model);
-        void ProcessShaders();
-        void ProcessTexture(const tinygltf::Model& model);
-        void CreateDefaultResources();
-        void AttachMaterialToGameObject(GameObject* gameObject, int materialIndex);
-        AssetID GetTextureAssetID(const tinygltf::Model& model, int textureIndex);
-        std::map<int, std::vector<std::pair<ResourceHandle<Mesh>, int>>> m_MeshCache;
-        std::vector<AssetID> m_ImageIndexToID;
-        std::vector<ResourceHandle<Material>> m_MaterialMap;
-    };
-```
-
 ### File: `Assets/Shader/BlitShader.hlsl`
 ```hlsl
 
@@ -1031,58 +1194,4 @@ struct VertexInput
     if(_FlipY > 0.1) uv.y = 1.0 - uv.y; 
     return pow(SrcTexture.Sample(LinearSampler, uv), 0.45);
 }
-```
-
-### File: `Runtime/Serialization/ShaderLoader.h`
-```cpp
-namespace EngineCore
-{
-    class ShaderLoader : public IResourceLoader
-    {
-    public:
-        virtual ~ShaderLoader() = default;
-        virtual LoadResult Load(const std::string& relativePath) override
-        {
-            LoadResult result;
-            std::string path = PathSettings::ResolveAssetPath(relativePath);
-
-            Shader* shader = new Shader(path);
-            result.resource = shader; 
-            return result;
-        }
-
-    };
-```
-
-### File: `Runtime/MaterialLibrary/MaterialArchetypeRegistry.h`
-```cpp
-namespace EngineCore
-{
-    class MaterialArchetypeRegistry
-    {
-    public:
-        static MaterialArchetypeRegistry& GetInstance()
-        {
-            static MaterialArchetypeRegistry instance;
-            return instance;
-        }
-
-        bool RegisMaterial(const std::string name, const MaterialLayout& layout)
-        {
-            layoutMap[name] = layout;
-            return true;
-        }
-
-        MaterialLayout GetArchytypeLayout(const std::string& name)
-        {
-            if (layoutMap.count(name) > 0) 
-            {
-                return layoutMap[name];
-            }
-            return MaterialLayout();
-        }
-
-        
-        std::unordered_map<std::string, MaterialLayout> layoutMap; 
-    };
 ```

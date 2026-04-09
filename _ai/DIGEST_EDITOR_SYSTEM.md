@@ -1,5 +1,5 @@
 # Architecture Digest: EDITOR_SYSTEM
-> Auto-generated. Focus: Editor, Editor/Panel, Editor/D3D12, Editor/EditorSerialization, Editor/Mac, Panel, Inspector, Hierarchy, Gizmo, GUI, Widget, Console
+> Auto-generated. Focus: Editor, Editor/Panel, Editor/D3D12, Editor/Serialization, Editor/Mac, Panel, Inspector, Hierarchy, Gizmo, GUI, Widget, Console
 
 ## Project Intent
 目标：构建现代化渲染器与工具链，强调GPU驱动渲染、资源管理、可扩展渲染管线与编辑器协作，并建立解耦的帧更新流（GameObject/Component、Scene、CPUScene/GPUScene、FrameContext多帧同步）。
@@ -14,7 +14,7 @@
 
 ## Understanding Notes
 - 编辑器提供调试与可视化界面，支撑迭代与资产编辑。
-- 关注面板/GUI管理与场景交互。
+- 关注面板/GUI管理与场景交互，包含ImGui集成、Inspector、Hierarchy、Gizmo等组件。
 
 ## Key Files Index
 - `[89]` **Editor/Panel/EditorConsolePanel.cpp** *(Content Included)*
@@ -40,14 +40,12 @@
 - `[20]` **Runtime/Entry.cpp**
 - `[17]` **Runtime/Core/Game.cpp**
 - `[11]` **Runtime/Renderer/RenderBackend.h**
+- `[9]` **Runtime/Renderer/RenderEngine.cpp**
 - `[7]` **Runtime/Renderer/RenderPipeLine/FinalBlitPass.cpp**
 - `[6]` **premake5.lua**
 - `[6]` **Runtime/Platforms/D3D12/D3D12ShaderUtils.h**
 - `[6]` **Runtime/Platforms/D3D12/d3dUtil.h**
 - `[5]` **Runtime/Renderer/RenderCommand.h**
-- `[5]` **Runtime/Renderer/RenderEngine.cpp**
-- `[5]` **Runtime/Renderer/RenderPath/GPUSceneRenderPipeline.cpp**
-- `[5]` **Runtime/Renderer/RenderPath/LagacyRenderPipeline.cpp**
 - `[5]` **Runtime/Platforms/Windows/WindowManagerWindows.cpp**
 - `[4]` **Runtime/Core/Profiler.h**
 - `[4]` **Runtime/Scene/SceneManager.cpp**
@@ -55,6 +53,7 @@
 - `[4]` **Runtime/Platforms/D3D12/d3dUtil.cpp**
 - `[4]` **Assets/Shader/BlitShader.hlsl**
 - `[4]` **Assets/Shader/GPUCulling.hlsl**
+- `[4]` **Assets/Shader/IndirectDrawCallCombineComputeShader.hlsl**
 - `[4]` **Assets/Shader/SimpleTestShader.hlsl**
 - `[4]` **Assets/Shader/StandardPBR.hlsl**
 - `[4]` **Assets/Shader/StandardPBR_VertexPulling.hlsl**
@@ -77,6 +76,7 @@
 - `[2]` **Runtime/GameObject/MonoBehaviour.h**
 - `[2]` **Runtime/GameObject/Transform.h**
 - `[2]` **Runtime/Graphics/ComputeShader.h**
+- `[2]` **Runtime/Graphics/GeometryManager.h**
 
 ## Evidence & Implementation Details
 
