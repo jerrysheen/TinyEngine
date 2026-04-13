@@ -462,56 +462,81 @@ namespace EngineCore
         D3D12Texture* texture = new D3D12Texture(textureDesc);
         // 1. 设置资源描述符
         D3D12_RESOURCE_DESC resourceDesc;
-        resourceDesc.Dimension = d3dUtil::GetFBOD3D12Dimesnsion(textureDesc.dimension);
+        resourceDesc.Dimension = d3dUtil::GetD3DDimension(textureDesc.dimension);
         resourceDesc.Alignment = 0;
         resourceDesc.Width = textureDesc.width;
         resourceDesc.Height = textureDesc.height;
         resourceDesc.DepthOrArraySize = 1;
-        resourceDesc.MipLevels = 1;
-        resourceDesc.Format = d3dUtil::GetFBOD3D12Format(textureDesc.format);
+        resourceDesc.MipLevels = textureDesc.mipCount;
+        resourceDesc.Format = d3dUtil::GetResourceFormat(textureDesc.format);
         // todo: 加上mipmap 和 msaa
         resourceDesc.SampleDesc.Count = 1;
         resourceDesc.SampleDesc.Quality = 0;
         resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
          // 设置资源标志
-         if (textureDesc.format == TextureFormat::D24S8)
-         {
-             resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-         }
-         else
-         {
-             resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-         }
+        resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+        if (textureDesc.texUsage & TextureUsage::DepthStencil)
+        {
+            resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+        }
+        else
+        {
+            if (textureDesc.texUsage & TextureUsage::RenderTarget)
+            {
+                resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+            }
+
+            if (textureDesc.texUsage & TextureUsage::UnorderedAccess)
+            {
+                resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+            }
+        }
 
         D3D12_CLEAR_VALUE clearValue = {};
-        clearValue.Format = resourceDesc.Format;
         if (textureDesc.format == TextureFormat::D24S8)
         {
+            clearValue.Format = d3dUtil::GetDSVFormat(textureDesc.format);
             clearValue.DepthStencil.Depth = 1.0f;
             clearValue.DepthStencil.Stencil = 0;
         }
         else
         {
+            clearValue.Format = d3dUtil::GetRTVFormat(textureDesc.format);
             clearValue.Color[0] = 0.0f;
             clearValue.Color[1] = 0.0f;
             clearValue.Color[2] = 0.0f;
             clearValue.Color[3] = 1.0f;
         }
-
+        
+        // 针对UAV SRV RT，不需要设置clear value
+        const D3D12_CLEAR_VALUE* pClearValue = (textureDesc.texUsage & (RenderTarget | DepthStencil)) ? &clearValue :
+            nullptr;
         
         // 根据格式选择正确的初始资源状态
         D3D12_RESOURCE_STATES initialState;
-        if (textureDesc.format == TextureFormat::D24S8)
+        BufferResourceState initialEngineState;
+        if (textureDesc.texUsage & TextureUsage::DepthStencil) 
         {
             initialState = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-            texture->SetState(BufferResourceState::STATE_DEPTH_WRITE);
+            initialEngineState = BufferResourceState::STATE_DEPTH_WRITE;
         }
-        else
+        else if (textureDesc.texUsage & TextureUsage::RenderTarget)
         {
             initialState = D3D12_RESOURCE_STATE_RENDER_TARGET;
-            texture->SetState(BufferResourceState::STATE_RENDER_TARGET);
+            initialEngineState = BufferResourceState::STATE_RENDER_TARGET;
         }
+        else if (textureDesc.texUsage & TextureUsage::UnorderedAccess)
+        {
+            initialState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+            initialEngineState = BufferResourceState::STATE_UNORDERED_ACCESS;
+        }
+        else 
+        {
+            initialState = D3D12_RESOURCE_STATE_COMMON;
+            initialEngineState = BufferResourceState::STATE_COMMON;
+        }
+        texture->SetState(initialEngineState);
 
         // 3. 创建资源
         ThrowIfFailed(md3dDevice->CreateCommittedResource(
@@ -519,39 +544,55 @@ namespace EngineCore
             D3D12_HEAP_FLAG_NONE,
             &resourceDesc,
             initialState,
-            &clearValue,
+            pClearValue,
             IID_PPV_ARGS(&texture->m_Resource)));
         std::wstring debugName = std::wstring(textureDesc.name.begin(), textureDesc.name.end());
         texture->m_Resource->SetName(debugName.c_str());
-        // Create Descriptor:...
-        if(textureDesc.format == TextureFormat::R8G8B8A8)
-        {
-            DescriptorHandle descHandle = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource, D3D12_RENDER_TARGET_VIEW_DESC{});
-            texture->rtvHandle = descHandle;
 
+
+        // 4.创建各种View
+        if(textureDesc.texUsage & TextureUsage::RenderTarget)
+        {
+            D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+            rtvDesc.Format = d3dUtil::GetRTVFormat(textureDesc.format);
+            rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+            rtvDesc.Texture2D.MipSlice = 0;
+            texture->rtvHandle = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource, rtvDesc);
+        }
+
+        if (textureDesc.texUsage & TextureUsage::DepthStencil)
+        {
+            D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+            dsvDesc.Format = d3dUtil::GetDSVFormat(textureDesc.format); // Dsv格式
+            dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+            dsvDesc.Texture2D.MipSlice = 0;
+            texture->dsvHandle = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource, dsvDesc);;
+        }
+
+        if (textureDesc.texUsage & TextureUsage::ShaderResource) 
+        {
             D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
             srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-            srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // SRV格式
+            srvDesc.Format = d3dUtil::GetSRVFormat(textureDesc.format);
             srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-            srvDesc.Texture2D.MipLevels = 1;
-            
-            descHandle = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource, srvDesc, false);
-            texture->srvHandle = descHandle;
+            srvDesc.Texture2D.MipLevels = textureDesc.mipCount;
+            texture->srvHandle = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource, srvDesc, false);;
             texture->bindlessHandle = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource, srvDesc, true);
         }
-        else if (textureDesc.format == TextureFormat::D24S8)
-        {
-            DescriptorHandle descHandle = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource, D3D12_DEPTH_STENCIL_VIEW_DESC{});
-            texture->dsvHandle = descHandle;
 
-            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-            srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; // SRV格式
-            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-            srvDesc.Texture2D.MipLevels = 1;
-            
-            descHandle = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource, srvDesc);
-            texture->srvHandle = descHandle;
+        if (textureDesc.texUsage & TextureUsage::UnorderedAccess)
+        {
+            uint32_t mipCount = textureDesc.mipCount;
+            texture->uavHandles.resize(mipCount);
+            for (uint32_t mip = 0; mip < mipCount; mip++) 
+            {
+                D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+                uavDesc.Format = d3dUtil::GetSRVFormat(textureDesc.format);
+                uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+                uavDesc.Texture2D.MipSlice = mip;
+                texture->uavHandles[mip] = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource.Get(),
+                    uavDesc);
+            }
         }
 
         return texture;
@@ -1419,43 +1460,90 @@ namespace EngineCore
             currentPSO = pso;
         }
         // 2. bind rootSign
-        std::vector<ShaderBindingInfo> cbvs = csShader->mShaderReflectionInfo.mConstantBufferInfo;
-        std::vector<ShaderBindingInfo> srvs = csShader->mShaderReflectionInfo.mTextureInfo;
-        std::vector<ShaderBindingInfo> uavs = csShader->mShaderReflectionInfo.mUavInfo;
-        std::vector<ShaderBindingInfo> samplersInfo = csShader->mShaderReflectionInfo.mSamplerInfo;
+        std::vector<ShaderBindingInfo> buffers = csShader->mShaderReflectionInfo.mBufferInfo;
         int rootParamIndex = 0;
-        int cbvIndex = 0;
-        for (const auto& cbv : cbvs)
+        for (const auto& buffers : buffers)
         {
-            ASSERT(cbvIndex < static_cast<int>(dispatchComputeShader.cbvBindings.count));
-            D3D12Buffer* buffer = static_cast<D3D12Buffer*>(dispatchComputeShader.cbvBindings.buffers[cbvIndex]);
-            ASSERT(buffer != nullptr);
-            mCommandList->SetComputeRootConstantBufferView(rootParamIndex++, buffer->GetGPUVirtualAddress());
-            cbvIndex++;
+            if (buffers.type == ShaderResourceType::CONSTANT_BUFFER) 
+            {
+                ASSERT(rootParamIndex < static_cast<int>(dispatchComputeShader.bufferBindings.count));
+                D3D12Buffer* buffer = static_cast<D3D12Buffer*>(dispatchComputeShader.bufferBindings.buffers[rootParamIndex]);
+                ASSERT(buffer != nullptr);
+                mCommandList->SetComputeRootConstantBufferView(rootParamIndex++, buffer->GetGPUVirtualAddress());
+            }
+            else if (buffers.type == ShaderResourceType::SRV_BUFFER) 
+            {
+                ASSERT(rootParamIndex < static_cast<int>(dispatchComputeShader.bufferBindings.count));
+                D3D12Buffer* buffer = static_cast<D3D12Buffer*>(dispatchComputeShader.bufferBindings.buffers[rootParamIndex]);
+                ASSERT(buffer != nullptr);
+                mCommandList->SetComputeRootShaderResourceView(rootParamIndex++, buffer->GetGPUVirtualAddress());
+            }
+            else if (buffers.type == ShaderResourceType::UAV_BUFFER) 
+            {
+                ASSERT(rootParamIndex < static_cast<int>(dispatchComputeShader.bufferBindings.count));
+                D3D12Buffer* buffer = static_cast<D3D12Buffer*>(dispatchComputeShader.bufferBindings.buffers[rootParamIndex]);
+                ASSERT(buffer != nullptr);
+                mCommandList->SetComputeRootUnorderedAccessView(rootParamIndex++, buffer->GetGPUVirtualAddress());
+            }
         }
 
-        // Note: Root SRV only supports buffers (e.g., StructuredBuffer/ByteAddressBuffer), not textures.
-        // This matches current engine's ComputeShader::SetBuffer(name, gpuVA) usage.
-        int srvIndex = 0;
-        for (const auto& srv : srvs)
+        std::vector<ShaderBindingInfo> textureSrvs;
+        std::vector<ShaderBindingInfo> textureUavs;
+        std::vector<ShaderBindingInfo> textures = csShader->mShaderReflectionInfo.mTextureInfo;
+        int texIndex = 0;
+        for (const auto& binding : textures) 
         {
-            ASSERT(srvIndex < static_cast<int>(dispatchComputeShader.srvBindings.count));
-            D3D12Buffer* buffer = static_cast<D3D12Buffer*>(dispatchComputeShader.srvBindings.buffers[srvIndex]);
-            ASSERT(buffer != nullptr);
-            mCommandList->SetComputeRootShaderResourceView(rootParamIndex++, buffer->GetGPUVirtualAddress());
-            srvIndex++;
+            if (binding.type == ShaderResourceType::TEXTURE) textureSrvs.push_back(binding);
+            if (binding.type == ShaderResourceType::RWTEXTURE) textureUavs.push_back(binding);
         }
 
-        int uavIndex = 0;
-        for (const auto& uav : uavs)
+        if (!textureSrvs.empty()) 
         {
-            ASSERT(uavIndex < static_cast<int>(dispatchComputeShader.uavBindings.count));
-            D3D12Buffer* buffer = static_cast<D3D12Buffer*>(dispatchComputeShader.uavBindings.buffers[uavIndex]);
-            ASSERT(buffer != nullptr);
-            mCommandList->SetComputeRootUnorderedAccessView(rootParamIndex++, buffer->GetGPUVirtualAddress());  
-            uavIndex++;
+            DescriptorHandle srvTable =
+                D3D12DescManager::GetInstance()->GetFrameCbvSrvUavAllocator(textureSrvs.size());
+
+            for (int i = 0; i < textureSrvs.size(); i++)
+            {
+
+                ASSERT(texIndex < static_cast<int>(dispatchComputeShader.textureBindings.count));
+                auto& texBinding = dispatchComputeShader.textureBindings.bindingInfo[texIndex];
+                D3D12Texture* d3dTex = static_cast<D3D12Texture*>(texBinding.texture);
+                // 拿到对应Mip的SRV描述符
+                D3D12_CPU_DESCRIPTOR_HANDLE src = { d3dTex->srvHandle.cpuHandle };
+                D3D12_CPU_DESCRIPTOR_HANDLE dst = { srvTable.cpuHandle + i * mCbvSrvUavDescriptorSize };
+                md3dDevice->CopyDescriptorsSimple(1, dst, src, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            }
+
+            // ⭐ 纹理使用 Root Param 5（固定，因为 Slot 4 留给了 UAV）
+            D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
+            gpuHandle.ptr = srvTable.gpuHandle;
+            mCommandList->SetGraphicsRootDescriptorTable(rootParamIndex, gpuHandle);
+            texIndex++;
         }
-        
+        rootParamIndex++;
+
+        if (!textureUavs.empty())
+        {
+            DescriptorHandle uavTable =
+                D3D12DescManager::GetInstance()->GetFrameCbvSrvUavAllocator(textureUavs.size());
+
+            for (int i = 0; i < textureSrvs.size(); i++)
+            {
+                ASSERT(texIndex < static_cast<int>(dispatchComputeShader.textureBindings.count));
+                auto& texBinding = dispatchComputeShader.textureBindings.bindingInfo[texIndex];
+                D3D12Texture* d3dTex = static_cast<D3D12Texture*>(texBinding.texture);
+                // 拿到对应Mip的SRV描述符
+                D3D12_CPU_DESCRIPTOR_HANDLE src = { d3dTex->srvHandle.cpuHandle };
+                D3D12_CPU_DESCRIPTOR_HANDLE dst = { uavTable.cpuHandle + i * mCbvSrvUavDescriptorSize };
+                md3dDevice->CopyDescriptorsSimple(1, dst, src, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            }
+
+            D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
+            gpuHandle.ptr = uavTable.gpuHandle;
+            mCommandList->SetGraphicsRootDescriptorTable(rootParamIndex, gpuHandle);
+        }
+        rootParamIndex++;
+
         // 3. dispatch
         mCommandList->Dispatch(
             dispatchComputeShader.groupX,
