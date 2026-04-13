@@ -15,6 +15,7 @@ namespace EngineCore
     {
         R8G8B8A8,
         D24S8,
+        R16Float,
         EMPTY,
         DXT1, 
         DXT2, 
@@ -26,12 +27,12 @@ namespace EngineCore
     };
 
 
-    enum class TextureUsage
+    enum TextureUsage : uint32_t
     {
-        ShaderResource,
-        RenderTarget,
-        DepthStencil,
-        UnorderedAccess   // 预留，现在反正没用处
+        ShaderResource = 1 << 0,
+        RenderTarget = 1 << 1,
+        DepthStencil = 1 << 2,
+        UnorderedAccess = 1 << 3  // 预留，现在反正没用处
     };
 
     struct TextureDesc
@@ -41,8 +42,9 @@ namespace EngineCore
         int height;
         TextureFormat format;
         TextureDimension dimension;
-        TextureUsage texUsage;
-
+        // TextureUsageA
+        uint32_t texUsage;
+        
         uint32_t mipCount = 1;
         uint32_t arraySize = 1; // Texture Array 用
         uint32_t mipOffset[16] = {0}; // 最多支持16级mip
@@ -127,10 +129,17 @@ namespace EngineCore
     {
     public:
         virtual const TextureDesc& GetDesc() const = 0;
-    public:
+        inline const DescriptorHandle& GetUAVByMip(int mipLevel) 
+        { 
+            ASSERT(mipLevel < uavHandles.size()); 
+            return uavHandles[mipLevel]; 
+        }
+
         DescriptorHandle srvHandle; // Non-Visible Heap Handle (for Copy Source)
         DescriptorHandle bindlessHandle; // Shader-Visible Heap Handle (for Bindless Access)
         DescriptorHandle rtvHandle;
         DescriptorHandle dsvHandle;
+        std::vector<DescriptorHandle> uavHandles;  
+    private:
     };
 };

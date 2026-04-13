@@ -48,6 +48,23 @@ namespace EngineCore
         string path = PathSettings::ResolveAssetPath("Shader/IndirectDrawCallCombineComputeShader.hlsl");
         IndirectDrawCombineShaderHandler = ResourceManager::GetInstance()->CreateResource<ComputeShader>(path);
 
+        path = PathSettings::ResolveAssetPath("Shader/HIzCSShader.hlsl");
+        HizCSShaderHandler = ResourceManager::GetInstance()->CreateResource<ComputeShader>(path);
+        
+        TextureDesc hiZDesc;
+        hiZDesc.name = "hiZTexture";
+        hiZDesc.dimension = TextureDimension::TEXTURE2D;
+        hiZDesc.width = 1920;
+        hiZDesc.height = 1080;
+        hiZDesc.format = TextureFormat::R16Float;
+        hiZDesc.texUsage = (TextureUsage::UnorderedAccess | TextureUsage::ShaderResource);
+        hiZDesc.mipCount = static_cast<uint32_t>(std::floor(std::log2(std::max(hiZDesc.width, hiZDesc.height)))) + 1;
+        for(int i = 0; i < 3; i++)
+        {
+            std::wstring name = L"hiZTexture" + std::to_wstring(i + 1);
+            hiZDesc.name = std::string(name.begin(), name.end());;
+            RWHiZTexture[i] = new RenderTexture(hiZDesc);
+        }
     }
 
     void GPUSceneRenderPipeline::Prepare(RenderContext& context)
@@ -175,13 +192,32 @@ namespace EngineCore
 
     void GPUSceneRenderPipeline::RecordAndFlush(RenderContext& context)
     {
-
+        uint32_t frameID = RenderEngine::GetInstance()->GetCurrentFrame();
         //PROFILER_ZONE("MainThread::Renderer::Render")
         for(auto* pass : context.camera->mRenderPassAsset.renderPasses)
         {
             pass->Execute(context);
             RenderBackend::GetInstance()->TryWakeUpRenderThread();
         }
+
+
+        ////---------------- IndirectDrawCall Combine Pass
+        //RenderTexture* currHIZTexture = RWHiZTexture[frameID % 3];
+        //ComputeShader* hiZCSShader = HizCSShaderHandler.Get();
+        //// 1. blit to Src...
+        //for(int i = 0; i < currHIZTexture->GetMipCount() - 1; i++)
+        //{
+        //    hiZCSShader->SetTexture("g_InputTexture", currHIZTexture->textureBuffer, i);
+        //    hiZCSShader->SetTexture("g_OutputTexture",currHIZTexture->textureBuffer, i + 1);
+
+        //    Payload_DispatchComputeShader hiZPayload = {};
+        //    hiZPayload.csShader = hiZCSShader;
+        //    hiZPayload.groupX = 1;
+        //    hiZPayload.groupY = 1;
+        //    hiZPayload.groupZ = 1;
+        //    RenderBackend::GetInstance()->DispatchComputeShader(hiZPayload);
+        //}
+        
         
         for (auto& pass : context.camera->mRenderPassAsset.renderPasses)
         {

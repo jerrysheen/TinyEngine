@@ -258,9 +258,26 @@ namespace EngineCore
     };
 
     class ComputeShader;
-    struct ComputeDispatchBindingSpan
+    struct ComputeBufferDispatchBindingSpan
     {
         IGPUBuffer** buffers = nullptr;
+        uint32_t count = 0;
+    };
+
+    struct TextureBinding
+    {
+        IGPUTexture* texture;
+        bool isUAV = false;
+        uint32_t mipLevel = 0;
+        TextureBinding() {}
+        TextureBinding(IGPUTexture* texture, bool isuav, uint32_t mip) :
+            texture(texture), isUAV(isuav), mipLevel(mip) {
+        }
+    };
+
+    struct ComputeTextureDispatchBindingSpan
+    {
+        TextureBinding* bindingInfo = nullptr;
         uint32_t count = 0;
     };
 
@@ -268,9 +285,8 @@ namespace EngineCore
     {
         ComputeShader* csShader = nullptr;
         uint32_t frameID = 0;
-        ComputeDispatchBindingSpan cbvBindings;
-        ComputeDispatchBindingSpan srvBindings;
-        ComputeDispatchBindingSpan uavBindings;
+        ComputeBufferDispatchBindingSpan bufferBindings;
+        ComputeTextureDispatchBindingSpan textureBindings;
         uint32_t groupX = 0;
         uint32_t groupY = 0;
         uint32_t groupZ = 0;

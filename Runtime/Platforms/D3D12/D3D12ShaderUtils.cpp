@@ -112,11 +112,11 @@ namespace EngineCore
             switch (bindDesc.Type) {
             case D3D_SIT_CBUFFER:
             {
-                for (auto& x : shaderReflectionInfo->mConstantBufferInfo)
+                for (auto& x : shaderReflectionInfo->mBufferInfo)
                 {
                     if (x.resourceName == bindDesc.Name) break;
                 }
-                shaderReflectionInfo->mConstantBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, 0, bindDesc.Space, bindDesc.BindCount);
+                shaderReflectionInfo->mBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, 0, bindDesc.Space, bindDesc.BindCount);
 
                 break;
             }
@@ -141,11 +141,11 @@ namespace EngineCore
             case D3D_SIT_UAV_APPEND_STRUCTURED:
             case D3D_SIT_UAV_CONSUME_STRUCTURED:
             case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
-                for (auto& x : shaderReflectionInfo->mUavInfo)
+                for (auto& x : shaderReflectionInfo->mBufferInfo)
                 {
                     if (x.resourceName == bindDesc.Name) break;
                 }
-                shaderReflectionInfo->mUavInfo.emplace_back(bindDesc.Name, ShaderResourceType::UAV, bindDesc.BindPoint, 0, bindDesc.Space, bindDesc.BindCount);
+                shaderReflectionInfo->mBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::UAV_BUFFER, bindDesc.BindPoint, 0, bindDesc.Space, bindDesc.BindCount);
                 break;
             default:
                 std::cout << " Not find any exites shader resource type " << std::endl;
@@ -241,7 +241,7 @@ namespace EngineCore
                  shaderReflectionInfo->mRootSigKey.Space1Mask |= bit;
              }
          };
- 
+         
          // 3. 遍历所有绑定的资源 (CBV, SRV, UAV)
          for (UINT i = 0; i < shaderDesc.BoundResources; ++i)
          {
@@ -253,22 +253,17 @@ namespace EngineCore
              printf("BindPoint: %d\n", bindDesc.BindPoint); // 对应的寄存器号，如 u0 中的 0
              printf("Space: %d\n", bindDesc.Space); // register(u0, space1) 中的 1
  
-             // RootSigKey bitmask
+             // RootSigKey bitmask，
+             // 只有需要绑定根签名的才会，固定的Texture、RWTexture、Sampler都不会更新这个表
              switch (bindDesc.Type)
              {
                  case D3D_SIT_CBUFFER:
                      UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_CBV);
                      break;
-                 case D3D_SIT_TEXTURE:
                  case D3D_SIT_STRUCTURED:
                  case D3D_SIT_BYTEADDRESS:
-                 case D3D_SIT_TBUFFER:
                      UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_SRV);
                      break;
-                 case D3D_SIT_SAMPLER:
-                     UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_SAMPLER);
-                     break;
-                 case D3D_SIT_UAV_RWTYPED:
                  case D3D_SIT_UAV_RWSTRUCTURED:
                  case D3D_SIT_UAV_RWBYTEADDRESS:
                  case D3D_SIT_UAV_APPEND_STRUCTURED:
@@ -282,48 +277,70 @@ namespace EngineCore
  
              switch (bindDesc.Type) {
                  case D3D_SIT_CBUFFER:
-                 {
-                     for (auto& x : shaderReflectionInfo->mConstantBufferInfo)
-                     {
-                         if (x.resourceName == bindDesc.Name) break;
-                     }
-                     shaderReflectionInfo->mConstantBufferInfo.emplace_back(bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, bindDesc.BindPoint, 0, bindDesc.Space);
-     
+                     shaderReflectionInfo->mBufferInfo.emplace_back(
+                        bindDesc.Name, ShaderResourceType::CONSTANT_BUFFER, 
+                        bindDesc.BindPoint, 0, bindDesc.Space);
                      break;
-                 }
                  case D3D_SIT_TEXTURE:
+                    shaderReflectionInfo->mTextureInfo.emplace_back(
+                        bindDesc.Name, ShaderResourceType::TEXTURE, 
+                        bindDesc.BindPoint, 0, bindDesc.Space);
+                    break;
                  case D3D_SIT_STRUCTURED:
                  case D3D_SIT_BYTEADDRESS:
+                 // 注意textureBuffer是一个特殊buffer类型， 不带Texture的swizzle，和Sturucturedbuffer一样
+                 // 只是访问方式走lOAD(Index)而已
                  case D3D_SIT_TBUFFER:
-                     for (auto& x : shaderReflectionInfo->mTextureInfo)
-                     {
-                         if (x.resourceName == bindDesc.Name) break;
-                     }
-                     shaderReflectionInfo->mTextureInfo.emplace_back(bindDesc.Name, ShaderResourceType::TEXTURE, bindDesc.BindPoint, 0, bindDesc.Space);
+                     shaderReflectionInfo->mBufferInfo.emplace_back(
+                        bindDesc.Name, ShaderResourceType::SRV_BUFFER, 
+                        bindDesc.BindPoint, 0, bindDesc.Space);
                      break;
                  case D3D_SIT_SAMPLER:
-                     for (auto& x : shaderReflectionInfo->mSamplerInfo)
-                     {
-                         if (x.resourceName == bindDesc.Name) break;
-                     }
-                     shaderReflectionInfo->mSamplerInfo.emplace_back(bindDesc.Name, ShaderResourceType::SAMPLER, bindDesc.BindPoint, 0, bindDesc.Space);
+                     shaderReflectionInfo->mSamplerInfo.emplace_back(
+                        bindDesc.Name, ShaderResourceType::SAMPLER, 
+                        bindDesc.BindPoint, 0, bindDesc.Space);
                      break;
                  case D3D_SIT_UAV_RWTYPED:
+                    // 重点判断：维度是BUFFER则是缓冲区，否则是RWTexture
+                    if (bindDesc.Dimension == D3D_SRV_DIMENSION_BUFFER || bindDesc.Dimension == D3D12_UAV_DIMENSION_BUFFER) {
+                        shaderReflectionInfo->mBufferInfo.emplace_back(
+                            bindDesc.Name,
+                            ShaderResourceType::UAV_BUFFER,
+                            bindDesc.BindPoint,
+                            0,
+                            bindDesc.Space
+                        );
+                    } else {
+                        shaderReflectionInfo->mTextureInfo.emplace_back(
+                            bindDesc.Name,
+                            ShaderResourceType::RWTEXTURE,
+                            bindDesc.BindPoint,
+                            0,
+                            bindDesc.Space
+                        );
+                    }
+                    break;
                  case D3D_SIT_UAV_RWSTRUCTURED:
                  case D3D_SIT_UAV_RWBYTEADDRESS:
                  case D3D_SIT_UAV_APPEND_STRUCTURED:
                  case D3D_SIT_UAV_CONSUME_STRUCTURED:
                  case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
-                     for (auto& x : shaderReflectionInfo->mUavInfo)
-                     {
-                         if (x.resourceName == bindDesc.Name) break;
-                     }
-                     shaderReflectionInfo->mUavInfo.emplace_back(bindDesc.Name, ShaderResourceType::UAV, bindDesc.BindPoint, 0, bindDesc.Space);
+                     shaderReflectionInfo->mBufferInfo.emplace_back(
+                        bindDesc.Name, ShaderResourceType::UAV_BUFFER, 
+                        bindDesc.BindPoint, 0, bindDesc.Space);
                      break;
                  default:
                      std::cout << " Not find any exites shader resource type " << std::endl;
                      break;
                  }
          }
+
+         auto SortBinding = [](const ShaderBindingInfo& a, const ShaderBindingInfo& b) {
+             if (a.space != b.space) return a.space < b.space;
+             return a.registerSlot < b.registerSlot;
+             };
+
+         std::sort(shaderReflectionInfo->mBufferInfo.begin(), shaderReflectionInfo->mBufferInfo.end(), SortBinding);
+         std::sort(shaderReflectionInfo->mTextureInfo.begin(), shaderReflectionInfo->mTextureInfo.end(), SortBinding);
     }
 }

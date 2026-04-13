@@ -12,6 +12,7 @@ namespace EngineCore
 
         inline int GetWidth() { return textureDesc.width; };
         inline int GetHeight() { return textureDesc.height; };
+        inline int GetMipCount() { return textureDesc.mipCount; };
     public:
         IGPUTexture*  textureBuffer;
         TextureDesc textureDesc;

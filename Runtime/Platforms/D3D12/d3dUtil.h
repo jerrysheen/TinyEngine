@@ -135,8 +135,35 @@ public:
 		const std::string& entrypoint,
 		const std::string& target);
 
-    static D3D12_RESOURCE_DIMENSION GetFBOD3D12Dimesnsion(const EngineCore::TextureDimension& dimension);
-    static DXGI_FORMAT GetFBOD3D12Format(const EngineCore::TextureFormat& format);
+    static D3D12_RESOURCE_DIMENSION GetD3DDimension(const EngineCore::TextureDimension& dimension);
+    static DXGI_FORMAT GetResourceFormat(const EngineCore::TextureFormat& format);
+
+    // RTV用格式
+    static DXGI_FORMAT GetRTVFormat(const EngineCore::TextureFormat format) {
+        return GetResourceFormat(format); // 大部分和资源格式一致，特殊格式可以单独处理
+    }
+
+    // DSV用格式
+    static DXGI_FORMAT GetDSVFormat(const EngineCore::TextureFormat format) {
+        switch (format) {
+            case EngineCore::TextureFormat::D24S8: return DXGI_FORMAT_D24_UNORM_S8_UINT;
+            default: ASSERT(false); return DXGI_FORMAT_UNKNOWN;
+        }
+    }
+
+    // SRV用格式
+    static DXGI_FORMAT GetSRVFormat(const EngineCore::TextureFormat format) {
+        switch (format) {
+            case EngineCore::TextureFormat::D24S8: return DXGI_FORMAT_R24_UNORM_X8_TYPELESS; // 深度转成无类型SRV读深度值
+            default: return GetResourceFormat(format);
+        }
+    }
+
+    // UAV用格式
+    static DXGI_FORMAT GetUAVFormat(const EngineCore::TextureFormat format) {
+        return GetSRVFormat(format); // 大部分和SRV一致
+    }
+
 };
 
 class DxException

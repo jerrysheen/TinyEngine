@@ -161,41 +161,60 @@ namespace EngineCore
             return a.registerSlot < b.registerSlot;
         };
 
-        std::vector<ShaderBindingInfo> cbvs = csShader->mShaderReflectionInfo.mConstantBufferInfo;
-        std::vector<ShaderBindingInfo> srvs = csShader->mShaderReflectionInfo.mTextureInfo;
-        std::vector<ShaderBindingInfo> uavs = csShader->mShaderReflectionInfo.mUavInfo;
-        std::vector<ShaderBindingInfo> samplersInfo = csShader->mShaderReflectionInfo.mSamplerInfo;
-        std::sort(cbvs.begin(), cbvs.end(), SortBinding);
-        std::sort(srvs.begin(), srvs.end(), SortBinding);
-        std::sort(uavs.begin(), uavs.end(), SortBinding);
-        std::sort(samplersInfo.begin(), samplersInfo.end(), SortBinding);
+        std::vector<ShaderBindingInfo> buffers = csShader->mShaderReflectionInfo.mBufferInfo;
+        std::vector<ShaderBindingInfo> textures = csShader->mShaderReflectionInfo.mTextureInfo;
+        std::vector<ShaderBindingInfo> samplers = csShader->mShaderReflectionInfo.mSamplerInfo;
+        std::sort(buffers.begin(), buffers.end(), SortBinding);
+        std::sort(textures.begin(), textures.end(), SortBinding);
+        std::sort(samplers.begin(), samplers.end(), SortBinding);
 
         std::vector<CD3DX12_ROOT_PARAMETER> rootParameters;
-        rootParameters.reserve(cbvs.size() + srvs.size() + uavs.size());
+        rootParameters.reserve(buffers.size() + 2);
 
-        for (const auto& cbv : cbvs)
+        for (const auto& buffer : buffers)
         {
-            rootParameters.emplace_back();
-            rootParameters.back().InitAsConstantBufferView(cbv.registerSlot, cbv.space);
+            if(buffer.type == ShaderResourceType::CONSTANT_BUFFER)
+            {
+                rootParameters.emplace_back();
+                rootParameters.back().InitAsConstantBufferView(buffer.registerSlot, buffer.space);
+            }
+            else if(buffer.type == ShaderResourceType::SRV_BUFFER)
+            {
+                rootParameters.emplace_back();
+                rootParameters.back().InitAsShaderResourceView(buffer.registerSlot, buffer.space);
+            }
+            else if(buffer.type == ShaderResourceType::UAV_BUFFER)
+            {
+                rootParameters.emplace_back();
+                rootParameters.back().InitAsUnorderedAccessView(buffer.registerSlot, buffer.space);
+            }
         }
 
-        // Note: Root SRV only supports buffers (e.g., StructuredBuffer/ByteAddressBuffer), not textures.
-        // This matches current engine's ComputeShader::SetBuffer(name, gpuVA) usage.
-        for (const auto& srv : srvs)
+        // --------------------------
+        // 新增：3个固定描述符表参数（所有ComputeShader都有，不管有没有纹理）
+        // --------------------------
+        const int MAX_TEXTURE_SRV = 16;   // 最多支持16个纹理SRV
+        const int MAX_TEXTURE_UAV = 16;   // 最多支持16个纹理UAV
+
+        // 4. 纹理SRV描述符表（Space1，t0~t15）
         {
+            CD3DX12_DESCRIPTOR_RANGE srvRange;
+            srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, MAX_TEXTURE_SRV, 0, 1); // BaseReg:0, Space:1
             rootParameters.emplace_back();
-            rootParameters.back().InitAsShaderResourceView(srv.registerSlot, srv.space);
+            rootParameters.back().InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_ALL);
         }
 
-        for (const auto& uav : uavs)
+        // 5. 纹理UAV描述符表（Space1，u0~u15）
         {
+            CD3DX12_DESCRIPTOR_RANGE uavRange;
+            uavRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, MAX_TEXTURE_UAV, 0, 1); // BaseReg:0, Space:1
             rootParameters.emplace_back();
-            rootParameters.back().InitAsUnorderedAccessView(uav.registerSlot, uav.space);
+            rootParameters.back().InitAsDescriptorTable(1, &uavRange, D3D12_SHADER_VISIBILITY_ALL);
         }
 
         std::vector<CD3DX12_STATIC_SAMPLER_DESC> staticSamplers;
-        staticSamplers.reserve(samplersInfo.size());
-        for (const auto& samp : samplersInfo)
+        staticSamplers.reserve(samplers.size());
+        for (const auto& samp : samplers)
         {
             CD3DX12_STATIC_SAMPLER_DESC sdesc(
                 (UINT)samp.registerSlot,

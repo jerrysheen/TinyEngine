@@ -5,6 +5,13 @@
 
 namespace EngineCore
 {
+    // 区分 buferr类型直接绑定根签名， texture类型绑定根表
+    enum class ShaderResourceSubType
+    {
+        Buffer,
+        Texture
+    };
+
     class D3D12ShaderUtils
     {
     public:

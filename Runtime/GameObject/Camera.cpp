@@ -33,7 +33,7 @@ namespace EngineCore
         colorAttachmentDesc.width = 1920;
         colorAttachmentDesc.height = 1080;
         colorAttachmentDesc.format = TextureFormat::R8G8B8A8;
-        colorAttachmentDesc.texUsage = TextureUsage::RenderTarget;
+        colorAttachmentDesc.texUsage = TextureUsage::RenderTarget | TextureUsage::ShaderResource;
         colorAttachment = new RenderTexture(colorAttachmentDesc);
 
         TextureDesc depthAttachmentDesc;
@@ -42,7 +42,7 @@ namespace EngineCore
         depthAttachmentDesc.width = 1920;
         depthAttachmentDesc.height = 1080;
         depthAttachmentDesc.format = TextureFormat::D24S8;
-        depthAttachmentDesc.texUsage = TextureUsage::DepthStencil;
+        depthAttachmentDesc.texUsage = TextureUsage::DepthStencil | TextureUsage::ShaderResource;
         depthAttachment = new RenderTexture(depthAttachmentDesc);
         
         //todo： 全局材质更新

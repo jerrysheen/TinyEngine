@@ -18,6 +18,7 @@ namespace EngineCore
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_RENDER_TARGET_VIEW_DESC& desc);
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc);
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc);
+		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_UNORDERED_ACCESS_VIEW_DESC& desc);
         DescriptorHandle AllocateStaticHandle();
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mHeap;
 

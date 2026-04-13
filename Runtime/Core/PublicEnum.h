@@ -18,7 +18,9 @@ namespace EngineCore
         CONSTANT_BUFFER,
         TEXTURE,
         SAMPLER,
-        UAV
+        SRV_BUFFER,
+        UAV_BUFFER,
+        RWTEXTURE
     };
 
     enum class VertexAttribute

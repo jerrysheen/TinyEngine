@@ -42,12 +42,13 @@ namespace EngineCore
     {
         RootSignatureKey mRootSigKey;
 
-        // todo: 确定这个地方是用vector还是直接单个对象
+        // todo: 这个地方优化成Buffer/ Texture Sampler 三类，
+        // 正式绑定的时候再去分，因为这三个分别对应不同类型的buffer和texture
+        // uav srv cbv相关的信息记录在Shaderbingding info里面
         ShaderStageType type;
-        vector<ShaderBindingInfo > mConstantBufferInfo;
-        vector<ShaderBindingInfo > mTextureInfo;
-        vector<ShaderBindingInfo > mSamplerInfo;
-        vector<ShaderBindingInfo > mUavInfo;
+        vector<ShaderBindingInfo> mBufferInfo;
+        vector<ShaderBindingInfo> mTextureInfo;
+        vector<ShaderBindingInfo> mSamplerInfo;
 
         ShaderReflectionInfo(){};
 

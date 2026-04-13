@@ -108,7 +108,7 @@ namespace EngineCore
 		// 创建DSV
 		CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
 		descriptorHandle.Offset(handle.descriptorIdx, mDescriptorSize);
-		mD3D12Device->CreateDepthStencilView(resource.Get(), nullptr, descriptorHandle);
+		mD3D12Device->CreateDepthStencilView(resource.Get(), &desc, descriptorHandle);
         handle.cpuHandle = descriptorHandle.ptr;
 
         return handle;
@@ -129,6 +129,25 @@ namespace EngineCore
         //CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(mHeap->GetGPUDescriptorHandleForHeapStart());
         //gpuHandle.Offset(handle.descriptorIdx, mDescriptorSize);
         //handle.gpuHandle = gpuHandle;
+        return handle;
+    }
+
+    DescriptorHandle D3D12DescAllocator::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_UNORDERED_ACCESS_VIEW_DESC &desc)
+    {
+        auto handle = AllocateStaticHandle();
+        auto mD3D12Device = static_cast<D3D12RenderAPI*>(RenderAPI::GetInstance())->md3dDevice;
+
+        // CPU端声明，绑定RTV DSV，复制拷贝Desc的时候用CPU Handle
+        CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(mHeap->GetCPUDescriptorHandleForHeapStart());
+        descriptorHandle.Offset(handle.descriptorIdx, mDescriptorSize);
+        mD3D12Device->CreateUnorderedAccessView(resource.Get(), nullptr, &desc, descriptorHandle);
+        handle.cpuHandle = descriptorHandle.ptr;
+        // GPU端绑定需要gpu haandle
+        if ((mHeap->GetDesc().Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) != 0)
+        {
+            CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(mHeap->GetGPUDescriptorHandleForHeapStart());
+            handle.gpuHandle = gpuHandle.ptr;
+        }
         return handle;
     }
 

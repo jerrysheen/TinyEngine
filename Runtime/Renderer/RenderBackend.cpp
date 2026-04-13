@@ -264,45 +264,36 @@ namespace EngineCore
         Payload_DispatchComputeShader& payload = cmd.data.dispatchComputeShader;
         payload.frameID = mCurrentRecordingFrameID;
 
-        const uint32_t cbvCount = static_cast<uint32_t>(csShader->mShaderReflectionInfo.mConstantBufferInfo.size());
-        const uint32_t srvCount = static_cast<uint32_t>(csShader->mShaderReflectionInfo.mTextureInfo.size());
-        const uint32_t uavCount = static_cast<uint32_t>(csShader->mShaderReflectionInfo.mUavInfo.size());
-
-        payload.cbvBindings.buffers = nullptr;
-        payload.cbvBindings.count = cbvCount;
-        if (cbvCount > 0)
+        const uint32_t bufferCount = static_cast<uint32_t>(csShader->mShaderReflectionInfo.mBufferInfo.size());
+        
+        payload.bufferBindings.buffers = nullptr;
+        payload.bufferBindings.count = 0;
+        if (bufferCount > 0) 
         {
-            payload.cbvBindings.buffers = allocator.allocArray<IGPUBuffer*>(cbvCount);
-            for (uint32_t i = 0; i < cbvCount; ++i)
+            payload.bufferBindings.buffers = allocator.allocArray<IGPUBuffer*>(bufferCount);
+            payload.bufferBindings.count = bufferCount;
+            for (int i = 0; i < bufferCount; i++) 
             {
-                const auto& cbv = csShader->mShaderReflectionInfo.mConstantBufferInfo[i];
-                payload.cbvBindings.buffers[i] = csShader->GetBufferResource(cbv.resourceName);
+                const auto& bindingInfo =  csShader->mShaderReflectionInfo.mBufferInfo[i];
+                payload.bufferBindings.buffers[i] = csShader->GetBufferResource(bindingInfo.resourceName);
             }
         }
 
-        payload.srvBindings.buffers = nullptr;
-        payload.srvBindings.count = srvCount;
-        if (srvCount > 0)
+        const uint32_t texCount = static_cast<uint32_t>(csShader->mShaderReflectionInfo.mTextureInfo.size());
+
+        payload.textureBindings.bindingInfo = nullptr;
+        payload.textureBindings.count = 0;
+        if (texCount > 0)
         {
-            payload.srvBindings.buffers = allocator.allocArray<IGPUBuffer*>(srvCount);
-            for (uint32_t i = 0; i < srvCount; ++i)
+            payload.textureBindings.bindingInfo = allocator.allocArray<TextureBinding>(texCount);
+            payload.textureBindings.count = texCount;
+            for (int i = 0; i < texCount; i++)
             {
-                const auto& srv = csShader->mShaderReflectionInfo.mTextureInfo[i];
-                payload.srvBindings.buffers[i] = csShader->GetBufferResource(srv.resourceName);
+                const auto& bindingInfo = csShader->mShaderReflectionInfo.mTextureInfo[i];
+                payload.textureBindings.bindingInfo[i] = csShader->GetTextureBinding(bindingInfo.resourceName);
             }
         }
 
-        payload.uavBindings.buffers = nullptr;
-        payload.uavBindings.count = uavCount;
-        if (uavCount > 0)
-        {
-            payload.uavBindings.buffers = allocator.allocArray<IGPUBuffer*>(uavCount);
-            for (uint32_t i = 0; i < uavCount; ++i)
-            {
-                const auto& uav = csShader->mShaderReflectionInfo.mUavInfo[i];
-                payload.uavBindings.buffers[i] = csShader->GetBufferResource(uav.resourceName);
-            }
-        }
 
         cmd.op = RenderOp::kDispatchComputeShader;
         EnqueueCommand(cmd);

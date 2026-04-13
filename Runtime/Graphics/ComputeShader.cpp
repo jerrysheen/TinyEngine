@@ -11,21 +11,7 @@ namespace EngineCore
     void ComputeShader::SetBuffer(const std::string &name, IGPUBuffer* buffer)
     {
         bool find = false;
-        for(auto& bindingInfo : mShaderReflectionInfo.mUavInfo)
-        {
-            if(bindingInfo.resourceName == name)
-            {
-                find = true;
-            }
-        }
-        for(auto& bindingInfo : mShaderReflectionInfo.mTextureInfo)
-        {
-            if(bindingInfo.resourceName == name)
-            {
-                find = true;
-            }
-        }
-        for(auto& bindingInfo : mShaderReflectionInfo.mConstantBufferInfo)
+        for(auto& bindingInfo : mShaderReflectionInfo.mBufferInfo)
         {
             if(bindingInfo.resourceName == name)
             {
@@ -35,5 +21,22 @@ namespace EngineCore
 
         ASSERT(find == true);
         resourceMap[name] = buffer;
+    }
+
+    void ComputeShader::SetTexture(const std::string &name, IGPUTexture *texture, uint32_t mipLevel)
+    {
+        bool find = false;
+        bool isUav = false;
+        for(auto& bindingInfo : mShaderReflectionInfo.mTextureInfo)
+        {
+            if(bindingInfo.resourceName == name)
+            {
+                find = true;
+                isUav = bindingInfo.type == ShaderResourceType::RWTEXTURE ? true : false;
+            }
+        }
+
+        ASSERT(find == true);
+        textureResourceMap[name] = {texture, isUav, mipLevel};
     }
 }
