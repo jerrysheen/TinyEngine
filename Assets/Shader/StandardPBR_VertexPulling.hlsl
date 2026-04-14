@@ -10,9 +10,9 @@ Texture2D g_Textures[1024] : register(t0, space0);
 
 
 // 采样器
-SamplerState LinearSampler : register(s0, space0);
-SamplerState PointSampler : register(s1, space0);
-SamplerState AnisotropicSampler : register(s2,space0);
+SamplerState sampler_linear_wrap : register(s0, space0);
+SamplerState sampler_point_clamp : register(s1, space0);
+SamplerState sampler_anisotropic_wrap : register(s2,space0);
 SamplerComparisonState ShadowSampler : register(s3, space0);
 
 // 顶点着色器输入
@@ -79,16 +79,16 @@ float4 PSMain(VertexOutput input) : SV_Target
     PerMaterialData matData = LoadPerMaterialData(data.matIndex);
 
     float2 uv = input.TexCoord;
-    float4 diffuseSample = g_Textures[matData.DiffuseTextureIndex].Sample(LinearSampler, uv);
+    float4 diffuseSample = g_Textures[matData.DiffuseTextureIndex].Sample(sampler_linear_wrap, uv);
     float3 albedo = diffuseSample.xyz * matData.DiffuseColor.xyz;
-    float3 emissive = g_Textures[matData.EmissiveTextureID].Sample(LinearSampler, uv).xyz;
+    float3 emissive = g_Textures[matData.EmissiveTextureID].Sample(sampler_linear_wrap, uv).xyz;
 
-    float4 specGlossSample = g_Textures[matData.MetallicTextureID].Sample(LinearSampler, uv);
+    float4 specGlossSample = g_Textures[matData.MetallicTextureID].Sample(sampler_linear_wrap, uv);
     float3 specularColor = specGlossSample.rgb * matData.SpecularColor.xyz;
     float glossiness = saturate(specGlossSample.a * (1.0f - matData.Roughness));
     float roughness = saturate(1.0f - glossiness);
 
-    float3 normalTS = g_Textures[matData.NormalTextureIndex].Sample(LinearSampler, uv).xyz * 2.0f - 1.0f;
+    float3 normalTS = g_Textures[matData.NormalTextureIndex].Sample(sampler_linear_wrap, uv).xyz * 2.0f - 1.0f;
     normalTS = normalize(normalTS);
 
     float3 N = normalize(input.Normal);

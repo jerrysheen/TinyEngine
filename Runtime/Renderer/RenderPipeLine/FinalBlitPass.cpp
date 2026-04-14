@@ -22,7 +22,7 @@ namespace EngineCore
         mRenderPassInfo.passName = "FinalBlitPass";
         mRenderPassInfo.enableBatch = false;
         SetRenderTarget(RenderAPI::GetInstance()->GetCurrentBackBuffer(), nullptr);
-        SetClearFlag(ClearFlag::All, Vector3(0.0, 0.0, 0.0), 1.0f);
+        SetClearFlag(ClearFlag::All, Vector3(0.0, 0.0, 0.0), Z_CLEAR_VALUE);
         #ifdef EDITOR
             SetViewPort(EngineEditor::EditorSettings::GetGameViewPanelStartPos(), EngineEditor::EditorSettings::GetGameViewPanelEndPos());
         #else

@@ -110,8 +110,11 @@ namespace EngineCore
         RenderTexture* depthAttachment;
         ClearFlag clearFlag;
         Vector3 clearColorValue;
-        float clearDepthValue;
-
+#ifdef REVERSE_Z
+        float clearDepthValue = 0.0f;
+#else
+        float clearDepthValue = 1.0f;
+#endif
         //PerDrawData perdrawData;
         Vector2 viewportStartPos;
         Vector2 viewportEndPos;
@@ -126,7 +129,11 @@ namespace EngineCore
         {
             clearFlag = ClearFlag::None;
             clearColorValue = Vector3::Zero;
+#ifdef REVERSE_Z
+            clearDepthValue = 0.0;
+#else
             clearDepthValue = 1.0;
+#endif
             //perdrawData.Reset();
             viewportStartPos = Vector2::Zero;
             viewportStartPos = Vector2::Zero;

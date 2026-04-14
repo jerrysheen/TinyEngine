@@ -1,8 +1,15 @@
-
+#pragma once
 // todo： 根据 系统 linux windows android
 // 选择默认的API
 #define D3D12_API
 #define EDITOR
+#define REVERSE_Z
+
+#ifdef REVERSE_Z
+inline constexpr float Z_CLEAR_VALUE = 0.0f;
+#else
+inline constexpr float Z_CLEAR_VALUE = 1.0f;
+#endif
 
 // ========== Windows API（新增） ==========
 #ifdef _WIN32

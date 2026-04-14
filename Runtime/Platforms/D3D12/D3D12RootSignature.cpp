@@ -216,13 +216,8 @@ namespace EngineCore
         staticSamplers.reserve(samplers.size());
         for (const auto& samp : samplers)
         {
-            CD3DX12_STATIC_SAMPLER_DESC sdesc(
-                (UINT)samp.registerSlot,
-                D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-                D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-                D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-                D3D12_TEXTURE_ADDRESS_MODE_WRAP
-            );
+
+            CD3DX12_STATIC_SAMPLER_DESC sdesc = GetSamplerDescByName(samp.resourceName, samp.registerSlot);
             sdesc.RegisterSpace = (UINT)samp.space;
             sdesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
             staticSamplers.push_back(sdesc);
@@ -338,5 +333,56 @@ namespace EngineCore
             IID_PPV_ARGS(&rootSig)));
   
         return rootSig;
+    }
+
+
+    CD3DX12_STATIC_SAMPLER_DESC D3D12RootSignature::GetSamplerDescByName(const std::string& name, uint32_t registerSlot)
+    {
+        if (name == "sampler_point_clamp")
+        {
+            CD3DX12_STATIC_SAMPLER_DESC desc(
+                registerSlot,
+                D3D12_FILTER_MIN_MAG_MIP_POINT,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP
+                );
+            return desc;
+        }
+        else if (name == "sampler_linear_wrap")
+        {
+            CD3DX12_STATIC_SAMPLER_DESC desc(
+                registerSlot,
+                D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+                D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+                D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+                D3D12_TEXTURE_ADDRESS_MODE_WRAP
+            );
+            return desc;
+        }
+        else if (name == "sampler_linear_clamp")
+        {
+            CD3DX12_STATIC_SAMPLER_DESC desc(
+                registerSlot,
+                D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP,
+                D3D12_TEXTURE_ADDRESS_MODE_CLAMP
+            );
+            return desc;
+        }
+        else if (name == "sampler_anisotropic_wrap")
+        {
+            CD3DX12_STATIC_SAMPLER_DESC desc(
+                registerSlot,
+                D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+                D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+                D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+                D3D12_TEXTURE_ADDRESS_MODE_WRAP
+            );
+            return desc;
+        }
+        ASSERT("Name Not Match");
+        return CD3DX12_STATIC_SAMPLER_DESC();
     }
 }

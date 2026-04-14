@@ -10,7 +10,7 @@
 
 // BlitShader.hlsl
 Texture2D SrcTexture : register(t0, space0);
-SamplerState LinearSampler : register(s0, space0);
+SamplerState sampler_linear_wrap : register(s0, space0);
 
 // 使用传统的顶点输入
 struct VertexInput
@@ -45,5 +45,5 @@ float4 PSMain(VertexOutput input) : SV_Target
     float _FlipY = 1.0f;
     float2 uv = input.TexCoord;
     if(_FlipY > 0.1) uv.y = 1.0 - uv.y; 
-    return pow(SrcTexture.Sample(LinearSampler, uv), 0.45);
+    return pow(SrcTexture.Sample(sampler_linear_wrap, uv), 0.45);
 }

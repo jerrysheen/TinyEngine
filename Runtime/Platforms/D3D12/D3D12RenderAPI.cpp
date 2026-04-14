@@ -143,6 +143,11 @@ namespace EngineCore
 
         D3D12_CLEAR_VALUE optClear;
         optClear.Format = mDepthStencilFormat;
+#ifdef REVERSE_Z
+        optClear.DepthStencil.Depth = 0.0f;
+#else
+        optClear.DepthStencil.Depth = 1.0f;
+#endif
         optClear.DepthStencil.Depth = 1.0f;
         optClear.DepthStencil.Stencil = 0;
         ThrowIfFailed(md3dDevice->CreateCommittedResource(
@@ -497,7 +502,11 @@ namespace EngineCore
         if (textureDesc.format == TextureFormat::D24S8)
         {
             clearValue.Format = d3dUtil::GetDSVFormat(textureDesc.format);
+#ifdef REVERSE_Z
+            clearValue.DepthStencil.Depth = 0.0f;
+#else
             clearValue.DepthStencil.Depth = 1.0f;
+#endif
             clearValue.DepthStencil.Stencil = 0;
         }
         else
@@ -1289,7 +1298,11 @@ namespace EngineCore
 
         D3D12_CLEAR_VALUE optClear;
         optClear.Format = mDepthStencilFormat;
+#ifdef REVERSE_Z
+        optClear.DepthStencil.Depth = 0.0f;
+#else
         optClear.DepthStencil.Depth = 1.0f;
+#endif
         optClear.DepthStencil.Stencil = 0;
         ThrowIfFailed(md3dDevice->CreateCommittedResource(
             &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),

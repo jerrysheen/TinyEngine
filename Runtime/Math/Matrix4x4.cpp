@@ -60,12 +60,21 @@ namespace EngineCore
         float fovRadians = mFov * 3.14159265359f / 180.0f; 
         //[NDC 0, 1] z轴已经对齐，不用转化
         #ifdef D3D12_API
-            return Matrix4x4(
-                1.0f/(mAspect * std::tan(fovRadians/2)), 0.0f, 0.0f, 0.0f,
-                0.0f, 1.0f / (std::tan(fovRadians/2)), 0.0f, 0.0f,
-                0.0f, 0.0f, mFar / (mFar - mNear), -(mFar * mNear) / (mFar - mNear),  // DirectX风格
-                0.0f, 0.0f, 1.0f, 0.0f
-            );
+            #ifndef REVERSE_Z
+                return Matrix4x4(
+                    1.0f / (mAspect * std::tan(fovRadians / 2)), 0.0f, 0.0f, 0.0f,
+                    0.0f, 1.0f / (std::tan(fovRadians / 2)), 0.0f, 0.0f,
+                    0.0f, 0.0f, mFar / (mFar - mNear), -(mFar * mNear) / (mFar - mNear),  // DirectX风格
+                    0.0f, 0.0f, 1.0f, 0.0f
+                );
+            #else // !1
+                return Matrix4x4(
+                    1.0f / (mAspect * std::tan(fovRadians / 2)), 0.0f, 0.0f, 0.0f,
+                    0.0f, 1.0f / (std::tan(fovRadians / 2)), 0.0f, 0.0f,
+                    0.0f, 0.0f, mNear / (mNear - mFar), -(mFar * mNear) / (mNear - mFar),  // DirectX风格
+                    0.0f, 0.0f, 1.0f, 0.0f
+                );
+            #endif      
         #elif
         //[NDC -1, 1] z轴需要反向，不用转化
         #endif

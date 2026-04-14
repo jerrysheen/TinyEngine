@@ -10,9 +10,9 @@ Texture2D g_Textures[1024] : register(t0, space0);
 
 
 // 采样器
-SamplerState LinearSampler : register(s0, space0);
-SamplerState PointSampler : register(s1, space0);
-SamplerState AnisotropicSampler : register(s2,space0);
+SamplerState linear_wrap : register(s0, space0);
+SamplerState point_clamp : register(s1, space0);
+SamplerState anisotropic_wrap : register(s2,space0);
 SamplerComparisonState ShadowSampler : register(s3, space0);
 
 // 顶点着色器输入
@@ -68,12 +68,12 @@ float4 PSMain(VertexOutput input) : SV_Target
     PerMaterialData matData = LoadPerMaterialData(data.matIndex);
     half4 diffuseColor = matData.DiffuseColor;
     // todo: 材质属性还没设置
-    //diffuseColor.xyz = DiffuseTexture.Sample(LinearSampler, input.TexCoord).xyz * diffuseColor.xyz ;
-    diffuseColor.xyz = g_Textures[matData.DiffuseTextureIndex].Sample(LinearSampler, input.TexCoord).xyz;
+    //diffuseColor.xyz = DiffuseTexture.Sample(sampler_linear_wrap, input.TexCoord).xyz * diffuseColor.xyz ;
+    diffuseColor.xyz = g_Textures[matData.DiffuseTextureIndex].Sample(sampler_linear_wrap, input.TexCoord).xyz;
     return diffuseColor;
 
     // // 采样纹理
-    // float4 diffuseColor = DiffuseTexture.Sample(LinearSampler, input.TexCoord);
+    // float4 diffuseColor = DiffuseTexture.Sample(sampler_linear_wrap, input.TexCoord);
     // float3 normalMap = NormalTexture.Sample(AnisotropicSampler, input.TexCoord).xyz;
     // float specularValue = SpecularTexture.Sample(PointSampler, input.TexCoord).r;
     
@@ -99,7 +99,7 @@ float4 PSMain(VertexOutput input) : SV_Target
     
     // // 环境反射
     // float3 envReflect = reflect(-viewDir, normal);
-    // float3 envColor = EnvironmentMap.Sample(LinearSampler, envReflect).rgb;
+    // float3 envColor = EnvironmentMap.Sample(sampler_linear_wrap, envReflect).rgb;
     // float3 fresnel = lerp(float3(0.04, 0.04, 0.04), albedo, Metallic);
     // float3 reflection = envColor * fresnel * (1.0f - Roughness);
     

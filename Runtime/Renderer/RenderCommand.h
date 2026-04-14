@@ -71,7 +71,11 @@ namespace EngineCore
         // depth stencil state:
         bool enableDepthTest = true;
         bool enableDepthWrite = true;
+#ifdef REVERSE_Z
+        DepthComparisonFunc depthComparisonFunc = DepthComparisonFunc::GREATEQUAL;
+#else
         DepthComparisonFunc depthComparisonFunc = DepthComparisonFunc::LEQUAL;
+#endif
         bool isBindLessMaterial = false;
         // blend mode
         bool enableBlend = false;
@@ -98,7 +102,11 @@ namespace EngineCore
             rootSignatureKey;
             enableDepthTest = true;
             enableDepthWrite = true;
+#ifdef REVERSE_Z
+            depthComparisonFunc = DepthComparisonFunc::GREATEQUAL;
+#else
             depthComparisonFunc = DepthComparisonFunc::LEQUAL;
+#endif
             enableBlend = false;
             srcBlend = (BlendState)0;
             destBlend = (BlendState)0;

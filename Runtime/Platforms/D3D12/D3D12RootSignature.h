@@ -30,5 +30,7 @@ namespace EngineCore
         }
 
         static ComPtr<ID3D12RootSignature> D3D12RootSignature::GetOrCreateGPUSceneGraphicsRootSig(ComPtr<ID3D12Device> md3dDevice);
+
+        static CD3DX12_STATIC_SAMPLER_DESC D3D12RootSignature::GetSamplerDescByName(const std::string& name, uint32_t registerSlot);
     };
 }
