@@ -50,6 +50,9 @@ namespace EngineCore
 
         path = PathSettings::ResolveAssetPath("Shader/HIzCSShader.hlsl");
         HizCSShaderHandler = ResourceManager::GetInstance()->CreateResource<ComputeShader>(path);
+
+        path = PathSettings::ResolveAssetPath("Shader/BlitCSShader.hlsl");
+        BlitCSShaderHandler = ResourceManager::GetInstance()->CreateResource<ComputeShader>(path);
         
         TextureDesc hiZDesc;
         hiZDesc.name = "hiZTexture";
@@ -201,21 +204,26 @@ namespace EngineCore
         }
 
 
-        ////---------------- IndirectDrawCall Combine Pass
-        //RenderTexture* currHIZTexture = RWHiZTexture[frameID % 3];
-        //ComputeShader* hiZCSShader = HizCSShaderHandler.Get();
-        //// 1. blit to Src...
-        //for(int i = 0; i < currHIZTexture->GetMipCount() - 1; i++)
-        //{
-        //    hiZCSShader->SetTexture("g_InputTexture", currHIZTexture->textureBuffer, i);
-        //    hiZCSShader->SetTexture("g_OutputTexture",currHIZTexture->textureBuffer, i + 1);
-
-        //    Payload_DispatchComputeShader hiZPayload = {};
-        //    hiZPayload.csShader = hiZCSShader;
-        //    hiZPayload.groupX = 1;
-        //    hiZPayload.groupY = 1;
-        //    hiZPayload.groupZ = 1;
-        //    RenderBackend::GetInstance()->DispatchComputeShader(hiZPayload);
+        //---------------- IndirectDrawCall Combine Pass
+        RenderTexture* currHIZTexture = RWHiZTexture[frameID % 3];
+        // ComputeShader* hiZCSShader = HizCSShaderHandler.Get();
+        // // 1. blit to Src...
+        // for(int i = 0; i < currHIZTexture->GetMipCount() - 1; i++)
+        // {
+        //     hiZCSShader->SetTexture("g_InputTexture", currHIZTexture->textureBuffer, i);
+        //     hiZCSShader->SetTexture("g_OutputTexture",currHIZTexture->textureBuffer, i + 1);
+        // }
+        ComputeShader* blitShader = BlitCSShaderHandler.Get(); 
+        Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->GetMainCamera();
+        ASSERT(cam);
+        blitShader->SetTexture("SrcTexture", cam->depthAttachment->textureBuffer, 0);
+        blitShader->SetTexture("DstTexture", currHIZTexture->textureBuffer, 0);
+        Payload_DispatchComputeShader blitPayload = {};
+        blitPayload.csShader = blitShader;
+        blitPayload.groupX = 1920 / 8;
+        blitPayload.groupY = 1080 / 8;
+        blitPayload.groupZ = 1;
+        RenderBackend::GetInstance()->DispatchComputeShader(blitPayload);
         //}
         
         

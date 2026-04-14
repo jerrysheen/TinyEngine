@@ -68,9 +68,16 @@ namespace EngineCore
         }
     }
 
-    DescriptorHandle D3D12DescManager::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_UNORDERED_ACCESS_VIEW_DESC &desc)
+    DescriptorHandle D3D12DescManager::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_UNORDERED_ACCESS_VIEW_DESC &desc, bool isShaderVisible)
     {
-        return mBindlessAllocator->CreateDescriptor(resource, desc);
+        if (isShaderVisible)
+        {
+            return mBindlessAllocator->CreateDescriptor(resource, desc);
+        }
+        else
+        {
+            return mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV].CreateDescriptor(resource, desc);
+        }
     }
 
     DescriptorHandle D3D12DescManager::CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_DEPTH_STENCIL_VIEW_DESC& desc)

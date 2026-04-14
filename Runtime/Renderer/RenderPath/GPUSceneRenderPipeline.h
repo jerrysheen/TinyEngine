@@ -44,6 +44,7 @@ namespace EngineCore
         //GPUBufferAllocator* indirectDrawArgsBuffer[3];
         ResourceHandle<ComputeShader> IndirectDrawCombineShaderHandler;
         ResourceHandle<ComputeShader> HizCSShaderHandler;
+        ResourceHandle<ComputeShader> BlitCSShaderHandler;
 
         RenderTexture* RWHiZTexture[3];
         

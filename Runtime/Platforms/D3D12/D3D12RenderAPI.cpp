@@ -591,7 +591,7 @@ namespace EngineCore
                 uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
                 uavDesc.Texture2D.MipSlice = mip;
                 texture->uavHandles[mip] = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource.Get(),
-                    uavDesc);
+                    uavDesc, false);
             }
         }
 
@@ -1504,21 +1504,20 @@ namespace EngineCore
 
             for (int i = 0; i < textureSrvs.size(); i++)
             {
-
                 ASSERT(texIndex < static_cast<int>(dispatchComputeShader.textureBindings.count));
                 auto& texBinding = dispatchComputeShader.textureBindings.bindingInfo[texIndex];
+                ASSERT(texBinding.texture != nullptr);
+                ASSERT(texBinding.isUAV == false);
                 D3D12Texture* d3dTex = static_cast<D3D12Texture*>(texBinding.texture);
-                // 拿到对应Mip的SRV描述符
                 D3D12_CPU_DESCRIPTOR_HANDLE src = { d3dTex->srvHandle.cpuHandle };
                 D3D12_CPU_DESCRIPTOR_HANDLE dst = { srvTable.cpuHandle + i * mCbvSrvUavDescriptorSize };
                 md3dDevice->CopyDescriptorsSimple(1, dst, src, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+                texIndex++;
             }
 
-            // ⭐ 纹理使用 Root Param 5（固定，因为 Slot 4 留给了 UAV）
             D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
             gpuHandle.ptr = srvTable.gpuHandle;
-            mCommandList->SetGraphicsRootDescriptorTable(rootParamIndex, gpuHandle);
-            texIndex++;
+            mCommandList->SetComputeRootDescriptorTable(rootParamIndex, gpuHandle);
         }
         rootParamIndex++;
 
@@ -1527,20 +1526,22 @@ namespace EngineCore
             DescriptorHandle uavTable =
                 D3D12DescManager::GetInstance()->GetFrameCbvSrvUavAllocator(textureUavs.size());
 
-            for (int i = 0; i < textureSrvs.size(); i++)
+            for (int i = 0; i < textureUavs.size(); i++)
             {
                 ASSERT(texIndex < static_cast<int>(dispatchComputeShader.textureBindings.count));
                 auto& texBinding = dispatchComputeShader.textureBindings.bindingInfo[texIndex];
+                ASSERT(texBinding.texture != nullptr);
+                ASSERT(texBinding.isUAV == true);
                 D3D12Texture* d3dTex = static_cast<D3D12Texture*>(texBinding.texture);
-                // 拿到对应Mip的SRV描述符
-                D3D12_CPU_DESCRIPTOR_HANDLE src = { d3dTex->srvHandle.cpuHandle };
+                D3D12_CPU_DESCRIPTOR_HANDLE src = { d3dTex->GetUAVByMip(static_cast<int>(texBinding.mipLevel)).cpuHandle };
                 D3D12_CPU_DESCRIPTOR_HANDLE dst = { uavTable.cpuHandle + i * mCbvSrvUavDescriptorSize };
                 md3dDevice->CopyDescriptorsSimple(1, dst, src, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+                texIndex++;
             }
 
             D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
             gpuHandle.ptr = uavTable.gpuHandle;
-            mCommandList->SetGraphicsRootDescriptorTable(rootParamIndex, gpuHandle);
+            mCommandList->SetComputeRootDescriptorTable(rootParamIndex, gpuHandle);
         }
         rootParamIndex++;
 
