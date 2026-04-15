@@ -7,6 +7,7 @@
 #include <dxgi1_4.h>
 #include <tchar.h>
 #include "Platforms/D3D12/D3D12RenderAPI.h"
+#include "Platforms/D3D12/d3dUtil.h"
 #include "Renderer/RenderAPI.h"
 #include "Managers/WindowManager.h"
 #include "Platforms/Windows/WindowManagerWindows.h"
@@ -72,6 +73,8 @@ namespace EngineEditor
 		ImGui::DestroyContext();
 
 		descriptorHeap.Reset();
+        delete mGUIFence;
+        mGUIFence = nullptr;
     }
 
     void D3D12EditorGUIManager::BeginFrame()
@@ -84,26 +87,31 @@ namespace EngineEditor
     void D3D12EditorGUIManager::EndFrame()
     {
         auto renderAPI = static_cast<EngineCore::D3D12RenderAPI*>(EngineCore::RenderAPI::GetInstance());
+        ImDrawData* drawData = ImGui::GetDrawData();
+        if (drawData == nullptr)
+        {
+            return;
+        }
+
         const uint32_t allocatorIndex = renderAPI->mCurrBackBuffer;
         uint64_t lastFenceValue = allocatorFenceValues[allocatorIndex];
-        if (lastFenceValue > 0 && renderAPI->GetFrameFence()->mFence->GetCompletedValue() < lastFenceValue)
+        if (lastFenceValue > 0 && mGUIFence->mFence->GetCompletedValue() < lastFenceValue)
         {
             HANDLE eventHandle = CreateEventEx(nullptr, NULL, NULL, EVENT_ALL_ACCESS);
             if (eventHandle)
             {
-                HRESULT hr = renderAPI->GetFrameFence()->mFence->SetEventOnCompletion(lastFenceValue, eventHandle);
-                assert(SUCCEEDED(hr));
+                ThrowIfFailed(mGUIFence->mFence->SetEventOnCompletion(lastFenceValue, eventHandle));
                 WaitForSingleObject(eventHandle, INFINITE);
                 CloseHandle(eventHandle);
             }
             else
             {
-                assert(false && "CreateEventEx failed in D3D12EditorGUIManager::EndFrame");
+                ASSERT_MSG(false, "CreateEventEx failed in D3D12EditorGUIManager::EndFrame");
             }
         }
 
-		commandAllocators[allocatorIndex]->Reset();
-		commandList->Reset(commandAllocators[allocatorIndex].Get(), NULL);
+		ThrowIfFailed(commandAllocators[allocatorIndex]->Reset());
+		ThrowIfFailed(commandList->Reset(commandAllocators[allocatorIndex].Get(), NULL));
 
         auto currentBackBuffer = renderAPI->mBackBuffer[allocatorIndex].m_Resource;
 		auto toRenderTarget = CD3DX12_RESOURCE_BARRIER::Transition(currentBackBuffer.Get(),
@@ -116,19 +124,20 @@ namespace EngineEditor
 		ID3D12DescriptorHeap* curDescriptorHeaps[] = { descriptorHeap.Get() };
 		commandList->SetDescriptorHeaps(1, curDescriptorHeaps);
 
-		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList.Get());
+		ImGui_ImplDX12_RenderDrawData(drawData, commandList.Get());
 
 		auto toPresent = CD3DX12_RESOURCE_BARRIER::Transition(currentBackBuffer.Get(),
 			D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 		commandList->ResourceBarrier(1, &toPresent);
 
-		commandList->Close();
+		ThrowIfFailed(commandList->Close());
 
 		ID3D12CommandList* cmdsLists[] = { commandList.Get() };
 		renderAPI->mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
 
-		renderAPI->SignalFence(renderAPI->GetFrameFence());
-        allocatorFenceValues[allocatorIndex] = renderAPI->GetFrameFence()->mCurrentFence;
+        mGUIFence->mCurrentFence++;
+        ThrowIfFailed(renderAPI->mCommandQueue->Signal(mGUIFence->mFence.Get(), mGUIFence->mCurrentFence));
+        allocatorFenceValues[allocatorIndex] = mGUIFence->mCurrentFence;
     }
     
     
@@ -151,6 +160,10 @@ namespace EngineEditor
 
 		ImGui_ImplDX12_Init(renderAPI->md3dDevice.Get(),  renderAPI->MAX_FRAME_INFLIAGHT, renderAPI->mBackBufferFormat, descriptorHeap.Get(),
 			descriptorHeap->GetCPUDescriptorHandleForHeapStart(), descriptorHeap->GetGPUDescriptorHandleForHeapStart());
+
+        mGUIFence = new EngineCore::TD3D12Fence();
+        ThrowIfFailed(renderAPI->md3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mGUIFence->mFence)));
+        mGUIFence->mCurrentFence = 0;
 
 		commandAllocators.resize(renderAPI->MAX_FRAME_INFLIAGHT);
         allocatorFenceValues.resize(renderAPI->MAX_FRAME_INFLIAGHT, 0);

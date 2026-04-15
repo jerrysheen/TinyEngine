@@ -97,6 +97,10 @@ public:
     static bool IsKeyDown(int vkeyCode);
 
     static std::string ToString(HRESULT hr);
+    static void SetDebugDevice(ID3D12Device* device);
+    static ID3D12Device* GetDebugDevice();
+    static std::wstring GetDetailedHRESULTMessage(HRESULT hr);
+    static void ReportFailure(HRESULT hr, const std::wstring& functionName, const std::wstring& filename, int lineNumber);
 
     static UINT CalcConstantBufferByteSize(UINT byteSize)
     {
@@ -193,7 +197,11 @@ struct D3D12DrawCommand
 {                                                                     \
     HRESULT hr__ = (x);                                               \
     std::wstring wfn = AnsiToWString(__FILE__);                       \
-    if(FAILED(hr__)) { throw DxException(hr__, L#x, wfn, __LINE__); } \
+    if(FAILED(hr__))                                                  \
+    {                                                                 \
+        d3dUtil::ReportFailure(hr__, L#x, wfn, __LINE__);             \
+        throw DxException(hr__, L#x, wfn, __LINE__);                  \
+    }                                                                 \
 }
 #endif
 #ifndef ReleaseCom

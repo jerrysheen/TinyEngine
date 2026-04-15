@@ -1,6 +1,7 @@
 #pragma once
 #include "PreCompiledHeader.h"
 #include "Platforms/D3D12/d3dUtil.h"
+#include "Platforms/D3D12/D3D12Struct.h"
 #include "EditorGUIManager.h"
 #include "imgui.h"
 
@@ -41,6 +42,7 @@ namespace EngineEditor
 		ComPtr<ID3D12GraphicsCommandList> commandList = nullptr;
 		std::vector<ComPtr<ID3D12CommandAllocator>> commandAllocators;
         std::vector<uint64_t> allocatorFenceValues;
+        EngineCore::TD3D12Fence* mGUIFence = nullptr;
 
 		void InitForDirectX12();
 		UINT GetNextAvailablePos();

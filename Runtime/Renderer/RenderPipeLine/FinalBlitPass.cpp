@@ -41,7 +41,7 @@ namespace EngineCore
 
     void FinalBlitPass::Execute(RenderContext &context)
     {
-
+        RenderBackend::GetInstance()->SetResourceState(context.camera->colorAttachment->textureBuffer, BufferResourceState::STATE_SHADER_RESOURCE);
         // todo： 后面挪到别的地方， 先做Batch的部分：
         RenderBackend::GetInstance()->ConfigureRenderTarget(mRenderPassInfo);
         RenderBackend::GetInstance()->SetViewPort(mRenderPassInfo.viewportStartPos, mRenderPassInfo.viewportEndPos);

@@ -5,6 +5,11 @@
 #include <fstream>
 using Microsoft::WRL::ComPtr;
 
+namespace
+{
+    ID3D12Device* gDebugDevice = nullptr;
+}
+
 DxException::DxException(HRESULT hr, const std::wstring& functionName, const std::wstring& filename, int lineNumber) :
     ErrorCode(hr),
     FunctionName(functionName),
@@ -16,6 +21,79 @@ DxException::DxException(HRESULT hr, const std::wstring& functionName, const std
 bool d3dUtil::IsKeyDown(int vkeyCode)
 {
     return (GetAsyncKeyState(vkeyCode) & 0x8000) != 0;
+}
+
+std::string d3dUtil::ToString(HRESULT hr)
+{
+    std::stringstream ss;
+    ss << std::hex << std::uppercase << static_cast<unsigned long>(hr);
+    return ss.str();
+}
+
+void d3dUtil::SetDebugDevice(ID3D12Device* device)
+{
+    gDebugDevice = device;
+}
+
+ID3D12Device* d3dUtil::GetDebugDevice()
+{
+    return gDebugDevice;
+}
+
+std::wstring d3dUtil::GetDetailedHRESULTMessage(HRESULT hr)
+{
+    _com_error err(hr);
+    std::wstring msg = err.ErrorMessage();
+
+    if (gDebugDevice)
+    {
+        HRESULT removedReason = gDebugDevice->GetDeviceRemovedReason();
+        if (removedReason != S_OK)
+        {
+            _com_error removedErr(removedReason);
+            msg += L" | DeviceRemovedReason: ";
+            msg += removedErr.ErrorMessage();
+            msg += L" (0x" + AnsiToWString(ToString(removedReason)) + L")";
+        }
+
+#if defined(_DEBUG)
+        ComPtr<ID3D12InfoQueue> infoQueue;
+        if (SUCCEEDED(gDebugDevice->QueryInterface(IID_PPV_ARGS(&infoQueue))))
+        {
+            const UINT64 messageCount = infoQueue->GetNumStoredMessagesAllowedByRetrievalFilter();
+            const UINT64 firstMessage = (messageCount > 8) ? (messageCount - 8) : 0;
+            for (UINT64 i = firstMessage; i < messageCount; ++i)
+            {
+                SIZE_T messageLength = 0;
+                if (FAILED(infoQueue->GetMessage(i, nullptr, &messageLength)) || messageLength == 0)
+                {
+                    continue;
+                }
+
+                std::vector<char> bytes(messageLength);
+                auto* message = reinterpret_cast<D3D12_MESSAGE*>(bytes.data());
+                if (FAILED(infoQueue->GetMessage(i, message, &messageLength)))
+                {
+                    continue;
+                }
+
+                msg += L"\n[D3D12] ";
+                msg += AnsiToWString(message->pDescription ? message->pDescription : "");
+            }
+        }
+#endif
+    }
+
+    return msg;
+}
+
+void d3dUtil::ReportFailure(HRESULT hr, const std::wstring& functionName, const std::wstring& filename, int lineNumber)
+{
+    std::wstring text = functionName + L" failed in " + filename + L"; line " +
+        std::to_wstring(lineNumber) + L"; error: " + GetDetailedHRESULTMessage(hr) + L"\n";
+
+    OutputDebugStringW(text.c_str());
+    std::wcerr << text;
 }
 
 ComPtr<ID3DBlob> d3dUtil::LoadBinary(const std::wstring& filename)
@@ -183,11 +261,8 @@ DXGI_FORMAT d3dUtil::GetResourceFormat(const EngineCore::TextureFormat& format)
 
 std::wstring DxException::ToString()const
 {
-    // Get the string description of the error code.
-    _com_error err(ErrorCode);
-    std::wstring msg = err.ErrorMessage();
-
-    return FunctionName + L" failed in " + Filename + L"; line " + std::to_wstring(LineNumber) + L"; error: " + msg;
+    return FunctionName + L" failed in " + Filename + L"; line " + std::to_wstring(LineNumber) +
+        L"; error: " + d3dUtil::GetDetailedHRESULTMessage(ErrorCode);
 }
 
 D3D12_RESOURCE_DIMENSION d3dUtil::GetD3DDimension(const EngineCore::TextureDimension& dimension)

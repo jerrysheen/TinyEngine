@@ -41,6 +41,12 @@ namespace EngineCore
         ComPtr<ID3D12Debug> debugController;
         ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
         debugController->EnableDebugLayer();
+
+        ComPtr<ID3D12Debug1> debugController1;
+        if (SUCCEEDED(debugController.As(&debugController1)))
+        {
+            debugController1->SetEnableGPUBasedValidation(true);
+        }
     }
     #endif
 
@@ -63,6 +69,18 @@ namespace EngineCore
                 D3D_FEATURE_LEVEL_11_0,
                 IID_PPV_ARGS(&md3dDevice)));
         }
+
+        d3dUtil::SetDebugDevice(md3dDevice.Get());
+
+#if defined(DEBUG) || defined(_DEBUG)
+        ComPtr<ID3D12InfoQueue> infoQueue;
+        if (SUCCEEDED(md3dDevice.As(&infoQueue)))
+        {
+            infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
+            infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
+            infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, false);
+        }
+#endif
 
     #ifdef _DEBUG
         //LogAdapters();
@@ -1369,15 +1387,17 @@ namespace EngineCore
         mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
         // swap the back and front buffers
         SignalFence(mFrameFence);
-
-        uint64_t currentFenceValue = mFrameFence->mCurrentFence;
-        mDirectAllocatorFenceValues[mCurrBackBuffer] = currentFenceValue;
-        mCurrentFrameTicket->PublishSubmission(mCurrentFrameID, currentFenceValue);
     }
 
     // todo 这个分类似乎不合理
     void D3D12RenderAPI::RenderAPIPresentFrame()
     {
+        // 记录当前 back buffer 在本帧全部队列提交结束后的最终 fence。
+        // 这样下一次复用对应 allocator 时，等待条件覆盖主渲染和可能追加的 GUI 提交。
+        uint64_t currentFenceValue = mFrameFence->mCurrentFence;
+        mDirectAllocatorFenceValues[mCurrBackBuffer] = currentFenceValue;
+        mCurrentFrameTicket->PublishSubmission(mCurrentFrameID, currentFenceValue);
+
         ThrowIfFailed(mSwapChain->Present(0, 0));
         mCurrBackBuffer = mSwapChain->GetCurrentBackBufferIndex();
         D3D12DescManager::GetInstance()->ResetFrameAllocator();
