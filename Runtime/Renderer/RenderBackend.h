@@ -114,11 +114,10 @@ namespace EngineCore
 
                     ProcessDrawCommand(cmd);
 
-                    if (!mRenderBuffer.TryPop(cmd))
+                    while (!mRenderBuffer.TryPop(cmd))
                     {
                         mDataAvailableEvent.Wait();
                         if (!mRunning.load(std::memory_order_acquire)) break;
-                        if (!mRenderBuffer.TryPop(cmd)) continue;
                     }
                 }
                 PROFILER_EVENT_END("RenderThread::ProcessDrawComand");
@@ -150,7 +149,7 @@ namespace EngineCore
 
                 if (hasResize)
                 {
-                    RenderAPI::GetInstance()->RenderAPIWindowResize(pendingResize);
+                        RenderAPI::GetInstance()->RenderAPIWindowResize(pendingResize);
                     hasResize = false;
                     pendingResize = { 0,0 };
                 }
