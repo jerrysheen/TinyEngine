@@ -16,15 +16,38 @@ namespace EngineCore
 
     Scene::~Scene()
     {
+        // 退出时先打断层级和 scene 反向引用，避免析构期间互相修改容器。
+        std::vector<GameObject*> objectsToDelete = allObjList;
+        for (GameObject* gameObject : objectsToDelete)
+        {
+            if (gameObject == nullptr || gameObject->transform == nullptr)
+            {
+                continue;
+            }
+
+            for (Transform* child : gameObject->transform->childTransforms)
+            {
+                if (child != nullptr)
+                {
+                    child->parentTransform = nullptr;
+                }
+            }
+
+            gameObject->transform->childTransforms.clear();
+            gameObject->transform->parentTransform = nullptr;
+            gameObject->SetOwnerScene(nullptr);
+        }
+
         // 先清空列表，防止渲染线程访问到野指针
         rootObjList.clear();
+        allObjList.clear();
+        cameraStack.clear();
         
         // 再删除对象
-        for(int i = 0; i < allObjList.size(); i++)
+        for (GameObject* gameObject : objectsToDelete)
         {
-            delete allObjList[i];
+            delete gameObject;
         }
-        allObjList.clear();
         mainCamera = nullptr;
 
     }

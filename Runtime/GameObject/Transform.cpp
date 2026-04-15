@@ -24,13 +24,29 @@ namespace EngineCore
 
     Transform::~Transform()
     {
-        // 断开child链接
-        for (int i = 0; i < childTransforms.size(); i++)
+        Transform* oldParent = parentTransform;
+        parentTransform = nullptr;
+
+        // 析构时先断开自己的 child 列表，避免边遍历边修改容器。
+        std::vector<Transform*> children = childTransforms;
+        childTransforms.clear();
+        for (Transform* child : children)
         {
-            childTransforms[i]->DettachParent();
+            if (child != nullptr)
+            {
+                child->parentTransform = nullptr;
+            }
         }
-        // 断开parent链接
-        if (parentTransform != nullptr) parentTransform->RemoveChild(this);
+
+        if (oldParent != nullptr)
+        {
+            auto& siblings = oldParent->childTransforms;
+            auto it = std::find(siblings.begin(), siblings.end(), this);
+            if (it != siblings.end())
+            {
+                siblings.erase(it);
+            }
+        }
     }
 
     void Transform:: MarkDirty()

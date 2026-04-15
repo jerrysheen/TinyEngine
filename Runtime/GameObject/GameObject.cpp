@@ -60,7 +60,10 @@ namespace EngineCore
 
     GameObject::~GameObject()
     {
-        ownerScene->RemoveGameObjectToSceneList(this);
+        if (ownerScene != nullptr)
+        {
+            ownerScene->RemoveGameObjectToSceneList(this);
+        }
         // todo : component.OnDestroy;
         //todo: 调用所有Component的OnDestory函数
         for(auto& [key, value] : components)

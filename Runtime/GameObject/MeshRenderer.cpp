@@ -26,10 +26,11 @@ namespace EngineCore
     MeshRenderer::~MeshRenderer()
     {
 		Scene* scene = gameObject->GetOwnerScene();
-		ASSERT(scene != nullptr);
-
-		scene->DeleteRenderNode(this);
-	}
+		if (scene != nullptr)
+		{
+			scene->DeleteRenderNode(this);
+		}
+    }
 
 	void MeshRenderer::SetUpMaterialPropertyBlock()
     {
@@ -44,7 +45,11 @@ namespace EngineCore
 	void MeshRenderer::SetSharedMaterial(const ResourceHandle<Material>& mat)
 	{
 		mShardMatHandler = mat;
-		gameObject->GetOwnerScene()->MarkNodeMeshRendererDirty(this);
+		Scene* scene = gameObject->GetOwnerScene();
+		if (scene != nullptr)
+		{
+			scene->MarkNodeMeshRendererDirty(this);
+		}
 		//SetUpMaterialPropertyBlock();
 	}
 
@@ -74,7 +79,11 @@ namespace EngineCore
 
     void MeshRenderer::OnLoadResourceFinished()
     {
-		gameObject->GetOwnerScene()->MarkNodeMeshRendererDirty(this);
+		Scene* scene = gameObject->GetOwnerScene();
+		if (scene != nullptr)
+		{
+			scene->MarkNodeMeshRendererDirty(this);
+		}
 		return;
     }
 }
