@@ -310,6 +310,17 @@ namespace EngineCore
         EnqueueCommand(cmd);
     }
 
+    void RenderBackend::UAVBarrier(IGPUResource* resource)
+    {
+        ASSERT(resource != nullptr);
+        Payload_UAVBarrier payload;
+        payload.resource = resource;
+        DrawCommand cmd;
+        cmd.data.uavBarrier = payload;
+        cmd.op = RenderOp::kUAVBarrier;
+        EnqueueCommand(cmd);
+    }
+
     void RenderBackend::SetBindlessMat(Material *mat)
     {
         Payload_SetBindlessMat payload;
@@ -426,6 +437,9 @@ namespace EngineCore
             break;
         case RenderOp::kSetBufferResourceState:
             RenderAPI::GetInstance()->RenderAPISetBufferResourceState(cmd.data.setBufferResourceState);
+            break;
+        case RenderOp::kUAVBarrier:
+            RenderAPI::GetInstance()->RenderAPIUAVBarrier(cmd.data.uavBarrier);
             break;
         case RenderOp::kDrawIndirect:
             RenderAPI::GetInstance()->RenderAPIExecuteIndirect(cmd.data.setDrawIndirect);

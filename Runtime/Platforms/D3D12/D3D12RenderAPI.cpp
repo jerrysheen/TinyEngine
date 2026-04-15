@@ -1577,6 +1577,13 @@ namespace EngineCore
         resource->SetState(bufferResourceState.state);
     }
 
+    void D3D12RenderAPI::RenderAPIUAVBarrier(Payload_UAVBarrier uavBarrier)
+    {
+        ASSERT(uavBarrier.resource != nullptr);
+        auto* nativeHandle = static_cast<ID3D12Resource*>(uavBarrier.resource->GetNativeHandle());
+        mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::UAV(nativeHandle));
+    }
+
     void D3D12RenderAPI::RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect)
     {
         D3D12Buffer* argsBuffer = static_cast<D3D12Buffer*>(drawIndirect.indirectArgsBuffer);

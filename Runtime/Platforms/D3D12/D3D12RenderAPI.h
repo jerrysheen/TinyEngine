@@ -62,6 +62,7 @@ namespace EngineCore
         virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) override;
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) override;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) override;
+        virtual void RenderAPIUAVBarrier(Payload_UAVBarrier uavBarrier) override;
         virtual void RenderAPIExecuteIndirect(Payload_DrawIndirect drawIndirect) override;
         virtual void RenderAPICopyBufferStaged(Payload_CopyBufferStaged copyBufferStaged) override;
         

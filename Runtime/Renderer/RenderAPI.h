@@ -65,6 +65,7 @@ namespace  EngineCore
         virtual void RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion) = 0;
         virtual void RenderAPIDispatchComputeShader(Payload_DispatchComputeShader dispatchComputeShader) = 0;
         virtual void RenderAPISetBufferResourceState(Payload_SetBufferResourceState bufferResourceState) = 0;
+        virtual void RenderAPIUAVBarrier(Payload_UAVBarrier uavBarrier) = 0;
         virtual void RenderAPICopyBufferStaged(Payload_CopyBufferStaged copyBufferStaged) = 0;
         virtual RenderTexture* GetCurrentBackBuffer() = 0;
         template<typename T>

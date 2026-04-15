@@ -37,6 +37,7 @@ namespace EngineCore
         kSetBindLessMeshIB = 21,
         kSetFrame = 22,
         kCopyBufferStaged = 23,
+        kUAVBarrier = 24,
     };
 
     enum class DepthComparisonFunc : uint8_t
@@ -306,6 +307,11 @@ namespace EngineCore
         BufferResourceState state;
     };
 
+    struct Payload_UAVBarrier
+    {
+        IGPUResource* resource = nullptr;
+    };
+
     struct Payload_DrawIndirect
     {
         // 这个payload只关心， 我绘制哪几个IndirectDraw，怎么找到，
@@ -352,6 +358,7 @@ namespace EngineCore
         Payload_CopyBufferRegion copyBufferRegion;
         Payload_DispatchComputeShader dispatchComputeShader;
         Payload_SetBufferResourceState setBufferResourceState;
+        Payload_UAVBarrier uavBarrier;
         Payload_DrawIndirect setDrawIndirect;
         Payload_SetBindlessMat setBindlessMat;
         Payload_SetBindLessMeshIB SetBindLessMeshIB;

@@ -65,6 +65,7 @@ namespace EngineCore
         void DispatchComputeShader(const Payload_DispatchComputeShader& dispatchCmd);
         
         void SetResourceState(IGPUResource* resource, BufferResourceState state);
+        void UAVBarrier(IGPUResource* resource);
         
         void SetBindlessMat(Material* mat);
         void SetBindLessMeshIB(uint32_t id);

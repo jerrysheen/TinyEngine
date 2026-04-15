@@ -253,22 +253,29 @@ namespace EngineCore
              printf("BindPoint: %d\n", bindDesc.BindPoint); // 对应的寄存器号，如 u0 中的 0
              printf("Space: %d\n", bindDesc.Space); // register(u0, space1) 中的 1
  
-             // RootSigKey bitmask，
-             // 只有需要绑定根签名的才会，固定的Texture、RWTexture、Sampler都不会更新这个表
+             // RootSigKey bitmask。
+             // Compute Root Signature 需要覆盖 shader 中声明的 buffer / texture / sampler 绑定，
+             // 否则不同 shader 可能错误复用同一个 root signature。
              switch (bindDesc.Type)
              {
-                 case D3D_SIT_CBUFFER:
-                     UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_CBV);
-                     break;
-                 case D3D_SIT_STRUCTURED:
-                 case D3D_SIT_BYTEADDRESS:
-                     UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_SRV);
-                     break;
-                 case D3D_SIT_UAV_RWSTRUCTURED:
-                 case D3D_SIT_UAV_RWBYTEADDRESS:
-                 case D3D_SIT_UAV_APPEND_STRUCTURED:
-                 case D3D_SIT_UAV_CONSUME_STRUCTURED:
-                 case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
+                  case D3D_SIT_CBUFFER:
+                      UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_CBV);
+                      break;
+                  case D3D_SIT_TEXTURE:
+                  case D3D_SIT_STRUCTURED:
+                  case D3D_SIT_BYTEADDRESS:
+                  case D3D_SIT_TBUFFER:
+                      UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_SRV);
+                      break;
+                  case D3D_SIT_SAMPLER:
+                      UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_SAMPLER);
+                      break;
+                  case D3D_SIT_UAV_RWTYPED:
+                  case D3D_SIT_UAV_RWSTRUCTURED:
+                  case D3D_SIT_UAV_RWBYTEADDRESS:
+                  case D3D_SIT_UAV_APPEND_STRUCTURED:
+                  case D3D_SIT_UAV_CONSUME_STRUCTURED:
+                  case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
                      UpdateMask(bindDesc.Space, bindDesc.BindPoint, ShaderReflectionInfo::BIT_OFFSET_UAV);
                      break;
                  default:
