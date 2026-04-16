@@ -31,8 +31,10 @@ namespace EngineCore
             dynamicStartOffset = offset;
             currDynamicoffset = offset;
         }
+        void ConfigureFrameDynamicSegments(uint32_t frameCount);
         // 专门用于 Global Heap 的动态分配
-        DescriptorHandle AllocateDynamicSpace(int count);
+        DescriptorHandle AllocateDynamicSpace(int count, uint32_t frameIndex = 0);
+        void ResetDynamicSpace(uint32_t frameIndex = 0);
 
     private:
         D3D12_DESCRIPTOR_HEAP_TYPE mHeapType;
@@ -44,6 +46,8 @@ namespace EngineCore
 
         int dynamicStartOffset = 0; // 记录动态分配的起始点，Reset 时回到这里
         int currDynamicoffset = 0;
+        int dynamicSegmentSize = 0;
+        uint32_t dynamicFrameCount = 1;
         
         int currentOffset = 0;
         uint32_t startIndex = 0;

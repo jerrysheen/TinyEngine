@@ -22,13 +22,13 @@ namespace EngineCore
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_SHADER_RESOURCE_VIEW_DESC& desc, bool isShaderVisible = false);
 		DescriptorHandle CreateDescriptor(ComPtr<ID3D12Resource> resource, const D3D12_UNORDERED_ACCESS_VIEW_DESC& desc, bool isShaderVisible = true);
 
-        inline DescriptorHandle GetFrameCbvSrvUavAllocator(int count) 
+        inline DescriptorHandle GetFrameCbvSrvUavAllocator(int count, uint32_t frameIndex) 
         {
-            return mBindlessAllocator->AllocateDynamicSpace(count);
+            return mBindlessAllocator->AllocateDynamicSpace(count, frameIndex);
         }
         
 
-        void ResetFrameAllocator();
+        void ResetFrameAllocator(uint32_t frameIndex);
         vector<D3D12DescAllocator> mDescAllocators;
  
         Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> GetBindlessCbvSrvUavHeap()

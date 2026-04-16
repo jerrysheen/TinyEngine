@@ -26,8 +26,9 @@ namespace EngineCore
         // 初始化 Bindless Heap (Shader Visible = true)
         mBindlessAllocator = new D3D12DescAllocator(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, false, true);
         mBindlessAllocator->mHeap->SetName(L"Bindless_Global_Heap_CBV_SRV_UAV");
-        // bindless可以分两个部分，一部分给动态desc用，一部分给静态desc用
+        // bindless可以分两个部分，一部分给静态desc用，一部分给按帧隔离的动态desc用
         mBindlessAllocator->SetDynamicStartOffset(2000);
+        mBindlessAllocator->ConfigureFrameDynamicSegments(3);
     }
 
     D3D12DescManager::~D3D12DescManager(){};
@@ -85,9 +86,9 @@ namespace EngineCore
         return mDescAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_DSV].CreateDescriptor(resource, desc);
     }
 
-    void D3D12DescManager::ResetFrameAllocator()
+    void D3D12DescManager::ResetFrameAllocator(uint32_t frameIndex)
     {
-        mBindlessAllocator->CleanPerFrameData();
+        mBindlessAllocator->ResetDynamicSpace(frameIndex);
     }
 
 

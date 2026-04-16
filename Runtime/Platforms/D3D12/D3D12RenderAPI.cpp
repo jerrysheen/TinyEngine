@@ -1100,7 +1100,7 @@ namespace EngineCore
         if (textureInfo.size() > 0)
         {
             DescriptorHandle tableHandle = 
-                D3D12DescManager::GetInstance()->GetFrameCbvSrvUavAllocator(textureInfo.size());
+                D3D12DescManager::GetInstance()->GetFrameCbvSrvUavAllocator(textureInfo.size(), mCurrentFrameID);
             
             for (int i = 0; i < textureInfo.size(); i++)
             {
@@ -1409,7 +1409,6 @@ namespace EngineCore
 
         ThrowIfFailed(mSwapChain->Present(0, 0));
         mCurrBackBuffer = mSwapChain->GetCurrentBackBufferIndex();
-        D3D12DescManager::GetInstance()->ResetFrameAllocator();
     }
 
     // todo: Obsolute
@@ -1444,6 +1443,7 @@ namespace EngineCore
         ASSERT(setFrame.frameTicket != nullptr);
         mCurrentFrameID = setFrame.frameID;
         mCurrentFrameTicket = setFrame.frameTicket;
+        D3D12DescManager::GetInstance()->ResetFrameAllocator(mCurrentFrameID);
     }
 
     void D3D12RenderAPI::RenderAPICopyRegion(Payload_CopyBufferRegion copyBufferRegion)
@@ -1542,7 +1542,7 @@ namespace EngineCore
         if (!textureSrvs.empty()) 
         {
             DescriptorHandle srvTable =
-                D3D12DescManager::GetInstance()->GetFrameCbvSrvUavAllocator(textureSrvs.size());
+                D3D12DescManager::GetInstance()->GetFrameCbvSrvUavAllocator(textureSrvs.size(), mCurrentFrameID);
 
             for (int i = 0; i < textureSrvs.size(); i++)
             {
@@ -1566,7 +1566,7 @@ namespace EngineCore
         if (!textureUavs.empty())
         {
             DescriptorHandle uavTable =
-                D3D12DescManager::GetInstance()->GetFrameCbvSrvUavAllocator(textureUavs.size());
+                D3D12DescManager::GetInstance()->GetFrameCbvSrvUavAllocator(textureUavs.size(), mCurrentFrameID);
 
             for (int i = 0; i < textureUavs.size(); i++)
             {

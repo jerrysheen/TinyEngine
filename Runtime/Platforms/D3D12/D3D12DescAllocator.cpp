@@ -172,9 +172,7 @@ namespace EngineCore
         // 动态分配部分（currentOffset管理）回到 dynamicStartOffset
         if (dynamicStartOffset > 0)
         {
-            // 如果是 FrameAllocator，dynamicStartOffset 默认为 0，全量重置
-            // 如果是 GlobalBindlessHeap，dynamicStartOffset > 0，只重置动态区
-             currDynamicoffset = dynamicStartOffset;
+            ResetDynamicSpace();
         }
         else
         {
@@ -186,13 +184,53 @@ namespace EngineCore
     void D3D12DescAllocator::CleanPerFrameData()
     {
         ASSERT(dynamicStartOffset > 0);
+        ResetDynamicSpace();
+    }
+
+    void D3D12DescAllocator::ConfigureFrameDynamicSegments(uint32_t frameCount)
+    {
+        ASSERT(frameCount > 0);
+        ASSERT(dynamicStartOffset > 0);
+        dynamicFrameCount = frameCount;
+        dynamicSegmentSize = (maxCount - dynamicStartOffset) / static_cast<int>(frameCount);
+        ASSERT_MSG(dynamicSegmentSize > 0, "Descriptor heap dynamic segment is too small.");
         currDynamicoffset = dynamicStartOffset;
     }
 
-    DescriptorHandle D3D12DescAllocator::AllocateDynamicSpace(int count)
+    void D3D12DescAllocator::ResetDynamicSpace(uint32_t frameIndex)
     {
-         ASSERT_MSG(currDynamicoffset + count < maxCount, "Global Heap Dynamic Space Run out!");
+        ASSERT(dynamicStartOffset > 0);
+        ASSERT(dynamicFrameCount > 0);
+        if (dynamicSegmentSize <= 0)
+        {
+            currDynamicoffset = dynamicStartOffset;
+            return;
+        }
+
+        const uint32_t normalizedFrameIndex = frameIndex % dynamicFrameCount;
+        currDynamicoffset = dynamicStartOffset + static_cast<int>(normalizedFrameIndex) * dynamicSegmentSize;
+    }
+
+    DescriptorHandle D3D12DescAllocator::AllocateDynamicSpace(int count, uint32_t frameIndex)
+    {
          ASSERT(dynamicStartOffset > 0);
+         ASSERT(dynamicFrameCount > 0);
+
+         if (dynamicSegmentSize > 0)
+         {
+             const uint32_t normalizedFrameIndex = frameIndex % dynamicFrameCount;
+             const int segmentStart = dynamicStartOffset + static_cast<int>(normalizedFrameIndex) * dynamicSegmentSize;
+             const int segmentEnd = segmentStart + dynamicSegmentSize;
+             if (currDynamicoffset < segmentStart || currDynamicoffset >= segmentEnd)
+             {
+                 currDynamicoffset = segmentStart;
+             }
+             ASSERT_MSG(currDynamicoffset + count <= segmentEnd, "Per-frame descriptor heap dynamic space ran out!");
+         }
+         else
+         {
+             ASSERT_MSG(currDynamicoffset + count < maxCount, "Global Heap Dynamic Space Run out!");
+         }
 
          //直接给handle，然后更新offSet;
          DescriptorHandle handle;

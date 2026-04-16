@@ -169,7 +169,9 @@ namespace EngineCore
         std::sort(samplers.begin(), samplers.end(), SortBinding);
 
         std::vector<CD3DX12_ROOT_PARAMETER> rootParameters;
+        std::vector<CD3DX12_DESCRIPTOR_RANGE> descriptorRanges;
         rootParameters.reserve(buffers.size() + 2);
+        descriptorRanges.reserve(2);
 
         for (const auto& buffer : buffers)
         {
@@ -198,18 +200,18 @@ namespace EngineCore
 
         // 4. 纹理SRV描述符表（Space1，t0~t15）
         {
-            CD3DX12_DESCRIPTOR_RANGE srvRange;
-            srvRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, MAX_TEXTURE_SRV, 0, 1); // BaseReg:0, Space:1
+            descriptorRanges.emplace_back();
+            descriptorRanges.back().Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, MAX_TEXTURE_SRV, 0, 1); // BaseReg:0, Space:1
             rootParameters.emplace_back();
-            rootParameters.back().InitAsDescriptorTable(1, &srvRange, D3D12_SHADER_VISIBILITY_ALL);
+            rootParameters.back().InitAsDescriptorTable(1, &descriptorRanges.back(), D3D12_SHADER_VISIBILITY_ALL);
         }
 
         // 5. 纹理UAV描述符表（Space1，u0~u15）
         {
-            CD3DX12_DESCRIPTOR_RANGE uavRange;
-            uavRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, MAX_TEXTURE_UAV, 0, 1); // BaseReg:0, Space:1
+            descriptorRanges.emplace_back();
+            descriptorRanges.back().Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, MAX_TEXTURE_UAV, 0, 1); // BaseReg:0, Space:1
             rootParameters.emplace_back();
-            rootParameters.back().InitAsDescriptorTable(1, &uavRange, D3D12_SHADER_VISIBILITY_ALL);
+            rootParameters.back().InitAsDescriptorTable(1, &descriptorRanges.back(), D3D12_SHADER_VISIBILITY_ALL);
         }
 
         std::vector<CD3DX12_STATIC_SAMPLER_DESC> staticSamplers;
