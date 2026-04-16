@@ -29,6 +29,7 @@
 #include <WindowsX.h>
 
 #include "Core/PublicStruct.h"
+#include "Settings/ProjectSettings.h"
 using Microsoft::WRL::ComPtr;
 
 extern const int gNumFrameResources;
@@ -101,6 +102,7 @@ public:
     static ID3D12Device* GetDebugDevice();
     static std::wstring GetDetailedHRESULTMessage(HRESULT hr);
     static void ReportFailure(HRESULT hr, const std::wstring& functionName, const std::wstring& filename, int lineNumber);
+    static void WriteDiagnosticLog(const std::wstring& text);
 
     static UINT CalcConstantBufferByteSize(UINT byteSize)
     {

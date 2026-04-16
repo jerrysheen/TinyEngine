@@ -47,6 +47,13 @@ namespace EngineCore
         {
             debugController1->SetEnableGPUBasedValidation(true);
         }
+
+        ComPtr<ID3D12DeviceRemovedExtendedDataSettings> dredSettings;
+        if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&dredSettings))))
+        {
+            dredSettings->SetAutoBreadcrumbsEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+            dredSettings->SetPageFaultEnablement(D3D12_DRED_ENABLEMENT_FORCED_ON);
+        }
     }
     #endif
 
@@ -614,7 +621,7 @@ namespace EngineCore
             for (uint32_t mip = 0; mip < mipCount; mip++) 
             {
                 D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-                uavDesc.Format = d3dUtil::GetSRVFormat(textureDesc.format);
+                uavDesc.Format = d3dUtil::GetUAVFormat(textureDesc.format);
                 uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
                 uavDesc.Texture2D.MipSlice = mip;
                 texture->uavHandles[mip] = D3D12DescManager::GetInstance()->CreateDescriptor(texture->m_Resource.Get(),
@@ -815,6 +822,8 @@ namespace EngineCore
             return D3D12_RESOURCE_STATE_RENDER_TARGET;
         case BufferResourceState::STATE_PRESENT:
             return D3D12_RESOURCE_STATE_PRESENT;
+        case BufferResourceState::STATE_DEPTH_READ_SHADER_RESOURCE:
+            return D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
         default:
             ASSERT("Wrongt State");
             return D3D12_RESOURCE_STATE_COMMON;

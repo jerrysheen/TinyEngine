@@ -79,7 +79,8 @@ namespace EngineCore
         STATE_GENERIC_READ,      // Generic Read (Vertex, Index, Constant, etc)
         STATE_DEPTH_WRITE,
         STATE_RENDER_TARGET,
-        STATE_PRESENT
+        STATE_PRESENT,
+        STATE_DEPTH_READ_SHADER_RESOURCE
     };
 
     struct BufferDesc

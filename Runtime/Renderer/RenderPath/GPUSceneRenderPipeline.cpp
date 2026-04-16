@@ -135,7 +135,8 @@ namespace EngineCore
         payload.groupZ = 1;
         RenderBackend::GetInstance()->DispatchComputeShader(payload);
 
-        
+        RenderBackend::GetInstance()->UAVBarrier(visibilityBuffer);
+        RenderBackend::GetInstance()->UAVBarrier(currIndirectDrawArgsBuffer->GetGPUBuffer());
 
         IGPUBuffer* currIndirectDrawCountBuffer = indirectDrawCountBuffers->GetCurrentBufferByFrameID(frameID)->GetGPUBuffer();
         IGPUBuffer* currIndirectDrawDestBuffer = indirectDrawDestBuffers->GetCurrentBufferByFrameID(frameID)->GetGPUBuffer();
@@ -174,6 +175,8 @@ namespace EngineCore
         combinePayload.groupY = 1;
         combinePayload.groupZ = 1;
         RenderBackend::GetInstance()->DispatchComputeShader(combinePayload);
+        RenderBackend::GetInstance()->UAVBarrier(currIndirectDrawDestBuffer);
+        RenderBackend::GetInstance()->UAVBarrier(currIndirectDrawCountBuffer);
 
         // 这个地方简单跑个绑定测试？
         RenderBackend::GetInstance()->SetResourceState(visibilityBuffer, BufferResourceState::STATE_SHADER_RESOURCE);
@@ -203,28 +206,29 @@ namespace EngineCore
             RenderBackend::GetInstance()->TryWakeUpRenderThread();
         }
 
-
-        ////---------------- IndirectDrawCall Combine Pass
-        //RenderTexture* currHIZTexture = RWHiZTexture[frameID % 3];
-        //// ComputeShader* hiZCSShader = HizCSShaderHandler.Get();
-        //// // 1. blit to Src...
-        //// for(int i = 0; i < currHIZTexture->GetMipCount() - 1; i++)
-        //// {
-        ////     hiZCSShader->SetTexture("g_InputTexture", currHIZTexture->textureBuffer, i);
-        ////     hiZCSShader->SetTexture("g_OutputTexture",currHIZTexture->textureBuffer, i + 1);
-        //// }
-        //ComputeShader* blitShader = BlitCSShaderHandler.Get(); 
-        //Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->GetMainCamera();
-        //ASSERT(cam);
-        //blitShader->SetTexture("SrcTexture", cam->depthAttachment->textureBuffer, 0);
-        //blitShader->SetTexture("DstTexture", currHIZTexture->textureBuffer, 0);
-        //Payload_DispatchComputeShader blitPayload = {};
-        //blitPayload.csShader = blitShader;
-        //blitPayload.groupX = 1920 / 8;
-        //blitPayload.groupY = 1080 / 8;
-        //blitPayload.groupZ = 1;
-        //RenderBackend::GetInstance()->DispatchComputeShader(blitPayload);
-        ////}
+       // //---------------- IndirectDrawCall Combine Pass
+       // RenderTexture* currHIZTexture = RWHiZTexture[frameID % 3];
+       // ComputeShader* blitShader = BlitCSShaderHandler.Get();
+       // Camera* cam = SceneManager::GetInstance()->GetCurrentScene()->GetMainCamera();
+       // ASSERT(cam);
+       // RenderBackend::GetInstance()->SetResourceState(cam->depthAttachment->textureBuffer, //BufferResourceState::STATE_DEPTH_READ_SHADER_RESOURCE);
+       // blitShader->SetTexture("SrcTexture", cam->depthAttachment->textureBuffer, 0);
+       // blitShader->SetTexture("DstTexture", currHIZTexture->textureBuffer, 0);
+       // Payload_DispatchComputeShader blitPayload = {};
+       // blitPayload.csShader = blitShader;
+       // blitPayload.groupX = 1920 / 8;
+       // blitPayload.groupY = 1080 / 8;
+       // blitPayload.groupZ = 1;
+       // RenderBackend::GetInstance()->DispatchComputeShader(blitPayload);
+       // RenderBackend::GetInstance()->SetResourceState(cam->depthAttachment->textureBuffer, //BufferResourceState::STATE_DEPTH_WRITE);
+       // //ComputeShader* hiZCSShader = HizCSShaderHandler.Get();
+        //// 1. blit to Src...
+        //for (int i = 0; i < currHIZTexture->GetMipCount() - 1; i++)
+        //{
+        //    hiZCSShader->SetTexture("g_InputTexture", currHIZTexture->textureBuffer, i);
+        //    hiZCSShader->SetTexture("g_OutputTexture", currHIZTexture->textureBuffer, i + 1);
+        //    RenderBackend::GetInstance()->UAVBarrier(currHIZTexture->textureBuffer);
+        //}
         
         
         for (auto& pass : context.camera->mRenderPassAsset.renderPasses)

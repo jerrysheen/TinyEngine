@@ -2,12 +2,167 @@
 #include "PreCompiledHeader.h"
 #include "d3dUtil.h"
 #include <comdef.h>
+#include <filesystem>
 #include <fstream>
+#include <iomanip>
 using Microsoft::WRL::ComPtr;
 
 namespace
 {
     ID3D12Device* gDebugDevice = nullptr;
+
+    std::string WStringToUtf8(const std::wstring& value)
+    {
+        if (value.empty())
+        {
+            return {};
+        }
+
+        int required = WideCharToMultiByte(CP_UTF8, 0, value.c_str(), -1, nullptr, 0, nullptr, nullptr);
+        if (required <= 1)
+        {
+            return {};
+        }
+
+        std::string utf8(static_cast<size_t>(required - 1), '\0');
+        WideCharToMultiByte(CP_UTF8, 0, value.c_str(), -1, utf8.data(), required, nullptr, nullptr);
+        return utf8;
+    }
+
+    const wchar_t* GetAllocationTypeName(D3D12_DRED_ALLOCATION_TYPE allocationType)
+    {
+        switch (allocationType)
+        {
+        case D3D12_DRED_ALLOCATION_TYPE_COMMAND_QUEUE: return L"CommandQueue";
+        case D3D12_DRED_ALLOCATION_TYPE_COMMAND_ALLOCATOR: return L"CommandAllocator";
+        case D3D12_DRED_ALLOCATION_TYPE_PIPELINE_STATE: return L"PipelineState";
+        case D3D12_DRED_ALLOCATION_TYPE_COMMAND_LIST: return L"CommandList";
+        case D3D12_DRED_ALLOCATION_TYPE_FENCE: return L"Fence";
+        case D3D12_DRED_ALLOCATION_TYPE_DESCRIPTOR_HEAP: return L"DescriptorHeap";
+        case D3D12_DRED_ALLOCATION_TYPE_HEAP: return L"Heap";
+        case D3D12_DRED_ALLOCATION_TYPE_QUERY_HEAP: return L"QueryHeap";
+        case D3D12_DRED_ALLOCATION_TYPE_COMMAND_SIGNATURE: return L"CommandSignature";
+        case D3D12_DRED_ALLOCATION_TYPE_PIPELINE_LIBRARY: return L"PipelineLibrary";
+        case D3D12_DRED_ALLOCATION_TYPE_VIDEO_DECODER: return L"VideoDecoder";
+        case D3D12_DRED_ALLOCATION_TYPE_VIDEO_PROCESSOR: return L"VideoProcessor";
+        case D3D12_DRED_ALLOCATION_TYPE_RESOURCE: return L"Resource";
+        case D3D12_DRED_ALLOCATION_TYPE_PASS: return L"Pass";
+        case D3D12_DRED_ALLOCATION_TYPE_CRYPTOSESSION: return L"CryptoSession";
+        case D3D12_DRED_ALLOCATION_TYPE_CRYPTOSESSIONPOLICY: return L"CryptoSessionPolicy";
+        case D3D12_DRED_ALLOCATION_TYPE_PROTECTEDRESOURCESESSION: return L"ProtectedResourceSession";
+        case D3D12_DRED_ALLOCATION_TYPE_VIDEO_DECODER_HEAP: return L"VideoDecoderHeap";
+        case D3D12_DRED_ALLOCATION_TYPE_COMMAND_POOL: return L"CommandPool";
+        case D3D12_DRED_ALLOCATION_TYPE_COMMAND_RECORDER: return L"CommandRecorder";
+        case D3D12_DRED_ALLOCATION_TYPE_STATE_OBJECT: return L"StateObject";
+        case D3D12_DRED_ALLOCATION_TYPE_METACOMMAND: return L"MetaCommand";
+        case D3D12_DRED_ALLOCATION_TYPE_SCHEDULINGGROUP: return L"SchedulingGroup";
+        case D3D12_DRED_ALLOCATION_TYPE_VIDEO_MOTION_ESTIMATOR: return L"VideoMotionEstimator";
+        case D3D12_DRED_ALLOCATION_TYPE_VIDEO_MOTION_VECTOR_HEAP: return L"VideoMotionVectorHeap";
+        case D3D12_DRED_ALLOCATION_TYPE_VIDEO_EXTENSION_COMMAND: return L"VideoExtensionCommand";
+        default: return L"Unknown";
+        }
+    }
+
+    void AppendInfoQueueMessages(std::wstring& msg)
+    {
+        ComPtr<ID3D12InfoQueue> infoQueue;
+        if (!gDebugDevice || FAILED(gDebugDevice->QueryInterface(IID_PPV_ARGS(&infoQueue))))
+        {
+            return;
+        }
+
+        const UINT64 messageCount = infoQueue->GetNumStoredMessagesAllowedByRetrievalFilter();
+        const UINT64 firstMessage = (messageCount > 8) ? (messageCount - 8) : 0;
+        for (UINT64 i = firstMessage; i < messageCount; ++i)
+        {
+            SIZE_T messageLength = 0;
+            if (FAILED(infoQueue->GetMessage(i, nullptr, &messageLength)) || messageLength == 0)
+            {
+                continue;
+            }
+
+            std::vector<char> bytes(messageLength);
+            auto* message = reinterpret_cast<D3D12_MESSAGE*>(bytes.data());
+            if (FAILED(infoQueue->GetMessage(i, message, &messageLength)))
+            {
+                continue;
+            }
+
+            msg += L"\n[D3D12] ";
+            msg += AnsiToWString(message->pDescription ? message->pDescription : "");
+        }
+    }
+
+    void AppendDredData(std::wstring& msg)
+    {
+        if (!gDebugDevice)
+        {
+            return;
+        }
+
+        ComPtr<ID3D12DeviceRemovedExtendedData1> dred;
+        if (FAILED(gDebugDevice->QueryInterface(IID_PPV_ARGS(&dred))))
+        {
+            return;
+        }
+
+        D3D12_DRED_AUTO_BREADCRUMBS_OUTPUT1 breadcrumbs = {};
+        if (SUCCEEDED(dred->GetAutoBreadcrumbsOutput1(&breadcrumbs)))
+        {
+            msg += L"\n[DRED] AutoBreadcrumbs:";
+            const D3D12_AUTO_BREADCRUMB_NODE1* node = breadcrumbs.pHeadAutoBreadcrumbNode;
+            int nodeCount = 0;
+            while (node && nodeCount < 16)
+            {
+                const wchar_t* cmdListName = node->pCommandListDebugNameW ? node->pCommandListDebugNameW : L"<unnamed>";
+                const wchar_t* queueName = node->pCommandQueueDebugNameW ? node->pCommandQueueDebugNameW : L"<unnamed>";
+                UINT32 lastBreadcrumb = node->pLastBreadcrumbValue ? *node->pLastBreadcrumbValue : 0;
+                msg += L"\n  CommandList=";
+                msg += cmdListName;
+                msg += L", Queue=";
+                msg += queueName;
+                msg += L", LastOp=";
+                msg += std::to_wstring(lastBreadcrumb);
+                msg += L"/";
+                msg += std::to_wstring(node->BreadcrumbCount);
+                node = node->pNext;
+                ++nodeCount;
+            }
+        }
+
+        D3D12_DRED_PAGE_FAULT_OUTPUT1 pageFault = {};
+        if (SUCCEEDED(dred->GetPageFaultAllocationOutput1(&pageFault)))
+        {
+            msg += L"\n[DRED] PageFaultVA=0x";
+            std::wstringstream stream;
+            stream << std::hex << pageFault.PageFaultVA;
+            msg += stream.str();
+
+            const D3D12_DRED_ALLOCATION_NODE1* allocationNode = pageFault.pHeadExistingAllocationNode;
+            int allocationCount = 0;
+            while (allocationNode && allocationCount < 16)
+            {
+                msg += L"\n  ExistingAllocation=";
+                msg += allocationNode->ObjectNameW ? allocationNode->ObjectNameW : L"<unnamed>";
+                msg += L", Type=";
+                msg += GetAllocationTypeName(allocationNode->AllocationType);
+                allocationNode = allocationNode->pNext;
+                ++allocationCount;
+            }
+
+            allocationNode = pageFault.pHeadRecentFreedAllocationNode;
+            allocationCount = 0;
+            while (allocationNode && allocationCount < 16)
+            {
+                msg += L"\n  RecentFreedAllocation=";
+                msg += allocationNode->ObjectNameW ? allocationNode->ObjectNameW : L"<unnamed>";
+                msg += L", Type=";
+                msg += GetAllocationTypeName(allocationNode->AllocationType);
+                allocationNode = allocationNode->pNext;
+                ++allocationCount;
+            }
+        }
+    }
 }
 
 DxException::DxException(HRESULT hr, const std::wstring& functionName, const std::wstring& filename, int lineNumber) :
@@ -54,37 +209,54 @@ std::wstring d3dUtil::GetDetailedHRESULTMessage(HRESULT hr)
             msg += L" | DeviceRemovedReason: ";
             msg += removedErr.ErrorMessage();
             msg += L" (0x" + AnsiToWString(ToString(removedReason)) + L")";
+            AppendDredData(msg);
         }
 
 #if defined(_DEBUG)
-        ComPtr<ID3D12InfoQueue> infoQueue;
-        if (SUCCEEDED(gDebugDevice->QueryInterface(IID_PPV_ARGS(&infoQueue))))
-        {
-            const UINT64 messageCount = infoQueue->GetNumStoredMessagesAllowedByRetrievalFilter();
-            const UINT64 firstMessage = (messageCount > 8) ? (messageCount - 8) : 0;
-            for (UINT64 i = firstMessage; i < messageCount; ++i)
-            {
-                SIZE_T messageLength = 0;
-                if (FAILED(infoQueue->GetMessage(i, nullptr, &messageLength)) || messageLength == 0)
-                {
-                    continue;
-                }
-
-                std::vector<char> bytes(messageLength);
-                auto* message = reinterpret_cast<D3D12_MESSAGE*>(bytes.data());
-                if (FAILED(infoQueue->GetMessage(i, message, &messageLength)))
-                {
-                    continue;
-                }
-
-                msg += L"\n[D3D12] ";
-                msg += AnsiToWString(message->pDescription ? message->pDescription : "");
-            }
-        }
+        AppendInfoQueueMessages(msg);
 #endif
     }
 
     return msg;
+}
+
+void d3dUtil::WriteDiagnosticLog(const std::wstring& text)
+{
+    std::string logDirectory = EngineCore::PathSettings::GetExecutablePath();
+    if (logDirectory.empty())
+    {
+        logDirectory = ".";
+    }
+
+    std::replace(logDirectory.begin(), logDirectory.end(), '\\', '/');
+    if (!logDirectory.empty() && logDirectory.back() != '/')
+    {
+        logDirectory += '/';
+    }
+    logDirectory += "Logs";
+
+    std::error_code ec;
+    std::filesystem::create_directories(logDirectory, ec);
+    std::string logPath = logDirectory + "/TinyEngine_D3D12.log";
+
+    std::ofstream out(logPath, std::ios::app | std::ios::binary);
+    if (!out.is_open())
+    {
+        return;
+    }
+
+    SYSTEMTIME now = {};
+    GetLocalTime(&now);
+    std::ostringstream header;
+    header << "[" << std::setfill('0')
+        << std::setw(4) << now.wYear << "-"
+        << std::setw(2) << now.wMonth << "-"
+        << std::setw(2) << now.wDay << " "
+        << std::setw(2) << now.wHour << ":"
+        << std::setw(2) << now.wMinute << ":"
+        << std::setw(2) << now.wSecond << "."
+        << std::setw(3) << now.wMilliseconds << "] ";
+    out << header.str() << WStringToUtf8(text) << "\r\n";
 }
 
 void d3dUtil::ReportFailure(HRESULT hr, const std::wstring& functionName, const std::wstring& filename, int lineNumber)
@@ -94,6 +266,7 @@ void d3dUtil::ReportFailure(HRESULT hr, const std::wstring& functionName, const 
 
     OutputDebugStringW(text.c_str());
     std::wcerr << text;
+    WriteDiagnosticLog(text);
 }
 
 ComPtr<ID3DBlob> d3dUtil::LoadBinary(const std::wstring& filename)

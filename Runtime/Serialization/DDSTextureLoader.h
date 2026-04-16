@@ -85,6 +85,8 @@ typedef unsigned int DWORD;           // 32bits little endian
 */
 
 namespace EngineCore{
+    static constexpr uint32_t DDS_TEST_SKIP_TOP_MIP_COUNT = 1;
+
     struct DDSHeader {
         uint32_t magic;              // 'DDS ' (0x20534444)
         uint32_t fileSize;               // 124
@@ -143,33 +145,38 @@ namespace EngineCore{
             
             DDSLoadResult ddsResult = LoadDDSFromFile(relativePath);
             tex->textureDesc.format = ddsResult.format;
-            tex->textureDesc.width = ddsResult.width;
-            tex->textureDesc.height = ddsResult.height;
             tex->textureDesc.dimension = TextureDimension::TEXTURE2D;
             tex->textureDesc.texUsage = TextureUsage::ShaderResource;
-            tex->textureDesc.mipCount = ddsResult.mipMapCount;
             tex->cpuData = ddsResult.pixelData;
-            // 计算mip Count
-            uint32_t offset = 0;
-            tex->textureDesc.mipOffset[0] = 0;  // 第 0 级从 0 开始
-            int width = ddsResult.width;
-            int height = ddsResult.height;
-            // ++i 和 i++在循环体中区别不大， 因为循环跑完才会走++操作，
-            // 不过针对迭代器，++i更好， 因为i++相当于要返回一个原值，并且在原来的迭代器上叠加
-            for (uint32_t i = 0; i < ddsResult.mipMapCount; ++i)
+
+            const uint32_t originalMipCount = std::max(1u, ddsResult.mipMapCount);
+            const uint32_t skippedMipCount = std::min(DDS_TEST_SKIP_TOP_MIP_COUNT, originalMipCount - 1);
+            tex->textureDesc.width = std::max(1u, ddsResult.width >> skippedMipCount);
+            tex->textureDesc.height = std::max(1u, ddsResult.height >> skippedMipCount);
+            tex->textureDesc.mipCount = originalMipCount - skippedMipCount;
+
+            uint32_t sourceOffset = 0;
+            for (uint32_t i = 0; i < skippedMipCount; ++i)
             {
-                // 当前 mip level 的尺寸
-                uint32_t mipWidth = std::max(1, width >> i);
-                uint32_t mipHeight = std::max(1, height >> i);
-                
-                // 计算当前 mip level 的字节大小
+                const uint32_t mipWidth = std::max(1u, ddsResult.width >> i);
+                const uint32_t mipHeight = std::max(1u, ddsResult.height >> i);
+                sourceOffset += CalculateDXTMipSize(mipWidth, mipHeight, ddsResult.blockSize);
+            }
+
+            uint32_t offset = sourceOffset;
+            tex->textureDesc.mipOffset[0] = offset;
+            for (uint32_t i = 0; i < tex->textureDesc.mipCount; ++i)
+            {
+                const uint32_t sourceMip = i + skippedMipCount;
+                const uint32_t mipWidth = std::max(1u, ddsResult.width >> sourceMip);
+                const uint32_t mipHeight = std::max(1u, ddsResult.height >> sourceMip);
                 uint32_t mipSize = CalculateDXTMipSize(mipWidth, mipHeight, ddsResult.blockSize);
-                
+
                 if (i > 0) {
-                    tex->textureDesc.mipOffset[i] = offset;  // 记录当前 mip 的 offset
+                    tex->textureDesc.mipOffset[i] = offset;
                 }
-                
-                offset += mipSize;  // 累加到下一个 mip level
+
+                offset += mipSize;
             }
 
             result.resource = tex;
