@@ -236,9 +236,156 @@ Windows 事件查看器里进一步能看到：
 - 在 `DDSTextureLoader` 中限制 DDS 最高 mip 的加载
 - 在 `D3D12` 错误路径中补充 DRED / DeviceRemoved 信息落盘能力
 
+## 这一轮继续排查的新结论
+
+这一轮继续往下查之后，结论比前一版更具体了一些。
+
+### 1. 有一个真实的 `RenderDoc` / 引擎交互坑：compute root signature 的 descriptor range 生命周期
+
+在 [D3D12RootSignature.cpp](/D:/GitHubST/TinyEngine/Runtime/Platforms/D3D12/D3D12RootSignature.cpp) 里，compute root signature 原先有一段写法是：
+
+- `CD3DX12_DESCRIPTOR_RANGE srvRange;`
+- `CD3DX12_DESCRIPTOR_RANGE uavRange;`
+- 然后把这两个局部变量的地址传给 `InitAsDescriptorTable(...)`
+
+这在语义上是错的，因为：
+
+- `InitAsDescriptorTable(...)` 只保存指针
+- 真正 `D3D12SerializeRootSignature(...)` 发生在后面
+- 局部变量早就析构了
+
+这属于标准的生命周期错误。
+
+这一点后来已经修掉，但实际验证下来：
+
+- 它确实是 bug
+- 但它不是这次 replay 崩溃的唯一根因
+
+也就是说，这一项必须修，但修完并不能单独解决所有问题。
+
+### 2. 更大的坑在 dynamic descriptor heap 的回收时机
+
+后面真正更关键的发现是：
+
+- compute dispatch 的临时纹理 `SRV/UAV` descriptor table
+- 实际上是在全局 shader-visible bindless heap 的动态区里临时分配出来的
+
+原先的做法是：
+
+- 每帧 `Present` 之后立即 `ResetFrameAllocator()`
+
+这在运行时很多时候能“侥幸跑过去”，但 replay 更容易出问题，因为：
+
+- `Present` 返回不代表 GPU 已经完全用完这一帧绑定过的动态 descriptor
+- 下一帧马上覆盖同一段 descriptor，可能破坏前一帧 replay / shutdown 路径中的对象引用
+
+这类问题特别符合：
+
+- 程序正常跑时不一定炸
+- `GPU Validation` 不一定直接报
+- `RenderDoc replay` 更容易挂
+
+### 3. dynamic descriptor 最终改成了按帧分段
+
+最后没有把 bindless heap 粗暴拆成 3 个独立 heap，因为：
+
+- `D3D12` 同时只能绑定一个 `CBV_SRV_UAV` heap
+- graphics 和 compute 目前都依赖同一个 bindless 绑定模型
+
+最终采用的是：
+
+- 保留一个全局 shader-visible bindless heap
+- 从动态区起点开始，按 `MAX_FRAME_INFLIGHT = 3` 分成 3 段
+- 每帧只在 `frameID % 3` 对应的那一段里分配动态 descriptor
+- 当前帧开始录制时，只 reset 当前帧自己的那一段
+
+这一点很重要，因为它和现有的：
+
+- `FrameTicket`
+- `WaitForFrameAvaliable(frameID)`
+- `frameID % 3`
+
+完全一致，逻辑上也更容易推导正确性。
+
+### 4. reset 更适合放在渲染线程 `SetFrame` 之后，而不是主线程 `PrepareFrame`
+
+虽然从“帧资源回收”的语义上看，很多 reset 都发生在：
+
+- `RenderEngine::PrepareFrame()`
+
+但 dynamic descriptor allocator 这一类资源有一个额外要求：
+
+- 谁 `allocate`
+- 最好也由谁 `reset`
+
+因为真正分配 descriptor 的位置是在：
+
+- `D3D12RenderAPI::RenderAPIDispatchComputeShader(...)`
+- `D3D12RenderAPI::RenderAPISetMaterial(...)`
+
+这些都属于渲染线程路径。
+
+所以这块如果放到主线程 `PrepareFrame()` 里 reset，反而会变成：
+
+- 主线程 reset
+- 渲染线程 allocate
+
+线程 ownership 更乱。
+
+因此最终更合理的做法是：
+
+- 主线程通过 `WaitForFrameAvaliable(frameID)` 只负责确认这个 frame slot 可以复用
+- 再把 `SetFrame(frameID)` 命令发给渲染线程
+- 渲染线程在 `RenderAPISetFrame(...)` 里 reset 当前帧对应的 descriptor 分段
+
+### 5. 官方 RenderDoc 打不开 capture，但本地 build 的 RenderDoc 更稳定
+
+这一轮最有意思的现象是：
+
+- 官方版本的 `RenderDoc` 打开 `.rdc` 时仍然容易失败
+- 但本地自己编译的 `RenderDoc`，回放反而明显更稳定，甚至可以继续分析
+
+而且官方版这次报错已经从单纯的“回放崩”变成了更明确的：
+
+- `Failed creating graphics pipeline, HRESULT: E_INVALIDARG`
+
+这说明：
+
+- 问题不一定只是引擎自己的非法用法
+- 也不一定只是 `RenderDoc` 工具自身随机崩
+- 更像是两边叠加：capture / replay 边界本来就比较脆，官方版与本地 build 行为又存在差异
+
+因此这次后面的策略也跟着调整了：
+
+- 不再把“官方版 replay 崩”直接当作 TinyEngine 的唯一证据
+- 先用本地 build 的 `RenderDoc` 继续排查
+- 同时把“官方版崩 / 本地版更稳”视为一个独立线索
+
+### 6. shutdown 栈里看到的崩溃，更像是第二现场
+
+在本地调试 RenderDoc 时，shutdown 栈大致落在：
+
+- `ResourceManager<D3D12ResourceManagerConfiguration>::RemoveWrapper(...)`
+- `WrappedID3D12Resource::~WrappedID3D12Resource()`
+- `ReplayController::Shutdown()`
+
+从这个栈判断，更合理的理解是：
+
+- 前面 replay / PSO 创建阶段已经出了问题
+- shutdown 时 RenderDoc 又在清理 wrapper map 的过程中暴露了第二个 bug
+
+也就是说：
+
+- shutdown 崩不是“第一个问题”
+- 更像是前面 replay 状态损坏后的连带后果
+
+这类现象在图形调试工具里比较常见，所以这次也不应直接把锅全扣在程序退出流程上。
+
 ## 后续建议
 
 - 不要把 `UAV` 资源依赖仅仅理解成“状态对了就够”
 - 所有 `compute -> compute`、`compute -> indirect`、`compute -> srv` 的真实读写链，都要重新审视是否需要 `UAV barrier`
 - 对大纹理资源做更系统的加载策略，而不是只靠临时硬编码
 - 针对 `RenderDoc` replay 单独准备一套更保守的调试配置，降低显存压力和驱动风险
+- 所有动态 descriptor 的生命周期都要和 `FrameTicket` / inflight frame 体系绑定，不能在 `Present` 后立即全局 reset
+- 如果后面还遇到“官方版 RenderDoc 崩，本地 build 更稳”的情况，优先保留本地 build 作为分析工具，不要因为工具自身崩溃就完全阻塞引擎排查

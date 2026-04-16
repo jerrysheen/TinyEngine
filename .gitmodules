@@ -1,0 +1,3 @@
+[submodule "Vendor/RenderDoc"]
+	path = Vendor/RenderDoc
+	url = https://github.com/jerrysheen/renderdoc.git
