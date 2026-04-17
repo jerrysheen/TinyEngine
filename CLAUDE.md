@@ -1,69 +1,52 @@
 # CLAUDE.md
 
-本文件为 Claude Code (claude.ai/code) 提供本代码库的操作指引。
+TinyEngine 的 Claude Code 薄入口。目标是让任务定义短、执行路径稳定、关键节点由程序化规则判定。
 
----
+## 基本规则
+- 本仓库默认使用中文沟通，必要时保留英文技术术语。
+- 优先遵循仓库内可执行约束：`task.json`、`progress.json`、Python verifier、证据产物。
+- 任务进行中，优先读取 `_ai/tasks/<task-id>.json` 与 `_ai/runs/<task-id>/progress.json`，而不是把所有过程写回对话。
+- 执行者只处理当前 step；当前 step 未通过 verifier 时，不进入下一步。
 
-## 交互规则
-1. 本工程所有回答优先使用中文
-2. 交流内容以实现方案讨论和范例代码说明为主，除非明确要求实现代码，否则仅输出方案和代码片段到窗口即可，不需要实际修改文件
+## Harness 入口
+- 项目级配置：`.claude/settings.json`
+- 任务定义：`_ai/tasks/<task-id>.json`
+- 当前任务指针：`_ai/active-task.txt`（本地文件，可不提交）
+- 运行状态：`_ai/runs/<task-id>/progress.json`
+- 证据产物：`_ai/runs/<task-id>/evidence/`
+- Hook 脚本：`_ai/scripts/harness/`
+- 任务模板与说明：`_ai/tasks/README.md`
 
----
+## 工作流
+1. 如果存在 `_ai/active-task.txt`，先读取其中的 `task-id`。
+2. 打开 `_ai/tasks/<task-id>.json`，只关注当前 `current_step`。
+3. 修改代码后，PostToolUse hook 会把触达文件写入 `progress.json`。
+4. 当前 step 完成后，显式运行 `python _ai/scripts/harness/verify_task.py --task-id <task-id>`。
+5. verifier 通过：当前 step 标记为 `done` 并推进到下一步；失败：保持当前 step，不允许推进。
+6. 会话准备结束时，Stop hook 只检查任务是否真的完成，避免错误宣布完成。
 
 ## 常用命令
-### 项目生成
-- **生成 VS2022 项目**：运行 `Win-GenProjects.bat`，会自动调用 premake 生成 `Projects/Windows/Visual Studio 2022/TinyEngine.sln`
-- 支持 VS2019、Xcode、gmake2 等生成器，可直接运行 `Tools/premake/premake5.exe <生成器名称>`
+- 生成 VS2022 工程：`Tools/premake/premake5.exe vs2022`
+- 解决方案路径：`Projects/Windows/Visual Studio 2022/TinyEngine.sln`
+- 一键构建并运行：`WinBuildAndRun.bat`
+- 手动构建：`msbuild "Projects\Windows\Visual Studio 2022\TinyEngine.sln" /p:Configuration=Debug /p:Platform=x64`
 
-### 构建与运行
-- **一键构建并运行**：运行 `WinBuildAndRun.bat`，会自动配置VS环境，增量编译后启动编辑器
-- **手动构建**：
-  - 打开生成的 sln 文件，选择 Debug/Release/Dist 配置，x64 平台
-  - 直接编译运行即可，调试目录已配置为项目根目录
-- 构建产物输出路径：`Projects/Windows/Visual Studio 2022/bin/<配置>-windows-x86_64/EngineCore/`
+## 项目速记
+- 语言与构建：C++17 + Premake5 + Visual Studio 2022
+- 运行时代码：`Runtime/`
+- 编辑器代码：`Editor/`
+- 资源目录：`Assets/`
+- 设计与记录：`Docs/`、`Note/`
+- AI 摘要与任务制品：`_ai/`
 
-### 技术栈
-- C++17
-- 渲染 API：默认 DirectX12（可配置 OpenGL）
-- 构建系统：Premake5
-
----
-
-## 代码架构
-### 核心目录结构
-```
-├── Runtime/          # 引擎核心运行时代码
-│   ├── Core/         # 基础核心功能（内存、日志、断言等）
-│   ├── Graphics/     # 图形硬件抽象层（RHI），包含各渲染API实现
-│   ├── Platforms/    # 平台相关代码（Windows、D3D12 等平台/API 专属实现）
-│   ├── Renderer/     # 上层渲染器实现（渲染管线、Pass、场景渲染逻辑等）
-│   ├── Scene/        # 场景管理（GameObject、组件、ECS等）
-│   ├── Resources/    # 资源管理（模型、纹理、材质等加载与管理）
-│   ├── Managers/     # 各类管理器（输入、事件、时间、资源等）
-│   └── Math/         # 数学库（向量、矩阵、几何计算等）
-├── Editor/           # 编辑器功能代码
-├── Vendor/           # 第三方依赖库（Assimp 等）
-├── Assets/           # 项目资源文件（模型、纹理、着色器等）
-└── Projects/         # 生成的工程文件与构建产物
-```
-
-### 架构分层
-1. **平台抽象层**：Platforms 目录下实现不同操作系统与渲染API的适配，上层代码与平台无关
-2. **RHI 层**：Graphics 目录下的图形硬件抽象层，统一封装 DirectX12/OpenGL 等渲染API的底层操作
-3. **核心层**：Core、Math、Utils 等基础模块，为整个引擎提供基础能力
-4. **渲染层**：Renderer 目录下的上层渲染逻辑，实现渲染管线、Pass、场景剔除、光照等高级渲染功能
-5. **场景层**：Scene、GameObject 等模块，负责游戏对象与场景的管理
-6. **编辑器层**：Editor 目录下实现编辑器界面与交互功能
-
-### 核心特性
-- 支持多渲染后端（当前重点开发 DirectX12 后端）
-- GPU Driven 渲染管线（正在开发 HIZ、GPU Scene 等特性）
-- 基于 Precompiled Header 加速构建
-- 支持 Debug/Release/Dist 三种构建配置
-
----
+## 架构边界
+- `Runtime/Graphics` 和 `Runtime/Platforms` 负责底层图形 API 与平台适配。
+- `Runtime/Renderer` 负责上层渲染管线与场景渲染逻辑。
+- `Runtime/Scene`、`Runtime/Resources`、`Runtime/Managers` 负责场景、资源和管理器体系。
+- `Editor/` 只放编辑器 UI 与工具代码，不把平台底层实现混进来。
 
 ## 开发注意事项
-- 所有包含路径相对于 `Runtime/` 和 `Editor/` 目录
-- 中文编码统一使用 UTF-8，build 选项已配置
-- Debug 模式使用绝对路径访问资源，Dist 模式使用相对路径
+- 保持与周边代码风格一致：4 空格缩进、PascalCase 类型/函数、局部变量 camelCase。
+- 所有包含路径相对于 `Runtime/` 和 `Editor/` 目录。
+- Debug 模式使用绝对路径资源，Dist 模式使用相对路径资源。
+- 当前仓库没有独立测试框架；关键门禁默认以任务 JSON 中声明的验收规则为准。

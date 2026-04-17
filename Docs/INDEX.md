@@ -4,7 +4,11 @@
 `Docs/TODO/` 进行中的任务清单
 `Docs/Design/` 设计/规格/路线图
 `Docs/Archive/` 历史记录与已归档想法
+`Docs/BugFix_*.md` 近期问题复盘与 review 参考
 `Docs/Design/*.excalidraw` 图示文件
+
+近期问题复盘
+- `Docs/BugFix_近三天引擎踩坑_2026-04-17.md`
 
 进行中 TODO
 - `Docs/TODO/Update_RenderSync.md`

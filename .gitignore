@@ -1061,3 +1061,10 @@ dkms.conf
 !/Vendor/libs/**
 !/Vendor/libs/**
 !/Vendor/Assimp/assimp/code/**
+
+# AI harness runtime state
+_ai/active-task.txt
+_ai/runs/*/evidence/*.log
+_ai/runs/*/evidence/*.tmp
+_ai/runs/*/evidence/*.bak
+_ai/scripts/harness/__pycache__/

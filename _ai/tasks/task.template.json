@@ -1,0 +1,38 @@
+{
+  "task_id": "example-task",
+  "title": "示例任务",
+  "max_step_retries": 2,
+  "steps": [
+    {
+      "id": "analyze",
+      "title": "确认目标文件存在",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "Runtime/Renderer"
+        ]
+      }
+    },
+    {
+      "id": "implement",
+      "title": "完成指定文件修改",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "Runtime/Renderer/Example.cpp"
+        ]
+      }
+    },
+    {
+      "id": "build",
+      "title": "完成 Debug x64 构建",
+      "acceptance": {
+        "type": "msbuild",
+        "solution": "Projects/Windows/Visual Studio 2022/TinyEngine.sln",
+        "configuration": "Debug",
+        "platform": "x64",
+        "generate_projects": true
+      }
+    }
+  ]
+}
