@@ -10,6 +10,8 @@ ROOT_DIR = Path(__file__).resolve().parents[3]
 AI_DIR = ROOT_DIR / "_ai"
 TASKS_DIR = AI_DIR / "tasks"
 RUNS_DIR = AI_DIR / "runs"
+DEFAULT_MAX_STEP_RETRIES = 2
+HARD_MAX_STEP_RETRIES = 3
 
 
 def now_iso() -> str:
@@ -83,6 +85,7 @@ def initial_progress(task: dict) -> dict:
         "status": "in_progress",
         "current_step": first_step_id,
         "changed_files": [],
+        "file_trace": {},
         "steps": progress_steps,
         "updated_at": now_iso()
     }

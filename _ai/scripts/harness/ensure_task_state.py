@@ -19,11 +19,22 @@ def main() -> int:
     if status == "done" and current_step is None:
         return 0
 
-    print(f"Task not complete: {task_id}", file=sys.stderr)
     if current_step:
-        print(f"Current step: {current_step}", file=sys.stderr)
-    print("Run verify_task.py before ending the session.", file=sys.stderr)
-    return 2
+        step_state = progress.get("steps", {}).get(current_step, {}).get("status", "unknown")
+    else:
+        step_state = "unknown"
+
+    print(f"Harness note: task not complete: {task_id}", file=sys.stderr)
+    if current_step:
+        print(f"Current step: {current_step} ({step_state})", file=sys.stderr)
+
+    if status == "blocked":
+        print("Task is blocked and state is already saved. Do not rerun verify_task.py blindly.", file=sys.stderr)
+        print("Resume only after creating the required artifact or adjusting the task/progress state.", file=sys.stderr)
+        return 0
+
+    print("Task is incomplete but progress is saved. Resume in a later session if needed.", file=sys.stderr)
+    return 0
 
 
 if __name__ == "__main__":

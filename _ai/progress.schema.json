@@ -80,6 +80,38 @@
         "additionalProperties": true
       }
     },
+    "file_trace": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "first_seen_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_seen_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_by_task": {
+            "type": "string"
+          },
+          "created_by_step": {
+            "type": "string"
+          },
+          "last_touched_by_task": {
+            "type": "string"
+          },
+          "last_touched_by_step": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
     "updated_at": {
       "type": "string",
       "format": "date-time"

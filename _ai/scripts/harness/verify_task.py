@@ -6,7 +6,17 @@ import subprocess
 import sys
 from pathlib import Path
 
-from task_runtime import ROOT_DIR, evidence_dir, find_step, load_progress, load_task, next_step_id, save_progress
+from task_runtime import (
+    DEFAULT_MAX_STEP_RETRIES,
+    HARD_MAX_STEP_RETRIES,
+    ROOT_DIR,
+    evidence_dir,
+    find_step,
+    load_progress,
+    load_task,
+    next_step_id,
+    save_progress,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -26,6 +36,7 @@ def write_log(task_id: str, current_step: str, lines: list[str]) -> None:
 
 
 def find_vsdevcmd() -> str | None:
+    """Locate a VS2022 developer shell so msbuild can run with the right env."""
     candidates = [
         r"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat",
         r"C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\Tools\VsDevCmd.bat",
@@ -39,6 +50,7 @@ def find_vsdevcmd() -> str | None:
 
 
 def verify_files_exist(rule: dict) -> tuple[bool, list[str]]:
+    """Pass when every declared file exists under the repo root."""
     missing = []
     for item in rule.get("files", []):
         if not (ROOT_DIR / item).exists():
@@ -49,6 +61,7 @@ def verify_files_exist(rule: dict) -> tuple[bool, list[str]]:
 
 
 def verify_changed_files(rule: dict, progress: dict) -> tuple[bool, list[str]]:
+    """Pass when every declared file was recorded by track_changes.py."""
     changed = set(progress.get("changed_files", []))
     required = {item.replace("/", "\\") for item in rule.get("files", [])}
     missing = sorted(required - changed)
@@ -58,6 +71,7 @@ def verify_changed_files(rule: dict, progress: dict) -> tuple[bool, list[str]]:
 
 
 def verify_msbuild(task_id: str, step_id: str, rule: dict) -> tuple[bool, list[str]]:
+    """Run the build acceptance for the current step and capture a build log."""
     solution = ROOT_DIR / rule.get("solution", r"Projects\Windows\Visual Studio 2022\TinyEngine.sln")
     generate_projects = bool(rule.get("generate_projects", True))
 
@@ -89,11 +103,13 @@ def verify_msbuild(task_id: str, step_id: str, rule: dict) -> tuple[bool, list[s
 
 
 def verify_manual_check(rule: dict) -> tuple[bool, list[str]]:
+    """Manual checks are intentionally non-advancing until a human confirms them."""
     message = rule.get("message", "Manual verification required")
     return False, [message]
 
 
 def verify_step(task_id: str, step: dict, progress: dict) -> tuple[bool, list[str]]:
+    """Dispatch a step to its acceptance implementation."""
     rule = step.get("acceptance", {})
     rule_type = rule.get("type")
 
@@ -110,6 +126,18 @@ def verify_step(task_id: str, step: dict, progress: dict) -> tuple[bool, list[st
 
 
 def main() -> int:
+    """Verify only the current step, then mutate progress.json as the state machine.
+
+    State transitions:
+    - pass: current step -> done, current_step advances to next step or task done
+    - fail within budget: current step -> failed, retries + 1, stay on same step
+    - fail over budget: current step -> blocked, task -> blocked, stop advancing
+
+    Important boundary:
+    - task.json declares the intended retry count
+    - Python code applies a hard cap with HARD_MAX_STEP_RETRIES so the harness
+      cannot loop forever even if task.json is misconfigured
+    """
     args = parse_args()
     task = load_task(args.task_id)
     progress = load_progress(task)
@@ -120,12 +148,24 @@ def main() -> int:
         return 0
 
     step = find_step(task, current_step_id)
-    max_retries = int(step.get("max_retries", task.get("max_step_retries", 2)))
+    configured_max_retries = int(step.get("max_retries", task.get("max_step_retries", DEFAULT_MAX_STEP_RETRIES)))
+    max_retries = min(configured_max_retries, HARD_MAX_STEP_RETRIES)
+    step_progress = progress["steps"][current_step_id]
+
+    # Once a step is blocked, this verifier refuses to mutate it again. The
+    # operator must first fix the artifact or edit the saved progress state.
+    if step_progress.get("status") == "blocked":
+        print(f"BLOCKED {current_step_id}", file=sys.stderr)
+        print("Current step is blocked. Create the required artifact or edit task/progress before retrying.", file=sys.stderr)
+        if step_progress.get("last_error"):
+            print(step_progress["last_error"], file=sys.stderr)
+        return 3
+
     passed, lines = verify_step(args.task_id, step, progress)
     write_log(args.task_id, current_step_id, lines)
 
-    step_progress = progress["steps"][current_step_id]
     if passed:
+        # Success clears the current step and opens the next step, if any.
         step_progress["status"] = "done"
         step_progress["last_error"] = ""
         step_progress["verified_at"] = progress["updated_at"]
@@ -141,11 +181,19 @@ def main() -> int:
         print(f"PASS {current_step_id}")
         return 0
 
-    step_progress["retries"] = int(step_progress.get("retries", 0)) + 1
+    # Failure never advances the state machine. We stay on the same current_step
+    # and only change retries/status so the next run can continue from there.
+    next_retries = int(step_progress.get("retries", 0)) + 1
+    step_progress["retries"] = next_retries
     step_progress["last_error"] = " | ".join(lines)
-    if step_progress["retries"] > max_retries:
+    if next_retries > max_retries:
+        # blocked is terminal for automatic progress. PreToolUse will also start
+        # rejecting new Bash commands for this task until the state is repaired.
         step_progress["status"] = "blocked"
         progress["status"] = "blocked"
+        lines.append(
+            f"Retry limit reached: configured={configured_max_retries}, effective={max_retries}, hard_cap={HARD_MAX_STEP_RETRIES}"
+        )
     else:
         step_progress["status"] = "failed"
         progress["status"] = "failed"
