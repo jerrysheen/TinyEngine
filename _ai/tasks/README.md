@@ -31,7 +31,7 @@ _ai/runs/<task-id>/evidence/
 4. 运行：
 
 ```bat
-python _ai/scripts/harness/verify_task.py --task-id <task-id>
+python .harness/scripts/verify_task.py --task-id <task-id>
 ```
 
 5. 通过后再做下一步；失败则修复并重试
@@ -52,15 +52,17 @@ python _ai/scripts/harness/verify_task.py --task-id <task-id>
 - step 可以用 `max_retries` 覆盖
 - 但最终仍受 Python 代码里的硬上限约束，超过后 step 会变成 `blocked`
 - `blocked` 后 verifier 不会自动重置，必须先由人确认真实原因已处理，再手动运行 `retry_step.py`
+- `changed_files` 验收现在要求“路径被记录且文件仍然存在于磁盘”
 
 ## 失败后如何重试
 
 1. 看 `_ai/runs/<task-id>/progress.json` 里的 `current_step`、`status`、`retries`、`last_error`
 2. 看 `_ai/runs/<task-id>/evidence/<current_step>.verify.log`
 3. 只修当前 step 的问题
-4. 如果当前 step 已 `blocked`，先由人确认真实原因已处理，再手动运行 `python _ai/scripts/harness/retry_step.py --task-id <task-id> --confirm-human --clear-last-error`
-5. 然后再运行 `python _ai/scripts/harness/verify_task.py --task-id <task-id>`
-6. 如果再次进入 `blocked`，继续排查真实原因，不要循环执行 reset/retry
+4. 如果当前 step 已 `blocked`，先由人确认真实原因已处理，再手动运行 `python .harness/scripts/retry_step.py --task-id <task-id> --confirm-human --clear-last-error`
+5. 然后再运行 `python .harness/scripts/verify_task.py --task-id <task-id>`
+6. 如果再次失败，先回头看 `last_error` 和 `verify.log`，不要机械连续重跑 verify
+7. 如果再次进入 `blocked`，继续排查真实原因，不要循环执行 reset/retry
 
 ## 支持的 acceptance 类型
 

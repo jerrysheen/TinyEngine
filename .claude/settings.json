@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR\\_ai\\scripts\\harness\\pre_tool_guard.py\""
+            "command": "python .harness/scripts/claude_pre_tool_guard.py"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR\\_ai\\scripts\\harness\\track_changes.py\"",
+            "command": "python .harness/scripts/claude_track_changes.py",
             "timeout": 60
           }
         ]
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"$CLAUDE_PROJECT_DIR\\_ai\\scripts\\harness\\ensure_task_state.py\"",
+            "command": "python .harness/scripts/ensure_task_state.py",
             "timeout": 30
           }
         ]

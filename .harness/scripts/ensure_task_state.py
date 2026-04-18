@@ -9,7 +9,6 @@ from task_runtime import get_active_task_id, load_progress, load_task
 def main() -> int:
     task_id = get_active_task_id()
     if not task_id:
-        print('{"cancel":false,"contextModification":"","errorMessage":""}')
         return 0
 
     task = load_task(task_id)
@@ -18,7 +17,6 @@ def main() -> int:
     current_step = progress.get("current_step")
 
     if status == "done" and current_step is None:
-        print('{"cancel":false,"contextModification":"","errorMessage":""}')
         return 0
 
     if current_step:
@@ -32,12 +30,10 @@ def main() -> int:
 
     if status == "blocked":
         print("Task is blocked and state is already saved. Do not rerun verify_task.py blindly.", file=sys.stderr)
-        print("Resume only after creating the required artifact or adjusting the task/progress state.", file=sys.stderr)
-        print('{"cancel":true,"contextModification":"","errorMessage":"Task is blocked; do not mark the task complete"}')
+        print("Resume only after a human confirms the real issue was fixed and retry_step.py is executed.", file=sys.stderr)
         return 0
 
     print("Task is incomplete but progress is saved. Resume in a later session if needed.", file=sys.stderr)
-    print('{"cancel":true,"contextModification":"","errorMessage":"Task is not complete; do not mark the task complete"}')
     return 0
 
 

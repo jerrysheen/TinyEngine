@@ -1,0 +1,31 @@
+# Cline Adapter
+
+这个目录只放 Cline 相关入口配置：
+
+- `hooks/`：PowerShell hook 脚本，调用 `.harness/scripts/*.py`
+- `harness.md`：告诉 Cline Agent 当前仓库必须遵守的 harness 规则
+
+## Hooks 说明
+
+Cline 的项目 hooks 位于 `.clinerules/hooks/` 目录。Windows 平台必须使用 `.ps1` 后缀。
+
+| Hook 类型 | 调用的 Python 脚本 | 功能 |
+|-----------|-------------------|------|
+| PreToolUse | `cline_pre_tool_guard.py` | 阻断危险 shell 和超预算重试 |
+| PostToolUse | `cline_track_changes.py` | 登记 `changed_files`、`file_trace`、自动写 provenance 头 |
+| TaskComplete | `ensure_task_state.py` | 会话结束时提醒任务状态 |
+
+## 状态机命令
+
+- 解锁当前 step：`python .harness/scripts/retry_step.py --task-id <task-id> --confirm-human --clear-last-error`
+- 回退到指定 step：`python .harness/scripts/rewind_step.py --task-id <task-id> --to <step-id> --confirm-human --clear-last-error`
+
+## 迁移说明
+
+迁移时，优先一起带走：
+
+- `.clinerules/hooks/*.ps1`
+- `.clinerules/harness.md`
+- `.harness/`
+
+如果目标仓库不需要 Cline，可以只保留 `.cursor/` 和 `.harness/`。

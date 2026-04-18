@@ -1,0 +1,32 @@
+# TinyEngine Harness Rule
+
+## 入口
+
+- 当前任务指针：`_ai/active-task.txt`
+- 任务定义：`_ai/tasks/<task-id>.json`
+- 运行状态：`_ai/runs/<task-id>/progress.json`
+- 核心脚本：`.harness/scripts/`
+
+## 必须遵守的流程
+
+1. 先读取 `_ai/active-task.txt`
+2. 当前 step 只以 `_ai/runs/<task-id>/progress.json.current_step` 为准
+3. 一次只处理当前 step，不允许跳 step
+4. 完成当前 step 后，显式运行：
+   `python .harness/scripts/verify_task.py --task-id <task-id>`
+5. verifier 失败后，不允许偷偷推进到下一个 step
+6. 如果 step 进入 `blocked`，只能由人确认真实原因已修复后，显式运行：
+   `python .harness/scripts/retry_step.py --task-id <task-id> --confirm-human --clear-last-error`
+
+## 约束
+
+- 不要把 `current_step` 写回 task.json
+- 不要手动声称任务完成，除非 `progress.json.status == done` 且 `current_step == null`
+- 支持注释的文本文件需要带任务来源头注释
+- 无法自动注释的文件，至少要通过 `progress.json.file_trace` 可反查
+
+## 落盘与追踪
+
+- afterFileEdit hook 会自动登记 `changed_files`
+- afterFileEdit hook 会自动维护 `file_trace`
+- afterFileEdit hook 会为支持注释的文本文件自动追加 provenance 头注释

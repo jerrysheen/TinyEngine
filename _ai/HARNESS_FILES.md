@@ -2,7 +2,18 @@
 
 这份清单只列当前工程里和 harness 直接相关、适合后续复制到别的仓库继续演化的文件。
 
-## 入口配置
+## 可迁移入口配置
+
+- `.harness/`
+  作用：共享 harness 核心，打包迁移时优先带走。
+- `.claude/settings.json`
+  作用：Claude Code 的 hooks 入口，实际调用 `.harness/scripts/*.py`。
+- `.cursor/hooks.json`
+  作用：Cursor 的 hooks 入口，实际调用 `.harness/scripts/*.py`。
+- `.cursor/rules/harness.mdc`
+  作用：Cursor Agent 的规则入口，把 harness 流程写成 always-apply 规则。
+
+## 旧入口配置
 
 - `.claude/settings.json`
   作用：注册 `PreToolUse`、`PostToolUse`、`Stop` 三类 hooks。
@@ -22,7 +33,9 @@
 - `_ai/progress.schema.json`
   作用：约束 `progress.json` 的结构，包括 `current_step`、`steps`、`file_trace`。
 
-## Harness 脚本
+## 旧版脚本位置
+
+以下路径仍然保留在仓库中，主要用于兼容旧会话：
 
 - `_ai/scripts/harness/task_runtime.py`
   作用：统一路径、读写 JSON、初始化 progress、step 游标推进辅助。
@@ -41,24 +54,34 @@
 - `_ai/scripts/harness/stamp_provenance.py`
   作用：给支持注释的生成文件写入 task/step 来源头注释。
 
+## 新版可迁移核心
+
+- `.harness/scripts/task_runtime.py`
+- `.harness/scripts/verify_task.py`
+- `.harness/scripts/retry_step.py`
+- `.harness/scripts/update_progress.py`
+- `.harness/scripts/stamp_provenance.py`
+- `.harness/scripts/track_changes_lib.py`
+- `.harness/scripts/shell_guard_lib.py`
+- `.harness/scripts/claude_pre_tool_guard.py`
+- `.harness/scripts/claude_track_changes.py`
+- `.harness/scripts/cursor_before_shell_execution.py`
+- `.harness/scripts/cursor_after_file_edit.py`
+- `.harness/scripts/cursor_stop.py`
+
 ## 建议一起复制的最小集合
 
+- `.harness/`
 - `.claude/settings.json`
+- `.cursor/hooks.json`
+- `.cursor/rules/harness.mdc`
 - `_ai/tasks/task.template.json`
 - `_ai/tasks/README.md`
 - `_ai/runs/README.md`
 - `_ai/progress.schema.json`
-- `_ai/scripts/harness/task_runtime.py`
-- `_ai/scripts/harness/pre_tool_guard.py`
-- `_ai/scripts/harness/track_changes.py`
-- `_ai/scripts/harness/verify_task.py`
-- `_ai/scripts/harness/ensure_task_state.py`
-- `_ai/scripts/harness/update_progress.py`
-- `_ai/scripts/harness/retry_step.py`
 
 ## 可选复制
 
-- `_ai/scripts/harness/stamp_provenance.py`
 - `CLAUDE.md`
 
 如果目标仓库的运行环境、构建命令、语言类型不同，优先改这几处：

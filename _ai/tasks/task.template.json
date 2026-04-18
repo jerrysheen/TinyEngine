@@ -5,7 +5,7 @@
   "notes": [
     "current_step 不写在 task.json，运行态游标只在 _ai/runs/<task-id>/progress.json 中维护。",
     "Python verifier 还有代码级硬上限；即使这里写得更大，也会被截断。",
-    "如果 step 会生成文本文件，建议在写完后运行 python _ai/scripts/harness/stamp_provenance.py <path> 写入任务追踪头注释。"
+    "如果 step 会生成文本文件，建议在写完后运行 python .harness/scripts/stamp_provenance.py <path> 写入任务追踪头注释。"
   ],
   "steps": [
     {

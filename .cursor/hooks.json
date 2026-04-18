@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": "python .harness/scripts/cursor_before_shell_execution.py"
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "python .harness/scripts/cursor_after_file_edit.py"
+      }
+    ],
+    "stop": [
+      {
+        "command": "python .harness/scripts/cursor_stop.py"
+      }
+    ]
+  }
+}
