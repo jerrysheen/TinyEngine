@@ -1,0 +1,1651 @@
+{
+  "schema_version": 2,
+  "task_id": "analyze-all-commits",
+  "status": "blocked",
+  "current_step": "checkpoint-149-857fb25",
+  "changed_files": [
+    "_ai\\runs\\analyze-all-commits\\evidence\\reuse-audit.md",
+    "_ai\\runs\\analyze-all-commits\\progress.json",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\001_7773c7d.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\002_52334b4.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\003_2b614ed.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\004_1c6590e.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\005_35f3044.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\006_777e6cd.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\007_55828fc.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\008_a5e5859.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\009_2de13fb.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\010_b5a3515.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\011_438d2d0.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\012_7d938f9.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\013_d5cddba.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\014_78cda87.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\015_3d80517.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\016_862ee63.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\017_86f8ce5.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\018-d1fcd89.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\019_024f060.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\020_0bf74e9.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\021_93bdc25.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\022_f6dea4b.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\023_743aebc.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\024_19045c9.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\025_ca54ec3.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\026_929804a.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\027_63b6ab1.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\028_5479fec.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\029_d8b4ef3.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\030_dd9bb4d.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\031_a5bf65f.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\032_a1265f1.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\033_bd4c9c1.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\034_4a314e4.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\035_0327649.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\036_34a5fa7.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\037_158cd97.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\038_b6dc1ee.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints_174_874193c.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\039_2afb62d.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\040_a977b4a.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\041_d8563c9.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\042_2ef2586.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\043_7cfec69.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\044_90aebd9.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\045_7bbb048.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\046_1ec4b69.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\047_e5f1e32.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\048_d3980ba.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\049_26e81aa.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\050_c8d7d98.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\051_564ee35.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\052_89fee5f.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\053_145d65d.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\054_7c25478.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\055_464dd30.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\056_1ad67b1.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\057_725f193.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\058_10f1477.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\059_c7d6d1b.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\060_94525b3.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\061_12ecade.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\062_647c0f3.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\063_d3f9d6c.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\064_9ed5e27.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\065_2298871.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\066_1d12239.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\067_7eae5db.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\068_95d51d9.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\069_6791655.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\070_ba9b248.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\071_9207ed3.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\072_2500a63.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\073_c1a8928.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\074_ce90454.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\075_22e215b.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\076_9fa8a56.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\077_8e884dd.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\078_abd71d9.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\079_787abcd.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\080_f1f2f22.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\081_32aac28.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\082_b5675bc.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\083_9abd119.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\084_3ebaa65.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\085_e63fa9a.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\086_31b1b4c.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\087_ed8dc41.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\088_8ceccba.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\089_1be5a8c.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\090_9b6acce.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\091_b45bb0b.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\092_369d3f5.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\093_611e5a3.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\094_069bfb0.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\095_942eab2.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\096_e2ca606.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\097_5c64f09.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\098_0cbf13a.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\099_5b6624b.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\100_2561687.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\101_0642139.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\102_614e827.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\103_53778fa.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\104_173cced.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\105_68b097f.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\106_d165109.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\107_9ed01bf.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\108_ac78cd0.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\109_fb6a0ff.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\110_c31c5ef.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\111_c6a26f6.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\112_d4c63b9.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\113_11f4c22.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\114_55f612d.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\115_f933b74.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\116_a0910f2.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\117_4c4e9c5.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\118_08a7c4e.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\119_625339d.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\120_170865a.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\121_bfdba41.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\122_bf7e166.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\123_8cb2b8d.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\124_39c5b18.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\125_36a2a0d.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\126_3c5d300.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\127_32bfc86.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\128_de57eda.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\129_1618591.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\130_9b7237b.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\131_44eacef.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\132_ad6015c.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\133_4a1efa0.md",
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\134_d4bab1b.md",
+    "_ai/runs/analyze-all-commits/evidence/checkpoints/142_e15989c.md",
+    "_ai/runs/analyze-all-commits/evidence/checkpoints/143_6639517.md",
+    "_ai/runs/analyze-all-commits/evidence/checkpoints/144_9aae040.md",
+    "_ai/runs/analyze-all-commits/evidence/checkpoints/135_5a33220.md",
+    "_ai/runs/analyze-all-commits/evidence/checkpoints/136_8f7ea5a.md",
+    "_ai/runs/analyze-all-commits/evidence/checkpoints/137_fac71e1.md",
+    "_ai/runs/analyze-all-commits/evidence/checkpoints/138_5eb08ad.md",
+    "_ai/runs/analyze-all-commits/evidence/checkpoints/141_da952cc.md",
+    "_ai/runs/analyze-all-commits/evidence/checkpoints/139_457b2e5.md",
+    "_ai/runs/analyze-all-commits/evidence/checkpoints/140_d027e62.md",
+    "_ai/runs/analyze-all-commits/evidence/checkpoints/145_dcc1abe.md",
+    "_ai/runs/analyze-all-commits/evidence/checkpoints/146_c5d2259.md",
+    "_ai/runs/analyze-all-commits/evidence/checkpoints/147_3771cdd.md",
+    "_ai/runs/analyze-all-commits/evidence/checkpoints/148_42b7254.md"
+  ],
+  "steps": {
+    "audit-existing-recent-30": {
+      "title": "Audit existing recent-30 outputs and record reuse scope",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:39:00+08:00"
+    },
+    "checkpoint-001-7773c7d": {
+      "title": "Analyze commit 7773c7d and write checkpoint 001",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:40:00+08:00"
+    },
+    "checkpoint-002-52334b4": {
+      "title": "Analyze commit 52334b4 and write checkpoint 002",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:41:00+08:00"
+    },
+    "checkpoint-003-2b614ed": {
+      "title": "Analyze commit 2b614ed and write checkpoint 003",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:42:00+08:00"
+    },
+    "checkpoint-004-1c6590e": {
+      "title": "Analyze commit 1c6590e and write checkpoint 004",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:43:00+08:00"
+    },
+    "checkpoint-005-35f3044": {
+      "title": "Analyze commit 35f3044 and write checkpoint 005",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:44:00+08:00"
+    },
+    "checkpoint-006-777e6cd": {
+      "title": "Analyze commit 777e6cd and write checkpoint 006",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:45:00+08:00"
+    },
+    "checkpoint-007-55828fc": {
+      "title": "Analyze commit 55828fc and write checkpoint 007",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:46:00+08:00"
+    },
+    "checkpoint-008-a5e5859": {
+      "title": "Analyze commit a5e5859 and write checkpoint 008",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:47:00+08:00"
+    },
+    "checkpoint-009-2de13fb": {
+      "title": "Analyze commit 2de13fb and write checkpoint 009",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:48:00+08:00"
+    },
+    "checkpoint-010-b5a3515": {
+      "title": "Analyze commit b5a3515 and write checkpoint 010",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:49:00+08:00"
+    },
+    "checkpoint-011-438d2d0": {
+      "title": "Analyze commit 438d2d0 and write checkpoint 011",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:50:00+08:00"
+    },
+    "checkpoint-012-7d938f9": {
+      "title": "Analyze commit 7d938f9 and write checkpoint 012",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:51:00+08:00"
+    },
+    "checkpoint-013-d5cddba": {
+      "title": "Analyze commit d5cddba and write checkpoint 013",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:53:00+08:00"
+    },
+    "checkpoint-014-78cda87": {
+      "title": "Analyze commit 78cda87 and write checkpoint 014",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:54:00+08:00"
+    },
+    "checkpoint-015-3d80517": {
+      "title": "Analyze commit 3d80517 and write checkpoint 015",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:55:00+08:00"
+    },
+    "checkpoint-016-862ee63": {
+      "title": "Analyze commit 862ee63 and write checkpoint 016",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:57:28+08:00"
+    },
+    "checkpoint-017-86f8ce5": {
+      "title": "Analyze commit 86f8ce5 and write checkpoint 017",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T20:59:00+08:00"
+    },
+    "checkpoint-018-d1fcd89": {
+      "title": "Analyze commit d1fcd89 and write checkpoint 018",
+      "status": "done",
+      "retries": 2,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:01:00+08:00"
+    },
+    "checkpoint-019-024f060": {
+      "title": "Analyze commit 024f060 and write checkpoint 019",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:29:51+08:00"
+    },
+    "checkpoint-020-0bf74e9": {
+      "title": "Analyze commit 0bf74e9 and write checkpoint 020",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:30:27+08:00"
+    },
+    "checkpoint-021-93bdc25": {
+      "title": "Analyze commit 93bdc25 and write checkpoint 021",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:30:52+08:00"
+    },
+    "checkpoint-022-f6dea4b": {
+      "title": "Analyze commit f6dea4b and write checkpoint 022",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:31:14+08:00"
+    },
+    "checkpoint-023-743aebc": {
+      "title": "Analyze commit 743aebc and write checkpoint 023",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:31:39+08:00"
+    },
+    "checkpoint-024-19045c9": {
+      "title": "Analyze commit 19045c9 and write checkpoint 024",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:32:02+08:00"
+    },
+    "checkpoint-025-ca54ec3": {
+      "title": "Analyze commit ca54ec3 and write checkpoint 025",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:32:28+08:00"
+    },
+    "checkpoint-026-929804a": {
+      "title": "Analyze commit 929804a and write checkpoint 026",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:32:54+08:00"
+    },
+    "checkpoint-027-63b6ab1": {
+      "title": "Analyze commit 63b6ab1 and write checkpoint 027",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:33:18+08:00"
+    },
+    "checkpoint-028-5479fec": {
+      "title": "Analyze commit 5479fec and write checkpoint 028",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:33:43+08:00"
+    },
+    "checkpoint-029-d8b4ef3": {
+      "title": "Analyze commit d8b4ef3 and write checkpoint 029",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:34:11+08:00"
+    },
+    "checkpoint-030-dd9bb4d": {
+      "title": "Analyze commit dd9bb4d and write checkpoint 030",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:34:40+08:00"
+    },
+    "checkpoint-031-a5bf65f": {
+      "title": "Analyze commit a5bf65f and write checkpoint 031",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:35:02+08:00"
+    },
+    "checkpoint-032-a1265f1": {
+      "title": "Analyze commit a1265f1 and write checkpoint 032",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:35:27+08:00"
+    },
+    "checkpoint-033-bd4c9c1": {
+      "title": "Analyze commit bd4c9c1 and write checkpoint 033",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:35:50+08:00"
+    },
+    "checkpoint-034-4a314e4": {
+      "title": "Analyze commit 4a314e4 and write checkpoint 034",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:36:14+08:00"
+    },
+    "checkpoint-035-0327649": {
+      "title": "Analyze commit 0327649 and write checkpoint 035",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:36:39+08:00"
+    },
+    "checkpoint-036-34a5fa7": {
+      "title": "Analyze commit 34a5fa7 and write checkpoint 036",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:37:06+08:00"
+    },
+    "checkpoint-037-158cd97": {
+      "title": "Analyze commit 158cd97 and write checkpoint 037",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:37:24+08:00"
+    },
+    "checkpoint-038-b6dc1ee": {
+      "title": "Analyze commit b6dc1ee and write checkpoint 038",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:37:47+08:00"
+    },
+    "checkpoint-039-2afb62d": {
+      "title": "Analyze commit 2afb62d and write checkpoint 039",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-17T21:38:34+08:00"
+    },
+    "checkpoint-040-a977b4a": {
+      "title": "Analyze commit a977b4a and write checkpoint 040",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:03:10+08:00"
+    },
+    "checkpoint-041-d8563c9": {
+      "title": "Analyze commit d8563c9 and write checkpoint 041",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:07:26+08:00"
+    },
+    "checkpoint-042-2ef2586": {
+      "title": "Analyze commit 2ef2586 and write checkpoint 042",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:10:23+08:00"
+    },
+    "checkpoint-043-7cfec69": {
+      "title": "Analyze commit 7cfec69 and write checkpoint 043",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:11:43+08:00"
+    },
+    "checkpoint-044-90aebd9": {
+      "title": "Analyze commit 90aebd9 and write checkpoint 044",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:13:28+08:00"
+    },
+    "checkpoint-045-7bbb048": {
+      "title": "Analyze commit 7bbb048 and write checkpoint 045",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:14:27+08:00"
+    },
+    "checkpoint-046-1ec4b69": {
+      "title": "Analyze commit 1ec4b69 and write checkpoint 046",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:23:07+08:00"
+    },
+    "checkpoint-047-e5f1e32": {
+      "title": "Analyze commit e5f1e32 and write checkpoint 047",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:37:59+08:00"
+    },
+    "checkpoint-048-d3980ba": {
+      "title": "Analyze commit d3980ba and write checkpoint 048",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:38:49+08:00"
+    },
+    "checkpoint-049-26e81aa": {
+      "title": "Analyze commit 26e81aa and write checkpoint 049",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:38:49+08:00"
+    },
+    "checkpoint-050-c8d7d98": {
+      "title": "Analyze commit c8d7d98 and write checkpoint 050",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:52:51+08:00"
+    },
+    "checkpoint-051-564ee35": {
+      "title": "Analyze commit 564ee35 and write checkpoint 051",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:53:05+08:00"
+    },
+    "checkpoint-052-89fee5f": {
+      "title": "Analyze commit 89fee5f and write checkpoint 052",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:53:35+08:00"
+    },
+    "checkpoint-053-145d65d": {
+      "title": "Analyze commit 145d65d and write checkpoint 053",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:53:51+08:00"
+    },
+    "checkpoint-054-7c25478": {
+      "title": "Analyze commit 7c25478 and write checkpoint 054",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:55:54+08:00"
+    },
+    "checkpoint-055-464dd30": {
+      "title": "Analyze commit 464dd30 and write checkpoint 055",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:56:06+08:00"
+    },
+    "checkpoint-056-1ad67b1": {
+      "title": "Analyze commit 1ad67b1 and write checkpoint 056",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:56:17+08:00"
+    },
+    "checkpoint-057-725f193": {
+      "title": "Analyze commit 725f193 and write checkpoint 057",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:56:26+08:00"
+    },
+    "checkpoint-058-10f1477": {
+      "title": "Analyze commit 10f1477 and write checkpoint 058",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T11:56:33+08:00"
+    },
+    "checkpoint-059-c7d6d1b": {
+      "title": "Analyze commit c7d6d1b and write checkpoint 059",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T12:02:30+08:00"
+    },
+    "checkpoint-060-94525b3": {
+      "title": "Analyze commit 94525b3 and write checkpoint 060",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T12:02:42+08:00"
+    },
+    "checkpoint-061-12ecade": {
+      "title": "Analyze commit 12ecade and write checkpoint 061",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T12:02:50+08:00"
+    },
+    "checkpoint-062-647c0f3": {
+      "title": "Analyze commit 647c0f3 and write checkpoint 062",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T12:02:59+08:00"
+    },
+    "checkpoint-063-d3f9d6c": {
+      "title": "Analyze commit d3f9d6c and write checkpoint 063",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T12:06:22+08:00"
+    },
+    "checkpoint-064-9ed5e27": {
+      "title": "Analyze commit 9ed5e27 and write checkpoint 064",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T12:06:42+08:00"
+    },
+    "checkpoint-065-2298871": {
+      "title": "Analyze commit 2298871 and write checkpoint 065",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T12:06:50+08:00"
+    },
+    "checkpoint-066-1d12239": {
+      "title": "Analyze commit 1d12239 and write checkpoint 066",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T12:06:50+08:00"
+    },
+    "checkpoint-067-7eae5db": {
+      "title": "Analyze commit 7eae5db and write checkpoint 067",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T12:06:50+08:00"
+    },
+    "checkpoint-068-95d51d9": {
+      "title": "Analyze commit 95d51d9 and write checkpoint 068",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-18T14:00:00+08:00"
+    },
+    "checkpoint-069-6791655": {
+      "title": "Analyze commit 6791655 and write checkpoint 069",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T14:02:00+08:00"
+    },
+    "checkpoint-070-ba9b248": {
+      "title": "Analyze commit ba9b248 and write checkpoint 070",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T14:04:00+08:00"
+    },
+    "checkpoint-071-9207ed3": {
+      "title": "Analyze commit 9207ed3 and write checkpoint 071",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T14:06:00+08:00"
+    },
+    "checkpoint-072-2500a63": {
+      "title": "Analyze commit 2500a63 and write checkpoint 072",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T14:08:00+08:00"
+    },
+    "checkpoint-073-c1a8928": {
+      "title": "Analyze commit c1a8928 and write checkpoint 073",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T14:10:00+08:00"
+    },
+    "checkpoint-074-ce90454": {
+      "title": "Analyze commit ce90454 and write checkpoint 074",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T14:12:00+08:00"
+    },
+    "checkpoint-075-22e215b": {
+      "title": "Analyze commit 22e215b and write checkpoint 075",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T14:14:00+08:00"
+    },
+    "checkpoint-076-9fa8a56": {
+      "title": "Analyze commit 9fa8a56 and write checkpoint 076",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T14:16:00+08:00"
+    },
+    "checkpoint-077-8e884dd": {
+      "title": "Analyze commit 8e884dd and write checkpoint 077",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T14:18:00+08:00"
+    },
+    "checkpoint-078-abd71d9": {
+      "title": "Analyze commit abd71d9 and write checkpoint 078",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-18T15:00:00+08:00"
+    },
+    "checkpoint-079-787abcd": {
+      "title": "Analyze commit 787abcd and write checkpoint 079",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T15:05:00+08:00"
+    },
+    "checkpoint-080-f1f2f22": {
+      "title": "Analyze commit f1f2f22 and write checkpoint 080",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T15:10:00+08:00"
+    },
+    "checkpoint-081-32aac28": {
+      "title": "Analyze commit 32aac28 and write checkpoint 081",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T15:15:00+08:00"
+    },
+    "checkpoint-082-b5675bc": {
+      "title": "Analyze commit b5675bc and write checkpoint 082",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T15:20:00+08:00"
+    },
+    "checkpoint-083-9abd119": {
+      "title": "Analyze commit 9abd119 and write checkpoint 083",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T15:25:00+08:00"
+    },
+    "checkpoint-084-3ebaa65": {
+      "title": "Analyze commit 3ebaa65 and write checkpoint 084",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T15:30:00+08:00"
+    },
+    "checkpoint-085-e63fa9a": {
+      "title": "Analyze commit e63fa9a and write checkpoint 085",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T15:35:00+08:00"
+    },
+    "checkpoint-086-31b1b4c": {
+      "title": "Analyze commit 31b1b4c and write checkpoint 086",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T15:40:00+08:00"
+    },
+    "checkpoint-087-ed8dc41": {
+      "title": "Analyze commit ed8dc41 and write checkpoint 087",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T15:45:00+08:00"
+    },
+    "checkpoint-088-8ceccba": {
+      "title": "Analyze commit 8ceccba and write checkpoint 088",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:00:00+08:00"
+    },
+    "checkpoint-089-1be5a8c": {
+      "title": "Analyze commit 1be5a8c and write checkpoint 089",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:05:00+08:00"
+    },
+    "checkpoint-090-9b6acce": {
+      "title": "Analyze commit 9b6acce and write checkpoint 090",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:10:00+08:00"
+    },
+    "checkpoint-091-b45bb0b": {
+      "title": "Analyze commit b45bb0b and write checkpoint 091",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:15:00+08:00"
+    },
+    "checkpoint-092-369d3f5": {
+      "title": "Analyze commit 369d3f5 and write checkpoint 092",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:20:00+08:00"
+    },
+    "checkpoint-093-611e5a3": {
+      "title": "Analyze commit 611e5a3 and write checkpoint 093",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:25:00+08:00"
+    },
+    "checkpoint-094-069bfb0": {
+      "title": "Analyze commit 069bfb0 and write checkpoint 094",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:30:00+08:00"
+    },
+    "checkpoint-095-942eab2": {
+      "title": "Analyze commit 942eab2 and write checkpoint 095",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:35:00+08:00"
+    },
+    "checkpoint-096-e2ca606": {
+      "title": "Analyze commit e2ca606 and write checkpoint 096",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:40:00+08:00"
+    },
+    "checkpoint-097-5c64f09": {
+      "title": "Analyze commit 5c64f09 and write checkpoint 097",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:45:00+08:00"
+    },
+    "checkpoint-098-0cbf13a": {
+      "title": "Analyze commit 0cbf13a and write checkpoint 098",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:50:00+08:00"
+    },
+    "checkpoint-099-5b6624b": {
+      "title": "Analyze commit 5b6624b and write checkpoint 099",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-18T12:36:15+08:00"
+    },
+    "checkpoint-100-2561687": {
+      "title": "Analyze commit 2561687 and write checkpoint 100",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T12:36:22+08:00"
+    },
+    "checkpoint-101-0642139": {
+      "title": "Analyze commit 0642139 and write checkpoint 101",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T12:36:45+08:00"
+    },
+    "checkpoint-102-614e827": {
+      "title": "Analyze commit 614e827 and write checkpoint 102",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T12:37:04+08:00"
+    },
+    "checkpoint-103-53778fa": {
+      "title": "Analyze commit 53778fa and write checkpoint 103",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T12:37:58+08:00"
+    },
+    "checkpoint-104-173cced": {
+      "title": "Analyze commit 173cced and write checkpoint 104",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T15:59:07+08:00"
+    },
+    "checkpoint-105-68b097f": {
+      "title": "Analyze commit 68b097f and write checkpoint 105",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:00:17+08:00"
+    },
+    "checkpoint-106-d165109": {
+      "title": "Analyze commit d165109 and write checkpoint 106",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:00:29+08:00"
+    },
+    "checkpoint-107-9ed01bf": {
+      "title": "Analyze commit 9ed01bf and write checkpoint 107",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:00:40+08:00"
+    },
+    "checkpoint-108-ac78cd0": {
+      "title": "Analyze commit ac78cd0 and write checkpoint 108",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:00:50+08:00"
+    },
+    "checkpoint-109-fb6a0ff": {
+      "title": "Analyze commit fb6a0ff and write checkpoint 109",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:01:01+08:00"
+    },
+    "checkpoint-110-c31c5ef": {
+      "title": "Analyze commit c31c5ef and write checkpoint 110",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:01:14+08:00"
+    },
+    "checkpoint-111-c6a26f6": {
+      "title": "Analyze commit c6a26f6 and write checkpoint 111",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:01:26+08:00"
+    },
+    "checkpoint-112-d4c63b9": {
+      "title": "Analyze commit d4c63b9 and write checkpoint 112",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:01:36+08:00"
+    },
+    "checkpoint-113-11f4c22": {
+      "title": "Analyze commit 11f4c22 and write checkpoint 113",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:01:46+08:00"
+    },
+    "checkpoint-114-55f612d": {
+      "title": "Analyze commit 55f612d and write checkpoint 114",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:06:37+08:00"
+    },
+    "checkpoint-115-f933b74": {
+      "title": "Analyze commit f933b74 and write checkpoint 115",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:07:16+08:00"
+    },
+    "checkpoint-116-a0910f2": {
+      "title": "Analyze commit a0910f2 and write checkpoint 116",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:07:55+08:00"
+    },
+    "checkpoint-117-4c4e9c5": {
+      "title": "Analyze commit 4c4e9c5 and write checkpoint 117",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:08:33+08:00"
+    },
+    "checkpoint-118-08a7c4e": {
+      "title": "Analyze commit 08a7c4e and write checkpoint 118",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:09:18+08:00"
+    },
+    "checkpoint-119-625339d": {
+      "title": "Analyze commit 625339d and write checkpoint 119",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:10:09+08:00"
+    },
+    "checkpoint-120-170865a": {
+      "title": "Analyze commit 170865a and write checkpoint 120",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:10:57+08:00"
+    },
+    "checkpoint-121-bfdba41": {
+      "title": "Analyze commit bfdba41 and write checkpoint 121",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:11:44+08:00"
+    },
+    "checkpoint-122-bf7e166": {
+      "title": "Analyze commit bf7e166 and write checkpoint 122",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:13:27+08:00"
+    },
+    "checkpoint-123-8cb2b8d": {
+      "title": "Analyze commit 8cb2b8d and write checkpoint 123",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:17:31+08:00"
+    },
+    "checkpoint-124-39c5b18": {
+      "title": "Analyze commit 39c5b18 and write checkpoint 124",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:20:16+08:00"
+    },
+    "checkpoint-125-36a2a0d": {
+      "title": "Analyze commit 36a2a0d and write checkpoint 125",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:23:59+08:00"
+    },
+    "checkpoint-126-3c5d300": {
+      "title": "Analyze commit 3c5d300 and write checkpoint 126",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:25:02+08:00"
+    },
+    "checkpoint-127-32bfc86": {
+      "title": "Analyze commit 32bfc86 and write checkpoint 127",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:26:17+08:00"
+    },
+    "checkpoint-128-de57eda": {
+      "title": "Analyze commit de57eda and write checkpoint 128",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:39:43+08:00"
+    },
+    "checkpoint-129-1618591": {
+      "title": "Analyze commit 1618591 and write checkpoint 129",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:40:34+08:00"
+    },
+    "checkpoint-130-9b7237b": {
+      "title": "Analyze commit 9b7237b and write checkpoint 130",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:40:50+08:00"
+    },
+    "checkpoint-131-44eacef": {
+      "title": "Analyze commit 44eacef and write checkpoint 131",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:41:07+08:00"
+    },
+    "checkpoint-132-ad6015c": {
+      "title": "Analyze commit ad6015c and write checkpoint 132",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:41:19+08:00"
+    },
+    "checkpoint-133-4a1efa0": {
+      "title": "Analyze commit 4a1efa0 and write checkpoint 133",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:42:03+08:00"
+    },
+    "checkpoint-134-d4bab1b": {
+      "title": "Analyze commit d4bab1b and write checkpoint 134",
+      "status": "done",
+      "retries": 0,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:46:30+08:00"
+    },
+    "checkpoint-135-5a33220": {
+      "title": "Analyze commit 5a33220 and write checkpoint 135",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-136-8f7ea5a": {
+      "title": "Analyze commit 8f7ea5a and write checkpoint 136",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-137-fac71e1": {
+      "title": "Analyze commit fac71e1 and write checkpoint 137",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-138-5eb08ad": {
+      "title": "Analyze commit 5eb08ad and write checkpoint 138",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-139-457b2e5": {
+      "title": "Analyze commit 457b2e5 and write checkpoint 139",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-140-d027e62": {
+      "title": "Analyze commit d027e62 and write checkpoint 140",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-141-da952cc": {
+      "title": "Analyze commit da952cc and write checkpoint 141",
+      "status": "done",
+      "retries": 1,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:46:30+08:00"
+    },
+    "checkpoint-142-e15989c": {
+      "title": "Analyze commit e15989c and write checkpoint 142",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-143-6639517": {
+      "title": "Analyze commit 6639517 and write checkpoint 143",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-144-9aae040": {
+      "title": "Analyze commit 9aae040 and write checkpoint 144",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-145-dcc1abe": {
+      "title": "Analyze commit dcc1abe and write checkpoint 145",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-146-c5d2259": {
+      "title": "Analyze commit c5d2259 and write checkpoint 146",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-147-3771cdd": {
+      "title": "Analyze commit 3771cdd and write checkpoint 147",
+      "status": "pending",
+      "retries": 1,
+      "last_error": null
+    },
+    "checkpoint-148-42b7254": {
+      "title": "Analyze commit 42b7254 and write checkpoint 148",
+      "status": "done",
+      "retries": 3,
+      "last_error": "",
+      "verified_at": "2026-04-18T16:46:30+08:00"
+    },
+    "checkpoint-149-857fb25": {
+      "title": "Reuse existing checkpoint for commit 857fb25",
+      "status": "in_progress",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-150-a784a00": {
+      "title": "Reuse existing checkpoint for commit a784a00",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-151-8020497": {
+      "title": "Reuse existing checkpoint for commit 8020497",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-152-4a8aaa3": {
+      "title": "Reuse existing checkpoint for commit 4a8aaa3",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-153-0a06e52": {
+      "title": "Reuse existing checkpoint for commit 0a06e52",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-154-0bfad4c": {
+      "title": "Reuse existing checkpoint for commit 0bfad4c",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-155-99beff2": {
+      "title": "Reuse existing checkpoint for commit 99beff2",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-156-41d4454": {
+      "title": "Reuse existing checkpoint for commit 41d4454",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-157-cbc20e9": {
+      "title": "Reuse existing checkpoint for commit cbc20e9",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-158-c8ffe31": {
+      "title": "Reuse existing checkpoint for commit c8ffe31",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-159-d476846": {
+      "title": "Reuse existing checkpoint for commit d476846",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-160-896d939": {
+      "title": "Reuse existing checkpoint for commit 896d939",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-161-9e57ba2": {
+      "title": "Reuse existing checkpoint for commit 9e57ba2",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-162-be3f71f": {
+      "title": "Reuse existing checkpoint for commit be3f71f",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-163-5e23ed9": {
+      "title": "Reuse existing checkpoint for commit 5e23ed9",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-164-8933733": {
+      "title": "Reuse existing checkpoint for commit 8933733",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-165-7c28f9a": {
+      "title": "Reuse existing checkpoint for commit 7c28f9a",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-166-96b712c": {
+      "title": "Reuse existing checkpoint for commit 96b712c",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-167-486ce17": {
+      "title": "Reuse existing checkpoint for commit 486ce17",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-168-39b8a3f": {
+      "title": "Reuse existing checkpoint for commit 39b8a3f",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-169-32c8bdd": {
+      "title": "Reuse existing checkpoint for commit 32c8bdd",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-170-c239f1e": {
+      "title": "Reuse existing checkpoint for commit c239f1e",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-171-f952ce2": {
+      "title": "Reuse existing checkpoint for commit f952ce2",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-172-9bffe37": {
+      "title": "Reuse existing checkpoint for commit 9bffe37",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-173-7dcdff4": {
+      "title": "Reuse existing checkpoint for commit 7dcdff4",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-174-874193c": {
+      "title": "Reuse existing checkpoint for commit 874193c",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-175-542daba": {
+      "title": "Reuse existing checkpoint for commit 542daba",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-176-9be4254": {
+      "title": "Reuse existing checkpoint for commit 9be4254",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-177-37b5a60": {
+      "title": "Reuse existing checkpoint for commit 37b5a60",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-178-ff98ffc": {
+      "title": "Reuse existing checkpoint for commit ff98ffc",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "checkpoint-179-ea17977": {
+      "title": "Analyze commit ea17977 and write checkpoint 179",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    },
+    "full-summary": {
+      "title": "Write full-history summary and likely error clusters",
+      "status": "pending",
+      "retries": 0,
+      "last_error": ""
+    }
+  },
+  "updated_at": "2026-04-18T16:46:30+08:00",
+  "file_trace": {
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\041_d8563c9.md": {
+      "first_seen_at": "2026-04-18T11:07:26+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-041-d8563c9",
+      "last_seen_at": "2026-04-18T11:07:26+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-041-d8563c9"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\042_2ef2586.md": {
+      "first_seen_at": "2026-04-18T11:10:23+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-042-2ef2586",
+      "last_seen_at": "2026-04-18T11:10:23+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-042-2ef2586"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\043_7cfec69.md": {
+      "first_seen_at": "2026-04-18T11:11:43+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-043-7cfec69",
+      "last_seen_at": "2026-04-18T11:11:43+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-043-7cfec69"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\044_90aebd9.md": {
+      "first_seen_at": "2026-04-18T11:13:28+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-044-90aebd9",
+      "last_seen_at": "2026-04-18T11:13:28+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-044-90aebd9"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\045_7bbb048.md": {
+      "first_seen_at": "2026-04-18T11:14:27+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-045-7bbb048",
+      "last_seen_at": "2026-04-18T11:14:27+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-045-7bbb048"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\046_1ec4b69.md": {
+      "first_seen_at": "2026-04-18T11:23:07+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-046-1ec4b69",
+      "last_seen_at": "2026-04-18T11:23:07+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-046-1ec4b69"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\047_f952ce2.md": {
+      "first_seen_at": "2026-04-18T11:24:19+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-047-e5f1e32",
+      "last_seen_at": "2026-04-18T11:24:19+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-047-e5f1e32"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\107_9ed01bf.md": {
+      "first_seen_at": "2026-04-18T13:19:08+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-107-9ed01bf",
+      "last_seen_at": "2026-04-18T13:19:08+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-107-9ed01bf"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\108_ac78cd0.md": {
+      "first_seen_at": "2026-04-18T13:19:08+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-107-9ed01bf",
+      "last_seen_at": "2026-04-18T13:19:08+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-107-9ed01bf"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\109_fb6a0ff.md": {
+      "first_seen_at": "2026-04-18T13:19:08+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-107-9ed01bf",
+      "last_seen_at": "2026-04-18T13:19:08+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-107-9ed01bf"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\110_c31c5ef.md": {
+      "first_seen_at": "2026-04-18T15:22:40+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-110-c31c5ef",
+      "last_seen_at": "2026-04-18T15:22:40+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-110-c31c5ef"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\111_c6a26f6.md": {
+      "first_seen_at": "2026-04-18T15:26:01+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-111-c6a26f6",
+      "last_seen_at": "2026-04-18T15:26:01+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-111-c6a26f6"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\112_d4c63b9.md": {
+      "first_seen_at": "2026-04-18T15:31:17+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-112-d4c63b9",
+      "last_seen_at": "2026-04-18T15:31:17+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-112-d4c63b9"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\113_11f4c22.md": {
+      "first_seen_at": "2026-04-18T15:31:38+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-113-11f4c22",
+      "last_seen_at": "2026-04-18T15:31:38+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-113-11f4c22"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\114_55f612d.md": {
+      "first_seen_at": "2026-04-18T15:31:57+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-114-55f612d",
+      "last_seen_at": "2026-04-18T16:06:37+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-114-55f612d"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\115_f933b74.md": {
+      "first_seen_at": "2026-04-18T15:32:14+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-115-f933b74",
+      "last_seen_at": "2026-04-18T16:07:16+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-115-f933b74"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\116_a0910f2.md": {
+      "first_seen_at": "2026-04-18T15:32:31+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-116-a0910f2",
+      "last_seen_at": "2026-04-18T16:07:55+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-116-a0910f2"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\117_4c4e9c5.md": {
+      "first_seen_at": "2026-04-18T16:08:33+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-117-4c4e9c5",
+      "last_seen_at": "2026-04-18T16:08:33+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-117-4c4e9c5"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\118_08a7c4e.md": {
+      "first_seen_at": "2026-04-18T16:09:18+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-118-08a7c4e",
+      "last_seen_at": "2026-04-18T16:09:18+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-118-08a7c4e"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\119_625339d.md": {
+      "first_seen_at": "2026-04-18T16:10:09+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-119-625339d",
+      "last_seen_at": "2026-04-18T16:10:09+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-119-625339d"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\120_170865a.md": {
+      "first_seen_at": "2026-04-18T16:10:57+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-120-170865a",
+      "last_seen_at": "2026-04-18T16:10:57+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-120-170865a"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\121_bfdba41.md": {
+      "first_seen_at": "2026-04-18T16:11:44+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-121-bfdba41",
+      "last_seen_at": "2026-04-18T16:11:44+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-121-bfdba41"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\122_bf7e166.md": {
+      "first_seen_at": "2026-04-18T16:13:27+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-122-bf7e166",
+      "last_seen_at": "2026-04-18T16:13:27+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-122-bf7e166"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\123_8cb2b8d.md": {
+      "first_seen_at": "2026-04-18T16:17:31+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-123-8cb2b8d",
+      "last_seen_at": "2026-04-18T16:17:31+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-123-8cb2b8d"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\124_39c5b18.md": {
+      "first_seen_at": "2026-04-18T16:20:16+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-124-39c5b18",
+      "last_seen_at": "2026-04-18T16:20:16+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-124-39c5b18"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\125_36a2a0d.md": {
+      "first_seen_at": "2026-04-18T16:23:59+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-125-36a2a0d",
+      "last_seen_at": "2026-04-18T16:23:59+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-125-36a2a0d"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\126_3c5d300.md": {
+      "first_seen_at": "2026-04-18T16:25:02+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-126-3c5d300",
+      "last_seen_at": "2026-04-18T16:25:02+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-126-3c5d300"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\127_32bfc86.md": {
+      "first_seen_at": "2026-04-18T16:26:17+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-127-32bfc86",
+      "last_seen_at": "2026-04-18T16:26:17+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-127-32bfc86"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\128_de57eda.md": {
+      "first_seen_at": "2026-04-18T16:30:14+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-128-de57eda",
+      "last_seen_at": "2026-04-18T16:30:14+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-128-de57eda"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\129_1618591.md": {
+      "first_seen_at": "2026-04-18T16:31:25+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-129-1618591",
+      "last_seen_at": "2026-04-18T16:31:25+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-129-1618591"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\130_9b7237b.md": {
+      "first_seen_at": "2026-04-18T16:34:42+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-130-9b7237b",
+      "last_seen_at": "2026-04-18T16:34:42+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-130-9b7237b"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\131_44eacef.md": {
+      "first_seen_at": "2026-04-18T16:36:04+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-131-44eacef",
+      "last_seen_at": "2026-04-18T16:36:04+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-131-44eacef"
+    },
+    "_ai\\runs\\analyze-all-commits\\evidence\\checkpoints\\132_ad6015c.md": {
+      "first_seen_at": "2026-04-18T16:38:41+08:00",
+      "created_by_task": "analyze-all-commits",
+      "created_by_step": "checkpoint-132-ad6015c",
+      "last_seen_at": "2026-04-18T16:38:41+08:00",
+      "last_touched_by_task": "analyze-all-commits",
+      "last_touched_by_step": "checkpoint-132-ad6015c"
+    }
+  }
+}

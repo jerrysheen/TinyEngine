@@ -1,0 +1,2193 @@
+{
+  "task_id": "analyze-all-commits",
+  "title": "Evaluate full git history and extend recent-30 analysis",
+  "max_step_retries": 2,
+  "branch": "main",
+  "total_commits": 179,
+  "existing_analysis": {
+    "task_id": "analyze-recent-30-commits",
+    "summary": "_ai/runs/analyze-recent-30-commits/evidence/summary.md"
+  },
+  "instructions": [
+    "First audit the existing analyze-recent-30-commits outputs and record what can be reused.",
+    "Reuse existing checkpoints when coverage and quality are sufficient; do not rewrite them without a reason.",
+    "For uncovered commits, create one checkpoint per commit with subject, core changes, touched modules, risk points, and likely error causes.",
+    "The final summary must explain the full architecture evolution, major refactor chains, likely bug-introducing commit clusters, and recommended investigation ranges.",
+    "Run python .harness/scripts/verify_task.py --task-id analyze-all-commits after every completed step."
+  ],
+  "deliverables": [
+    "_ai/runs/analyze-all-commits/evidence/reuse-audit.md",
+    "_ai/runs/analyze-all-commits/evidence/checkpoints/*.md",
+    "_ai/runs/analyze-all-commits/evidence/full-summary.md"
+  ],
+  "steps": [
+    {
+      "id": "audit-existing-recent-30",
+      "title": "Audit existing recent-30 outputs and record reuse scope",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/reuse-audit.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-001-7773c7d",
+      "title": "Analyze commit 7773c7d and write checkpoint 001",
+      "commit": "7773c7d",
+      "subject": "Initial commit",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/001_7773c7d.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-002-52334b4",
+      "title": "Analyze commit 52334b4 and write checkpoint 002",
+      "commit": "52334b4",
+      "subject": "[D] Init Commit",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/002_52334b4.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-003-2b614ed",
+      "title": "Analyze commit 2b614ed and write checkpoint 003",
+      "commit": "2b614ed",
+      "subject": "D：默认build脚本设置， 跑通基本结构。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/003_2b614ed.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-004-1c6590e",
+      "title": "Analyze commit 1c6590e and write checkpoint 004",
+      "commit": "1c6590e",
+      "subject": "D: SceneManager类和Manager基类",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/004_1c6590e.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-005-35f3044",
+      "title": "Analyze commit 35f3044 and write checkpoint 005",
+      "commit": "35f3044",
+      "subject": "D: 开始制作窗口类。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/005_35f3044.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-006-777e6cd",
+      "title": "Analyze commit 777e6cd and write checkpoint 006",
+      "commit": "777e6cd",
+      "subject": "D：加入窗口事件",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/006_777e6cd.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-007-55828fc",
+      "title": "Analyze commit 55828fc and write checkpoint 007",
+      "commit": "55828fc",
+      "subject": "Modify：对整个引擎只有一个的类，用静态函数，而不是instance()->create()",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/007_55828fc.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-008-a5e5859",
+      "title": "Analyze commit a5e5859 and write checkpoint 008",
+      "commit": "a5e5859",
+      "subject": "D: RenderAPI 和 RenderEngine类， 开始制作D3D12初始化。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/008_a5e5859.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-009-2de13fb",
+      "title": "Analyze commit 2de13fb and write checkpoint 009",
+      "commit": "2de13fb",
+      "subject": "D: 外部类不受Precompiled header影响。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/009_2de13fb.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-010-b5a3515",
+      "title": "Analyze commit b5a3515 and write checkpoint 010",
+      "commit": "b5a3515",
+      "subject": "D：上传第一版渲染D3D12初始化并执行渲染",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/010_b5a3515.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-011-438d2d0",
+      "title": "Analyze commit 438d2d0 and write checkpoint 011",
+      "commit": "438d2d0",
+      "subject": "D: 开始制作IMGUI层 【1/？】",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/011_438d2d0.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-012-7d938f9",
+      "title": "Analyze commit 7d938f9 and write checkpoint 012",
+      "commit": "7d938f9",
+      "subject": "D: 开始制作IMGUI层 【2/2】， 基本完成， 下一步写OnResize逻辑+ build不带Imgui层逻辑。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/012_7d938f9.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-013-d5cddba",
+      "title": "Analyze commit d5cddba and write checkpoint 013",
+      "commit": "d5cddba",
+      "subject": "Fix： 调整UI位置对不上的问题， 是因为窗口大小和RT size不一致。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/013_d5cddba.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-014-78cda87",
+      "title": "Analyze commit 78cda87 and write checkpoint 014",
+      "commit": "78cda87",
+      "subject": "D: 上传GameObject / Component的基本架子。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/014_78cda87.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-015-3d80517",
+      "title": "Analyze commit 3d80517 and write checkpoint 015",
+      "commit": "3d80517",
+      "subject": "D：Resize功能提交，",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/015_3d80517.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-016-862ee63",
+      "title": "Analyze commit 862ee63 and write checkpoint 016",
+      "commit": "862ee63",
+      "subject": "[Assimp]D: 上传assimp库， 准备build",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/016_862ee63.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-017-86f8ce5",
+      "title": "Analyze commit 86f8ce5 and write checkpoint 017",
+      "commit": "86f8ce5",
+      "subject": "[Assimp]D: Assimp切换目录， 准备build",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/017_86f8ce5.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-018-d1fcd89",
+      "title": "Analyze commit d1fcd89 and write checkpoint 018",
+      "commit": "d1fcd89",
+      "subject": "[Assimp] 完成static lib构建。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/018_d1fcd89.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-019-024f060",
+      "title": "Analyze commit 024f060 and write checkpoint 019",
+      "commit": "024f060",
+      "subject": "[Assimp] 修改Vendor typo",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/019_024f060.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-020-0bf74e9",
+      "title": "Analyze commit 0bf74e9 and write checkpoint 020",
+      "commit": "0bf74e9",
+      "subject": "D：测试接入Assimp static lib",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/020_0bf74e9.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-021-93bdc25",
+      "title": "Analyze commit 93bdc25 and write checkpoint 021",
+      "commit": "93bdc25",
+      "subject": "D：简单mesh类，剩下vertex layout还没设计。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/021_93bdc25.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-022-f6dea4b",
+      "title": "Analyze commit f6dea4b and write checkpoint 022",
+      "commit": "f6dea4b",
+      "subject": "D: Mateiral & Model 基本结构",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/022_f6dea4b.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-023-743aebc",
+      "title": "Analyze commit 743aebc and write checkpoint 023",
+      "commit": "743aebc",
+      "subject": "D: Model 加载， Shader 加载， Shader reflection最简单版本。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/023_743aebc.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-024-19045c9",
+      "title": "Analyze commit 19045c9 and write checkpoint 024",
+      "commit": "19045c9",
+      "subject": "D: 改造Fence为自定义结构体。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/024_19045c9.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-025-ca54ec3",
+      "title": "Analyze commit ca54ec3 and write checkpoint 025",
+      "commit": "ca54ec3",
+      "subject": "D: 上传第一版material功能， 引擎读取meta文件，获取变量值和shader，反射得到shader参数，并设置到gpu",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/025_ca54ec3.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-026-929804a",
+      "title": "Analyze commit 929804a and write checkpoint 026",
+      "commit": "929804a",
+      "subject": "D: 基础渲染第一版，材质设置，mesh设置，渲染pass，renderrecord结构，下一步实现简单mesh渲染，优化渲染架子。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/026_929804a.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-027-63b6ab1",
+      "title": "Analyze commit 63b6ab1 and write checkpoint 027",
+      "commit": "63b6ab1",
+      "subject": "D: 完成第一版渲染流程，屏幕显示，",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/027_63b6ab1.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-028-5479fec",
+      "title": "Analyze commit 5479fec and write checkpoint 028",
+      "commit": "5479fec",
+      "subject": "[Modify]: 修改一些Sturct和 Enum的位置，以及命名。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/028_5479fec.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-029-d8b4ef3",
+      "title": "Analyze commit d8b4ef3 and write checkpoint 029",
+      "commit": "d8b4ef3",
+      "subject": "D: 上传第一版FBOManager. 等待调整RenderAPI资源、剥离backbuffer和渲染RT",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/029_d8b4ef3.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-030-dd9bb4d",
+      "title": "Analyze commit dd9bb4d and write checkpoint 030",
+      "commit": "dd9bb4d",
+      "subject": "D： 第一版渲染管线架构完成， 后续需要优化pass组织结构， 以及添加一个合理的渲染循环。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/030_dd9bb4d.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-031-a5bf65f",
+      "title": "Analyze commit a5bf65f and write checkpoint 031",
+      "commit": "a5bf65f",
+      "subject": "[Modify]: 修改管线结构， Renderer类只负责执行renderpassAsset， 相机持有RenderPassAsset，便于多相机配置。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/031_a5bf65f.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-032-a1265f1",
+      "title": "Analyze commit a1265f1 and write checkpoint 032",
+      "commit": "a1265f1",
+      "subject": "D：调整渲染资产设置，改为相机配置， 改Desc配置方式为DescTable",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/032_a1265f1.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-033-bd4c9c1",
+      "title": "Analyze commit bd4c9c1 and write checkpoint 033",
+      "commit": "bd4c9c1",
+      "subject": "D：first version of renderpass， 包含Forward+finalblit， 贴图上传等功能。  sampler是否还没实现？",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/033_bd4c9c1.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-034-4a314e4",
+      "title": "Analyze commit 4a314e4 and write checkpoint 034",
+      "commit": "4a314e4",
+      "subject": "[Doc]: 更新资源初始化文档",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/034_4a314e4.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-035-0327649",
+      "title": "Analyze commit 0327649 and write checkpoint 035",
+      "commit": "0327649",
+      "subject": "[Doc]: 更新渲染流程、资源初始化流程、渲染API调度流程",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/035_0327649.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-036-34a5fa7",
+      "title": "Analyze commit 34a5fa7 and write checkpoint 036",
+      "commit": "34a5fa7",
+      "subject": "D：贴图功能上传， 修改ForwardPass -> OpaquePass",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/036_34a5fa7.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-037-158cd97",
+      "title": "Analyze commit 158cd97 and write checkpoint 037",
+      "commit": "158cd97",
+      "subject": "[doc]: 上传TextureBuffer 创建加载部分逻辑。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/037_158cd97.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-038-b6dc1ee",
+      "title": "Analyze commit b6dc1ee and write checkpoint 038",
+      "commit": "b6dc1ee",
+      "subject": "[doc]: 上传TextureBuffer 创建加载部分逻辑。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/038_b6dc1ee.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-039-2afb62d",
+      "title": "Analyze commit 2afb62d and write checkpoint 039",
+      "commit": "2afb62d",
+      "subject": "D:多线程渲染第一版提交，为GameObject创建 统一的InstanceID",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/039_2afb62d.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-040-a977b4a",
+      "title": "Analyze commit a977b4a and write checkpoint 040",
+      "commit": "a977b4a",
+      "subject": "D: 运行时创建PSO，并且缓存。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/040_a977b4a.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-041-d8563c9",
+      "title": "Analyze commit d8563c9 and write checkpoint 041",
+      "commit": "d8563c9",
+      "subject": "D: 第一版资源管理， Shader Texture Material Model用ResouceHandle记录生命周期，运行时创建也在ResourceManager中创建。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/041_d8563c9.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-042-2ef2586",
+      "title": "Analyze commit 2ef2586 and write checkpoint 042",
+      "commit": "2ef2586",
+      "subject": "D: FrameBufferObject的资源管理， 后续进行代码结构优化",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/042_2ef2586.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-043-7cfec69",
+      "title": "Analyze commit 7cfec69 and write checkpoint 043",
+      "commit": "7cfec69",
+      "subject": "D: FrameBufferObject的资源管理，统一FrameBufferObject和RenderTexture，用Buffer2D来表示。提供了抽象共性。将材质设置的接口统一。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/043_7cfec69.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-044-90aebd9",
+      "title": "Analyze commit 90aebd9 and write checkpoint 044",
+      "commit": "90aebd9",
+      "subject": "D: first version of Component system and camera component",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/044_90aebd9.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-045-7bbb048",
+      "title": "Analyze commit 7bbb048 and write checkpoint 045",
+      "commit": "7bbb048",
+      "subject": "D: 统一坐标系， 仿照Unity，全部改为左手坐标系，ViewSpace按照DX标准，正方向为相机指向屏幕内方向",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/045_7bbb048.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-046-1ec4b69",
+      "title": "Analyze commit 1ec4b69 and write checkpoint 046",
+      "commit": "1ec4b69",
+      "subject": "D：创建了一个GameObject带MeshRender和Filer的实体。 替换了object，实现了简单的Rotate算法  F：Lookat按照左手坐标系",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/046_1ec4b69.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-047-e5f1e32",
+      "title": "Analyze commit e5f1e32 and write checkpoint 047",
+      "commit": "e5f1e32",
+      "subject": "D: 第一版Scene、 SceneManager、Transform，剩下Quaaternion部分等待解决",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/047_e5f1e32.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-048-d3980ba",
+      "title": "Analyze commit d3980ba and write checkpoint 048",
+      "commit": "d3980ba",
+      "subject": "D: 防止工具中的exe和pdb被忽略上传",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/048_d3980ba.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-049-26e81aa",
+      "title": "Analyze commit 26e81aa and write checkpoint 049",
+      "commit": "26e81aa",
+      "subject": "F：修复ignore的bug导致需要 OBJ命名相关的内容无法被上传的问题",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/049_26e81aa.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-050-c8d7d98",
+      "title": "Analyze commit c8d7d98 and write checkpoint 050",
+      "commit": "c8d7d98",
+      "subject": "F：采样器没设置的bug，先回退到设置一个静态采样器的版本。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/050_c8d7d98.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-051-564ee35",
+      "title": "Analyze commit 564ee35 and write checkpoint 051",
+      "commit": "564ee35",
+      "subject": "D: 引入全局PathSettings，将绝对路径换成相对路径",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/051_564ee35.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-052-89fee5f",
+      "title": "Analyze commit 89fee5f and write checkpoint 052",
+      "commit": "89fee5f",
+      "subject": "D: 解决Resize问题， payload之后在帧尾处理Resize问题",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/052_89fee5f.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-053-145d65d",
+      "title": "Analyze commit 145d65d and write checkpoint 053",
+      "commit": "145d65d",
+      "subject": "D： EditorLayer用渲染线程直接组织、渲染。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/053_145d65d.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-054-7c25478",
+      "title": "Analyze commit 7c25478 and write checkpoint 054",
+      "commit": "7c25478",
+      "subject": "D：第一版EditorGUI基础组件， 等待后续调整视口大小。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/054_7c25478.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-055-464dd30",
+      "title": "Analyze commit 464dd30 and write checkpoint 055",
+      "commit": "464dd30",
+      "subject": "D: BaseGUI上传， 等待制作GUI逻辑，最主要是Hirarchy，以及Inspector里面修改的部分。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/055_464dd30.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-056-1ad67b1",
+      "title": "Analyze commit 1ad67b1 and write checkpoint 056",
+      "commit": "1ad67b1",
+      "subject": "D: 上传第一版EditorHierarchyPanel， 实现Inspector旋转，",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/056_1ad67b1.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-057-725f193",
+      "title": "Analyze commit 725f193 and write checkpoint 057",
+      "commit": "725f193",
+      "subject": "D: 添加Destory函数， 在退出时按照顺序关闭各个系统， 调整GetInstance为指针返回，更容易判断是否置空。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/057_725f193.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-058-10f1477",
+      "title": "Analyze commit 10f1477 and write checkpoint 058",
+      "commit": "10f1477",
+      "subject": "F： 删除Scene的时候， 应该在Scemanager做nullptr，而不是Scene中反调用",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/058_10f1477.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-059-c7d6d1b",
+      "title": "Analyze commit c7d6d1b and write checkpoint 059",
+      "commit": "c7d6d1b",
+      "subject": "F： 修复SissorRect导致绘制只有一部分的问题",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/059_c7d6d1b.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-060-94525b3",
+      "title": "Analyze commit 94525b3 and write checkpoint 060",
+      "commit": "94525b3",
+      "subject": "F: 修改visual studio 2022中不显示 .h 文件的bug， 添加json include",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/060_94525b3.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-061-12ecade",
+      "title": "Analyze commit 12ecade and write checkpoint 061",
+      "commit": "12ecade",
+      "subject": "D： first version of MetaLoader & MetaSaver， 下一步需要适配这个过程，目前还是有点问题。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/061_12ecade.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-062-647c0f3",
+      "title": "Analyze commit 647c0f3 and write checkpoint 062",
+      "commit": "647c0f3",
+      "subject": "D: 上传一版Meta文件， 开始重写加载部分",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/062_647c0f3.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-063-d3f9d6c",
+      "title": "Analyze commit d3f9d6c and write checkpoint 063",
+      "commit": "d3f9d6c",
+      "subject": "D: first version of Serilization and Deserialization",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/063_d3f9d6c.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-064-9ed5e27",
+      "title": "Analyze commit 9ed5e27 and write checkpoint 064",
+      "commit": "9ed5e27",
+      "subject": "D: 优化序列化和反序列化代码，Component类全走虚函数实现序列化反序列化",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/064_9ed5e27.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-065-2298871",
+      "title": "Analyze commit 2298871 and write checkpoint 065",
+      "commit": "2298871",
+      "subject": "D: 新增场景的反序列化和序列化， 资源的序列化和反序列化， 资源部分现在会判断此AssetID对应资源有无加载进来",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/065_2298871.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-066-1d12239",
+      "title": "Analyze commit 1d12239 and write checkpoint 066",
+      "commit": "1d12239",
+      "subject": "D：next step",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/066_1d12239.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-067-7eae5db",
+      "title": "Analyze commit 7eae5db and write checkpoint 067",
+      "commit": "7eae5db",
+      "subject": "D: 先上传一版本Frustum + 视锥代码，以及基础的视锥判断。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/067_7eae5db.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-068-95d51d9",
+      "title": "Analyze commit 95d51d9 and write checkpoint 068",
+      "commit": "95d51d9",
+      "subject": "D: 用space区分材质中PerFrame、PerMateiral等data，提供RenderUniform类，",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/068_95d51d9.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-069-6791655",
+      "title": "Analyze commit 6791655 and write checkpoint 069",
+      "commit": "6791655",
+      "subject": "D: 第一版MaterialPropertyBlock功能， 提供一个大的PerDrawBuffer来绘制，新增Instantiate方法，来创建一份材质拷贝。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/069_6791655.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-070-ba9b248",
+      "title": "Analyze commit ba9b248 and write checkpoint 070",
+      "commit": "ba9b248",
+      "subject": "D: 简化代码，只维护四个PerXXData，固定space和slot，不做泛化， 增加代码可读性。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/070_ba9b248.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-071-9207ed3",
+      "title": "Analyze commit 9207ed3 and write checkpoint 071",
+      "commit": "9207ed3",
+      "subject": "D：代码优化， 修改ConstantBuffe上传为固定SetGraphicsConstanBufferView",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/071_9207ed3.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-072-2500a63",
+      "title": "Analyze commit 2500a63 and write checkpoint 072",
+      "commit": "2500a63",
+      "subject": "D： 增加两个Payload来负责，perFrame和perPass数据更新的通信，",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/072_2500a63.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-073-c1a8928",
+      "title": "Analyze commit c1a8928 and write checkpoint 073",
+      "commit": "c1a8928",
+      "subject": "D：性能测试场景提交",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/073_c1a8928.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-074-ce90454",
+      "title": "Analyze commit ce90454 and write checkpoint 074",
+      "commit": "ce90454",
+      "subject": "D：上传第一版性能优化Profiler代码， 还需要解决闪烁问题",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/074_ce90454.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-075-22e215b",
+      "title": "Analyze commit 22e215b and write checkpoint 075",
+      "commit": "22e215b",
+      "subject": "D: 线程同步功能完成，整理不合理代码。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/075_22e215b.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-076-9fa8a56",
+      "title": "Analyze commit 9fa8a56 and write checkpoint 076",
+      "commit": "9fa8a56",
+      "subject": "D: 更新RenderState 统计数据， 目前可以看到具体的batch， drawcall，culling数量了。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/076_9fa8a56.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-077-8e884dd",
+      "title": "Analyze commit 8e884dd and write checkpoint 077",
+      "commit": "8e884dd",
+      "subject": "D: 视锥剔除第一版， 需要继续整理Transform更新和Bounds Update时机。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/077_8e884dd.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-078-abd71d9",
+      "title": "Analyze commit abd71d9 and write checkpoint 078",
+      "commit": "abd71d9",
+      "subject": "D: 重构RenderContext，参考Unity写法，还未做完， 加入排序接口+sortItem加速排序速度",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/078_abd71d9.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-079-787abcd",
+      "title": "Analyze commit 787abcd and write checkpoint 079",
+      "commit": "787abcd",
+      "subject": "D: first version of Large StructedBuffer，",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/079_787abcd.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-080-f1f2f22",
+      "title": "Analyze commit f1f2f22 and write checkpoint 080",
+      "commit": "f1f2f22",
+      "subject": "D: 第一版， All Object Data + Raw Material Buffer Data， 调整Material部分，重新整理RootSignature参数",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/080_f1f2f22.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-081-32aac28",
+      "title": "Analyze commit 32aac28 and write checkpoint 081",
+      "commit": "32aac28",
+      "subject": "D: 第一版PSO和RootSig优化， 减少RootSignature的绑定次数",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/081_32aac28.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-082-b5675bc",
+      "title": "Analyze commit b5675bc and write checkpoint 082",
+      "commit": "b5675bc",
+      "subject": "D: 第一版Batch， 通过PerFrameAllocator申请一个DrawIndirectList，进行instance绘制。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/082_b5675bc.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-083-9abd119",
+      "title": "Analyze commit 9abd119 and write checkpoint 083",
+      "commit": "9abd119",
+      "subject": "D: code clean + bug fix， 下一步开始做数据的统一",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/083_9abd119.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-084-3ebaa65",
+      "title": "Analyze commit 3ebaa65 and write checkpoint 084",
+      "commit": "3ebaa65",
+      "subject": "D: 优化逻辑结构，SceneUpdate部分，AOS结构组织数据，Component部分更新优化，将所有渲染需要的数据以Array形式保存在Scene中。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/084_3ebaa65.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-085-e63fa9a",
+      "title": "Analyze commit e63fa9a and write checkpoint 085",
+      "commit": "e63fa9a",
+      "subject": "D: 完成CPU端SOA的改造，去掉无用逻辑，更明确的更新、同步节点",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/085_e63fa9a.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-086-31b1b4c",
+      "title": "Analyze commit 31b1b4c and write checkpoint 086",
+      "commit": "31b1b4c",
+      "subject": "D: 修改渲染管线，继续梳理逻辑同步 -> 全场景脏更新 -> 脏数据同步逻辑",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/086_31b1b4c.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-087-ed8dc41",
+      "title": "Analyze commit ed8dc41 and write checkpoint 087",
+      "commit": "ed8dc41",
+      "subject": "D: 修改D3D12层， 拆分ShaderUtils， RootSig， PSO，减少RenderAPI部分逻辑。开始制作Culling管线",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/087_ed8dc41.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-088-8ceccba",
+      "title": "Analyze commit 8ceccba and write checkpoint 088",
+      "commit": "8ceccba",
+      "subject": "D: 第一版本IndirectDrawCall的数据准备， 归并GPUBUfferAllocator，创建BatchManager，初始化时计算出当前的Batch",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/088_8ceccba.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-089-1be5a8c",
+      "title": "Analyze commit 1be5a8c and write checkpoint 089",
+      "commit": "1be5a8c",
+      "subject": "D: 第一版本IndirectDrawCall的数据生成， 后续需要完成渲染部分代码。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/089_1be5a8c.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-090-9b6acce",
+      "title": "Analyze commit 9b6acce and write checkpoint 090",
+      "commit": "9b6acce",
+      "subject": "Revert \"D: 第一版本IndirectDrawCall的数据生成， 后续需要完成渲染部分代码。\"",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/090_9b6acce.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-091-b45bb0b",
+      "title": "Analyze commit b45bb0b and write checkpoint 091",
+      "commit": "b45bb0b",
+      "subject": "Reapply \"D: 第一版本IndirectDrawCall的数据生成， 后续需要完成渲染部分代码。\"",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/091_b45bb0b.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-092-369d3f5",
+      "title": "Analyze commit 369d3f5 and write checkpoint 092",
+      "commit": "369d3f5",
+      "subject": "D: 第一版本IndirectDrawCall的数据生成， 后续需要完成渲染部分代码。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/092_369d3f5.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-093-611e5a3",
+      "title": "Analyze commit 611e5a3 and write checkpoint 093",
+      "commit": "611e5a3",
+      "subject": "D: 第一版GPU Scene， Indirect DrawCall",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/093_611e5a3.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-094-069bfb0",
+      "title": "Analyze commit 069bfb0 and write checkpoint 094",
+      "commit": "069bfb0",
+      "subject": "Refactor: 开始重构渲染管线，1. 去掉和CommandSig绑定的Rootsig，转成push constant",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/094_069bfb0.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-095-942eab2",
+      "title": "Analyze commit 942eab2 and write checkpoint 095",
+      "commit": "942eab2",
+      "subject": "Refactor: 开始重构渲染管线，1. 统一Lagacy Render和GPUScene的buffer",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/095_942eab2.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-096-e2ca606",
+      "title": "Analyze commit e2ca606 and write checkpoint 096",
+      "commit": "e2ca606",
+      "subject": "Refactor: 调整结构， 将RenderInfo加入PerObjectData，减少一些绑定。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/096_e2ca606.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-097-5c64f09",
+      "title": "Analyze commit 5c64f09 and write checkpoint 097",
+      "commit": "5c64f09",
+      "subject": "Refactor: 支持Lagacy渲染管线， 主要思路就是将需要渲染的InstanceData从perFrameBuffer挪到 visibilitybuffer",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/097_5c64f09.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-098-0cbf13a",
+      "title": "Analyze commit 0cbf13a and write checkpoint 098",
+      "commit": "0cbf13a",
+      "subject": "D: 准备开始下一步计划，Bindless资源管理系统，首先准备改写Texture相关",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/098_0cbf13a.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-099-5b6624b",
+      "title": "Analyze commit 5b6624b and write checkpoint 099",
+      "commit": "5b6624b",
+      "subject": "D: 开始重构， 首先重构RenderPass/Renderer，将组织数据，发射渲染指令的能力还给RenderPass",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/099_5b6624b.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-100-2561687",
+      "title": "Analyze commit 2561687 and write checkpoint 100",
+      "commit": "2561687",
+      "subject": "D: 提交第一版 RenderTexture  texture的重构",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/100_2561687.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-101-0642139",
+      "title": "Analyze commit 0642139 and write checkpoint 101",
+      "commit": "0642139",
+      "subject": "D： 上传第一版识别代码",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/101_0642139.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-102-614e827",
+      "title": "Analyze commit 614e827 and write checkpoint 102",
+      "commit": "614e827",
+      "subject": "Update AI digest configuration and outputs",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/102_614e827.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-103-53778fa",
+      "title": "Analyze commit 53778fa and write checkpoint 103",
+      "commit": "53778fa",
+      "subject": "Merge pull request #2 from jerrysheen/codex/update-and-enhance-project-digest-files",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/103_53778fa.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-104-173cced",
+      "title": "Analyze commit 173cced and write checkpoint 104",
+      "commit": "173cced",
+      "subject": "D： bindless texture完成， 现在做一个新的场景来测试表现",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/104_173cced.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-105-68b097f",
+      "title": "Analyze commit 68b097f and write checkpoint 105",
+      "commit": "68b097f",
+      "subject": "D: 上传新的测试场景， 基本跑通gltf，性能需要优化， 主要是Batch不应该立马上传。加载速度应该优化，准备开始做下个阶段工作。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/105_68b097f.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-106-d165109",
+      "title": "Analyze commit d165109 and write checkpoint 106",
+      "commit": "d165109",
+      "subject": "D： 简单优化了下加载内存， 为什么这么大不清楚，这个结构其实非常适合做Vertex Pulling",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/106_d165109.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-107-9ed01bf",
+      "title": "Analyze commit 9ed01bf and write checkpoint 107",
+      "commit": "9ed01bf",
+      "subject": "D：优化lagacypath的渲染效率",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/107_9ed01bf.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-108-ac78cd0",
+      "title": "Analyze commit ac78cd0 and write checkpoint 108",
+      "commit": "ac78cd0",
+      "subject": "D：优化GPUSceneRenderPath，开始重构mesh",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/108_ac78cd0.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-109-fb6a0ff",
+      "title": "Analyze commit fb6a0ff and write checkpoint 109",
+      "commit": "fb6a0ff",
+      "subject": "D: 重构mesh类，优化mesh上传逻辑，统一上传mesh到大buffer中，生成allocation，绑定时用virtual gpu address",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/109_fb6a0ff.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-110-c31c5ef",
+      "title": "Analyze commit c31c5ef and write checkpoint 110",
+      "commit": "c31c5ef",
+      "subject": "docs： 更新AI生成文件",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/110_c31c5ef.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-111-c6a26f6",
+      "title": "Analyze commit c6a26f6 and write checkpoint 111",
+      "commit": "c6a26f6",
+      "subject": "D：针对static mesh，干掉CPU 拷贝",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/111_c6a26f6.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-112-d4c63b9",
+      "title": "Analyze commit d4c63b9 and write checkpoint 112",
+      "commit": "d4c63b9",
+      "subject": "Docs: code clean",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/112_d4c63b9.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-113-11f4c22",
+      "title": "Analyze commit 11f4c22 and write checkpoint 113",
+      "commit": "11f4c22",
+      "subject": "D: 完成第一版vertexPulling",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/113_11f4c22.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-114-55f612d",
+      "title": "Analyze commit 55f612d and write checkpoint 114",
+      "commit": "55f612d",
+      "subject": "D： 上传配置， 通过ProjectSettings设置当前走什么渲染路径， 注意，当前不支持 VertexPulling + LagacyRenderPath",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/114_55f612d.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-115-f933b74",
+      "title": "Analyze commit f933b74 and write checkpoint 115",
+      "commit": "f933b74",
+      "subject": "D: 简单优化，减少绑定次数， 后续做成一个Drawcall还是需要声明一个RootSignature给 DrawIndirectArgs",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/115_f933b74.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-116-a0910f2",
+      "title": "Analyze commit a0910f2 and write checkpoint 116",
+      "commit": "a0910f2",
+      "subject": "docs: 文档更新",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/116_a0910f2.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-117-4c4e9c5",
+      "title": "Analyze commit 4c4e9c5 and write checkpoint 117",
+      "commit": "4c4e9c5",
+      "subject": "F: typo fix",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/117_4c4e9c5.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-118-08a7c4e",
+      "title": "Analyze commit 08a7c4e and write checkpoint 118",
+      "commit": "08a7c4e",
+      "subject": "D: 简单的jobsystem",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/118_08a7c4e.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-119-625339d",
+      "title": "Analyze commit 625339d and write checkpoint 119",
+      "commit": "625339d",
+      "subject": "D： 场景序列化， 加速场景加载",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/119_625339d.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-120-170865a",
+      "title": "Analyze commit 170865a and write checkpoint 120",
+      "commit": "170865a",
+      "subject": "D: 上传一版拆分资源",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/120_170865a.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-121-bfdba41",
+      "title": "Analyze commit bfdba41 and write checkpoint 121",
+      "commit": "bfdba41",
+      "subject": "F: GPUScene中， dirty更新的逻辑修正， index问题",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/121_bfdba41.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-122-bf7e166",
+      "title": "Analyze commit bf7e166 and write checkpoint 122",
+      "commit": "bf7e166",
+      "subject": "D： 第一版资源异步加载， 剩下GPUScene下需要调通，整体上层架构还是乱， 然后去掉meta ，纯编辑器下， 然后加入texture加载",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/122_bf7e166.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-123-8cb2b8d",
+      "title": "Analyze commit 8cb2b8d and write checkpoint 123",
+      "commit": "8cb2b8d",
+      "subject": "D：解决ResourceManager，异步加载的bug， 工作线程访问的所有数据， 都要保证线程安全",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/123_8cb2b8d.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-124-39c5b18",
+      "title": "Analyze commit 39c5b18 and write checkpoint 124",
+      "commit": "39c5b18",
+      "subject": "Docs：更新AI提示代码",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/124_39c5b18.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-125-36a2a0d",
+      "title": "Analyze commit 36a2a0d and write checkpoint 125",
+      "commit": "36a2a0d",
+      "subject": "D: 完成第一版DDS贴图加载， 后面需要做非阻塞上传",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/125_36a2a0d.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-126-3c5d300",
+      "title": "Analyze commit 3c5d300 and write checkpoint 126",
+      "commit": "3c5d300",
+      "subject": "F： 修复一个 资源加载错误， 我们已经自动在ResourceManage中做了OnLoadComplete，外部如果再调用， 会出错。 当然这个地方值得保护一下。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/126_3c5d300.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-127-32bfc86",
+      "title": "Analyze commit 32bfc86 and write checkpoint 127",
+      "commit": "32bfc86",
+      "subject": "D： 干掉MetaData序列化， 后续用二进制， LoadAsset现在结构也不对。应该都用Loader来加载。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/127_32bfc86.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-128-de57eda",
+      "title": "Analyze commit de57eda and write checkpoint 128",
+      "commit": "de57eda",
+      "subject": "D： 增加Material System的描述",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/128_de57eda.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-129-1618591",
+      "title": "Analyze commit 1618591 and write checkpoint 129",
+      "commit": "1618591",
+      "subject": "D：codex cli部署， ai文档更新",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/129_1618591.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-130-9b7237b",
+      "title": "Analyze commit 9b7237b and write checkpoint 130",
+      "commit": "9b7237b",
+      "subject": "D: 第一版序列化重构， 将ResourceManager写为 Loader形式，二进制序列化加载",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/130_9b7237b.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-131-44eacef",
+      "title": "Analyze commit 44eacef and write checkpoint 131",
+      "commit": "44eacef",
+      "subject": "Docs：同步ai文档",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/131_44eacef.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-132-ad6015c",
+      "title": "Analyze commit ad6015c and write checkpoint 132",
+      "commit": "ad6015c",
+      "subject": "D: 完成第一版资源异步加载， 主线程加载Scene， work线程加载材质、贴图、 剥离ResourceRef和资源。  统一状态机调用LoadAsync和 LoadSync",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/132_ad6015c.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-133-4a1efa0",
+      "title": "Analyze commit 4a1efa0 and write checkpoint 133",
+      "commit": "4a1efa0",
+      "subject": "D: 增加法线输入， 准备开始PBR",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/133_4a1efa0.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-134-d4bab1b",
+      "title": "Analyze commit d4bab1b and write checkpoint 134",
+      "commit": "d4bab1b",
+      "subject": "D： 修复MeshRenderer 没有更新PermaterialData的问题， 修复高光不足的问题",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/134_d4bab1b.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-135-5a33220",
+      "title": "Analyze commit 5a33220 and write checkpoint 135",
+      "commit": "5a33220",
+      "subject": "D: 修复ADDRef DecreaseRef的bug， 不在DecreseRef中删除资源，而是在资源Finalized完毕后判断是否需要卸载。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/135_5a33220.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-136-8f7ea5a",
+      "title": "Analyze commit 8f7ea5a and write checkpoint 136",
+      "commit": "8f7ea5a",
+      "subject": "Docs：文档更新，后续开始做多帧单队列+ 场景update合理化。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/136_8f7ea5a.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-137-fac71e1",
+      "title": "Analyze commit fac71e1 and write checkpoint 137",
+      "commit": "fac71e1",
+      "subject": "Docs: 资源加载系统文档",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/137_fac71e1.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-138-5eb08ad",
+      "title": "Analyze commit 5eb08ad and write checkpoint 138",
+      "commit": "5eb08ad",
+      "subject": "D：上传第一版Scene重构结构，分离脚本层Scene，CPU端Scene和GPU端SCene， 更新设置统一时序，每一层不耦合，",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/138_5eb08ad.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-139-457b2e5",
+      "title": "Analyze commit 457b2e5 and write checkpoint 139",
+      "commit": "457b2e5",
+      "subject": "Docs: 上传更新AI文档",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/139_457b2e5.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-140-d027e62",
+      "title": "Analyze commit d027e62 and write checkpoint 140",
+      "commit": "d027e62",
+      "subject": "D: 修复bug 1. GUI从渲染线程挪到主线程，避免Transform等改动导致的线程问题。 2. 修改GPUScene的同步bug",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/140_d027e62.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-141-da952cc",
+      "title": "Analyze commit da952cc and write checkpoint 141",
+      "commit": "da952cc",
+      "subject": "D： 基本跑通LagacyRenderPath主要修改为渲染提交时序问题修复：",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/141_da952cc.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-142-e15989c",
+      "title": "Analyze commit e15989c and write checkpoint 142",
+      "commit": "e15989c",
+      "subject": "D: LagacyPath优化， 增加材质MaterialStateCache， 判断是否需要重复绑定。",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/142_e15989c.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-143-6639517",
+      "title": "Analyze commit 6639517 and write checkpoint 143",
+      "commit": "6639517",
+      "subject": "BugFix: 首帧优化，解决Scene加载在第0帧， 而默认执行第一帧的问题",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/143_6639517.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-144-9aae040",
+      "title": "Analyze commit 9aae040 and write checkpoint 144",
+      "commit": "9aae040",
+      "subject": "BugFix：typo fix",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/144_9aae040.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-145-dcc1abe",
+      "title": "Analyze commit dcc1abe and write checkpoint 145",
+      "commit": "dcc1abe",
+      "subject": "Docs: 文档更新",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/145_dcc1abe.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-146-c5d2259",
+      "title": "Analyze commit c5d2259 and write checkpoint 146",
+      "commit": "c5d2259",
+      "subject": "Docs: AI文档更新， 删除没用到的类",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/146_c5d2259.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-147-3771cdd",
+      "title": "Analyze commit 3771cdd and write checkpoint 147",
+      "commit": "3771cdd",
+      "subject": "D: 优化一帧的Tick逻辑， 优化掉等待的部分，",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/147_3771cdd.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-148-42b7254",
+      "title": "Analyze commit 42b7254 and write checkpoint 148",
+      "commit": "42b7254",
+      "subject": "D： 优化帧结构， 首先优化SCSP->无锁队列，去掉cv等待换成原子操作",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/148_42b7254.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-149-857fb25",
+      "title": "Reuse existing checkpoint for commit 857fb25",
+      "commit": "857fb25",
+      "subject": "BugFix: 目前EditorCmdalloc的reset之前没有判断fence是否执行完， 修复",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/30_857fb25.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-150-a784a00",
+      "title": "Reuse existing checkpoint for commit a784a00",
+      "commit": "a784a00",
+      "subject": "D: 开始修改Tick一帧的代码流程，降低耦合，明确命名",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/29_a784a00.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-151-8020497",
+      "title": "Reuse existing checkpoint for commit 8020497",
+      "commit": "8020497",
+      "subject": "D: FrameContext第一版本重构，固定Persistant数据在GPUScene中，用UploadBufferPool来做每帧的数据上传",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/28_8020497.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-152-4a8aaa3",
+      "title": "Reuse existing checkpoint for commit 4a8aaa3",
+      "commit": "4a8aaa3",
+      "subject": "D: 去掉不需要的FrameContext",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/27_4a8aaa3.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-153-0a06e52",
+      "title": "Reuse existing checkpoint for commit 0a06e52",
+      "commit": "0a06e52",
+      "subject": "Docs：更新ai文档",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/26_0a06e52.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-154-0bfad4c",
+      "title": "Reuse existing checkpoint for commit 0bfad4c",
+      "commit": "0bfad4c",
+      "subject": "D: 第一版本 GPUScene， 剩下贴图绑定部分",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/25_0bfad4c.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-155-99beff2",
+      "title": "Reuse existing checkpoint for commit 99beff2",
+      "commit": "99beff2",
+      "subject": "D： 第一版本Bindless调通，后续有位置问题需要修复。",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/24_99beff2.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-156-41d4454",
+      "title": "Reuse existing checkpoint for commit 41d4454",
+      "commit": "41d4454",
+      "subject": "F： 修复 部分资源异步加载的问题， 主要问题在于SceneUpdate的时间落后，导致ResourceManager下一帧立即Ondirty的东西， 加入的时候会被忽略。",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/23_41d4454.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-157-cbc20e9",
+      "title": "Reuse existing checkpoint for commit cbc20e9",
+      "commit": "cbc20e9",
+      "subject": "D： 解决GPUScene+ bindless下shader对应问题， 先不走这条路径",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/22_cbc20e9.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-158-c8ffe31",
+      "title": "Reuse existing checkpoint for commit c8ffe31",
+      "commit": "c8ffe31",
+      "subject": "D: RenderBackEnd加入Staged Buffer， 提供上传功能， 干掉UploadBuffer的上传功能。",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/21_c8ffe31.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-159-d476846",
+      "title": "Reuse existing checkpoint for commit d476846",
+      "commit": "d476846",
+      "subject": "[engine]D: 修复Computershader 的setbuffer问题， 理论上shader也有",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/20_d476846.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-160-896d939",
+      "title": "Reuse existing checkpoint for commit 896d939",
+      "commit": "896d939",
+      "subject": "Refactor： 优化Batch， 首先整体做一个排序，减少状态切换， 修复ResourceManager中的一个依赖加载问题。",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/19_896d939.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-161-9e57ba2",
+      "title": "Reuse existing checkpoint for commit 9e57ba2",
+      "commit": "9e57ba2",
+      "subject": "[engine]D: 将PerBatch Visibility Index 加入到IndirectDrawArgs里面。少一次状态设置。",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/18_9e57ba2.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-162-be3f71f",
+      "title": "Reuse existing checkpoint for commit be3f71f",
+      "commit": "be3f71f",
+      "subject": "D: 代码优化， 将多帧数据用一个PerFrameBufferRing来替代。",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/17_be3f71f.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-163-5e23ed9",
+      "title": "Reuse existing checkpoint for commit 5e23ed9",
+      "commit": "5e23ed9",
+      "subject": "D: 上传第一版GPUSceneCombinePass， 形成致密Drawcall，准备开始做HIZ",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/16_5e23ed9.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-164-8933733",
+      "title": "Reuse existing checkpoint for commit 8933733",
+      "commit": "8933733",
+      "subject": "Docs：挪已经完成的内容， 准备开始做HIZ",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/15_8933733.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-165-7c28f9a",
+      "title": "Reuse existing checkpoint for commit 7c28f9a",
+      "commit": "7c28f9a",
+      "subject": "D：根据Graphify更新ai描述文件",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/14_7c28f9a.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-166-96b712c",
+      "title": "Reuse existing checkpoint for commit 96b712c",
+      "commit": "96b712c",
+      "subject": "D：加入claude",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/13_96b712c.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-167-486ce17",
+      "title": "Reuse existing checkpoint for commit 486ce17",
+      "commit": "486ce17",
+      "subject": "D：添加gitignore graphify",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/12_486ce17.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-168-39b8a3f",
+      "title": "Reuse existing checkpoint for commit 39b8a3f",
+      "commit": "39b8a3f",
+      "subject": "D： 重构RenderTexture创建， Shader 反射， rootsig创建和绑定， compute payload",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/11_39b8a3f.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-169-32c8bdd",
+      "title": "Reuse existing checkpoint for commit 32c8bdd",
+      "commit": "32c8bdd",
+      "subject": "D： 重构RenderTexture创建， Shader 反射， rootsig创建和绑定， compute payload",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/10_32c8bdd.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-170-c239f1e",
+      "title": "Reuse existing checkpoint for commit c239f1e",
+      "commit": "c239f1e",
+      "subject": "D: 修复UAV的绑定问题， 包括shader可见性以及正确的槽位绑定， 增加blitCSShader",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/09_c239f1e.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-171-f952ce2",
+      "title": "Reuse existing checkpoint for commit f952ce2",
+      "commit": "f952ce2",
+      "subject": "D:  配置工程ReverseZ + sampler器按照名字创建",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/08_f952ce2.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-172-9bffe37",
+      "title": "Reuse existing checkpoint for commit 9bffe37",
+      "commit": "9bffe37",
+      "subject": "D： 增加相关基建， 主要是 sampler + rwTexture+ texture 加入 rootsig hash， 加入UAV barriar",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/07_9bffe37.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-173-7dcdff4",
+      "title": "Reuse existing checkpoint for commit 7dcdff4",
+      "commit": "7dcdff4",
+      "subject": "D：退出析构问题优化",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/06_7dcdff4.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-174-874193c",
+      "title": "Reuse existing checkpoint for commit 874193c",
+      "commit": "874193c",
+      "subject": "D： 修复RenderDoc下不能回放的问题和偶尔崩溃的问题，",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/05_874193c.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-175-542daba",
+      "title": "Reuse existing checkpoint for commit 542daba",
+      "commit": "542daba",
+      "subject": "D： 加固基建， 增加GUI自己的fence，增加GPU validation",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/04_542daba.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-176-9be4254",
+      "title": "Reuse existing checkpoint for commit 9be4254",
+      "commit": "9be4254",
+      "subject": "D: RenderDoc回放除错， 根因还是在于资源状态问题， 尤其是UAV这种， 一定要有显式的barriar来控制前后顺序关系， 不然极有可能出问题。 同时控制了Load 资源的大小， 防止4k图导致GPU本来压力过大， renderdoc一截就炸了",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/03_9be4254.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-177-37b5a60",
+      "title": "Reuse existing checkpoint for commit 37b5a60",
+      "commit": "37b5a60",
+      "subject": "D：继续尝试回放除错， 优化blit采样， 优化perframeallocator被错误清除，优化RootSig创建bug",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/02_37b5a60.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-178-ff98ffc",
+      "title": "Reuse existing checkpoint for commit ff98ffc",
+      "commit": "ff98ffc",
+      "subject": "D: add RenderDoc submodule and replay notes",
+      "acceptance": {
+        "type": "files_exist",
+        "files": [
+          "_ai/runs/analyze-recent-30-commits/evidence/checkpoints/01_ff98ffc.md"
+        ]
+      }
+    },
+    {
+      "id": "checkpoint-179-ea17977",
+      "title": "Analyze commit ea17977 and write checkpoint 179",
+      "commit": "ea17977",
+      "subject": "D：测试Harneess编程能力",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/checkpoints/179_ea17977.md"
+        ]
+      }
+    },
+    {
+      "id": "full-summary",
+      "title": "Write full-history summary and likely error clusters",
+      "acceptance": {
+        "type": "changed_files",
+        "files": [
+          "_ai/runs/analyze-all-commits/evidence/full-summary.md"
+        ]
+      }
+    }
+  ]
+}
