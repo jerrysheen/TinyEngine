@@ -15,10 +15,13 @@ cbuffer CullingParams : register(b0)
     // 视锥体的6个面：Left, Right, Bottom, Top, Near, Far
     // 这里的 float4 存储平面方程: Ax + By + Cz + D = 0
     // xyz 为法线(指向视锥体内侧), w 为距离 D
-    float4 g_FrustumPlanes[6]; 
-    
+    float4 g_FrustumPlanes[6];
+    float4x4 g_ViewProjection;
     // 需要剔除的实例总数
-    uint g_TotalInstanceCount; 
+    uint g_TotalInstanceCount;
+    uint g_EnableHiZCulling;
+    float2 g_CullingPadding;
+
 };
 
 struct IndirectDrawCallArgs
@@ -56,14 +59,127 @@ struct PerObjectData
 
 // 输入：所有物体的 AABB 数据 (SRV)
 //StructuredBuffer<AABB> g_InputAABBs : register(t0);
-StructuredBuffer<AABB> g_InputAABBs : register(t0);
-StructuredBuffer<RenderProxy> g_RenderProxies : register(t1);
-StructuredBuffer<PerObjectData> g_InputPerObjectDatas : register(t2);
+StructuredBuffer<AABB> g_InputAABBs : register(t0, space0);
+StructuredBuffer<RenderProxy> g_RenderProxies : register(t1, space0);
+StructuredBuffer<PerObjectData> g_InputPerObjectDatas : register(t2, space0);
+Texture2D<Float> g_HiZTexture : register(t0, space1);
 
 // 输出：可见物体的索引列表 (UAV)
 // 我们将可见的 Instance ID 存入这个 AppendBuffer
 RWStructuredBuffer<uint> g_VisibleInstanceIndices : register(u0);
 RWStructuredBuffer<IndirectDrawCallArgs> g_IndirectDrawCallArgs : register(u1); // 手动传入一个计数器 buffer
+
+// ==========================================
+// 辅助函数：HIZ 判断是否被遮挡
+// ==========================================
+  static const float2 g_ScreenSize = float2(1920.0, 1080.0);
+
+  float3 GetAABBCorner(AABB box, uint cornerIndex)
+  {
+      return float3(
+          (cornerIndex & 1) ? box.Max.x : box.Min.x,
+          (cornerIndex & 2) ? box.Max.y : box.Min.y,
+          (cornerIndex & 4) ? box.Max.z : box.Min.z
+      );
+  }
+
+  bool PassHizCulling(AABB box)
+  {
+      if (g_EnableHiZCulling == 0)
+      {
+          return true;
+      }
+
+      const float minRectSizePx = 2.0;
+      const float depthBias = 1e-3;
+      const uint maxConservativeMip = 6;
+
+      float2 ndcMin = float2( 1.0,  1.0);
+      float2 ndcMax = float2(-1.0, -1.0);
+
+      // REVERSE_Z 下最近处应取最大 depth
+      float nearestDepth = 0.0;
+
+      [unroll]
+      for (uint i = 0; i < 8; ++i)
+      {
+          float3 cornerWS = GetAABBCorner(box, i);
+          float4 worldPos = float4(cornerWS, 1.0);
+          float4 clip = mul(worldPos, g_ViewProjection);
+
+          // 在近平面后面，第一版直接放弃 Hi-Z 剔除
+          if (clip.w <= 0.0)
+          {
+              return true;
+          }
+
+          float3 ndc = clip.xyz / clip.w;
+
+          ndcMin = min(ndcMin, ndc.xy);
+          ndcMax = max(ndcMax, ndc.xy);
+
+          nearestDepth = max(nearestDepth, ndc.z);
+      }
+
+      // 完全在屏幕外，不交给 Hi-Z，交给 frustum 那边处理
+      if (ndcMax.x < -1.0 || ndcMin.x > 1.0 || ndcMax.y < -1.0 || ndcMin.y > 1.0)
+      {
+          return true;
+      }
+
+      float2 uvMin = saturate(ndcMin * 0.5 + 0.5);
+      float2 uvMax = saturate(ndcMax * 0.5 + 0.5);
+
+      float2 rectSizePx = (uvMax - uvMin) * g_ScreenSize;
+      float maxDim = max(rectSizePx.x, rectSizePx.y);
+      if (maxDim <= minRectSizePx)
+      {
+          return true;
+      }
+
+      float mip = max(0.0, ceil(log2(max(maxDim, 1.0) / 2.0)));
+      uint mipLevel = (uint)mip;
+
+      uint texWidth, texHeight, mipCount;
+      g_HiZTexture.GetDimensions(0, texWidth, texHeight, mipCount);
+      mipLevel = min(mipLevel, mipCount - 1);
+      mipLevel = min(mipLevel, maxConservativeMip);
+
+      uint mipWidth = max(1u, texWidth >> mipLevel);
+      uint mipHeight = max(1u, texHeight >> mipLevel);
+
+      float2 mipMinF = uvMin * float2(mipWidth, mipHeight);
+      float2 mipMaxF = uvMax * float2(mipWidth, mipHeight);
+
+      uint2 p0 = uint2(clamp((int)floor(mipMinF.x), 0, (int)mipWidth - 1),
+                       clamp((int)floor(mipMinF.y), 0, (int)mipHeight - 1));
+
+      uint2 p1 = uint2(clamp((int)floor(mipMaxF.x), 0, (int)mipWidth - 1),
+                       clamp((int)floor(mipMinF.y), 0, (int)mipHeight - 1));
+
+      uint2 p2 = uint2(clamp((int)floor(mipMinF.x), 0, (int)mipWidth - 1),
+                       clamp((int)floor(mipMaxF.y), 0, (int)mipHeight - 1));
+
+      uint2 p3 = uint2(clamp((int)floor(mipMaxF.x), 0, (int)mipWidth - 1),
+                       clamp((int)floor(mipMaxF.y), 0, (int)mipHeight - 1));
+
+      float h0 = g_HiZTexture.Load(int3(p0, mipLevel));
+      float h1 = g_HiZTexture.Load(int3(p1, mipLevel));
+      float h2 = g_HiZTexture.Load(int3(p2, mipLevel));
+      float h3 = g_HiZTexture.Load(int3(p3, mipLevel));
+
+      // REVERSE_Z + min Hi-Z
+      float hizDepth = min(min(h0, h1), min(h2, h3));
+
+      // 物体最近处都比已见深度更远，说明被遮挡
+      if (nearestDepth < hizDepth - depthBias)
+      {
+          return false;
+      }
+
+      return true;
+  }
+
 
 // ==========================================
 // 辅助函数：AABB vs Frustum 测试
@@ -118,7 +234,7 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     uint proxyCount = g_InputPerObjectDatas[instanceIndex].renderProxyCount;
     if(proxyCount == 0) return; 
     uint batchID = g_RenderProxies[proxyOffset].batchID;
-
+    if (!PassHizCulling(box)) return;
     // 3. 执行剔除测试
     if (IsVisible(box))
     {

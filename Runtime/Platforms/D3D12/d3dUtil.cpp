@@ -424,6 +424,7 @@ DXGI_FORMAT d3dUtil::GetResourceFormat(const EngineCore::TextureFormat& format)
         case EngineCore::TextureFormat::R8G8B8A8: return DXGI_FORMAT_R8G8B8A8_UNORM;
         case EngineCore::TextureFormat::R16Float: return DXGI_FORMAT_R16_FLOAT;
         case EngineCore::TextureFormat::D24S8: return DXGI_FORMAT_R24G8_TYPELESS; // 深度设置为typeless，方便DSV/SRV用不同的格式。
+        case EngineCore::TextureFormat::D32S8: return DXGI_FORMAT_R32G8X24_TYPELESS; // 深度设置为typeless，方便DSV/SRV用不同的格式。
         case EngineCore::TextureFormat::DXT1: return DXGI_FORMAT_BC1_UNORM;
         case EngineCore::TextureFormat::DXT5: return DXGI_FORMAT_BC3_UNORM;
         case EngineCore::TextureFormat::BC7: return DXGI_FORMAT_BC7_UNORM;

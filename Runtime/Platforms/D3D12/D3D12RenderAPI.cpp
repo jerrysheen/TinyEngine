@@ -173,7 +173,6 @@ namespace EngineCore
 #else
         optClear.DepthStencil.Depth = 1.0f;
 #endif
-        optClear.DepthStencil.Depth = 1.0f;
         optClear.DepthStencil.Stencil = 0;
         ThrowIfFailed(md3dDevice->CreateCommittedResource(
             &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
@@ -302,7 +301,7 @@ namespace EngineCore
 
         ComPtr<ID3D12RootSignature> indirectRootSig =
             D3D12RootSignature::GetOrCreateGPUSceneGraphicsRootSig(md3dDevice);
-        ThrowIfFailed(md3dDevice->CreateCommandSignature(&commandSignatureDesc, indirectRootSig.Get(), IID_PPV_ARGS(&mCommandSignature)));
+        ThrowIfFailed(md3dDevice->CreateCommandSignature(&commandSignatureDesc, indirectRootSig.Get(), IID_PPV_ARGS(&mIndirectOpaqueCommandSignature)));
     
     }
     
@@ -524,7 +523,7 @@ namespace EngineCore
         }
 
         D3D12_CLEAR_VALUE clearValue = {};
-        if (textureDesc.format == TextureFormat::D24S8)
+        if (textureDesc.format == TextureFormat::D24S8 || textureDesc.format == TextureFormat::D32S8)
         {
             clearValue.Format = d3dUtil::GetDSVFormat(textureDesc.format);
 #ifdef REVERSE_Z
@@ -893,6 +892,7 @@ namespace EngineCore
             case TextureFormat::BC7 : return DXGI_FORMAT_BC7_UNORM;  
             case TextureFormat::BC7_SRGB : return DXGI_FORMAT_BC7_UNORM_SRGB;
             case TextureFormat::D24S8: return DXGI_FORMAT_D24_UNORM_S8_UINT;
+            case TextureFormat::D32S8: return DXGI_FORMAT_R32G8X24_TYPELESS;
             default: ASSERT(false); return DXGI_FORMAT_D24_UNORM_S8_UINT;
         }
     }
@@ -1620,7 +1620,7 @@ namespace EngineCore
         uint32_t stride = sizeof(IndirectDrawSource);
         //mCommandList->SetGraphicsRoot32BitConstants((UINT)RootSigSlot::DrawIndiceConstant, 1, &drawIndirect.startIndexInInstanceDataBuffer, 0);
         mCommandList->ExecuteIndirect(
-            mCommandSignature.Get(),
+            mIndirectOpaqueCommandSignature.Get(),
             1000,   // 绘制几个
             static_cast<ID3D12Resource*>(argsBuffer->GetNativeHandle()),
             0,  // 从哪个offset 开始，按照byte算

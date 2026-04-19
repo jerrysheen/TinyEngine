@@ -153,6 +153,7 @@ public:
     static DXGI_FORMAT GetDSVFormat(const EngineCore::TextureFormat format) {
         switch (format) {
             case EngineCore::TextureFormat::D24S8: return DXGI_FORMAT_D24_UNORM_S8_UINT;
+            case EngineCore::TextureFormat::D32S8: return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
             default: ASSERT(false); return DXGI_FORMAT_UNKNOWN;
         }
     }
@@ -161,6 +162,7 @@ public:
     static DXGI_FORMAT GetSRVFormat(const EngineCore::TextureFormat format) {
         switch (format) {
             case EngineCore::TextureFormat::D24S8: return DXGI_FORMAT_R24_UNORM_X8_TYPELESS; // 深度转成无类型SRV读深度值
+            case EngineCore::TextureFormat::D32S8: return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; // 深度转成无类型SRV读深度值
             default: return GetResourceFormat(format);
         }
     }

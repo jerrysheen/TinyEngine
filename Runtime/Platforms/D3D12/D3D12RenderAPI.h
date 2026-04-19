@@ -216,7 +216,7 @@ namespace EngineCore
 
         //unordered_map<uint32_t, TD3D12MaterialData> m_DataMap;
         vector<ComPtr<ID3D12RootSignature>> mRootSignatureList;
-        ComPtr<ID3D12CommandSignature> mCommandSignature;
+        ComPtr<ID3D12CommandSignature> mIndirectOpaqueCommandSignature;
 
         unordered_map<uint32_t, TD3D12ConstantBuffer> mGlobalConstantBufferMap;
 

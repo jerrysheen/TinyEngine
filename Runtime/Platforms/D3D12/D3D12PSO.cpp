@@ -31,10 +31,10 @@ namespace EngineCore
 
         psoDesc.RTVFormats[0] = pso.desc.colorAttachment == TextureFormat::EMPTY 
                             ? DXGI_FORMAT_UNKNOWN 
-                            : DXGI_FORMAT_R8G8B8A8_UNORM; 
+                            : d3dUtil::GetSRVFormat(pso.desc.colorAttachment);
         psoDesc.DSVFormat = pso.desc.depthAttachment == TextureFormat::EMPTY
                             ? DXGI_FORMAT_UNKNOWN
-                            : DXGI_FORMAT_D24_UNORM_S8_UINT;
+                            : d3dUtil::GetDSVFormat(pso.desc.depthAttachment);
 
         // 创建PSO
         ComPtr<ID3D12PipelineState> d3d12Pso;

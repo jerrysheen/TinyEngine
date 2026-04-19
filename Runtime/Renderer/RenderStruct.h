@@ -107,7 +107,11 @@ namespace EngineCore
     struct alignas(16) GPUCullingParam 
     {
         Frustum frustum;
+        Matrix4x4 viewProjectionMatrix;
         uint32_t totalItem;
+        uint32_t enableHiZCulling;
+        uint32_t padding0 = 0;
+        uint32_t padding1 = 0;
     };
 
     struct IndirectDrawSource

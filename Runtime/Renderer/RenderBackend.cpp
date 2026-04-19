@@ -117,7 +117,8 @@ namespace EngineCore
         PSODesc pso;
         
         pso.colorAttachment = passinfo.colorAttachment ? TextureFormat::R8G8B8A8 : TextureFormat::EMPTY;
-        pso.depthAttachment = passinfo.depthAttachment ? TextureFormat::D24S8 : TextureFormat::EMPTY;
+        // todo： D32S8不能写死
+        pso.depthAttachment = passinfo.depthAttachment ? TextureFormat::D32S8 : TextureFormat::EMPTY;
         pso.matRenderState = mat->GetMaterialRenderState();
         temp.data.setRenderState.psoDesc = pso;
         

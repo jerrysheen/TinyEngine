@@ -13,7 +13,7 @@
 namespace EngineCore
 {
     Camera::Camera(GameObject* go) : 
-        mFov(25.0f), mAspect(1920.0f/1080.0f), mNear(0.2), mFar(400), mProjectionMatrix(Matrix4x4::Identity), mLookAt(Vector3{0.0f, 1.0f, 0.0f}), mViewMatrix(Matrix4x4::Identity), mWidth(1920.0f), mHeight(1080.0f)
+        mFov(25.0f), mAspect(1920.0f/1080.0f), mNear(1), mFar(400), mProjectionMatrix(Matrix4x4::Identity), mLookAt(Vector3{0.0f, 1.0f, 0.0f}), mViewMatrix(Matrix4x4::Identity), mWidth(1920.0f), mHeight(1080.0f)
     {
         gameObject = go;
         // fake one.
@@ -41,7 +41,7 @@ namespace EngineCore
         depthAttachmentDesc.dimension = TextureDimension::TEXTURE2D;
         depthAttachmentDesc.width = 1920;
         depthAttachmentDesc.height = 1080;
-        depthAttachmentDesc.format = TextureFormat::D24S8;
+        depthAttachmentDesc.format = TextureFormat::D32S8;
         depthAttachmentDesc.texUsage = TextureUsage::DepthStencil | TextureUsage::ShaderResource;
         depthAttachment = new RenderTexture(depthAttachmentDesc);
         

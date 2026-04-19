@@ -15,6 +15,7 @@ namespace EngineCore
     {
         R8G8B8A8,
         D24S8,
+        D32S8,
         R16Float,
         EMPTY,
         DXT1, 

@@ -143,12 +143,12 @@ namespace EngineCore
             mLoadThread.join();
         }
 
-        for(auto [key, value] : mLoadTaskCache)
+        for (auto [key, value] : mResourceCache)
         {
             delete value;
         }
 
-        for(auto [key, value] : mResourceCache)
+        for(auto [key, value] : mLoadTaskCache)
         {
             delete value;
         }
